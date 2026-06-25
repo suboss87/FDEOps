@@ -46,7 +46,7 @@ Works with **Claude Code** · **Cursor** · **Copilot** · **Devin** · **Gemini
 | **Consultant or contractor at a client site** | Every session, you re-explain context. fdeops remembers for you. |
 | **Solutions architect bridging strategy and code** | You navigate politics AND architecture. fdeops has methods for both. |
 | **Agency engineer running 3-5 clients** | Client details blur together. One `.fde/` per customer, never cross-contaminated. |
-| **Forward Deployed Engineer** | The role this was built for. 34 skills across the full engagement lifecycle. |
+| **Forward Deployed Engineer** | The role this was built for. 35 skills across the full engagement lifecycle. |
 | **Technical founder doing client work solo** | You ARE the team. The agent becomes your second brain. |
 | **Enterprise programme lead** | Leading AI transformations? Built-in methods for model selection, agent safety, governance, and cost management. |
 
@@ -140,7 +140,7 @@ Each adapter points at the same `@fde` skill, so the methodology and memory stay
 
 ---
 
-## The 6 domains - 34 skills + 5 overlays
+## The 6 domains - 35 skills + 5 overlays
 
 | Domain | Skills | What it covers |
 |--------|--------|---------------|

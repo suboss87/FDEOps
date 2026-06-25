@@ -1,6 +1,6 @@
 ---
 name: fde
-description: The operating system for Forward Deployed Engineers. 34 skills across 6 domains - from first meeting to final handoff. Tell it your situation, it routes to the right skill, does the work, and the engagement memory writes itself.
+description: The operating system for Forward Deployed Engineers. 35 skills across 6 domains - from first meeting to final handoff. Tell it your situation, it routes to the right skill, does the work, and the engagement memory writes itself.
 ---
 
 # @fde
@@ -14,7 +14,7 @@ When this skill says "ask the FDE," it means the human. When it says "write to `
 
 ## Purpose
 
-The single entry point for an entire client engagement - 34 skills across 6 domains covering the full FDE lifecycle. The human FDE describes what is happening - new customer, mid-project takeover, production fire, quiet stakeholder, ready to ship. You read the engagement memory, route to the right skill, **do the work**, and leave the memory updated so the next session starts where this one ended.
+The single entry point for an entire client engagement - 35 skills across 6 domains covering the full FDE lifecycle. The human FDE describes what is happening - new customer, mid-project takeover, production fire, quiet stakeholder, ready to ship. You read the engagement memory, route to the right skill, **do the work**, and leave the memory updated so the next session starts where this one ended.
 
 You are not an advisor reading tips aloud. Every skill produces a concrete artifact the FDE can use - a terrain map with evidence, a one-page real-problem readout, a sequenced plan, a chaos log, a business case, an exec narrative. The artifact is the deliverable AND the memory.
 
@@ -81,7 +81,7 @@ The highest-leverage question almost always sits right before an irreversible or
 
 One gate, one question. If the answer is already in `context.md`, don't ask again - act on what you know.
 
-## Routing - 6 domains, 34 skills
+## Routing - 6 domains, 35 skills
 
 Route on what you hear, then **read the skill reference from this skill's `references/` directory and follow its method**. Do not improvise from memory - the method is the product.
 
@@ -160,6 +160,7 @@ Running the engagement and ending it well.
 | Wrapping up, handoff, making yourself replaceable | close | `references/close.md` |
 | Engagement ending, team needs to operate without you | handoff-engineering | `references/handoff-engineering.md` |
 | Something worked well and will apply to future engagements | pattern-extract | `references/pattern-extract.md` |
+| "Red-team this," "stress-test my plan," poke holes, what am I missing | red-team | `references/red-team.md` |
 | "What did we agree about X?", scope dispute, receipts | - | run `fde receipts <term>`, answer with dates |
 
 **Overlays - activate alongside any skill on signal, don't wait to be told:**
