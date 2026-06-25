@@ -76,7 +76,7 @@ export FDEOPS_ENGAGEMENT=~/fde-engagements/my-client/.fde
 @fde I just got the brief. New client, payments platform, 3-week timeline.
 ```
 
-The agent reads your engagement memory, routes to the right skill, and starts working with you. No setup beyond this. No configuration files to edit. No API keys.
+The agent reads your engagement memory, routes to the right skill, and starts working with you. No setup beyond this. No configuration files to edit. No API keys. From here, describe what's happening and the agent picks the right method. See [docs/USAGE.md](docs/USAGE.md) for the full workflow.
 
 > **Other install methods:** `npx skills add suboss87/fdeops` (Skills CLI) or `git clone https://github.com/suboss87/fdeops.git && cd fdeops && node bin/install.js` (manual)
 
@@ -174,7 +174,7 @@ Every claim is tagged with its source and date so you can defend it in front of 
 
 ## The CLI
 
-Your engagement toolkit - runs locally, works offline, zero tokens:
+Your engagement toolkit - deterministic, offline, always available:
 
 ```bash
 fde scan       # day-1 recon: hotspots, test gaps, secrets, AI components
