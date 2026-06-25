@@ -47,10 +47,10 @@ fde:  Last session you were finishing the ingest retry on staging.
 
       Send CTO status first, then finish retry, then check Globex.
 ```
-
 That's the difference. Day 1: it coaches your preparation. Day 15: it picks up where yesterday ended and triages across customers. You maintain nothing.
 
-<p align="center"><img src="media/fieldbook-dashboard.png" alt="FDE Fieldbook - portfolio view across engagements" width="720"/></p>
+
+<p align="center"><img width="794" height="571" alt="FieldBook" src="https://github.com/user-attachments/assets/349a223e-0c5e-4300-a8fe-9e3bb042cbbe" />
 
 ---
 
