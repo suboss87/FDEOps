@@ -1,6 +1,6 @@
 # FDEOps
 
-**Engagement memory and methodology for engineers embedded at client sites.**
+**The operating system for client lifecycle management.**
 
 [![npm version](https://img.shields.io/npm/v/fdeops)](https://www.npmjs.com/package/fdeops)
 [![CI](https://github.com/suboss87/fdeops/actions/workflows/validate.yml/badge.svg)](https://github.com/suboss87/fdeops/actions)
