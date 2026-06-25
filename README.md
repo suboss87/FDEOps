@@ -149,7 +149,7 @@ Each adapter points at the same `@fde` skill, so the methodology and memory stay
 | **Plan & Align** | plan, business-case, options-analysis, initiative-triage | Sequencing work, getting sponsor alignment |
 | **Build & Guard** | build, incremental-build, test-on-legacy, blast-radius, debug, rescue, security-audit, observability | Helping you build safely on their codebase |
 | **Ship & Verify** | ship, review, rollback-drill, qa-live | Getting to production without surprises |
-| **Operate & Close** | status, demo-prep, debrief, exec-narrative, dashboard, multi-customer-ops, close, handoff-engineering, pattern-extract | Running and ending the engagement well |
+| **Operate & Close** | status, demo-prep, debrief, exec-narrative, dashboard, multi-customer-ops, close, handoff-engineering, pattern-extract, red-team | Running and ending the engagement well |
 
 **Overlays** activate automatically when your engagement involves AI projects, executive reporting, fintech, healthcare, or government compliance.
 
