@@ -67,35 +67,41 @@ Works with **Claude Code** · **Cursor** · **Copilot** · **Devin** · **Gemini
 
 **Requires:** [Node.js](https://nodejs.org) >= 18
 
+### 1. Create your first engagement
+
 ```bash
-npx fdeops init my-client   # creates engagement at ~/fde-engagements/my-client/.fde/
+npx fdeops init my-client   # creates engagement memory
+```
+
+This creates `~/fde-engagements/my-client/.fde/` with 12 memory files - your private engagement brain.
+
+### 2. Try the CLI (no AI needed)
+
+```bash
+cd ~/fde-engagements/my-client
+fde scan                              # instant repo recon (run from any git repo)
+fde log decision "Chose React over Vue for the dashboard"
+fde log risk "No staging environment for integration tests"
+fde receipts "React"                  # find what you logged, with dates
+fde status                            # portfolio view across all clients
+fde dashboard                         # offline HTML fieldbook - open in browser
+```
+
+These commands work without any AI model. Zero network. Zero tokens.
+
+### 3. Connect your AI agent
+
+```bash
 export FDEOPS_ENGAGEMENT=~/fde-engagements/my-client/.fde
 ```
 
-Then in your AI agent:
+Then in Claude Code, Cursor, Copilot, Gemini, or any agent:
 
 ```
 @fde I'm on site. First stakeholder meeting tomorrow. Brief says fix the payments API.
 ```
 
-**Day 1** - it coaches your preparation:
-
-```
-Brief says payments API - but nobody named who owns budget. That's
-your first question. What does failure look like to the sponsor
-personally? I'll draft brief.md and stakeholders.md after you come
-back with notes.
-```
-
-**Day 15** - it picks up where yesterday ended:
-
-```
-Last session: ingest retry on staging. CTO demo Friday, status hasn't
-gone out since Tuesday. Globex quiet for 3 days - trust signal amber.
-Send CTO status first, then finish retry, then check Globex.
-```
-
-The memory compounds. You maintain nothing.
+The agent loads your engagement memory, routes to the right skill, and starts working with you - not from scratch. The memory compounds. You maintain nothing.
 
 > **Other install methods:** `npx skills add suboss87/fdeops` or `git clone && node bin/install.js`
 
