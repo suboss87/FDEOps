@@ -1,0 +1,43 @@
+name: Bug report
+description: Install, hooks, or skill behavior broken
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      options:
+        - Claude Code (plugin)
+        - Claude Code (npx)
+        - Windsurf
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include whether you used `fdeops init` and your FDEOPS_ENGAGEMENT path
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: wrong_install
+    attributes:
+      label: Did you run npx fdeops inside a shared/client workspace instead of your machine?
+      options:
+        - "No (correct - installed on my machine)"
+        - "Yes (may be misconfiguration)"
+    validations:
+      required: true

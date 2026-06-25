@@ -1,0 +1,23 @@
+{
+  "name": "fdeops",
+  "description": "Second brain for Forward Deployed Engineers. One @fde skill - enter at day one, mid-project, or mid-fire; it routes, does the phase work, and the engagement memory writes itself.",
+  "version": "3.5.4",
+  "category": "productivity",
+  "tags": ["community-managed"],
+  "author": {
+    "name": "Subash Natarajan",
+    "url": "https://github.com/suboss87"
+  },
+  "homepage": "https://github.com/suboss87/fdeops",
+  "repository": "https://github.com/suboss87/fdeops",
+  "license": "MIT",
+  "keywords": [
+    "fde",
+    "forward-deployed",
+    "legacy-code",
+    "client-engagement",
+    "brownfield",
+    "enterprise",
+    "skills"
+  ]
+}

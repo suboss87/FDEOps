@@ -1,0 +1,17 @@
+#!/bin/sh
+# Strip Cursor co-author trailers so GitHub contributors stay maintainer-only.
+# Install: cp scripts/git-hooks/commit-msg .git/hooks/commit-msg && chmod +x .git/hooks/commit-msg
+
+strip() {
+  sed -E '/^[Cc]o-authored-by:.*([Cc]ursor|cursoragent@cursor\.com)/d' "$1"
+}
+
+if sed --version >/dev/null 2>&1; then
+  strip "$1" | sponge "$1" 2>/dev/null || {
+    tmp=$(mktemp)
+    strip "$1" > "$tmp" && mv "$tmp" "$1"
+  }
+else
+  tmp=$(mktemp)
+  strip "$1" > "$tmp" && mv "$tmp" "$1"
+fi

@@ -1,0 +1,22 @@
+name: Skill or engagement gap
+description: A situation fdeops does not handle well yet
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: situation
+    attributes:
+      label: Situation on site
+      description: "e.g. Mid-build, sponsor replaced, new compliance constraint"
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What @fde should have done
+    validations:
+      required: true
+  - type: textarea
+    id: artifact
+    attributes:
+      label: Which .fde/ file should capture this (if any)
+      placeholder: reality.md, stakeholders.md, etc.

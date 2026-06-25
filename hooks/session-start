@@ -1,0 +1,91 @@
+#!/bin/bash
+# fdeops SessionStart - load @fde + engagement context from FDE laptop path.
+
+CONTEXT_FILE=""
+BOOTSTRAP=""
+
+for candidate in \
+  "${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/fde/SKILL.md}" \
+  "$(dirname "$0")/../skills/fde/SKILL.md" \
+  "$HOME/.claude/skills/fde/SKILL.md"; do
+  if [ -n "$candidate" ] && [ -f "$candidate" ]; then
+    BOOTSTRAP="$candidate"
+    break
+  fi
+done
+
+resolve_engagement_dir() {
+  local raw="$1"
+  [ -z "$raw" ] && return 1
+  # strip surrounding whitespace/quotes only - paths may contain spaces
+  raw=$(printf '%s' "$raw" | sed -e 's/^[[:space:]"'"'"']*//' -e 's/[[:space:]"'"'"']*$//' -e "s|^~|$HOME|")
+  [ -d "$raw" ] && printf '%s\n' "$raw" && return 0
+  return 1
+}
+
+# 1) Environment variable (any agent)
+if [ -z "$CONTEXT_FILE" ]; then
+  ENG_DIR=$(resolve_engagement_dir "${FDEOPS_ENGAGEMENT:-${FDEOS_ENGAGEMENT:-}}")
+  [ -n "$ENG_DIR" ] && CONTEXT_FILE="$ENG_DIR/context.md"
+fi
+
+# 2) Project CLAUDE.md
+if [ -z "$CONTEXT_FILE" ] && [ -f "CLAUDE.md" ]; then
+  ENG=$(grep -m1 '^FDEOPS_ENGAGEMENT=\|^FDEOS_ENGAGEMENT=' CLAUDE.md 2>/dev/null | cut -d= -f2-)
+  ENG_DIR=$(resolve_engagement_dir "$ENG")
+  [ -n "$ENG_DIR" ] && CONTEXT_FILE="$ENG_DIR/context.md"
+fi
+
+# 3) Global fdeops pointer file
+if [ -z "$CONTEXT_FILE" ] && [ -f "$HOME/.claude/FDEOPS-CLAUDE.md" ]; then
+  ENG=$(grep -m1 '^FDEOPS_ENGAGEMENT=\|^FDEOS_ENGAGEMENT=' "$HOME/.claude/FDEOPS-CLAUDE.md" 2>/dev/null | cut -d= -f2-)
+  ENG_DIR=$(resolve_engagement_dir "$ENG")
+  [ -n "$ENG_DIR" ] && CONTEXT_FILE="$ENG_DIR/context.md"
+fi
+
+# 4) Optional in-repo .fde (customer-approved only)
+if [ -z "$CONTEXT_FILE" ] && [ -f ".fde/context.md" ]; then
+  CONTEXT_FILE=".fde/context.md"
+fi
+
+IS_FDE_PROJECT=0
+[ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ] && IS_FDE_PROJECT=1
+[ -f "CLAUDE.md" ] && grep -qi "fde\|fdeops" "CLAUDE.md" 2>/dev/null && IS_FDE_PROJECT=1
+[ -n "${FDEOPS_ENGAGEMENT:-${FDEOS_ENGAGEMENT:-}}" ] && IS_FDE_PROJECT=1
+[ -d ".fde" ] && IS_FDE_PROJECT=1
+
+if [ "$IS_FDE_PROJECT" -eq 0 ]; then
+  exit 0
+fi
+
+# Token discipline: context.md grows every session (session-stop appends a
+# snapshot). Inject a bounded view - curated head + most recent activity -
+# instead of the whole log. Mirrors resumeView() in bin/fde.js; keep in sync.
+bounded_context() {
+  local f="$1" total head_end tail_start hidden
+  total=$(wc -l < "$f" 2>/dev/null | tr -d ' ')
+  [ -z "$total" ] && { cat "$f"; return; }
+  if [ "$total" -le 160 ]; then cat "$f"; return; fi
+  head_end=$(grep -n -m1 'fdeops auto-capture' "$f" 2>/dev/null | cut -d: -f1)
+  if [ -n "$head_end" ]; then head_end=$((head_end - 1)); else head_end=120; fi
+  [ "$head_end" -gt 120 ] && head_end=120
+  [ "$head_end" -lt 0 ] && head_end=0
+  tail_start=$((total - 40 + 1))
+  if [ "$tail_start" -le "$((head_end + 1))" ]; then cat "$f"; return; fi
+  hidden=$((tail_start - head_end - 1))
+  [ "$head_end" -ge 1 ] && sed -n "1,${head_end}p" "$f"
+  printf '\n_(… %s lines of earlier session log hidden - `fde resume --full` or open context.md for the full history)_\n\n' "$hidden"
+  sed -n "${tail_start},\$p" "$f"
+}
+
+CONTENT=""
+
+if [ -n "$BOOTSTRAP" ]; then
+  CONTENT="$CONTENT$(cat "$BOOTSTRAP")\n\n"
+fi
+
+if [ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ]; then
+  CONTENT="$CONTENT---\nEngagement context ($CONTEXT_FILE):\n$(bounded_context "$CONTEXT_FILE")\n"
+fi
+
+printf '%b' "$CONTENT"

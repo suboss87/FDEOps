@@ -1,0 +1,26 @@
+# Engagement memory (never commit client data)
+# Only ignore .fde/ at repo root - templates/ and examples/ must be tracked
+/.fde/
+
+# Generated dashboard (deterministic render - regenerate with `fde dashboard`)
+fieldbook.html
+fde-dashboard.html
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Local working notes
+/docs/internal/
+/tasks/

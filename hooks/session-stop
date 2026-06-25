@@ -1,0 +1,86 @@
+#!/bin/bash
+# fdeops SessionEnd - write-side memory backstop.
+#
+# The skill's memory contract says the agent appends a meaningful
+# "where we left off" to context.md before the session ends. This hook
+# guarantees a deterministic floor when it doesn't: date, workspace state,
+# and which engagement artifacts moved. Next session-start loads it back.
+#
+# Deliberately dumb: no model calls, no network, append-only, exits silently.
+
+cat >/dev/null 2>&1 || true  # drain hook stdin; payload unused
+
+resolve_engagement_dir() {
+  local raw="$1"
+  [ -z "$raw" ] && return 1
+  # strip surrounding whitespace/quotes only - paths may contain spaces
+  raw=$(printf '%s' "$raw" | sed -e 's/^[[:space:]"'"'"']*//' -e 's/[[:space:]"'"'"']*$//' -e "s|^~|$HOME|")
+  [ -d "$raw" ] && printf '%s\n' "$raw" && return 0
+  return 1
+}
+
+ENG_DIR=""
+
+# 1) Environment variable (any agent)
+ENG_DIR=$(resolve_engagement_dir "${FDEOPS_ENGAGEMENT:-${FDEOS_ENGAGEMENT:-}}")
+
+# 2) Project CLAUDE.md
+if [ -z "$ENG_DIR" ] && [ -f "CLAUDE.md" ]; then
+  ENG=$(grep -m1 '^FDEOPS_ENGAGEMENT=\|^FDEOS_ENGAGEMENT=' CLAUDE.md 2>/dev/null | cut -d= -f2-)
+  ENG_DIR=$(resolve_engagement_dir "$ENG")
+fi
+
+# 3) Global fdeops pointer file
+if [ -z "$ENG_DIR" ] && [ -f "$HOME/.claude/FDEOPS-CLAUDE.md" ]; then
+  ENG=$(grep -m1 '^FDEOPS_ENGAGEMENT=\|^FDEOS_ENGAGEMENT=' "$HOME/.claude/FDEOPS-CLAUDE.md" 2>/dev/null | cut -d= -f2-)
+  ENG_DIR=$(resolve_engagement_dir "$ENG")
+fi
+
+# 4) Optional in-repo .fde (customer-approved only)
+if [ -z "$ENG_DIR" ] && [ -d ".fde" ]; then
+  ENG_DIR=".fde"
+fi
+
+[ -z "$ENG_DIR" ] && exit 0
+CONTEXT_FILE="$ENG_DIR/context.md"
+
+TODAY=$(date +%F)
+NOW=$(date +%H:%M)
+
+# Workspace state (only if the cwd is a git repo)
+BRANCH=$(git -C "$PWD" branch --show-current 2>/dev/null)
+LAST_COMMIT=$(git -C "$PWD" log -1 --format="%h %s" 2>/dev/null | head -c 100)
+CHANGED=$(git -C "$PWD" status --porcelain 2>/dev/null | head -8 | sed 's/^...//' | tr '\n' ' ')
+
+# Engagement artifacts updated in the last 12h (the deliverable=memory trail)
+UPDATED=$(find "$ENG_DIR" -maxdepth 1 -name "*.md" ! -name "context.md" -mmin -720 2>/dev/null \
+  | while read -r f; do basename "$f"; done | tr '\n' ' ')
+
+# Idle session (no edits, no artifact updates) → leave the memory clean.
+# LAST_COMMIT alone is not "movement": it exists in any repo with history.
+[ -z "$CHANGED" ] && [ -z "$UPDATED" ] && exit 0
+
+{
+  printf '\n<!-- fdeops auto-capture -->\n'
+  printf '## Session end - %s %s\n' "$TODAY" "$NOW"
+  [ -n "$BRANCH" ] && printf -- '- workspace: `%s` @ %s\n' "$BRANCH" "${LAST_COMMIT:-no commits yet}"
+  [ -n "$CHANGED" ] && printf -- '- uncommitted: %s\n' "$CHANGED"
+  [ -n "$UPDATED" ] && printf -- '- engagement files updated: %s\n' "$UPDATED"
+} 2>/dev/null >> "$CONTEXT_FILE" || true
+
+# Refresh the local fieldbook.html so the portfolio view is current next time
+# it's opened. Deterministic render of .fde/ - zero tokens, best-effort, never
+# allowed to break the session.
+if command -v node >/dev/null 2>&1; then
+  for FDE_CLI in \
+    "${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/bin/fde.js}" \
+    "$(dirname "$0")/../bin/fde.js" \
+    "$HOME/.claude/fdeops/fde.js"; do
+    if [ -n "$FDE_CLI" ] && [ -f "$FDE_CLI" ]; then
+      node "$FDE_CLI" dashboard >/dev/null 2>&1 || true
+      break
+    fi
+  done
+fi
+
+exit 0

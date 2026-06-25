@@ -1,0 +1,55 @@
+{
+  "name": "fdeops",
+  "version": "3.5.4",
+  "description": "Field kit for engineers embedded in client work - a real CLI (recon, memory, portfolio), one @fde skill with field judgment on top, and hooks that make it automatic. Claude Code plugin and any agent that loads skills.",
+  "bin": {
+    "fdeops": "bin/install.js",
+    "fde": "bin/fde.js"
+  },
+  "scripts": {
+    "check": "node bin/check.js",
+    "prepublishOnly": "node bin/check.js"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    "hooks/",
+    "templates/",
+    "adapters/",
+    "CLAUDE.md.template",
+    "AGENTS.md"
+  ],
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "ai-agent",
+    "skills",
+    "plugin",
+    "fde",
+    "forward-deployed",
+    "forward-deployed-engineer",
+    "engineering",
+    "client-site",
+    "legacy-code",
+    "brownfield",
+    "cursor",
+    "windsurf",
+    "cline",
+    "codex",
+    "gemini-cli",
+    "copilot",
+    "agents-md",
+    "ollama",
+    "local-llm",
+    "lm-studio"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/suboss87/fdeops.git"
+  },
+  "author": "Subash Natarajan <suboss87@gmail.com> (https://github.com/suboss87)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

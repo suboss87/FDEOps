@@ -1,0 +1,63 @@
+name: Validate Skills
+
+on:
+  push:
+    branches: [main, Main]
+  pull_request:
+    branches: [main, Main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Operational smoke check
+        run: npm run check
+
+      - name: Check SKILL.md frontmatter
+        run: |
+          failed=0
+          for file in skills/*/SKILL.md; do
+            [ -f "$file" ] || continue
+
+            if ! head -1 "$file" | grep -q "^---$"; then
+              echo "FAIL: $file - missing opening --- delimiter"
+              failed=1
+            fi
+            if ! grep -q "^name:" "$file"; then
+              echo "FAIL: $file - missing name field"
+              failed=1
+            fi
+            if ! grep -q "^description:" "$file"; then
+              echo "FAIL: $file - missing description field"
+              failed=1
+            fi
+            if ! awk 'NR>1 && /^---$/{found=1} END{exit !found}' "$file"; then
+              echo "FAIL: $file - missing closing --- delimiter"
+              failed=1
+            fi
+
+            lines=$(wc -l < "$file")
+            if [ "$lines" -gt 500 ]; then
+              echo "FAIL: $file - ${lines} lines exceeds 500 line limit"
+              failed=1
+            fi
+
+            echo "OK: $file (${lines} lines)"
+          done
+          [ "$failed" -eq 0 ] || exit 1
+          echo "All skills valid."
+
+      - name: Check required skill sections
+        run: |
+          failed=0
+          for file in skills/*/SKILL.md; do
+            grep -q "^## Purpose" "$file" || { echo "FAIL: $file missing ## Purpose"; failed=1; }
+            grep -q "^## Principles" "$file" || { echo "FAIL: $file missing ## Principles"; failed=1; }
+          done
+          [ "$failed" -eq 0 ] || exit 1

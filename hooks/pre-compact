@@ -1,0 +1,66 @@
+#!/bin/bash
+# fdeops PreCompact - preserve engagement state before context compaction.
+# Resolves the engagement the same way as session-start/session-stop.
+
+resolve_engagement_dir() {
+  local raw="$1"
+  [ -z "$raw" ] && return 1
+  # strip surrounding whitespace/quotes only - paths may contain spaces
+  raw=$(printf '%s' "$raw" | sed -e 's/^[[:space:]"'"'"']*//' -e 's/[[:space:]"'"'"']*$//' -e "s|^~|$HOME|")
+  [ -d "$raw" ] && printf '%s\n' "$raw" && return 0
+  return 1
+}
+
+ENG_DIR=$(resolve_engagement_dir "${FDEOPS_ENGAGEMENT:-${FDEOS_ENGAGEMENT:-}}")
+
+if [ -z "$ENG_DIR" ] && [ -f "CLAUDE.md" ]; then
+  ENG=$(grep -m1 '^FDEOPS_ENGAGEMENT=\|^FDEOS_ENGAGEMENT=' CLAUDE.md 2>/dev/null | cut -d= -f2-)
+  ENG_DIR=$(resolve_engagement_dir "$ENG")
+fi
+
+if [ -z "$ENG_DIR" ] && [ -f "$HOME/.claude/FDEOPS-CLAUDE.md" ]; then
+  ENG=$(grep -m1 '^FDEOPS_ENGAGEMENT=\|^FDEOS_ENGAGEMENT=' "$HOME/.claude/FDEOPS-CLAUDE.md" 2>/dev/null | cut -d= -f2-)
+  ENG_DIR=$(resolve_engagement_dir "$ENG")
+fi
+
+if [ -z "$ENG_DIR" ] && [ -d ".fde" ]; then
+  ENG_DIR=".fde"
+fi
+
+[ -z "$ENG_DIR" ] && exit 0
+
+CONTEXT_FILE="$ENG_DIR/context.md"
+DECISIONS_FILE="$ENG_DIR/decisions.md"
+RISKS_FILE="$ENG_DIR/risks.md"
+MARKER="[fdeops context preserved"
+
+[ -f "$CONTEXT_FILE" ] || exit 0
+
+# Avoid unbounded growth: skip if we already preserved today.
+if grep -q "$MARKER" "$CONTEXT_FILE" 2>/dev/null; then
+  LAST=$(grep "$MARKER" "$CONTEXT_FILE" | tail -1)
+  if echo "$LAST" | grep -q "$(date -u +%Y-%m-%d)"; then
+    exit 0
+  fi
+fi
+
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+LAST_DECISIONS=""
+OPEN_RISKS=""
+
+[ -f "$DECISIONS_FILE" ] && LAST_DECISIONS=$(tail -20 "$DECISIONS_FILE" 2>/dev/null)
+[ -f "$RISKS_FILE" ] && OPEN_RISKS=$(grep -iE "open|active|unresolved" "$RISKS_FILE" 2>/dev/null | head -8)
+
+cat >> "$CONTEXT_FILE" 2>/dev/null << EOF
+
+---
+$MARKER at $TIMESTAMP]
+Recent decisions (tail):
+$LAST_DECISIONS
+
+Open risks:
+$OPEN_RISKS
+---
+EOF
+
+exit 0
