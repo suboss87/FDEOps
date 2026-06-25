@@ -1,5 +1,7 @@
 # fdeops
 
+**Engagement memory and methodology for engineers embedded at client sites.**
+
 [![npm version](https://img.shields.io/npm/v/fdeops)](https://www.npmjs.com/package/fdeops)
 [![CI](https://github.com/suboss87/fdeops/actions/workflows/validate.yml/badge.svg)](https://github.com/suboss87/fdeops/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -47,6 +49,8 @@ fde:  Last session you were finishing the ingest retry on staging.
 ```
 
 That's the difference. Day 1: it coaches your preparation. Day 15: it picks up where yesterday ended and triages across customers. You maintain nothing.
+
+<p align="center"><img src="media/fieldbook-dashboard.png" alt="FDE Fieldbook - portfolio view across engagements" width="720"/></p>
 
 ---
 
@@ -184,8 +188,6 @@ fde dashboard  # render every engagement into one offline HTML fieldbook
 
 <p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
 
-<p align="center"><img src="media/fieldbook-dashboard.png" alt="FDE Fieldbook - portfolio view" width="720"/></p>
-
 ---
 
 ## Works with any AI coding tool
@@ -233,6 +235,6 @@ cd fdeops && git pull && node bin/install.js
 
 ## Contributing
 
-Maintained by **[Subash Natarajan](https://www.linkedin.com/in/subashn/)**. Feedback via [Issues](https://github.com/suboss87/fdeops/issues) - see [CONTRIBUTING.md](CONTRIBUTING.md).
+Built by **[Subash Natarajan](https://www.linkedin.com/in/subashn/)** from years of field deployments across fintech, healthcare, and enterprise AI. Feedback via [Issues](https://github.com/suboss87/fdeops/issues) - see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 [FDE Methodology](FDE-METHODOLOGY.md) - [ATTRIBUTION.md](ATTRIBUTION.md) - [SECURITY.md](SECURITY.md) - [PRIVACY.md](PRIVACY.md) - [Repo layout](docs/REPO_LAYOUT.md) - [Skills reference](docs/skills-reference.md) - MIT
