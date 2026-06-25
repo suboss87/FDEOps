@@ -235,6 +235,6 @@ cd fdeops && git pull && node bin/install.js
 
 ## Contributing
 
-Built by **[Subash Natarajan](https://www.linkedin.com/in/subashn/)** from years of field deployments across fintech, healthcare, and enterprise AI. Feedback via [Issues](https://github.com/suboss87/fdeops/issues) - see [CONTRIBUTING.md](CONTRIBUTING.md).
+Built and maintained by **[Subash Natarajan](https://www.linkedin.com/in/subashn/)**. Share your feedbacks via [Issues](https://github.com/suboss87/fdeops/issues) - see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 [FDE Methodology](FDE-METHODOLOGY.md) - [ATTRIBUTION.md](ATTRIBUTION.md) - [SECURITY.md](SECURITY.md) - [PRIVACY.md](PRIVACY.md) - [Repo layout](docs/REPO_LAYOUT.md) - [Skills reference](docs/skills-reference.md) - MIT
