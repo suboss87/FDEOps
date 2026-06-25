@@ -9,7 +9,99 @@ You embed at a client site. You bridge strategy and code. You ship on their syst
 
 Every morning you open your AI coding agent, and it has no idea what happened yesterday. You re-paste the same context. You explain the stakeholders again. You remind it about the scope change from Tuesday. Meanwhile, the real problem - the one the brief didn't mention - sits undiscovered because nobody asked the right questions on day one.
 
-**fdeops fixes this.** It gives your AI agent a complete engagement methodology and a private memory that writes itself. You type `@fde`, describe your situation, and the right method runs - from first stakeholder meeting to final handoff. Tomorrow's session starts exactly where today ended.
+**fdeops fixes this.** One `@fde` command gives your AI coding agent a complete engagement methodology and a memory that writes itself. Describe your situation and the right method runs - from first stakeholder meeting to final handoff. Tomorrow's session starts exactly where today ended.
+
+---
+
+## See it working
+
+**Day 1** - you just got the brief:
+
+```
+You:  @fde I'm on site. First stakeholder meeting tomorrow.
+      Brief says fix the payments API.
+
+fde:  Brief says payments API - but nobody named who owns budget.
+      That's your first question. And the brief has no out-of-scope
+      section, which means scope creep is pre-authorised.
+
+      Watch for the internal dev who got passed over for this contract.
+      What does failure look like to the sponsor personally?
+
+      I'll draft brief.md, stakeholders.md, and trust-profile.md
+      after you come back with notes.
+```
+
+**Day 15** - the memory has compounded:
+
+```
+You:  @fde What's the priority today?
+
+fde:  Last session you were finishing the ingest retry on staging.
+      CTO demo is Friday and status hasn't gone out since Tuesday.
+      Finance controller still hasn't seen a working demo - that's a risk.
+
+      Globex has been quiet for 3 days - trust signal amber.
+
+      Send CTO status first, then finish retry, then check Globex.
+```
+
+That's the difference. Day 1: it coaches your preparation. Day 15: it picks up where yesterday ended and triages across customers. You maintain nothing.
+
+---
+
+## Quickstart
+
+**Requires:** [Node.js](https://nodejs.org) >= 18
+
+**Install and create your first engagement:**
+
+```bash
+npx fdeops init my-client   # creates engagement memory at ~/fde-engagements/my-client/.fde/
+```
+
+**Point your AI coding agent at it:**
+
+```bash
+export FDEOPS_ENGAGEMENT=~/fde-engagements/my-client/.fde
+```
+
+**Start working:**
+
+```
+@fde I just got the brief. New client, payments platform, 3-week timeline.
+```
+
+The agent reads your engagement memory, routes to the right skill, and starts working with you. No setup beyond this. No configuration files to edit. No API keys.
+
+> **Other install methods:** `npx skills add suboss87/fdeops` (Skills CLI) or `git clone https://github.com/suboss87/fdeops.git && cd fdeops && node bin/install.js` (manual)
+
+---
+
+## Who this is for
+
+| You are... | What fdeops does for you |
+|----------|-------------------|
+| **Forward Deployed Engineer** | The role this was built for. 35 skills across the full engagement lifecycle - land, build, ship, close. |
+| **Consultant or contractor at a client site** | Every session, you re-explain context. fdeops remembers for you. |
+| **Solutions architect bridging strategy and code** | You navigate politics AND architecture. fdeops has methods for both. |
+| **Agency engineer running 3-5 clients** | Client details blur together. One `.fde/` per customer, never cross-contaminated. |
+| **Technical founder doing client work solo** | You ARE the team. The agent becomes your second brain. |
+
+---
+
+## Without fdeops vs with fdeops
+
+| | **Without fdeops** | **With fdeops** |
+|---|-------------------|----------------|
+| **Monday morning** | Re-paste last week's context, explain the stakeholders again | Agent opens with "last session you were on the ingest retry - CTO demo is Friday" |
+| **Scope creep** | Five "small" additions absorbed silently, timeline slips | Receipts timestamped - you walk into the sponsor meeting with evidence |
+| **Multiple customers** | Wrong client name in a status update, details blur | One folder per customer, context-switch protocol, cross-contamination checklist |
+| **The sponsor meeting** | "We completed the API endpoint" | "Manual reconciliation dropped from 3 FTEs to 0.5 - here's the rollback if it turns" |
+
+---
+
+## How it works
 
 ```mermaid
 flowchart LR
@@ -29,131 +121,23 @@ flowchart LR
     I --> J["Next session\nloads automatically"]
 ```
 
-Works with **Claude Code** · **Cursor** · **Copilot** · **Devin** · **Gemini CLI** · **Ollama** · **LM Studio** · any model that reads SKILL.md
+1. **Describe** your situation - "new client", "production is down", "need a board update", "red-team my handoff plan"
+2. **Route** - the skill picks the right method from 35 options across 6 domains
+3. **Execute** - the method runs, artifacts are written to `.fde/`, you review at checkpoints
+4. **Compound** - next session loads the memory automatically. Context never starts from zero again.
 
-<p align="center"><strong>The CLI</strong></p>
-<p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
-
-<p align="center"><strong>The Fieldbook Dashboard</strong></p>
-<p align="center"><img src="media/fieldbook-dashboard.png" alt="FDE Fieldbook - portfolio view" width="720"/></p>
-
----
-
-## Who this is for
-
-| You are... | fdeops helps when... |
-|----------|-------------------|
-| **Consultant or contractor at a client site** | Every session, you re-explain context. fdeops remembers for you. |
-| **Solutions architect bridging strategy and code** | You navigate politics AND architecture. fdeops has methods for both. |
-| **Agency engineer running 3-5 clients** | Client details blur together. One `.fde/` per customer, never cross-contaminated. |
-| **Forward Deployed Engineer** | The role this was built for. 35 skills across the full engagement lifecycle. |
-| **Technical founder doing client work solo** | You ARE the team. The agent becomes your second brain. |
-| **Enterprise programme lead** | Leading AI transformations? Built-in methods for model selection, agent safety, governance, and cost management. |
+Works with **Claude Code** - **Cursor** - **Copilot** - **Devin** - **Gemini CLI** - **Ollama** - **LM Studio** - any model that reads a markdown file
 
 ---
 
-## Without fdeops vs with fdeops
-
-| | **Without fdeops** | **With fdeops** |
-|---|-------------------|----------------|
-| **Monday morning** | Re-paste last week's context, explain the stakeholders again | Agent opens with "last session you were on the ingest retry - CTO demo is Friday" |
-| **Scope creep** | Five "small" additions absorbed silently, timeline slips | Receipts timestamped - you walk into the sponsor meeting with evidence |
-| **Multiple customers** | Wrong client name in a status update, details blur | One folder per customer, context-switch protocol, cross-contamination checklist |
-| **The sponsor meeting** | "We completed the API endpoint" | "Manual reconciliation dropped from 3 FTEs to 0.5 - here's the rollback if it turns" |
-
----
-
-## Quickstart
-
-**Requires:** [Node.js](https://nodejs.org) >= 18
-
-### 1. Create your first engagement
-
-```bash
-npx fdeops init my-client   # creates engagement memory
-```
-
-This creates `~/fde-engagements/my-client/.fde/` with 12 memory files - your private engagement brain.
-
-### 2. Try the CLI (no AI needed)
-
-```bash
-cd ~/fde-engagements/my-client
-fde scan                              # instant repo recon (run from any git repo)
-fde log decision "Chose React over Vue for the dashboard"
-fde log risk "No staging environment for integration tests"
-fde receipts "React"                  # find what you logged, with dates
-fde status                            # portfolio view across all clients
-fde dashboard                         # offline HTML fieldbook - open in browser
-```
-
-These commands work without any AI model. Zero network. Zero tokens.
-
-### 3. Connect your AI agent
-
-```bash
-export FDEOPS_ENGAGEMENT=~/fde-engagements/my-client/.fde
-```
-
-Then in Claude Code, Cursor, Copilot, Gemini, or any agent:
-
-```
-@fde I'm on site. First stakeholder meeting tomorrow. Brief says fix the payments API.
-```
-
-The agent loads your engagement memory, routes to the right skill, and starts working with you - not from scratch. The memory compounds. You maintain nothing.
-
-> **Other install methods:** `npx skills add suboss87/fdeops` or `git clone && node bin/install.js`
-
----
-
-## Works with any AI coding tool
-
-One skill file powers every tool. Install adapters for your setup:
-
-```bash
-npx fdeops adapters ~/fde-engagements/my-client
-```
-
-| Tool | What it reads |
-|------|--------------|
-| Claude Code | Plugin + `~/.claude/FDEOPS-CLAUDE.md` |
-| Codex / OpenAI / generic | `AGENTS.md` |
-| Gemini CLI | `GEMINI.md` |
-| Cursor | `.cursor/rules/fde.mdc` |
-| GitHub Copilot | `.github/copilot-instructions.md` |
-| **Local LLMs** (Ollama, LM Studio, llama.cpp, vLLM) | Load `SKILL.md` as system prompt |
-
-Each adapter points at the same `@fde` skill, so the methodology and memory stay consistent across tools. Details: [`adapters/`](adapters/README.md).
-
-> **No cloud dependency.** fdeops calls no external API. The AI skill is a markdown file your model reads. The CLI is local Node.js. Works fully offline, fully air-gapped, fully private. See [`adapters/LOCAL-LLM.md`](adapters/LOCAL-LLM.md) for local model setup.
-
----
-
-## How it works
-
-```text
-  YOU (human)                         AI CODING AGENT (software)
-  meetings, judgment         @fde      routes -> right skill -> drafts the artifact
-        |                 ----->      .fde/ memory (written as you work)
-        |                                   |
-        +--------------->  client workspace (code, VPN, tickets)
-```
-
-1. **Describe** - tell the agent what's happening ("new client", "production is down", "need a board update")
-2. **Route** - the system picks the right skill from 34 options across 6 domains
-3. **Execute** - the skill's method runs, artifacts are written to `.fde/`, you review at checkpoints
-
----
-
-## The 6 domains - 35 skills + 5 overlays
+## 35 skills + 5 overlays
 
 | Domain | Skills | What it covers |
 |--------|--------|---------------|
 | **Embed & Trust** | land, audit, stakeholder-radar, trust-engineering, scope-defense | First days: access, credibility, scope |
 | **Discover & Diagnose** | discover, assumption-audit, use-case-scoring, sketch | Finding the real problem behind the brief |
 | **Plan & Align** | plan, business-case, options-analysis, initiative-triage | Sequencing work, getting sponsor alignment |
-| **Build & Guard** | build, incremental-build, test-on-legacy, blast-radius, debug, rescue, security-audit, observability | Helping you build safely on their codebase |
+| **Build & Guard** | build, incremental-build, test-on-legacy, blast-radius, debug, rescue, security-audit, observability | Building safely on their codebase |
 | **Ship & Verify** | ship, review, rollback-drill, qa-live | Getting to production without surprises |
 | **Operate & Close** | status, demo-prep, debrief, exec-narrative, dashboard, multi-customer-ops, close, handoff-engineering, pattern-extract, red-team | Running and ending the engagement well |
 
@@ -186,17 +170,44 @@ Every claim is tagged with its source and date so you can defend it in front of 
 
 ## The CLI
 
-These commands run locally on your machine. No AI needed, no API costs, works offline.
+Your engagement toolkit - runs locally, works offline, zero tokens:
 
 ```bash
-fde scan       # day-1 recon: hotspots, test gaps, "temporary" code, AI components, secrets
+fde scan       # day-1 recon: hotspots, test gaps, secrets, AI components
 fde resume     # initialize or resume an engagement
 fde log        # write decisions, risks, delivery, contacts
-fde receipts   # search memory with dates
+fde receipts   # search memory with dates - "what did we agree about X?"
 fde capture    # session-end snapshot
-fde status     # portfolio triage across all customers
-fde dashboard  # render every engagement into one offline dashboard
+fde status     # portfolio triage across all customers (red > amber > green)
+fde dashboard  # render every engagement into one offline HTML fieldbook
 ```
+
+<p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
+
+<p align="center"><img src="media/fieldbook-dashboard.png" alt="FDE Fieldbook - portfolio view" width="720"/></p>
+
+---
+
+## Works with any AI coding tool
+
+One skill file powers every tool. Install adapters for your setup:
+
+```bash
+npx fdeops adapters ~/fde-engagements/my-client
+```
+
+| Tool | What it reads |
+|------|--------------|
+| Claude Code | Plugin + `~/.claude/FDEOPS-CLAUDE.md` |
+| Codex / OpenAI / generic | `AGENTS.md` |
+| Gemini CLI | `GEMINI.md` |
+| Cursor | `.cursor/rules/fde.mdc` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| **Local LLMs** (Ollama, LM Studio, llama.cpp, vLLM) | Load `SKILL.md` as system prompt |
+
+Each adapter points at the same `@fde` skill, so the methodology and memory stay consistent across tools. Details: [`adapters/`](adapters/README.md).
+
+> **No cloud dependency.** fdeops calls no external API. The AI skill is a markdown file your model reads. The CLI is local Node.js. Works fully offline, fully air-gapped, fully private. See [`adapters/LOCAL-LLM.md`](adapters/LOCAL-LLM.md) for local model setup.
 
 ---
 
@@ -224,4 +235,4 @@ cd fdeops && git pull && node bin/install.js
 
 Maintained by **[Subash Natarajan](https://www.linkedin.com/in/subashn/)**. Feedback via [Issues](https://github.com/suboss87/fdeops/issues) - see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-[FDE Methodology](FDE-METHODOLOGY.md) · [ATTRIBUTION.md](ATTRIBUTION.md) · [SECURITY.md](SECURITY.md) · [PRIVACY.md](PRIVACY.md) · [Repo layout](docs/REPO_LAYOUT.md) · [Skills reference](docs/skills-reference.md) · MIT
+[FDE Methodology](FDE-METHODOLOGY.md) - [ATTRIBUTION.md](ATTRIBUTION.md) - [SECURITY.md](SECURITY.md) - [PRIVACY.md](PRIVACY.md) - [Repo layout](docs/REPO_LAYOUT.md) - [Skills reference](docs/skills-reference.md) - MIT
