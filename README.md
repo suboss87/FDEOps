@@ -1,4 +1,4 @@
-# fdeops
+# FDEOps
 
 **Engagement memory and methodology for engineers embedded at client sites.**
 
