@@ -1,6 +1,6 @@
 # FDEOps
 
-**The operating system for Forward Deployed Engineers.**
+**The discipline and methodology for Forward Deployed Engineers.**
 
 [![npm version](https://img.shields.io/npm/v/fdeops)](https://www.npmjs.com/package/fdeops)
 [![CI](https://github.com/suboss87/fdeops/actions/workflows/validate.yml/badge.svg)](https://github.com/suboss87/fdeops/actions)
