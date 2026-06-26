@@ -78,6 +78,15 @@ export FDEOPS_ENGAGEMENT=~/fde-engagements/my-client/.fde
 
 The agent reads your engagement memory, routes to the right skill, and starts working with you. No setup beyond this. No configuration files to edit. No API keys. From here, describe what's happening and the agent picks the right method. See [docs/USAGE.md](docs/USAGE.md) for the full workflow.
 
+### Using Claude Code?
+
+```
+/plugin marketplace add suboss87/fdeops
+/plugin install fdeops@fdeops
+```
+
+The plugin loads the skill, session hooks, and engagement memory automatically. Then `npx fdeops init my-client` to create your first engagement. Full Claude Code setup: [docs/install.md](docs/install.md#claude-code-recommended).
+
 > **Other install methods:** `npx skills add suboss87/fdeops` (Skills CLI) or `git clone https://github.com/suboss87/fdeops.git && cd fdeops && node bin/install.js` (manual)
 
 ---
