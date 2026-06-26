@@ -56,38 +56,38 @@ That's the difference. Day 1: it coaches your preparation. Day 15: it picks up w
 
 ## Quickstart
 
-**Requires:** [Node.js](https://nodejs.org) >= 18
+### 1. Install for your tool
 
-**Install and create your first engagement:**
+| Tool | Install |
+|------|---------|
+| **Claude Code** | `/plugin marketplace add suboss87/fdeops` then `/plugin install fdeops@fdeops` |
+| **Codex** | `npx fdeops adapters .` (drops `AGENTS.md` - Codex reads it automatically) |
+| **Cursor** | `npx fdeops adapters .` (drops `.cursor/rules/fde.mdc`) |
+| **GitHub Copilot** | `npx fdeops adapters .` (drops `.github/copilot-instructions.md`) |
+| **Gemini CLI** | `npx fdeops adapters .` (drops `GEMINI.md`) |
+| **Local LLMs** | Load `skills/fde/SKILL.md` as system prompt ([guide](adapters/LOCAL-LLM.md)) |
+| **All tools at once** | `npx fdeops adapters .` installs every adapter in one command |
+
+### 2. Create your first engagement
 
 ```bash
-npx fdeops init my-client   # creates engagement memory at ~/fde-engagements/my-client/.fde/
+npx fdeops init my-client                                    # creates engagement memory
+export FDEOPS_ENGAGEMENT=~/fde-engagements/my-client/.fde    # point your tool at it
 ```
 
-**Point your AI coding agent at it:**
+Creates 12 markdown files at `~/fde-engagements/my-client/.fde/` - private to your machine, never uploaded.
 
-```bash
-export FDEOPS_ENGAGEMENT=~/fde-engagements/my-client/.fde
-```
-
-**Start working:**
+### 3. Start working
 
 ```
 @fde I just got the brief. New client, payments platform, 3-week timeline.
 ```
 
-The agent reads your engagement memory, routes to the right skill, and starts working with you. No setup beyond this. No configuration files to edit. No API keys. From here, describe what's happening and the agent picks the right method. See [docs/USAGE.md](docs/USAGE.md) for the full workflow.
+Describe what's happening and the agent picks the right method. No configuration files to edit. No API keys. See [docs/USAGE.md](docs/USAGE.md) for the full workflow.
 
-### Using Claude Code?
-
-```
-/plugin marketplace add suboss87/fdeops
-/plugin install fdeops@fdeops
-```
-
-The plugin loads the skill, session hooks, and engagement memory automatically. Then `npx fdeops init my-client` to create your first engagement. Full Claude Code setup: [docs/install.md](docs/install.md#claude-code-recommended).
-
-> **Other install methods:** `npx skills add suboss87/fdeops` (Skills CLI) or `git clone https://github.com/suboss87/fdeops.git && cd fdeops && node bin/install.js` (manual)
+> **Requires:** [Node.js](https://nodejs.org) >= 18 (for CLI and adapters). Claude Code plugin install does not require Node separately.
+>
+> **Other install methods:** `npx skills add suboss87/fdeops` (Skills CLI) or `git clone https://github.com/suboss87/fdeops.git && cd fdeops && node bin/install.js` (manual). Full install details: [docs/install.md](docs/install.md).
 
 ---
 
@@ -201,22 +201,7 @@ fde dashboard  # render every engagement into one offline HTML fieldbook
 
 ## Works with any AI coding tool
 
-One skill file powers every tool. Install adapters for your setup:
-
-```bash
-npx fdeops adapters ~/fde-engagements/my-client
-```
-
-| Tool | What it reads |
-|------|--------------|
-| Claude Code | Plugin + `~/.claude/FDEOPS-CLAUDE.md` |
-| Codex / OpenAI / generic | `AGENTS.md` |
-| Gemini CLI | `GEMINI.md` |
-| Cursor | `.cursor/rules/fde.mdc` |
-| GitHub Copilot | `.github/copilot-instructions.md` |
-| **Local LLMs** (Ollama, LM Studio, llama.cpp, vLLM) | Load `SKILL.md` as system prompt |
-
-Each adapter points at the same `@fde` skill, so the methodology and memory stay consistent across tools. Details: [`adapters/`](adapters/README.md).
+One skill file powers every tool. Each adapter is a thin pointer at the same `@fde` skill - the methodology and memory stay consistent whether you use Claude Code, Codex, Cursor, Copilot, Gemini CLI, or a local model. Details: [`adapters/`](adapters/README.md).
 
 > **No cloud dependency.** fdeops calls no external API. The AI skill is a markdown file your model reads. The CLI is local Node.js. Works fully offline, fully air-gapped, fully private. See [`adapters/LOCAL-LLM.md`](adapters/LOCAL-LLM.md) for local model setup.
 
