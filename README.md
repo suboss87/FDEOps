@@ -17,17 +17,20 @@ Every morning you open your AI coding agent, and it has no idea what happened ye
 
 ## Quickstart
 
-### 1. Install for your tool
+### 1. Install
 
-| Tool | Install |
-|------|---------|
-| **Claude Code** | `/plugin marketplace add suboss87/fdeops` then `/plugin install fdeops@fdeops` |
-| **Codex** | `npx fdeops adapters .` (drops `AGENTS.md` - Codex reads it automatically) |
-| **Cursor** | `npx fdeops adapters .` (drops `.cursor/rules/fde.mdc`) |
-| **GitHub Copilot** | `npx fdeops adapters .` (drops `.github/copilot-instructions.md`) |
-| **Gemini CLI** | `npx fdeops adapters .` (drops `GEMINI.md`) |
-| **Local LLMs** | Load `skills/fde/SKILL.md` as system prompt ([guide](adapters/LOCAL-LLM.md)) |
-| **All tools at once** | `npx fdeops adapters .` installs every adapter in one command |
+**Claude Code**
+```
+/plugin marketplace add suboss87/fdeops
+/plugin install fdeops@fdeops
+```
+
+**Cursor · Codex · Copilot · Gemini CLI**
+```bash
+npx fdeops adapters .
+```
+
+**Local LLMs** - load `skills/fde/SKILL.md` as system prompt ([guide](adapters/LOCAL-LLM.md))
 
 ### 2. Create your first engagement
 
