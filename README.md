@@ -15,45 +15,6 @@ Every morning you open your AI coding agent, and it has no idea what happened ye
 
 ---
 
-## See it working
-
-**Day 1** - you just got the brief:
-
-```
-You:  @fde I'm on site. First stakeholder meeting tomorrow.
-      Brief says fix the payments API.
-
-fde:  Brief says payments API - but nobody named who owns budget.
-      That's your first question. And the brief has no out-of-scope
-      section, which means scope creep is pre-authorised.
-
-      Watch for the internal dev who got passed over for this contract.
-      What does failure look like to the sponsor personally?
-
-      I'll draft brief.md, stakeholders.md, and trust-profile.md
-      after you come back with notes.
-```
-
-**Day 15** - the memory has compounded:
-
-```
-You:  @fde What's the priority today?
-
-fde:  Last session you were finishing the ingest retry on staging.
-      CTO demo is Friday and status hasn't gone out since Tuesday.
-      Finance controller still hasn't seen a working demo - that's a risk.
-
-      Globex has been quiet for 3 days - trust signal amber.
-
-      Send CTO status first, then finish retry, then check Globex.
-```
-That's the difference. Day 1: it coaches your preparation. Day 15: it picks up where yesterday ended and triages across customers. You maintain nothing.
-
-
-<p align="center"><img width="794" height="571" alt="FieldBook" src="https://github.com/user-attachments/assets/349a223e-0c5e-4300-a8fe-9e3bb042cbbe" />
-
----
-
 ## Quickstart
 
 ### 1. Install for your tool
@@ -103,17 +64,6 @@ Describe what's happening and the agent picks the right method. No configuration
 
 ---
 
-## Without fdeops vs with fdeops
-
-| | **Without fdeops** | **With fdeops** |
-|---|-------------------|----------------|
-| **Monday morning** | Re-paste last week's context, explain the stakeholders again | Agent opens with "last session you were on the ingest retry - CTO demo is Friday" |
-| **Scope creep** | Five "small" additions absorbed silently, timeline slips | Receipts timestamped - you walk into the sponsor meeting with evidence |
-| **Multiple customers** | Wrong client name in a status update, details blur | One folder per customer, context-switch protocol, cross-contamination checklist |
-| **The sponsor meeting** | "We completed the API endpoint" | "Manual reconciliation dropped from 3 FTEs to 0.5 - here's the rollback if it turns" |
-
----
-
 ## How it works
 
 ```mermaid
@@ -139,7 +89,20 @@ flowchart LR
 3. **Execute** - the method runs, artifacts are written to `.fde/`, you review at checkpoints
 4. **Compound** - next session loads the memory automatically. Context never starts from zero again.
 
+<p align="center"><img width="794" height="571" alt="FieldBook" src="https://github.com/user-attachments/assets/349a223e-0c5e-4300-a8fe-9e3bb042cbbe" />
+
 Works with **Claude Code** - **Cursor** - **Copilot** - **Devin** - **Gemini CLI** - **Ollama** - **LM Studio** - any model that reads a markdown file
+
+---
+
+## Without fdeops vs with fdeops
+
+| | **Without fdeops** | **With fdeops** |
+|---|-------------------|----------------|
+| **Monday morning** | Re-paste last week's context, explain the stakeholders again | Agent opens with "last session you were on the ingest retry - CTO demo is Friday" |
+| **Scope creep** | Five "small" additions absorbed silently, timeline slips | Receipts timestamped - you walk into the sponsor meeting with evidence |
+| **Multiple customers** | Wrong client name in a status update, details blur | One folder per customer, context-switch protocol, cross-contamination checklist |
+| **The sponsor meeting** | "We completed the API endpoint" | "Manual reconciliation dropped from 3 FTEs to 0.5 - here's the rollback if it turns" |
 
 ---
 
