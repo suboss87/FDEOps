@@ -4,6 +4,41 @@
 
 **Read first:** `context.md`, `terrain.md`, `decisions.md`. Load `trust-profile.md` when touching regulated areas. No map or no plan → route to discover/plan first; say it plainly: "We're not ready to touch code until we know what's connected to this module."
 
+## Validation gate (run before method - speak only on failure)
+
+Before starting the build loop, check these silently. If all pass, proceed without comment. If any fails, surface the ONE most important issue and ask ONE question.
+
+1. **Acceptance criteria are falsifiable.** Read the task in `decisions.md`. If the criteria are vague ("should work well", "handle errors gracefully", "be performant") → surface it: "The acceptance criterion for this task isn't testable. What specific behavior proves it works?"
+2. **Terrain is current.** Compare `terrain.md` last-update date against `decisions.md` plan date. If terrain is older → surface it: "terrain.md was written before this plan. Has the codebase changed in ways that affect this task?"
+3. **No open CRITICAL risk on the module being changed.** Check `risks.md` for unresolved critical risks that touch the same files/systems. If found → surface it: "There's an open critical risk affecting this module. Address or explicitly accept before building."
+
+If the FDE has already addressed these in conversation, don't re-ask - act on what you know.
+
+## Spec generation (AI generates, human approves)
+
+Before writing code, generate the implementation spec for this task and present it to the FDE:
+
+```
+Spec: [task name from decisions.md]
+Inputs: [what triggers this - event, request, user action, data shape]
+Outputs: [what the user/system sees when it works]
+Accepts:
+  - [scenario 1: specific testable outcome]
+  - [scenario 2: specific testable outcome]
+Edge cases:
+  - [boundary condition]: [what happens]
+  - [error scenario]: [what happens]
+Constraints: [performance, security, compliance bounds from trust-profile.md]
+```
+
+Present this to the FDE: "Here's what I'm about to build. Any open questions or changes before I start?"
+
+- FDE says "yes" / "go" / "approved" → build against the spec exactly
+- FDE modifies → update spec, confirm, then build
+- Fast-track: if the task is under 30 minutes and the FDE has established trust (week 2+), state the spec inline and proceed unless they object
+
+The spec becomes the test list - every line is something to verify after build.
+
 ## The loop (you do this work, in this order)
 
 1. **Confirm scope in writing.** The task exists in `decisions.md` with acceptance criteria. Not there → plan first or name the scope creep.
@@ -13,9 +48,14 @@
 5. **Search before creating.** Read the existing code in the area; don't add parallel helpers where a service exists. Integrating an SDK/vendor API → read real source (local `reference/repos/...` or official repo) before guessing names; record the files used in `decisions.md`. If an API looks invented, stop and search source.
 6. **Build the minimal working path.** Thin vertical slice the customer can see. No opportunistic refactors. Every changed line traces to the task.
 7. **Verify with evidence.** Run tests/typechecks/smallest proving script. State what ran and what didn't. "Seems right" is never evidence.
-8. **Cleanup pass after it works.** Dedupe repeated mechanics into the smallest service module; behavior unchanged; re-run the same tests. If you wrote 200 lines and 50 would do, rewrite before review.
-9. **Review gate (before merge):** two stages, in order - (a) **scope**: does the diff match what was agreed in `decisions.md`, nothing more? (b) **safety**: blast radius honest, tests meaningful, rollback real, secrets absent. Fix real findings, re-verify, repeat until clean or blocked on a human decision.
-10. **Log and deliver.** Update the artifacts (below). Visible progress beats invisible perfection - every 2–3 tasks something shown to a stakeholder.
+8. **Convergence check (spec vs. reality).** Walk through every acceptance scenario and edge case from the spec. State each one explicitly with its result:
+   - `[PASS]` scenario verified with evidence
+   - `[FAIL]` scenario not met - fix before proceeding
+   - `[DEFERRED]` intentionally left for a later task (state which one)
+   Surface the results to the FDE. If any scenario fails, fix it before cleanup. This is not optional - the spec is the contract.
+9. **Cleanup pass after it works.** Dedupe repeated mechanics into the smallest service module; behavior unchanged; re-run the same tests. If you wrote 200 lines and 50 would do, rewrite before review.
+10. **Review gate (before merge):** two stages, in order - (a) **scope**: does the diff match the approved spec and `decisions.md`, nothing more? (b) **safety**: blast radius honest, tests meaningful, rollback real, secrets absent. Fix real findings, re-verify, repeat until clean or blocked on a human decision.
+11. **Log and deliver.** Update the artifacts (below). Visible progress beats invisible perfection - every 2–3 tasks something shown to a stakeholder.
 
 **Touching existing code - classify before changing:**
 - **Fix now:** actively failing or blocking.
