@@ -4,13 +4,19 @@
 
 **Read first:** `context.md`, `brief.md`. Load `terrain.md` if it exists - extend it, never regenerate from scratch.
 
-## Validation gate (run before method - speak only on failure)
+## Validation gate (confirm understanding, clarify where it elevates)
 
-1. **The brief has a falsifiable hypothesis.** Read `brief.md`. If the stated problem is unfalsifiable ("the architecture is wrong", "the system is too complex") → surface it: "This hypothesis can't be tested. What specific evidence would prove it wrong?"
-2. **Discovery has a decision to inform.** If there's no named decision this discovery feeds (descope? rescope? pick A over B?) → surface it: "What will the sponsor do differently because of this discovery? If we can't name the decision, we're collecting trivia."
-3. **Previous discovery isn't being repeated.** If `terrain.md` already covers this area with dated evidence → surface it: "terrain.md already maps this area (Day [X]). Are we extending the map or has something changed?"
+Before discovering, state what you're investigating and why in 2-3 lines:
 
-If all pass, proceed silently.
+> "Investigating: [the hypothesis or problem area]. This informs: [the decision it feeds - descope/rescope/pick A over B]. Existing terrain: [what's already mapped vs. what's unknown]."
+
+Then check - probe ONLY if it prevents wasted discovery:
+
+1. **Hypothesis is testable.** If the stated problem is unfalsifiable ("the architecture is wrong") → rephrase it: "I'd narrow this to: [specific testable claim]. That closer to what you're seeing?"
+2. **Discovery feeds a decision.** If there's no named decision → one line: "What changes depending on what we find? That keeps the discovery focused."
+3. **Not repeating previous work.** If terrain.md already covers this area → name it: "Terrain already maps this from Day [X]. Extending it or has something shifted?"
+
+State your read, let the FDE correct, then discover.
 
 ## Frame the decision first
 

@@ -4,13 +4,19 @@
 
 **Read first:** `reality.md`, `success.md`, `terrain.md`, `stakeholders.md`. Load `business-case.md` if sketch produced one. Not the full folder.
 
-## Validation gate (run before method - speak only on failure)
+## Validation gate (confirm understanding, clarify where it elevates)
 
-1. **Success is defined and measurable.** Read `success.md`. If "done" is vague ("make it better", "improve performance") or missing entirely → surface it: "success.md doesn't define a measurable outcome. What specific thing proves this engagement succeeded?"
-2. **Reality matches the brief.** Compare `reality.md` (if it exists) against `brief.md`. If reality contradicts the brief and the brief hasn't been updated → surface it: "Discovery found [X] but the brief still says [Y]. Are we planning against the brief or reality?"
-3. **Out-of-scope is defined.** Check `success.md` for explicit out-of-scope boundaries. If missing → surface it: "Nothing is defined as out-of-scope. That means every request is in-scope by default - is that intentional?"
+Before planning, state what you're working from in 2-3 lines:
 
-If all pass, proceed silently. The FDE shouldn't know the gate ran unless something needs attention.
+> "Planning against: [success definition from success.md]. Scope boundary: [out-of-scope items]. Reality check: [brief aligns with reality.md / or note the delta]."
+
+Then check - probe ONLY if it prevents a bad plan:
+
+1. **Success is measurable.** If "done" is vague ("make it better") → rephrase it: "I'm reading success as: [specific measurable outcome]. That the target?"
+2. **Reality matches the brief.** If discovery contradicted the brief → name it: "Discovery found [X] but the brief says [Y]. Planning against reality unless you say otherwise."
+3. **Out-of-scope exists.** If missing → one line: "Nothing's marked out-of-scope yet. That means every new request is implicitly in. Worth defining now or after the first plan draft?"
+
+State your read, let the FDE correct, then plan.
 
 An FDE plan is not a sprint backlog. The technical sequence is the easy part. The hard part is when to show progress, who approves the next phase, and where trust is thin enough that two silent weeks read as failure. A technically correct plan that ignores engagement politics fails on schedule.
 
