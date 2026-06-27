@@ -1,17 +1,27 @@
 # FDEOps
 
-**The discipline and methodology for Forward Deployed Engineers.**
+**Your AI coding agent forgets everything between sessions. This fixes that.**
 
 [![npm version](https://img.shields.io/npm/v/fdeops)](https://www.npmjs.com/package/fdeops)
 [![CI](https://github.com/suboss87/fdeops/actions/workflows/validate.yml/badge.svg)](https://github.com/suboss87/fdeops/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-You embed at a client site. You bridge strategy and code. You ship on their systems, not yours.
+You open your AI coding agent Monday morning and it has no idea what happened last week. You re-paste context. You re-explain stakeholders. You remind it about the scope change from Tuesday. Every session, from scratch.
 
-Every morning you open your AI coding agent, and it has no idea what happened yesterday. You re-paste the same context. You explain the stakeholders again. You remind it about the scope change from Tuesday. Meanwhile, the real problem - the one the brief didn't mention - sits undiscovered because nobody asked the right questions on day one.
+**fdeops gives your AI agent persistent memory and a senior co-pilot for client-facing work.** Describe your situation, the agent confirms its understanding, runs the right method from 35 options, and writes everything to memory. Tomorrow's session opens with a summary, the one thing worth your attention, and a clear next move.
 
-**fdeops fixes this.** One `@fde` command gives your AI coding agent a complete engagement methodology, a memory that writes itself, and a co-pilot that never assumes. Describe your situation, the agent confirms its understanding, generates specs where needed, and runs the right method - from first stakeholder meeting to final handoff. Tomorrow's session opens with a state summary and the one thing worth your attention.
+---
+
+## Without fdeops vs with fdeops
+
+| | **Without fdeops** | **With fdeops** |
+|---|-------------------|----------------|
+| **Monday morning** | Re-paste last week's context, explain the stakeholders again | Agent opens with "last session you were on the ingest retry - CTO demo is Friday" |
+| **Scope creep** | Five "small" additions absorbed silently, timeline slips | Receipts timestamped - you walk into the sponsor meeting with evidence |
+| **Multiple customers** | Wrong client name in a status update, details blur | One folder per customer, context-switch protocol, cross-contamination checklist |
+| **The sponsor meeting** | "We completed the API endpoint" | "Manual reconciliation dropped from 3 FTEs to 0.5 - here's the rollback if it turns" |
+| **Before building** | AI builds what it thinks you meant, surprises in the PR | Agent generates the spec first, you approve in one word, zero surprises |
 
 ---
 
@@ -59,11 +69,11 @@ Describe what's happening and the agent picks the right method. No configuration
 
 | You are... | What fdeops does for you |
 |----------|-------------------|
-| **Forward Deployed Engineer** | The role this was built for. 35 skills across the full engagement lifecycle - land, build, ship, close. |
 | **Consultant or contractor at a client site** | Every session, you re-explain context. fdeops remembers for you. |
 | **Solutions architect bridging strategy and code** | You navigate politics AND architecture. fdeops has methods for both. |
 | **Agency engineer running 3-5 clients** | Client details blur together. One `.fde/` per customer, never cross-contaminated. |
 | **Technical founder doing client work solo** | You ARE the team. The agent becomes your second brain. |
+| **Forward Deployed Engineer** | The role this was built for. 35 skills across the full engagement lifecycle - land, build, ship, close. |
 
 ---
 
@@ -95,18 +105,6 @@ flowchart LR
 <p align="center"><img width="794" height="571" alt="FieldBook" src="https://github.com/user-attachments/assets/349a223e-0c5e-4300-a8fe-9e3bb042cbbe" />
 
 Works with **Claude Code** - **Cursor** - **Copilot** - **Devin** - **Gemini CLI** - **Ollama** - **LM Studio** - any model that reads a markdown file
-
----
-
-## Without fdeops vs with fdeops
-
-| | **Without fdeops** | **With fdeops** |
-|---|-------------------|----------------|
-| **Monday morning** | Re-paste last week's context, explain the stakeholders again | Agent opens with "last session you were on the ingest retry - CTO demo is Friday" |
-| **Scope creep** | Five "small" additions absorbed silently, timeline slips | Receipts timestamped - you walk into the sponsor meeting with evidence |
-| **Multiple customers** | Wrong client name in a status update, details blur | One folder per customer, context-switch protocol, cross-contamination checklist |
-| **The sponsor meeting** | "We completed the API endpoint" | "Manual reconciliation dropped from 3 FTEs to 0.5 - here's the rollback if it turns" |
-| **Before building** | AI builds what it thinks you meant, surprises in the PR | Agent generates the spec first, you approve in one word, zero surprises |
 
 ---
 
