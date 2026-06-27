@@ -11,7 +11,7 @@ You embed at a client site. You bridge strategy and code. You ship on their syst
 
 Every morning you open your AI coding agent, and it has no idea what happened yesterday. You re-paste the same context. You explain the stakeholders again. You remind it about the scope change from Tuesday. Meanwhile, the real problem - the one the brief didn't mention - sits undiscovered because nobody asked the right questions on day one.
 
-**fdeops fixes this.** One `@fde` command gives your AI coding agent a complete engagement methodology, a memory that writes itself, and a senior FDE co-pilot that never assumes. Describe your situation, the agent confirms its understanding, generates specs where needed, and runs the right method - from first stakeholder meeting to final handoff. Tomorrow's session opens with a state summary and the one thing worth your attention.
+**fdeops fixes this.** One `@fde` command gives your AI coding agent a complete engagement methodology, a memory that writes itself, and a co-pilot that never assumes. Describe your situation, the agent confirms its understanding, generates specs where needed, and runs the right method - from first stakeholder meeting to final handoff. Tomorrow's session opens with a state summary and the one thing worth your attention.
 
 ---
 
