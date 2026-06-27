@@ -11,7 +11,7 @@ You embed at a client site. You bridge strategy and code. You ship on their syst
 
 Every morning you open your AI coding agent, and it has no idea what happened yesterday. You re-paste the same context. You explain the stakeholders again. You remind it about the scope change from Tuesday. Meanwhile, the real problem - the one the brief didn't mention - sits undiscovered because nobody asked the right questions on day one.
 
-**fdeops fixes this.** One `@fde` command gives your AI coding agent a complete engagement methodology and a memory that writes itself. Describe your situation and the right method runs - from first stakeholder meeting to final handoff. Tomorrow's session starts exactly where today ended.
+**fdeops fixes this.** One `@fde` command gives your AI coding agent a complete engagement methodology, a memory that writes itself, and a senior FDE co-pilot that never assumes. Describe your situation, the agent confirms its understanding, generates specs where needed, and runs the right method - from first stakeholder meeting to final handoff. Tomorrow's session opens with a state summary and the one thing worth your attention.
 
 ---
 
@@ -89,8 +89,8 @@ flowchart LR
 
 1. **Describe** your situation - "new client", "production is down", "need a board update", "red-team my handoff plan"
 2. **Route** - the skill picks the right method from 35 options across 6 domains
-3. **Execute** - the method runs, artifacts are written to `.fde/`, you review at checkpoints
-4. **Compound** - next session loads the memory automatically. Context never starts from zero again.
+3. **Confirm and execute** - the agent states its understanding, probes only where it elevates you, generates a spec before building, then runs the method and writes artifacts
+4. **Compound** - next session opens with a state summary, flags what needs attention, and suggests the next move. Context never starts from zero again.
 
 <p align="center"><img width="794" height="571" alt="FieldBook" src="https://github.com/user-attachments/assets/349a223e-0c5e-4300-a8fe-9e3bb042cbbe" />
 
@@ -106,6 +106,7 @@ Works with **Claude Code** - **Cursor** - **Copilot** - **Devin** - **Gemini CLI
 | **Scope creep** | Five "small" additions absorbed silently, timeline slips | Receipts timestamped - you walk into the sponsor meeting with evidence |
 | **Multiple customers** | Wrong client name in a status update, details blur | One folder per customer, context-switch protocol, cross-contamination checklist |
 | **The sponsor meeting** | "We completed the API endpoint" | "Manual reconciliation dropped from 3 FTEs to 0.5 - here's the rollback if it turns" |
+| **Before building** | AI builds what it thinks you meant, surprises in the PR | Agent generates the spec first, you approve in one word, zero surprises |
 
 ---
 
