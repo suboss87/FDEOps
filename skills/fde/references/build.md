@@ -4,15 +4,19 @@
 
 **Read first:** `context.md`, `terrain.md`, `decisions.md`. Load `trust-profile.md` when touching regulated areas. No map or no plan → route to discover/plan first; say it plainly: "We're not ready to touch code until we know what's connected to this module."
 
-## Validation gate (run before method - speak only on failure)
+## Validation gate (confirm understanding, clarify where it elevates)
 
-Before starting the build loop, check these silently. If all pass, proceed without comment. If any fails, surface the ONE most important issue and ask ONE question.
+Before starting, state what you're working with in 2-4 lines - a brief playback that invites correction, not a question:
 
-1. **Acceptance criteria are falsifiable.** Read the task in `decisions.md`. If the criteria are vague ("should work well", "handle errors gracefully", "be performant") → surface it: "The acceptance criterion for this task isn't testable. What specific behavior proves it works?"
-2. **Terrain is current.** Compare `terrain.md` last-update date against `decisions.md` plan date. If terrain is older → surface it: "terrain.md was written before this plan. Has the codebase changed in ways that affect this task?"
-3. **No open CRITICAL risk on the module being changed.** Check `risks.md` for unresolved critical risks that touch the same files/systems. If found → surface it: "There's an open critical risk affecting this module. Address or explicitly accept before building."
+> "Building: [task name]. Blast radius: [files/systems]. Terrain is [X days] fresh. [Any risk or concern worth naming, or 'clear to proceed']."
 
-If the FDE has already addressed these in conversation, don't re-ask - act on what you know.
+Then check - probe ONLY if it prevents a mistake:
+
+1. **Acceptance criteria are falsifiable.** If the criteria are vague ("should work well", "handle errors gracefully") → rephrase them specifically: "I'm reading 'works well' as: responds in <500ms, retries 3x, alerts on failure. That right?"
+2. **Terrain is current.** If terrain.md is significantly older than the plan → one line: "Terrain is from Day 3, plan from Day 8 - assuming nothing shifted in between."
+3. **No open CRITICAL risk on the module.** If found → name it: "There's an open risk on this module (rate limiting). Building around it unless you say otherwise."
+
+Don't interrogate. State your read, let the FDE correct if needed, then move.
 
 ## Spec generation (AI generates, human approves)
 

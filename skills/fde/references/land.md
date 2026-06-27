@@ -4,13 +4,19 @@
 
 **Read first:** `context.md` if it exists. Nothing else until you know what kind of engagement this is.
 
-## Validation gate (run before method - speak only on failure)
+## Validation gate (confirm understanding, clarify where it elevates)
 
-1. **Engagement speed is known.** If the FDE hasn't indicated timeline (days, weeks, months) → ask naturally: "Is this a quick sprint (days), a standard engagement (weeks), or a long programme (months)? That changes how much structure we need upfront."
-2. **No prior engagement context being overwritten.** If `.fde/` already exists with populated files → surface it: "There's existing engagement memory here. Are we continuing this engagement or starting a new one?"
-3. **Access is confirmed or flagged.** If the FDE mentions starting work but hasn't confirmed repo/environment access → surface it: "Do you have access to their repo and environments yet? Waiting for access on day two burns trust."
+Before landing, state what you know in 2-3 lines:
 
-If all pass, proceed silently.
+> "New engagement: [client name]. Timeline: [days/weeks/months or 'not clear yet']. Starting with: [what the FDE has told you so far - the brief, the context, the ask]."
+
+Then check - probe ONLY if it prevents a bad start:
+
+1. **Engagement speed.** If timeline is unclear → weave it in naturally: "Is this days, weeks, or months? That shapes how much structure we set up now."
+2. **Existing context.** If `.fde/` already exists → one line: "There's existing engagement memory here. Continuing this or starting fresh?"
+3. **Access.** If the FDE is about to start work → one line: "Got repo and environment access sorted, or is that still pending?"
+
+State your read, let the FDE correct, then land.
 
 ## Method - part 1: interrogate the brief (you do this work)
 
