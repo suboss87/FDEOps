@@ -4,6 +4,14 @@
 
 **Read first:** `context.md`, `brief.md`. Load `terrain.md` if it exists - extend it, never regenerate from scratch.
 
+## Validation gate (run before method - speak only on failure)
+
+1. **The brief has a falsifiable hypothesis.** Read `brief.md`. If the stated problem is unfalsifiable ("the architecture is wrong", "the system is too complex") → surface it: "This hypothesis can't be tested. What specific evidence would prove it wrong?"
+2. **Discovery has a decision to inform.** If there's no named decision this discovery feeds (descope? rescope? pick A over B?) → surface it: "What will the sponsor do differently because of this discovery? If we can't name the decision, we're collecting trivia."
+3. **Previous discovery isn't being repeated.** If `terrain.md` already covers this area with dated evidence → surface it: "terrain.md already maps this area (Day [X]). Are we extending the map or has something changed?"
+
+If all pass, proceed silently.
+
 ## Frame the decision first
 
 Before any scanning, write one sentence at the top of your working notes:
