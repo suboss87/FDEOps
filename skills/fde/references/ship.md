@@ -6,6 +6,30 @@
 
 Opening question, calm tech lead voice: **has anyone actually *run* the rollback, or is it still a slide?** If only planned, that's today's work - say so plainly.
 
+## Deployment readiness gate (confirm the target before building the runway)
+
+Before scoring readiness, confirm WHERE this is going. State it in 2-3 lines - brief playback that invites correction:
+
+> "Deploying to: [target]. Pipeline: [how it gets there]. Rollback mechanism: [how to undo]. Any constraint I should know about?"
+
+**The checklist (confirm, don't assume):**
+
+| Dimension | Question | Status |
+|-----------|----------|--------|
+| **Target** | Cloud provider + service (ECS/Lambda/K8s/VM/on-prem)? | |
+| **Pipeline** | CI/CD exists? Manual? Who triggers prod deploy? | |
+| **Environments** | Dev → staging → prod path clear? Or deploying direct? | |
+| **Secrets** | Where do they live? (vault/SSM/env vars) Who provisions? | |
+| **Access** | Do YOU have deploy permissions, or does someone else push? | |
+| **Compliance** | Region constraints? Data residency? Encryption requirements? CAB/change window? | |
+| **Infra-as-code** | Terraform/Pulumi/CDK/manual? State file location? | |
+
+**If anything is blank:** ask now. Discovering deployment constraints AFTER build is where timelines slip. If the client hasn't defined these yet, that's a conversation before you write the runbook - not after.
+
+Write confirmed deployment context to `delivery.md` under a `## Deployment target` section.
+
+---
+
 ## Method - readiness gate (score before touching the deploy button)
 
 Score each dimension green/amber/red. This is the gate, not a suggestion:
