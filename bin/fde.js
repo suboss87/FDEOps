@@ -475,7 +475,7 @@ const DASH_SECTIONS = [
 function dashStyles() {
   return [
     // design system: quiet chrome, high density, daily-use second brain
-    ':root{--bg:#f9fafb;--card:#fff;--ink:#111827;--2:#374151;--3:#6b7280;--muted:#9ca3af;--line:#f3f4f6;--line2:#e5e7eb;',
+    ':root{--bg:#f9fafb;--card:#fff;--ink:#111827;--2:#374151;--3:#4b5563;--muted:#6b7280;--line:#f3f4f6;--line2:#e5e7eb;',
     '--green:#10b981;--amber:#f59e0b;--red:#ef4444;--accent:#6366f1;',
     '--shadow-s:0 1px 2px rgba(0,0,0,.04);--shadow:0 1px 3px rgba(0,0,0,.06);--shadow-l:0 4px 12px rgba(0,0,0,.08);',
     '--r:8px}',
@@ -500,6 +500,21 @@ function dashStyles() {
     '.search{width:100%;padding:10px 14px 10px 36px;font-size:13px;border:1px solid var(--line2);border-radius:var(--r);background:var(--card);transition:border-color .15s,box-shadow .15s;outline:none}',
     '.search:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.1)}',
     '.search::placeholder{color:var(--muted)}',
+    // directive - the one line that says where to start today
+    '.directive{display:flex;align-items:center;gap:10px;margin:0 0 20px;padding:12px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--r);font-size:13.5px;line-height:1.5;color:#7f1d1d}',
+    '.directive b{font-weight:700;color:#7f1d1d}',
+    '.directive.amber{background:#fffbeb;border-color:#fde68a;color:#78350f}',
+    '.directive.amber b{color:#78350f}',
+    '.directive-dot{width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;box-shadow:0 0 0 3px rgba(239,68,68,.18)}',
+    '.directive.amber .directive-dot{background:var(--amber);box-shadow:0 0 0 3px rgba(245,158,11,.18)}',
+    // attention rows - red engagements dominate the page, full width
+    '.attn-stack{display:flex;flex-direction:column;gap:10px}',
+    '.attn{background:#fef2f2;border:1px solid #fecaca;border-left:4px solid var(--red);border-radius:var(--r);padding:16px 18px;cursor:pointer;transition:box-shadow .15s,border-color .15s}',
+    '.attn:hover{border-color:#f87171;box-shadow:var(--shadow-l)}',
+    '.attn-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
+    '.attn-head h3{font-size:15px;font-weight:700;color:var(--ink)}',
+    '.attn .risk{margin-top:10px}',
+    '.attn .next{margin-top:8px;font-size:13px;line-height:1.5;color:var(--2)}.attn .next b{color:var(--3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;margin-right:4px}',
     // grid
     '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}',
     // cards - clean, scannable
@@ -518,6 +533,9 @@ function dashStyles() {
     '.card .next{margin-top:10px;font-size:12.5px;line-height:1.5;color:var(--2)}.card .next b{color:var(--3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;margin-right:2px}',
     '.card .risk{margin-top:8px;font-size:11.5px;color:#991b1b;padding:5px 8px;background:#fef2f2;border-radius:4px;border-left:2px solid var(--red);line-height:1.4}',
     '.card .risk.amber-risk{color:#92400e;background:#fffbeb;border-left-color:var(--amber)}',
+    // demote placeholder cards (no next action) - quiet until they earn attention
+    '.card.muted{opacity:.55}',
+    '.card.muted:hover{opacity:1}',
     // section labels
     'h2.section{margin:28px 0 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}',
     // detail accordion - tight, content-forward
@@ -582,25 +600,65 @@ function cmdDashboard(args) {
   const now = new Date()
   const stamp = now.toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
 
-  const cards = engagements.map(e => {
-    const id = 'eng-' + slugify(e.name)
+  // enrich each engagement: next action + search index (reused in rows, cards, directive)
+  engagements.forEach(e => {
     const ctx = readEng(e.dir, 'context.md')
-    const next = (sectionBody(ctx, 'Next action').split('\n').find(l => l.trim()) || '').trim()
-    const trustClass = e.signals.trust === 'RED' ? 'red' : e.signals.trust
-    const trustLabel = e.signals.trust === 'RED' ? 'RED' : e.signals.trust
-    const searchBlob = escapeHtml(stripPrivate(e.name + ' ' + ctx + ' ' + readEng(e.dir, 'risks.md') + ' ' + readEng(e.dir, 'stakeholders.md')).toLowerCase())
+    e.next = (sectionBody(ctx, 'Next action').split('\n').find(l => l.trim()) || '').trim()
+    e.hasNext = !!e.next
+    e.searchBlob = escapeHtml(stripPrivate(e.name + ' ' + ctx + ' ' + readEng(e.dir, 'risks.md') + ' ' + readEng(e.dir, 'stakeholders.md')).toLowerCase())
+  })
+
+  // triage order: red first (most stale first), then amber, then green; real work above placeholders
+  const tierRank = { RED: 0, amber: 1, green: 2 }
+  const ordered = engagements.slice().sort((a, b) =>
+    (tierRank[a.signals.trust] - tierRank[b.signals.trust])
+    || ((b.hasNext ? 1 : 0) - (a.hasNext ? 1 : 0))
+    || ((b.signals.ageDays || 0) - (a.signals.ageDays || 0))
+    || a.name.localeCompare(b.name))
+  const reds = ordered.filter(e => e.signals.trust === 'RED')
+  const rest = ordered.filter(e => e.signals.trust !== 'RED')
+
+  // one directive line: where the FDE starts today, and why
+  const lead = reds[0] || rest.find(e => e.signals.trust === 'amber' && e.hasNext) || rest[0]
+  let directive = '', directiveClass = 'directive'
+  if (lead) {
+    const why = stripPrivate(lead.signals.topRisk || lead.next || (lead.signals.trust === 'RED' ? 'trust signal is red' : 'oldest open thread')).trim().slice(0, 90)
+    const age = lead.signals.ageDays != null ? `${lead.signals.ageDays}d since touched` : ''
+    directive = `Start here: <b>${inlineMd(lead.name)}</b> - ${inlineMd(why)}${age ? ' · ' + age : ''}`
+    directiveClass = reds.length ? 'directive' : 'directive amber'
+  }
+
+  // red engagements: full-width attention rows that dominate the page
+  const attention = reds.map(e => {
+    const id = 'eng-' + slugify(e.name)
     return [
-      `<div class="card ${trustClass}" data-target="${id}" data-search="${searchBlob}">`,
+      `<div class="attn" data-target="${id}" data-search="${e.searchBlob}">`,
+      `<div class="attn-head"><span class="dot red"></span><span class="trust-label t-red">RED</span>`,
       `<h3>${inlineMd(e.name)}</h3>`,
-      `<div class="row"><span class="dot ${trustClass}"></span><span class="trust-label t-${trustClass}">${trustLabel}</span>`,
       `<span class="badge">${inlineMd(e.signals.phase)}</span><span class="meta">updated ${e.signals.updated}</span></div>`,
-      next ? `<div class="next"><b>Next</b> ${inlineMd(next)}</div>` : '<div class="next meta">next action not set</div>',
       e.signals.topRisk ? `<div class="risk">${inlineMd(e.signals.topRisk)}</div>` : '',
+      e.next ? `<div class="next"><b>Next</b> ${inlineMd(e.next)}</div>` : '',
       `</div>`,
     ].join('')
   }).join('\n')
 
-  const details = engagements.map(e => {
+  // amber/green: quieter portfolio grid; cards without a next action sink and dim
+  const cards = rest.map(e => {
+    const id = 'eng-' + slugify(e.name)
+    const trustClass = e.signals.trust
+    const muted = e.hasNext ? '' : ' muted'
+    return [
+      `<div class="card ${trustClass}${muted}" data-target="${id}" data-search="${e.searchBlob}">`,
+      `<h3>${inlineMd(e.name)}</h3>`,
+      `<div class="row"><span class="dot ${trustClass}"></span><span class="trust-label t-${trustClass}">${trustClass}</span>`,
+      `<span class="badge">${inlineMd(e.signals.phase)}</span><span class="meta">updated ${e.signals.updated}</span></div>`,
+      e.next ? `<div class="next"><b>Next</b> ${inlineMd(e.next)}</div>` : '<div class="next meta">next action not set</div>',
+      e.signals.topRisk ? `<div class="risk amber-risk">${inlineMd(e.signals.topRisk)}</div>` : '',
+      `</div>`,
+    ].join('')
+  }).join('\n')
+
+  const details = ordered.map(e => {
     const id = 'eng-' + slugify(e.name)
     const trustClass = e.signals.trust === 'RED' ? 'red' : e.signals.trust
     const subs = DASH_SECTIONS.map(([file, title]) => {
@@ -643,8 +701,10 @@ function cmdDashboard(args) {
     '</div></div></header>',
     '<div class="wrap">',
     engagements.length ? '<div class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="q" class="search" placeholder="Search across all engagements..."></div>' : '',
-    '<h2 class="section">Portfolio</h2>',
-    engagements.length ? `<div class="grid">${cards}</div>` : emptyState,
+    directive ? `<div class="${directiveClass}"><span class="directive-dot"></span><span>${directive}</span></div>` : '',
+    reds.length ? '<h2 class="section">Needs attention</h2><div class="attn-stack">' + attention + '</div>' : '',
+    engagements.length ? `<h2 class="section">${reds.length ? 'Rest of portfolio' : 'Portfolio'}</h2>` : '',
+    engagements.length ? (rest.length ? `<div class="grid">${cards}</div>` : '<p class="empty">Every active engagement needs attention - see above.</p>') : emptyState,
     engagements.length ? '<h2 class="section">Engagement detail</h2>' + details : '',
     '</div>',
     `<footer>fdeops · fieldbook is a deterministic render of your <code>.fde/</code> memory - edit the markdown, re-run <code>fde dashboard</code>. Source of truth stays in the files.</footer>`,
