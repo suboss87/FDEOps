@@ -473,117 +473,148 @@ const DASH_SECTIONS = [
 ]
 
 function dashStyles() {
-  return [
-    // design system: quiet chrome, high density, daily-use second brain
-    ':root{--bg:#f9fafb;--card:#fff;--ink:#111827;--2:#374151;--3:#4b5563;--muted:#6b7280;--line:#f3f4f6;--line2:#e5e7eb;',
-    '--green:#10b981;--amber:#f59e0b;--red:#ef4444;--accent:#6366f1;',
-    '--shadow-s:0 1px 2px rgba(0,0,0,.04);--shadow:0 1px 3px rgba(0,0,0,.06);--shadow-l:0 4px 12px rgba(0,0,0,.08);',
-    '--r:8px}',
-    '*{box-sizing:border-box;margin:0}',
-    'body{font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}',
-    // header - compact, purposeful
-    'header{background:#111827;color:#fff;padding:20px 32px}',
-    'header .inner{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}',
-    'header .brand{display:flex;align-items:center;gap:10px}',
-    'header h1{font-size:16px;font-weight:600;letter-spacing:-.2px}',
-    'header .tagline{color:#9ca3af;font-size:12px}',
-    '.stats{display:flex;align-items:center;gap:16px}',
-    '.stat{font-size:12px;color:#9ca3af;display:flex;align-items:center;gap:5px}',
-    '.stat b{color:#e5e7eb;font-weight:600}',
-    '.stat .sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}',
-    '.stat .sdot.green{background:#34d399}.stat .sdot.amber{background:#fbbf24}.stat .sdot.red{background:#f87171}',
-    // layout
-    '.wrap{max-width:960px;margin:0 auto;padding:24px 32px 64px}',
-    // search - integrated, not floating
-    '.search-wrap{position:relative;margin-bottom:24px}',
-    '.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);stroke-width:2;fill:none}',
-    '.search{width:100%;padding:10px 14px 10px 36px;font-size:13px;border:1px solid var(--line2);border-radius:var(--r);background:var(--card);transition:border-color .15s,box-shadow .15s;outline:none}',
-    '.search:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.1)}',
-    '.search::placeholder{color:var(--muted)}',
-    // directive - the one line that says where to start today
-    '.directive{display:flex;align-items:center;gap:10px;margin:0 0 20px;padding:12px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--r);font-size:13.5px;line-height:1.5;color:#7f1d1d}',
-    '.directive b{font-weight:700;color:#7f1d1d}',
-    '.directive.amber{background:#fffbeb;border-color:#fde68a;color:#78350f}',
-    '.directive.amber b{color:#78350f}',
-    '.directive-dot{width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;box-shadow:0 0 0 3px rgba(239,68,68,.18)}',
-    '.directive.amber .directive-dot{background:var(--amber);box-shadow:0 0 0 3px rgba(245,158,11,.18)}',
-    // attention rows - red engagements dominate the page, full width
-    '.attn-stack{display:flex;flex-direction:column;gap:10px}',
-    '.attn{background:#fef2f2;border:1px solid #fecaca;border-left:4px solid var(--red);border-radius:var(--r);padding:16px 18px;cursor:pointer;transition:box-shadow .15s,border-color .15s}',
-    '.attn:hover{border-color:#f87171;box-shadow:var(--shadow-l)}',
-    '.attn-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
-    '.attn-head h3{font-size:15px;font-weight:700;color:var(--ink)}',
-    '.attn .risk{margin-top:10px}',
-    '.attn .next{margin-top:8px;font-size:13px;line-height:1.5;color:var(--2)}.attn .next b{color:var(--3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;margin-right:4px}',
-    // grid
-    '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}',
-    // cards - clean, scannable
-    '.card{background:var(--card);border:1px solid var(--line2);border-radius:var(--r);padding:16px 18px;cursor:pointer;transition:border-color .15s,box-shadow .15s;position:relative;overflow:hidden}',
-    '.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px}',
-    '.card:hover{border-color:#d1d5db;box-shadow:var(--shadow-l)}',
-    '.card.green::before{background:var(--green)}.card.amber::before{background:var(--amber)}.card.red::before{background:var(--red)}',
-    '.card h3{font-size:14px;font-weight:600;margin-bottom:6px}',
-    '.row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}',
-    '.badge{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:4px;background:#f3f4f6;color:#4b5563}',
-    '.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}',
-    '.dot.green{background:var(--green)}.dot.amber{background:var(--amber)}.dot.red{background:var(--red)}',
-    '.trust-label{font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px}',
-    '.t-green{color:var(--green)}.t-amber{color:var(--amber)}.t-red{color:var(--red)}',
-    '.meta{color:var(--muted);font-size:11px}',
-    '.card .next{margin-top:10px;font-size:12.5px;line-height:1.5;color:var(--2)}.card .next b{color:var(--3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;margin-right:2px}',
-    '.card .risk{margin-top:8px;font-size:11.5px;color:#991b1b;padding:5px 8px;background:#fef2f2;border-radius:4px;border-left:2px solid var(--red);line-height:1.4}',
-    '.card .risk.amber-risk{color:#92400e;background:#fffbeb;border-left-color:var(--amber)}',
-    // demote placeholder cards (no next action) - quiet until they earn attention
-    '.card.muted{opacity:.55}',
-    '.card.muted:hover{opacity:1}',
-    // section labels
-    'h2.section{margin:28px 0 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}',
-    // detail accordion - tight, content-forward
-    'details.eng{background:var(--card);border:1px solid var(--line2);border-radius:var(--r);margin:8px 0;overflow:hidden}',
-    'details.eng>summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;transition:background .1s}',
-    'details.eng>summary:hover{background:var(--bg)}',
-    'details.eng>summary::-webkit-details-marker{display:none}',
-    'details.eng>summary::after{content:"";margin-left:auto;width:16px;height:16px;background:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%239ca3af\' stroke-width=\'2\'%3E%3Cpath d=\'M6 9l6 6 6-6\'/%3E%3C/svg%3E") no-repeat center;transition:transform .15s}',
-    'details.eng[open]>summary::after{transform:rotate(180deg)}',
-    'details.eng[open]>summary{border-bottom:1px solid var(--line)}',
-    '.eng-body{padding:8px 20px 20px}',
-    '.sub-sec{padding:14px 0;border-bottom:1px solid var(--line)}.sub-sec:last-child{border-bottom:none}',
-    '.sub-sec h4.title{margin:0 0 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}',
-    '.sub-sec h4{margin:10px 0 4px;font-size:13.5px;font-weight:600;color:var(--ink)}',
-    '.sub-sec p{margin:4px 0;line-height:1.6;color:var(--2);font-size:13px}.sub-sec ul{margin:4px 0;padding-left:20px;color:var(--2);font-size:13px}',
-    '.sub-sec li{margin:2px 0}',
-    '.empty{color:var(--muted);font-style:italic;font-size:12px}',
-    // tables
-    'table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12.5px;border:1px solid var(--line2);border-radius:6px;overflow:hidden}',
-    'th,td{padding:7px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}',
-    'th{background:var(--bg);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--3);border-bottom:1px solid var(--line2)}',
-    'tr:last-child td{border-bottom:none}',
-    'tr:hover td{background:var(--bg)}',
-    'code{background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:12px;color:#4b5563}',
-    // footer
-    'footer{max-width:960px;margin:0 auto;padding:0 32px 48px;color:var(--muted);font-size:11.5px;line-height:1.5}',
-    'footer code{color:var(--3);background:#f3f4f6}',
-    '.hide{display:none!important}',
-    // responsive
-    '@media(max-width:640px){header{padding:16px}.header .inner{flex-direction:column;align-items:flex-start}.wrap{padding:16px 16px 48px}.grid{grid-template-columns:1fr}.search{padding-left:32px}}',
-  ].join('')
+  // "Blacktone" - a calm, dense, modern standup board. Dark by default, light on request.
+  return `
+:root{
+  --bg:#0c0e12;--surface:#14171d;--surface-2:#1a1e25;--elevated:#1e232b;
+  --ink:#e9ecf1;--ink-2:#aeb4bf;--muted:#777e8a;
+  --line:rgba(255,255,255,.07);--line-2:rgba(255,255,255,.12);
+  --green:#34d399;--amber:#fbbf24;--red:#fb7185;--accent:#8b8fff;
+  --red-tint:rgba(251,113,133,.09);--amber-tint:rgba(251,191,36,.07);
+  --shadow:0 1px 0 rgba(255,255,255,.03),0 8px 24px rgba(0,0,0,.4);
+  --r:14px;--r-s:9px;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+@media(prefers-color-scheme:light){
+  :root{
+    --bg:#f6f7f9;--surface:#ffffff;--surface-2:#f3f5f8;--elevated:#ffffff;
+    --ink:#10131a;--ink-2:#414855;--muted:#727a87;
+    --line:rgba(15,19,26,.08);--line-2:rgba(15,19,26,.14);
+    --green:#0f9d6b;--amber:#c87f0a;--red:#e23a5e;--accent:#5b5ff0;
+    --red-tint:rgba(226,58,94,.05);--amber-tint:rgba(200,127,10,.05);
+    --shadow:0 1px 2px rgba(15,19,26,.04),0 10px 28px rgba(15,19,26,.08);
+  }
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.wrap{max-width:880px;margin:0 auto;padding:0 22px 72px}
+/* sticky top bar */
+.topbar{position:sticky;top:0;z-index:20;backdrop-filter:saturate(140%) blur(12px);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line)}
+.bar-inner{max-width:880px;margin:0 auto;padding:13px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:baseline;gap:9px;min-width:0}
+.brand .logo{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent);align-self:center;flex-shrink:0}
+.brand .title{font-size:15px;font-weight:650;letter-spacing:-.2px}
+.brand .date{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.health{display:flex;align-items:center;gap:10px}
+.meter{display:flex;width:120px;height:7px;border-radius:99px;overflow:hidden;background:var(--line-2)}
+.meter .seg{height:100%}
+.meter .seg.red{background:var(--red)}.meter .seg.amber{background:var(--amber)}.meter .seg.green{background:var(--green)}
+.health-num{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+/* search */
+.search-wrap{position:relative;margin:22px 0 18px}
+.search-wrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--muted);stroke-width:2;fill:none}
+.search{width:100%;padding:11px 14px 11px 38px;font-size:13px;color:var(--ink);border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s}
+.search:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.search::placeholder{color:var(--muted)}
+/* TODAY hero */
+.today{position:relative;margin:0 0 26px;padding:20px 22px;background:linear-gradient(180deg,var(--surface-2),var(--surface));border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.today::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--red)}
+.today.lead-amber::before{background:var(--amber)}
+.today .tag{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px}
+.today .tag .pulse{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 color-mix(in srgb,var(--red) 60%,transparent);animation:pulse 2.4s infinite}
+.today.lead-amber .tag .pulse{background:var(--amber);box-shadow:0 0 0 0 color-mix(in srgb,var(--amber) 60%,transparent)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--red) 55%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.today h2{font-size:21px;font-weight:720;letter-spacing:-.4px;margin:9px 0 5px}
+.today .why{color:var(--ink-2);font-size:14px;line-height:1.55;max-width:62ch}
+.today .why b,.today .why strong{color:var(--ink);font-weight:650}
+.today .foot{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap}
+.today .age{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.copy{appearance:none;font:inherit;font-size:12px;font-weight:600;color:var(--ink);background:var(--elevated);border:1px solid var(--line-2);border-radius:99px;padding:6px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:border-color .15s,background .15s,transform .08s}
+.copy:hover{border-color:var(--accent);background:var(--surface-2)}
+.copy:active{transform:translateY(1px)}
+.copy svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none}
+.copy.done{color:var(--green);border-color:color-mix(in srgb,var(--green) 50%,transparent)}
+/* section label */
+.section{margin:24px 2px 11px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.section .ct{color:var(--ink-2);margin-left:6px;font-weight:600}
+/* dense engagement rows */
+.rows{display:flex;flex-direction:column;gap:7px}
+details.eng{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--muted);border-radius:var(--r-s);overflow:hidden;transition:border-color .15s,background .15s,box-shadow .15s}
+details.eng:hover{box-shadow:var(--shadow)}
+details.eng.t-red{border-left-color:var(--red);background:linear-gradient(90deg,var(--red-tint),var(--surface) 60%)}
+details.eng.t-amber{border-left-color:var(--amber)}
+details.eng.t-green{border-left-color:var(--green)}
+details.eng.muted{opacity:.5}
+details.eng.muted:hover,details.eng[open].muted{opacity:1}
+details.eng>summary{list-style:none;cursor:pointer;padding:13px 15px;display:flex;align-items:center;gap:12px}
+details.eng>summary::-webkit-details-marker{display:none}
+.r-name{font-size:14px;font-weight:650;letter-spacing:-.1px;white-space:nowrap;flex-shrink:0}
+.track{display:flex;gap:4px;flex-shrink:0}
+.track .d{width:6px;height:6px;border-radius:50%;background:var(--line-2)}
+.track .d.done{background:var(--ink-2)}
+.track .d.cur{background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.r-next{flex:1;min-width:0;color:var(--ink-2);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-next.none{color:var(--muted);font-style:italic}
+.r-age{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:4px}
+.r-age.stale{color:var(--amber)}
+.r-age.stale svg{width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none}
+.chev{width:15px;height:15px;flex-shrink:0;stroke:var(--muted);stroke-width:2;fill:none;transition:transform .18s}
+details.eng[open] .chev{transform:rotate(180deg)}
+.r-copy{appearance:none;font:inherit;font-size:11px;color:var(--muted);background:transparent;border:1px solid var(--line-2);border-radius:7px;padding:3px 8px;cursor:pointer;opacity:0;transition:opacity .15s,color .15s,border-color .15s;flex-shrink:0}
+details.eng:hover .r-copy{opacity:1}
+.r-copy:hover{color:var(--ink);border-color:var(--accent)}
+.r-copy.done{color:var(--green);opacity:1;border-color:color-mix(in srgb,var(--green) 50%,transparent)}
+/* expanded body */
+.eng-body{padding:4px 18px 18px;border-top:1px solid var(--line)}
+.sub-sec{padding:13px 0;border-bottom:1px solid var(--line)}.sub-sec:last-child{border-bottom:none}
+.sub-sec h4.title{margin:0 0 7px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted)}
+.sub-sec h4{margin:10px 0 4px;font-size:13.5px;font-weight:650;color:var(--ink)}
+.sub-sec p{margin:4px 0;line-height:1.62;color:var(--ink-2);font-size:13px}
+.sub-sec ul{margin:4px 0;padding-left:19px;color:var(--ink-2);font-size:13px}.sub-sec li{margin:2px 0}
+.empty{color:var(--muted);font-style:italic;font-size:12.5px}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12.5px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th,td{padding:7px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+tr:last-child td{border-bottom:none}
+code{background:var(--surface-2);padding:1px 5px;border-radius:5px;font-size:12px;font-family:var(--mono);color:var(--ink-2)}
+strong{color:var(--ink);font-weight:650}
+footer{max-width:880px;margin:0 auto;padding:8px 22px 56px;color:var(--muted);font-size:11.5px;line-height:1.6}
+footer code{color:var(--ink-2)}
+.hide{display:none!important}
+@media(max-width:600px){
+  .bar-inner,.wrap{padding-left:15px;padding-right:15px}
+  .meter{width:84px}
+  details.eng>summary{flex-wrap:wrap}
+  .r-next{flex-basis:100%;order:5;white-space:normal}
+}`
 }
 
 function dashScript() {
   return [
     "var q=document.getElementById('q');",
     "function norm(s){return (s||'').toLowerCase();}",
-    "if(q){q.addEventListener('input',function(){",
-    "  var term=norm(q.value);",
-    "  document.querySelectorAll('[data-search]').forEach(function(el){",
-    "    var hit=!term||norm(el.getAttribute('data-search')).indexOf(term)>-1;",
-    "    el.classList.toggle('hide',!hit);",
+    "if(q){",
+    "  q.addEventListener('input',function(){",
+    "    var term=norm(q.value);",
+    "    document.querySelectorAll('[data-search]').forEach(function(el){",
+    "      var hit=!term||norm(el.getAttribute('data-search')).indexOf(term)>-1;",
+    "      el.classList.toggle('hide',!hit);",
+    "    });",
     "  });",
-    "});}",
-    "document.querySelectorAll('.card').forEach(function(c){",
-    "  c.addEventListener('click',function(){",
-    "    var d=document.getElementById(c.getAttribute('data-target'));",
-    "    if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'});}",
+    "  document.addEventListener('keydown',function(e){",
+    "    if(e.key==='/'&&document.activeElement!==q){e.preventDefault();q.focus();}",
+    "    else if(e.key==='Escape'&&document.activeElement===q){q.value='';q.dispatchEvent(new Event('input'));q.blur();}",
+    "  });",
+    "}",
+    "function flash(btn){if(btn._orig==null)btn._orig=btn.innerHTML;btn.classList.add('done');btn.textContent='Copied';clearTimeout(btn._t);btn._t=setTimeout(function(){btn.classList.remove('done');btn.innerHTML=btn._orig;btn._orig=null;},1400);}",
+    "function legacyCopy(text){var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy');}catch(_){}document.body.removeChild(ta);return ok;}",
+    "document.querySelectorAll('[data-copy]').forEach(function(btn){",
+    "  btn.addEventListener('click',function(e){",
+    "    e.preventDefault();e.stopPropagation();",
+    "    var text=btn.getAttribute('data-copy');",
+    "    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){flash(btn);},function(){if(legacyCopy(text))flash(btn);});}",
+    "    else if(legacyCopy(text)){flash(btn);}",
     "  });",
     "});",
   ].join('\n')
@@ -598,17 +629,30 @@ function cmdDashboard(args) {
   const counts = { green: 0, amber: 0, RED: 0 }
   engagements.forEach(e => { counts[e.signals.trust]++ })
   const now = new Date()
-  const stamp = now.toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
 
-  // enrich each engagement: next action + search index (reused in rows, cards, directive)
+  // phase lifecycle: render a 6-dot progress track per engagement
+  const PHASES = ['land', 'discover', 'plan', 'build', 'ship', 'operate']
+  const phaseIdx = p => { const i = PHASES.indexOf(String(p).toLowerCase()); return i !== -1 ? i : (String(p).toLowerCase() === 'close' ? 5 : -1) }
+  const phaseTrack = p => {
+    const idx = phaseIdx(p)
+    const dots = PHASES.map((_, i) => `<span class="d${i < idx ? ' done' : i === idx ? ' cur' : ''}"></span>`).join('')
+    return `<span class="track" title="phase: ${escapeHtml(p)}">${dots}</span>`
+  }
+  // paste-ready resume prompt - the "copy context" payload
+  const resumeText = e => escapeHtml(stripPrivate(
+    `Resume engagement "${e.name}". Phase: ${e.signals.phase}. Trust: ${e.signals.trust}. ` +
+    `Next action: ${e.next || 'not set'}. Top risk: ${e.signals.topRisk || 'none logged'}.`).replace(/\s+/g, ' ').trim())
+  const copyIcon = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>'
+
+  // enrich each engagement: next action + search index
   engagements.forEach(e => {
     const ctx = readEng(e.dir, 'context.md')
     e.next = (sectionBody(ctx, 'Next action').split('\n').find(l => l.trim()) || '').trim()
     e.hasNext = !!e.next
-    e.searchBlob = escapeHtml(stripPrivate(e.name + ' ' + ctx + ' ' + readEng(e.dir, 'risks.md') + ' ' + readEng(e.dir, 'stakeholders.md')).toLowerCase())
+    e.searchBlob = escapeHtml(stripPrivate(e.name + ' ' + DASH_SECTIONS.map(([f]) => readEng(e.dir, f)).join(' ')).toLowerCase())
   })
 
-  // triage order: red first (most stale first), then amber, then green; real work above placeholders
+  // triage order: red > amber > green; real work above placeholders; most stale first
   const tierRank = { RED: 0, amber: 1, green: 2 }
   const ordered = engagements.slice().sort((a, b) =>
     (tierRank[a.signals.trust] - tierRank[b.signals.trust])
@@ -616,57 +660,43 @@ function cmdDashboard(args) {
     || ((b.signals.ageDays || 0) - (a.signals.ageDays || 0))
     || a.name.localeCompare(b.name))
   const reds = ordered.filter(e => e.signals.trust === 'RED')
-  const rest = ordered.filter(e => e.signals.trust !== 'RED')
 
-  // one directive line: where the FDE starts today, and why
-  const lead = reds[0] || rest.find(e => e.signals.trust === 'amber' && e.hasNext) || rest[0]
-  let directive = '', directiveClass = 'directive'
+  // TODAY hero - where the FDE starts, and why
+  const lead = reds[0] || ordered.find(e => e.signals.trust === 'amber' && e.hasNext) || ordered[0]
+  let today = ''
   if (lead) {
-    const why = stripPrivate(lead.signals.topRisk || lead.next || (lead.signals.trust === 'RED' ? 'trust signal is red' : 'oldest open thread')).trim().slice(0, 90)
-    const age = lead.signals.ageDays != null ? `${lead.signals.ageDays}d since touched` : ''
-    directive = `Start here: <b>${inlineMd(lead.name)}</b> - ${inlineMd(why)}${age ? ' · ' + age : ''}`
-    directiveClass = reds.length ? 'directive' : 'directive amber'
+    const why = inlineMd(stripPrivate(lead.signals.topRisk || lead.next || (lead.signals.trust === 'RED' ? 'trust signal is red - stabilise before anything else' : 'oldest open thread, keep it warm')).trim().slice(0, 160))
+    const a = lead.signals.ageDays
+    const ageTxt = !Number.isFinite(a) ? 'not touched yet' : a === 0 ? 'touched today' : `${a}d since touched`
+    today = [
+      `<section class="today${reds.length ? '' : ' lead-amber'}">`,
+      `<div class="tag"><span class="pulse"></span>${reds.length ? 'Today, start here' : 'Today, keep moving'}</div>`,
+      `<h2>${inlineMd(lead.name)}</h2>`,
+      `<p class="why">${why}</p>`,
+      `<div class="foot">${phaseTrack(lead.signals.phase)}<span class="age">${ageTxt}</span>`,
+      `<button class="copy" data-copy="${resumeText(lead)}">${copyIcon}Copy context</button></div>`,
+      `</section>`,
+    ].join('')
   }
 
-  // red engagements: full-width attention rows that dominate the page
-  const attention = reds.map(e => {
+  // every engagement as a dense, expandable row
+  const rows = ordered.map(e => {
     const id = 'eng-' + slugify(e.name)
-    return [
-      `<div class="attn" data-target="${id}" data-search="${e.searchBlob}">`,
-      `<div class="attn-head"><span class="dot red"></span><span class="trust-label t-red">RED</span>`,
-      `<h3>${inlineMd(e.name)}</h3>`,
-      `<span class="badge">${inlineMd(e.signals.phase)}</span><span class="meta">updated ${e.signals.updated}</span></div>`,
-      e.signals.topRisk ? `<div class="risk">${inlineMd(e.signals.topRisk)}</div>` : '',
-      e.next ? `<div class="next"><b>Next</b> ${inlineMd(e.next)}</div>` : '',
-      `</div>`,
-    ].join('')
-  }).join('\n')
-
-  // amber/green: quieter portfolio grid; cards without a next action sink and dim
-  const cards = rest.map(e => {
-    const id = 'eng-' + slugify(e.name)
-    const trustClass = e.signals.trust
+    const trustClass = e.signals.trust === 'RED' ? 't-red' : 't-' + e.signals.trust
     const muted = e.hasNext ? '' : ' muted'
-    return [
-      `<div class="card ${trustClass}${muted}" data-target="${id}" data-search="${e.searchBlob}">`,
-      `<h3>${inlineMd(e.name)}</h3>`,
-      `<div class="row"><span class="dot ${trustClass}"></span><span class="trust-label t-${trustClass}">${trustClass}</span>`,
-      `<span class="badge">${inlineMd(e.signals.phase)}</span><span class="meta">updated ${e.signals.updated}</span></div>`,
-      e.next ? `<div class="next"><b>Next</b> ${inlineMd(e.next)}</div>` : '<div class="next meta">next action not set</div>',
-      e.signals.topRisk ? `<div class="risk amber-risk">${inlineMd(e.signals.topRisk)}</div>` : '',
-      `</div>`,
-    ].join('')
-  }).join('\n')
+    const a = e.signals.ageDays
+    const stale = Number.isFinite(a) && a >= 14
+    const ageTxt = !Number.isFinite(a) ? 'never' : a === 0 ? 'today' : a + 'd'
+    const ageHtml = `<span class="r-age${stale ? ' stale' : ''}">${stale ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' : ''}${ageTxt}</span>`
+    const nextHtml = e.next
+      ? `<span class="r-next">${inlineMd(e.next)}</span>`
+      : '<span class="r-next none">no next action set</span>'
 
-  const details = ordered.map(e => {
-    const id = 'eng-' + slugify(e.name)
-    const trustClass = e.signals.trust === 'RED' ? 'red' : e.signals.trust
     const subs = DASH_SECTIONS.map(([file, title]) => {
       const md = readEng(e.dir, file)
       const body = hasContent(md) ? mdToHtml(md) : '<p class="empty">- not yet filled -</p>'
       return `<div class="sub-sec"><h4 class="title">${title}</h4>${body}</div>`
     })
-    // retrospectives (optional folder)
     const retroDir = path.join(e.dir, 'retrospectives')
     let retros = ''
     try {
@@ -675,12 +705,17 @@ function cmdDashboard(args) {
         .map(f => `<h4>${escapeHtml(f)}</h4>${mdToHtml(readEng(retroDir, f))}`).join('')
       if (items) retros = `<div class="sub-sec"><h4 class="title">Retrospectives</h4>${items}</div>`
     } catch (_) {}
-    const searchBlob = escapeHtml(stripPrivate(e.name + ' ' + DASH_SECTIONS.map(([f]) => readEng(e.dir, f)).join(' ')).toLowerCase())
+
     return [
-      `<details class="eng" id="${id}" data-search="${searchBlob}">`,
-      `<summary><span class="dot ${trustClass}"></span>${inlineMd(e.name)}`,
-      `<span class="badge">${inlineMd(e.signals.phase)}</span>`,
-      `<span class="meta" style="font-weight:400">updated ${e.signals.updated}</span></summary>`,
+      `<details class="eng ${trustClass}${muted}" id="${id}" data-search="${e.searchBlob}">`,
+      `<summary>`,
+      `<span class="r-name">${inlineMd(e.name)}</span>`,
+      phaseTrack(e.signals.phase),
+      nextHtml,
+      ageHtml,
+      `<button class="r-copy" data-copy="${resumeText(e)}" title="Copy resume context">copy</button>`,
+      `<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>`,
+      `</summary>`,
       `<div class="eng-body">${subs.join('')}${retros}</div>`,
       `</details>`,
     ].join('')
@@ -688,26 +723,29 @@ function cmdDashboard(args) {
 
   const emptyState = '<p class="empty">No engagements yet. Start one with <code>fde resume --init &lt;client-name&gt;</code>, then re-run <code>fde dashboard</code>.</p>'
 
+  // health meter segments - portfolio health as one glance
+  const meter = ['red', 'amber', 'green'].map(k => {
+    const n = counts[k === 'red' ? 'RED' : k]
+    return n ? `<span class="seg ${k}" style="flex:${n}"></span>` : ''
+  }).join('')
+  const dateStr = now.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+
   const html = [
     '<!doctype html><html lang="en"><head><meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width,initial-scale=1">',
+    '<meta name="color-scheme" content="dark light">',
     '<title>FDE Fieldbook</title><style>' + dashStyles() + '</style></head><body>',
-    '<header><div class="inner"><div class="brand"><h1>FDE Fieldbook</h1>',
-    `<span class="tagline">${engagements.length} engagement${engagements.length === 1 ? '' : 's'}</span></div>`,
-    '<div class="stats">',
-    `<span class="stat"><span class="sdot green"></span> <b>${counts.green}</b> green</span>`,
-    `<span class="stat"><span class="sdot amber"></span> <b>${counts.amber}</b> amber</span>`,
-    `<span class="stat"><span class="sdot red"></span> <b>${counts.RED}</b> red</span>`,
-    '</div></div></header>',
+    '<div class="topbar"><div class="bar-inner">',
+    `<div class="brand"><span class="logo"></span><span class="title">Fieldbook</span><span class="date">${escapeHtml(dateStr)}</span></div>`,
+    engagements.length ? `<div class="health"><div class="meter">${meter}</div><span class="health-num">${counts.RED} red · ${counts.amber} amber · ${counts.green} green</span></div>` : '',
+    '</div></div>',
     '<div class="wrap">',
-    engagements.length ? '<div class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="q" class="search" placeholder="Search across all engagements..."></div>' : '',
-    directive ? `<div class="${directiveClass}"><span class="directive-dot"></span><span>${directive}</span></div>` : '',
-    reds.length ? '<h2 class="section">Needs attention</h2><div class="attn-stack">' + attention + '</div>' : '',
-    engagements.length ? `<h2 class="section">${reds.length ? 'Rest of portfolio' : 'Portfolio'}</h2>` : '',
-    engagements.length ? (rest.length ? `<div class="grid">${cards}</div>` : '<p class="empty">Every active engagement needs attention - see above.</p>') : emptyState,
-    engagements.length ? '<h2 class="section">Engagement detail</h2>' + details : '',
+    engagements.length ? '<div class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="q" class="search" placeholder="Search engagements   ( / to focus )"></div>' : '',
+    today,
+    engagements.length ? `<div class="section">Portfolio<span class="ct">${engagements.length}</span></div>` : '',
+    engagements.length ? `<div class="rows">${rows}</div>` : emptyState,
     '</div>',
-    `<footer>fdeops · fieldbook is a deterministic render of your <code>.fde/</code> memory - edit the markdown, re-run <code>fde dashboard</code>. Source of truth stays in the files.</footer>`,
+    `<footer>fdeops · a deterministic render of your <code>.fde/</code> memory - edit the markdown, re-run <code>fde dashboard</code>. The files stay the source of truth.</footer>`,
     '<script>' + dashScript() + '</script>',
     '</body></html>',
   ].join('\n')
