@@ -1,10 +1,10 @@
 # fdeops usage guide
 
-**What it is:** Engagement OS for **you** (human FDE) + your **AI coding agent** - `@fde` routes phases; `.fde/` holds memory on your machine.
+**What it is:** the engagement layer for **you** (human FDE) + your **AI coding agent** - `@fde` routes methods; `.fde/` holds client-scoped memory on your machine.
 
-**Terminology:** [README § Who this is for](../README.md#who-this-is-for) - **“agent” = AI software, not a human.**
+**Terminology:** [README § Who this is for](../README.md#who-this-is-for) - **"agent" = AI software, not a human.**
 
-**Start here:** [README](../README.md) (Quickstart → How it works → Without vs with).
+**Start here:** [README](../README.md) (30-second proof → engagement layer → Quickstart).
 
 Day-to-day reference below.
 
@@ -12,10 +12,11 @@ Day-to-day reference below.
 
 ## New here? (5 minutes)
 
-1. Read **Who this is for** and **Without fdeops vs with fdeops** in the README
-2. Run [Quickstart](../README.md#quickstart)
-3. Skim [examples/acme-payments/](../examples/acme-payments/) Day 1 → Day 10
-4. In your **AI chat** (not email to a person): `@fde` + your actual situation
+1. Run `npx fdeops scan` in a repo - recon + the "ASK ON DAY 1" questions, zero config
+2. Read **Who this is for** and **Without fdeops vs with fdeops** in the README
+3. Bind a workspace: `fde resume --init <client-name>` (the one setup step)
+4. Skim [examples/acme-payments/](../examples/acme-payments/) Day 1 → Day 10
+5. In your **AI chat** (not email to a person): `@fde` + your actual situation
 
 You do not read the phase methods. **`@fde` routes the AI and loads the right one.**
 
@@ -27,6 +28,7 @@ You do not read the phase methods. **`@fde` routes the AI and loads the right on
 |----------|---------------------------------------------|
 | Starting | `@fde New embed. First meeting tomorrow. Brief says: …` |
 | Unsure of real problem | `@fde Workshop done. Ops says they use a spreadsheet nightly.` |
+| Just out of a meeting | `@fde Debrief: <paste your raw notes>` |
 | Ready to code | `@fde Ship smallest slice by Friday in module X.` |
 | Production broken | `@fde API 500 since 2pm deploy.` |
 | Sponsor went quiet | `@fde VP stopped replying; still building old scope.` |
@@ -37,33 +39,57 @@ You do not read the phase methods. **`@fde` routes the AI and loads the right on
 
 ---
 
+## Debrief: meeting notes → memory
+
+The highest-frequency moment in client work: you walk out of a meeting with raw notes. Two ways in:
+
+**Via the agent (adds judgment):** paste the notes to `@fde`. The agent structures them into lines prefixed `decision:` / `risk:` / `delivery:` / `contact:` (adding `[signal:green|amber|red]` on contact lines when the notes carry trust information), shows you the structured version for confirmation, then pipes it to `fde debrief`.
+
+**Directly (zero tokens):** write the prefixes yourself and run:
+
+```bash
+fde debrief meeting-notes.md      # or pipe on stdin: pbpaste | fde debrief
+```
+
+Routing is deterministic: `decision:` lines → `decisions.md`, `risk:` → `risks.md`, `delivery:` → `delivery.md`, `contact:` → `stakeholders.md` - each dated. Every unprefixed line lands as a dated debrief block in `context.md`, so nothing is lost.
+
+---
+
+## Trust signals
+
+Log stakeholder temperature as structured tokens, not vibes:
+
+```bash
+fde log contact "Diana gone quiet since the demo" --signal amber
+```
+
+That writes a `[signal:amber]` token into `stakeholders.md`. The **latest dated token per engagement drives the trust column** in `fde status` and `fde dashboard`; a signal older than 21 days shows as **stale** - a prompt to check in, not a verdict. If no tokens exist, status falls back to the older keyword heuristic.
+
+---
+
 ## Where files live
 
 ```text
-~/fde-engagements/<engagement-name>/.fde/
-  context.md      ← AI loads first each session
+~/fde-engagements/<client-name>/.fde/
+  context.md      ← AI loads first each session (+ dated debrief blocks)
   brief.md        ← what they said (hypothesis)
   reality.md      ← what is actually true
-  stakeholders.md
+  stakeholders.md ← contacts + [signal:…] tokens
   …
 ```
 
-Tell the **AI** where the folder is (shell or `~/.claude/FDEOPS-CLAUDE.md`):
-
-```text
-FDEOPS_ENGAGEMENT=~/fde-engagements/<engagement-name>/.fde
-```
+The workspace registry (written by `fde resume --init`) tells the AI and the hooks which engagement this workspace belongs to - no environment variable needed. (Advanced override: [install.md § FDEOPS_ENGAGEMENT](./install.md#advanced-fdeops_engagement-override).)
 
 ---
 
 ## Multiple engagements
 
 ```bash
-node bin/install.js init client-a    # from fdeops clone
-node bin/install.js init client-b
+cd ~/work/client-a && fde resume --init client-a
+cd ~/work/client-b && fde resume --init client-b
 ```
 
-One folder per client. Never merge contexts. Ask `@fde` for "status across all my projects" - it generates a portfolio dashboard.
+One folder per client, one binding per workspace. Never merge contexts. `fde status` triages the whole portfolio (red > amber > green); `fde dashboard` renders it into one offline HTML fieldbook.
 
 ---
 
@@ -81,4 +107,5 @@ One folder per client. Never merge contexts. Ask `@fde` for "status across all m
 - [install.md](./install.md) - install matrix
 - [OPERATIONS.md](./OPERATIONS.md) - operating rules
 - [schema.md](./schema.md) - `.fde/` files
+- [skills.md](./skills.md) - the skills matrix + overlays
 - [skills-reference.md](./skills-reference.md) - the phase methods
