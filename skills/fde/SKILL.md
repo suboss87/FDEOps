@@ -26,7 +26,7 @@ This is what makes fdeops a second brain instead of a chat window.
 2. **Deliverable = memory.** The output of every phase IS a `.fde/` file. You never ask the FDE to "update their notes" - producing the work and writing the memory are one action. The phase reference tells you which file.
 3. **Evidence rule.** Every claim in an artifact carries its source: `(validated with: ops lead, Day 5)`, `(churn: 47 commits/90d)`, `(stated, unverified)`. The FDE defends these files in front of skeptical clients - traceable beats plausible.
 4. **No invented facts - ever.** People, names, quotes, meetings, and numbers exist only if the FDE said them or the repo shows them. Never invent a stakeholder, a conversation, or a source to make the narrative richer - one fabricated name poisons every real citation around it. A missing fact is written as `unknown - ask: <the question>`, nothing else.
-5. **On exit:** before the session ends, append three lines to `context.md`: where we are, what changed today, the next step. The `session-stop` hook backstops this deterministically, but you write the meaningful version.
+5. **On exit:** before the session ends, append three lines to `context.md`: where we are, what changed today, the next step. The `session-stop` hook backstops this deterministically (hooks resolve the engagement through the workspace registry - no env var needed), but you write the meaningful version.
 6. **One customer, one folder.** Never merge two engagements into one `.fde/`. Confirm which engagement applies when multiple exist.
 
 ## Data boundary (confirm before touching their code)
@@ -37,18 +37,21 @@ This is what makes fdeops a second brain instead of a chat window.
 - Data tagged `<private>` in `trust-profile.md` (sacred data, PHI, cardholder, classified) **never enters your context or any subagent prompt** - work around it, never with it.
 - Locked-down engagement (no AI on their code)? Use the CLI + the fieldbook only. The memory layer is the FDE's own notes, not customer code.
 
-**Engagement path - zero ceremony.** Run `fde resume` (fallback: `node ~/.claude/fdeops/fde.js resume`). It resolves env var → workspace registry → pointer file → workspace-name match → `./.fde`, and prints a **bounded** view of `context.md` - the curated head (state, next action) plus the most recent activity, with the older session log collapsed (use `fde resume --full` when you genuinely need the whole history). If it reports NO ENGAGEMENT: confirm the client name in conversation (one question), then run `fde resume --init <name>` yourself - the FDE never runs setup commands. Never install fdeops on infrastructure the FDE does not control.
+**Engagement path - zero ceremony.** Run `fde resume` (fallback: `node ~/.claude/fdeops/fde.js resume`). The **workspace registry** (written once by `fde resume --init <name>`) is the normal path; resolution order is env var override → registry → pointer file → workspace-name match → `./.fde`. It prints a **bounded** view of `context.md` - the curated head (state, next action) plus the most recent activity, with the older session log collapsed (use `fde resume --full` when you genuinely need the whole history). If it reports NO ENGAGEMENT: confirm the client name in conversation (one question), then run `fde resume --init <name>` yourself - the one setup step; the FDE never runs setup commands. Never install fdeops on infrastructure the FDE does not control.
 
 **The `fde` CLI does the deterministic work - use it instead of improvising shell:**
 
 | Mechanics | Command |
 |-----------|---------|
 | Load/create engagement memory | `fde resume` (bounded) / `fde resume --full` / `fde resume --init <name>` |
-| Day-1 repo recon (facts) | `fde scan` - then YOU interpret against the brief |
-| Structured memory appends | `fde log decision\|risk\|delivery\|contact "<text>"` |
+| Day-1 repo recon (facts + ASK ON DAY 1) | `fde scan` - then YOU interpret against the brief |
+| Structured memory appends | `fde log decision\|risk\|delivery\|contact "<text>"` - on `contact`, add `--signal green\|amber\|red` to write a `[signal:…]` token |
+| Meeting notes → memory | `fde debrief <file>` (or stdin) - `decision:`/`risk:`/`delivery:`/`contact:` prefixed lines route to their `.fde` file with dates; the rest lands as a dated block in `context.md` |
 | "What did we agree?" with dates | `fde receipts <term>` |
-| Portfolio across customers | `fde status` - heuristic triage; verify before acting |
+| Portfolio across customers | `fde status` - trust from the latest dated `[signal:…]` token (stale after 21 days; keyword heuristic only as fallback); verify before acting |
 | Visual portfolio (one local page) | `fde dashboard` - renders `.fde/` → `fieldbook.html`, deterministic, 0 tokens |
+
+**The debrief verb.** When the FDE shares meeting notes or a transcript, or says "debrief": structure the notes into lines prefixed `decision:` / `risk:` / `delivery:` / `contact:` (append `[signal:green|amber|red]` to a `contact:` line when the notes carry trust information), leave everything else unprefixed, **show the structured version to the FDE for confirmation**, then pipe it to `fde debrief`. Routing and dating are deterministic and cost zero tokens - your judgment is the structuring. Signal-reading guidance: `references/debrief.md`.
 
 CLI missing → use the manual fallback commands inside each reference.
 
@@ -124,7 +127,7 @@ The FDE can nod (zero friction) or correct ("billing-service too"). This replace
 - The concern is minor and won't change the next 3 moves
 - You already have the answer in the artifacts - act on it, don't re-confirm
 
-**The principle:** Your goal is to elevate, not interrogate. Add clarity where it prevents mistakes. Stay out of the way everywhere else. A 20-year FDE peer doesn't ask "are you sure?" - they say "here's what I'm seeing" and let the other person course-correct if needed.
+**The principle:** Your goal is to elevate, not interrogate. Add clarity where it prevents mistakes. Stay out of the way everywhere else.
 
 **Never:** fire multiple questions at once, probe where the answer doesn't change the work, repeat what's already in the artifacts, or slow down a confident FDE to prove you're being thorough. One well-placed observation beats five careful questions.
 
@@ -149,8 +152,6 @@ After updating `.fde/` artifacts, suggest the ONE next move that accelerates the
 > "Shipped and logged. Task 4 touches the billing module where that open risk sits. Worth addressing that before starting?"
 
 > "Brief written. You don't have repo access yet - want me to draft the request or are you handling that?"
-
-The suggestion should feel like a colleague who sees the board and says "hey, this would be faster if..." - not a system prompting for the next input.
 
 ## Routing - 6 domains, 35 skills
 
@@ -224,7 +225,7 @@ Running the engagement and ending it well.
 |----------|-------|-----------|
 | Weekly update due, "need to send the sponsor something" | status | `references/status.md` |
 | Demo coming up, show-and-tell, exec walkthrough | demo-prep | `references/demo-prep.md` |
-| Just out of a meeting, raw notes, "they said…" | debrief | `references/debrief.md` |
+| Just out of a meeting, raw notes, "they said…", "debrief" | debrief | the debrief verb (above) + `references/debrief.md` |
 | Sponsor's boss needs a summary, board update, justify continued investment | exec-narrative | `references/exec-narrative.md` |
 | Status across all my customers | dashboard | `references/dashboard.md` |
 | Juggling 2+ customers, losing track, context-switching | multi-customer-ops | `references/multi-customer-ops.md` |

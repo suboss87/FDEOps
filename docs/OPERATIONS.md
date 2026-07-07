@@ -9,19 +9,18 @@
 ## Golden rules
 
 1. **fdeops runs on your machine** - not on servers or CI you do not operate.
-2. **Default notes path:** `~/fde-engagements/<name>/.fde/` via `node bin/install.js init <name>` (or `npx fdeops init` when npm ≥ 3.0.0).
-3. **Set `FDEOPS_ENGAGEMENT`** so every session finds the right engagement.
+2. **Default notes path:** `~/fde-engagements/<name>/.fde/`, created by `fde resume --init <name>`.
+3. **Bind each workspace once** with `fde resume --init <name>` - the registry then resolves the right engagement for every session and hook automatically. (`FDEOPS_ENGAGEMENT` remains as an advanced override: [install.md](./install.md#advanced-fdeops_engagement-override).)
 4. **Only `@fde`** - routing is automatic.
 5. **Notes are confidential** - same care as work papers; never commit raw `.fde/` to shared git.
 
 ## First hour
 
 ```bash
-node bin/install.js
-node bin/install.js init <engagement-name>
+node bin/install.js                  # once per machine (skills + hooks)
+cd <client-workspace>
+fde resume --init <engagement-name>  # once per workspace
 ```
-
-Set `FDEOPS_ENGAGEMENT=~/fde-engagements/<engagement-name>/.fde`.
 
 Work in your normal workspace. In the **AI chat**, type `@fde` with what is happening **now**.
 
@@ -39,8 +38,8 @@ Portfolio: tell `@fde` “show my portfolio” - it reads every engagement folde
 | Situation | Action |
 |-----------|--------|
 | No code access yet | Land + discover; fill `brief.md`, `stakeholders.md` |
-| Extra files forbidden in workspace | Notes only under `~/fde-engagements/` |
-| Allowed `CLAUDE.md` in workspace | One line `FDEOPS_ENGAGEMENT=...` - no fdeops install in that environment |
+| Extra files forbidden in workspace | Notes only under `~/fde-engagements/` - the registry binding lives outside the workspace, so nothing is added to their tree |
+| Can't run `fde resume --init` in an environment | Set `FDEOPS_ENGAGEMENT=...` (env var or one line in an allowed `CLAUDE.md`) as the override |
 | Taking over from someone else | Tell `@fde` you're taking over - it runs the audit method and writes ground truth into your `.fde/` |
 | Trust problem vs outage | Say which in the `@fde` message |
 
