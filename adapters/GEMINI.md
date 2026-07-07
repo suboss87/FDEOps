@@ -11,7 +11,7 @@ When the FDE types **`@fde`** or describes an engagement situation (new customer
 
 ## Engagement memory
 
-Read and write engagement files under **`FDEOPS_ENGAGEMENT`** (expand `~`). Default `~/fde-engagements/<name>/.fde/`. If unset, use `./.fde/` only when the engagement approves it and it is gitignored.
+Read and write engagement files under the workspace's bound engagement: run `fde resume` to resolve it (binding created once with `fde resume --init <name>`; default `~/fde-engagements/<name>/.fde/`). `FDEOPS_ENGAGEMENT` (expand `~`) overrides when set. Use `./.fde/` only when the engagement approves it and it is gitignored.
 
 On entry, run `fde resume` (fallback `node ~/.claude/fdeops/fde.js resume`) to load `context.md`. Use the CLI for deterministic work - `fde scan | log | receipts | status | dashboard` - instead of improvising shell.
 
