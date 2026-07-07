@@ -475,12 +475,21 @@ const DASH_SECTIONS = [
 function dashStyles() {
   return [
     // design system: quiet chrome, high density, daily-use second brain
+    // light (default) + dark (opt-in via [data-fde-theme="dark"], set pre-paint - see cmdDashboard head script)
     ':root{--bg:#f9fafb;--card:#fff;--ink:#111827;--2:#374151;--3:#4b5563;--muted:#6b7280;--line:#f3f4f6;--line2:#e5e7eb;',
     '--green:#10b981;--amber:#f59e0b;--red:#ef4444;--accent:#6366f1;',
+    '--red-bg:#fef2f2;--red-border:#fecaca;--red-ink:#7f1d1d;--red-ink2:#991b1b;',
+    '--amber-bg:#fffbeb;--amber-border:#fde68a;--amber-ink:#78350f;--amber-ink2:#92400e;',
     '--shadow-s:0 1px 2px rgba(0,0,0,.04);--shadow:0 1px 3px rgba(0,0,0,.06);--shadow-l:0 4px 12px rgba(0,0,0,.08);',
     '--r:8px}',
+    'html[data-fde-theme="dark"]{--bg:#0b0d12;--card:#161a22;--ink:#e5e7eb;--2:#cbd5e1;--3:#9ca3af;--muted:#7b8494;--line:#1f2430;--line2:#262c3a;',
+    '--green:#34d399;--amber:#fbbf24;--red:#f87171;--accent:#818cf8;',
+    '--red-bg:#2a1517;--red-border:#5b2328;--red-ink:#fecaca;--red-ink2:#fca5a5;',
+    '--amber-bg:#2a2210;--amber-border:#5b4a1f;--amber-ink:#fde68a;--amber-ink2:#fcd34d;',
+    '--shadow-s:0 1px 2px rgba(0,0,0,.3);--shadow:0 1px 3px rgba(0,0,0,.35);--shadow-l:0 4px 16px rgba(0,0,0,.45)}',
     '*{box-sizing:border-box;margin:0}',
-    'body{font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}',
+    'body{font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;transition:background .15s,color .15s}',
+    '.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}',
     // header - compact, purposeful
     'header{background:#111827;color:#fff;padding:20px 32px}',
     'header .inner{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}',
@@ -490,27 +499,31 @@ function dashStyles() {
     '.stats{display:flex;align-items:center;gap:16px}',
     '.stat{font-size:12px;color:#9ca3af;display:flex;align-items:center;gap:5px}',
     '.stat b{color:#e5e7eb;font-weight:600}',
-    '.stat .sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}',
-    '.stat .sdot.green{background:#34d399}.stat .sdot.amber{background:#fbbf24}.stat .sdot.red{background:#f87171}',
+    '.stat .sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;box-sizing:border-box}',
+    '.stat .sdot.green{background:#34d399}.stat .sdot.amber{background:#fbbf24;border-radius:1.5px}.stat .sdot.red{background:transparent;border:1.5px solid #f87171}',
+    '.theme-toggle{border:1px solid #374151;background:transparent;color:#d1d5db;font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:inherit;line-height:1.4}',
+    '.theme-toggle:hover{border-color:#6b7280;color:#fff}',
     // layout
     '.wrap{max-width:960px;margin:0 auto;padding:24px 32px 64px}',
     // search - integrated, not floating
-    '.search-wrap{position:relative;margin-bottom:24px}',
+    '.search-wrap{position:relative;margin-bottom:8px}',
     '.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);stroke-width:2;fill:none}',
-    '.search{width:100%;padding:10px 14px 10px 36px;font-size:13px;border:1px solid var(--line2);border-radius:var(--r);background:var(--card);transition:border-color .15s,box-shadow .15s;outline:none}',
-    '.search:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.1)}',
+    '.search{width:100%;padding:10px 14px 10px 36px;font-size:13px;border:1px solid var(--line2);border-radius:var(--r);background:var(--card);color:var(--ink);transition:border-color .15s,box-shadow .15s;outline:none}',
+    '.search:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.15)}',
     '.search::placeholder{color:var(--muted)}',
+    '.search-hint{display:block;margin:6px 2px 20px;font-size:11px;color:var(--muted)}',
+    '.search-hint kbd{font-family:inherit;border:1px solid var(--line2);border-radius:4px;padding:1px 5px;font-size:10.5px;background:var(--bg)}',
     // directive - the one line that says where to start today
-    '.directive{display:flex;align-items:center;gap:10px;margin:0 0 20px;padding:12px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--r);font-size:13.5px;line-height:1.5;color:#7f1d1d}',
-    '.directive b{font-weight:700;color:#7f1d1d}',
-    '.directive.amber{background:#fffbeb;border-color:#fde68a;color:#78350f}',
-    '.directive.amber b{color:#78350f}',
+    '.directive{display:flex;align-items:center;gap:10px;margin:0 0 20px;padding:12px 16px;background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r);font-size:13.5px;line-height:1.5;color:var(--red-ink)}',
+    '.directive b{font-weight:700;color:var(--red-ink)}',
+    '.directive.amber{background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber-ink)}',
+    '.directive.amber b{color:var(--amber-ink)}',
     '.directive-dot{width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;box-shadow:0 0 0 3px rgba(239,68,68,.18)}',
     '.directive.amber .directive-dot{background:var(--amber);box-shadow:0 0 0 3px rgba(245,158,11,.18)}',
     // attention rows - red engagements dominate the page, full width
     '.attn-stack{display:flex;flex-direction:column;gap:10px}',
-    '.attn{background:#fef2f2;border:1px solid #fecaca;border-left:4px solid var(--red);border-radius:var(--r);padding:16px 18px;cursor:pointer;transition:box-shadow .15s,border-color .15s}',
-    '.attn:hover{border-color:#f87171;box-shadow:var(--shadow-l)}',
+    '.attn{background:var(--red-bg);border:1px solid var(--red-border);border-left:4px solid var(--red);border-radius:var(--r);padding:16px 18px;cursor:pointer;transition:box-shadow .15s,border-color .15s}',
+    '.attn:hover{border-color:var(--red);box-shadow:var(--shadow-l)}',
     '.attn-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
     '.attn-head h3{font-size:15px;font-weight:700;color:var(--ink)}',
     '.attn .risk{margin-top:10px}',
@@ -520,22 +533,27 @@ function dashStyles() {
     // cards - clean, scannable
     '.card{background:var(--card);border:1px solid var(--line2);border-radius:var(--r);padding:16px 18px;cursor:pointer;transition:border-color .15s,box-shadow .15s;position:relative;overflow:hidden}',
     '.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px}',
-    '.card:hover{border-color:#d1d5db;box-shadow:var(--shadow-l)}',
+    '.card:hover{border-color:var(--muted);box-shadow:var(--shadow-l)}',
     '.card.green::before{background:var(--green)}.card.amber::before{background:var(--amber)}.card.red::before{background:var(--red)}',
     '.card h3{font-size:14px;font-weight:600;margin-bottom:6px}',
     '.row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}',
-    '.badge{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:4px;background:#f3f4f6;color:#4b5563}',
-    '.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}',
-    '.dot.green{background:var(--green)}.dot.amber{background:var(--amber)}.dot.red{background:var(--red)}',
+    '.badge{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:4px;background:var(--line);color:var(--3);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}',
+    // colorblind-safe: shape carries the signal too, color reinforces it - circle/square/ring
+    '.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;box-sizing:border-box}',
+    '.dot.green{background:var(--green)}.dot.amber{background:var(--amber);border-radius:2px}.dot.red{background:transparent;border:2px solid var(--red)}',
     '.trust-label{font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px}',
     '.t-green{color:var(--green)}.t-amber{color:var(--amber)}.t-red{color:var(--red)}',
     '.meta{color:var(--muted);font-size:11px}',
     '.card .next{margin-top:10px;font-size:12.5px;line-height:1.5;color:var(--2)}.card .next b{color:var(--3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;margin-right:2px}',
-    '.card .risk{margin-top:8px;font-size:11.5px;color:#991b1b;padding:5px 8px;background:#fef2f2;border-radius:4px;border-left:2px solid var(--red);line-height:1.4}',
-    '.card .risk.amber-risk{color:#92400e;background:#fffbeb;border-left-color:var(--amber)}',
+    '.card .risk{margin-top:8px;font-size:11.5px;color:var(--red-ink2);padding:5px 8px;background:var(--red-bg);border-radius:4px;border-left:2px solid var(--red);line-height:1.4}',
+    '.card .risk.amber-risk{color:var(--amber-ink2);background:var(--amber-bg);border-left-color:var(--amber)}',
     // demote placeholder cards (no next action) - quiet until they earn attention
     '.card.muted{opacity:.55}',
     '.card.muted:hover{opacity:1}',
+    // search match context - why this card/row matched, in the card's own words
+    '.match-snippet{margin-top:8px;font-size:11.5px;line-height:1.4;color:var(--3);background:var(--bg);border-radius:4px;padding:5px 8px}',
+    '.match-snippet:empty{display:none;padding:0;margin:0}',
+    '.match-snippet mark{background:rgba(99,102,241,.25);color:inherit;border-radius:2px;padding:0 1px}',
     // section labels
     'h2.section{margin:28px 0 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}',
     // detail accordion - tight, content-forward
@@ -559,10 +577,10 @@ function dashStyles() {
     'th{background:var(--bg);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--3);border-bottom:1px solid var(--line2)}',
     'tr:last-child td{border-bottom:none}',
     'tr:hover td{background:var(--bg)}',
-    'code{background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:12px;color:#4b5563}',
+    'code{background:var(--line);padding:1px 5px;border-radius:4px;font-size:12px;color:var(--3)}',
     // footer
     'footer{max-width:960px;margin:0 auto;padding:0 32px 48px;color:var(--muted);font-size:11.5px;line-height:1.5}',
-    'footer code{color:var(--3);background:#f3f4f6}',
+    'footer code{color:var(--3);background:var(--line)}',
     '.hide{display:none!important}',
     // responsive
     '@media(max-width:640px){header{padding:16px}.header .inner{flex-direction:column;align-items:flex-start}.wrap{padding:16px 16px 48px}.grid{grid-template-columns:1fr}.search{padding-left:32px}}',
@@ -573,19 +591,47 @@ function dashScript() {
   return [
     "var q=document.getElementById('q');",
     "function norm(s){return (s||'').toLowerCase();}",
+    "function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}",
+    // why a card matched - a short excerpt from its own text, term highlighted
+    "function snippetFor(raw,term){",
+    "  var i=raw.indexOf(term);",
+    "  if(i<0)return '';",
+    "  var start=Math.max(0,i-28),end=Math.min(raw.length,i+term.length+46);",
+    "  var pre=esc(raw.slice(start,i)),hit=esc(raw.slice(i,i+term.length)),post=esc(raw.slice(i+term.length,end));",
+    "  return (start>0?'\u2026':'')+pre+'<mark>'+hit+'</mark>'+post+(end<raw.length?'\u2026':'');",
+    "}",
     "if(q){q.addEventListener('input',function(){",
     "  var term=norm(q.value);",
     "  document.querySelectorAll('[data-search]').forEach(function(el){",
-    "    var hit=!term||norm(el.getAttribute('data-search')).indexOf(term)>-1;",
+    "    var raw=norm(el.getAttribute('data-search'));",
+    "    var hit=!term||raw.indexOf(term)>-1;",
     "    el.classList.toggle('hide',!hit);",
+    "    var snip=el.querySelector('.match-snippet');",
+    "    if(snip)snip.innerHTML=(hit&&term)?snippetFor(raw,term):'';",
     "  });",
     "});}",
-    "document.querySelectorAll('.card').forEach(function(c){",
+    "document.querySelectorAll('.card,.attn').forEach(function(c){",
     "  c.addEventListener('click',function(){",
     "    var d=document.getElementById(c.getAttribute('data-target'));",
     "    if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'});}",
     "  });",
     "});",
+    // '/' jumps to search from anywhere, unless already typing somewhere
+    "document.addEventListener('keydown',function(e){",
+    "  var t=e.target,typing=t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable);",
+    "  if(!typing&&e.key==='/'&&q){e.preventDefault();q.focus();}",
+    "});",
+    // theme toggle - local only, no network; pre-paint script in <head> avoids a flash
+    "var themeBtn=document.getElementById('fde-theme-btn');",
+    "function currentTheme(){return document.documentElement.getAttribute('data-fde-theme')==='dark'?'dark':'light';}",
+    "function setThemeLabel(){if(themeBtn)themeBtn.textContent=(currentTheme()==='dark'?'light':'dark')+' mode';}",
+    "setThemeLabel();",
+    "if(themeBtn){themeBtn.addEventListener('click',function(){",
+    "  var next=currentTheme()==='dark'?'light':'dark';",
+    "  try{localStorage.setItem('fde-fieldbook-theme',next);}catch(_){}",
+    "  document.documentElement.setAttribute('data-fde-theme',next);",
+    "  setThemeLabel();",
+    "});}",
   ].join('\n')
 }
 
@@ -638,6 +684,7 @@ function cmdDashboard(args) {
       `<span class="badge">${inlineMd(e.signals.phase)}</span><span class="meta">updated ${e.signals.updated}</span></div>`,
       e.signals.topRisk ? `<div class="risk">${inlineMd(e.signals.topRisk)}</div>` : '',
       e.next ? `<div class="next"><b>Next</b> ${inlineMd(e.next)}</div>` : '',
+      `<div class="match-snippet"></div>`,
       `</div>`,
     ].join('')
   }).join('\n')
@@ -654,6 +701,7 @@ function cmdDashboard(args) {
       `<span class="badge">${inlineMd(e.signals.phase)}</span><span class="meta">updated ${e.signals.updated}</span></div>`,
       e.next ? `<div class="next"><b>Next</b> ${inlineMd(e.next)}</div>` : '<div class="next meta">next action not set</div>',
       e.signals.topRisk ? `<div class="risk amber-risk">${inlineMd(e.signals.topRisk)}</div>` : '',
+      `<div class="match-snippet"></div>`,
       `</div>`,
     ].join('')
   }).join('\n')
@@ -691,6 +739,9 @@ function cmdDashboard(args) {
   const html = [
     '<!doctype html><html lang="en"><head><meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width,initial-scale=1">',
+    // pre-paint theme: read the one localStorage key before first render so there is no flash.
+    // No network calls - this file still opens and works fully offline.
+    '<script>try{var t=localStorage.getItem("fde-fieldbook-theme");if(t==="dark"||(!t&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-fde-theme","dark");}catch(e){}</script>',
     '<title>FDE Fieldbook</title><style>' + dashStyles() + '</style></head><body>',
     '<header><div class="inner"><div class="brand"><h1>FDE Fieldbook</h1>',
     `<span class="tagline">${engagements.length} engagement${engagements.length === 1 ? '' : 's'}</span></div>`,
@@ -698,9 +749,11 @@ function cmdDashboard(args) {
     `<span class="stat"><span class="sdot green"></span> <b>${counts.green}</b> green</span>`,
     `<span class="stat"><span class="sdot amber"></span> <b>${counts.amber}</b> amber</span>`,
     `<span class="stat"><span class="sdot red"></span> <b>${counts.RED}</b> red</span>`,
+    '<button id="fde-theme-btn" class="theme-toggle" type="button">dark mode</button>',
     '</div></div></header>',
     '<div class="wrap">',
     engagements.length ? '<div class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="q" class="search" placeholder="Search across all engagements..."></div>' : '',
+    engagements.length ? '<span class="search-hint">press <kbd>/</kbd> to search - a matching card shows why, right on the card</span>' : '',
     directive ? `<div class="${directiveClass}"><span class="directive-dot"></span><span>${directive}</span></div>` : '',
     reds.length ? '<h2 class="section">Needs attention</h2><div class="attn-stack">' + attention + '</div>' : '',
     engagements.length ? `<h2 class="section">${reds.length ? 'Rest of portfolio' : 'Portfolio'}</h2>` : '',
