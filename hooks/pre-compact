@@ -11,7 +11,26 @@ resolve_engagement_dir() {
   return 1
 }
 
+# Workspace registry written by `fde resume --init` - mirrors resolveEngagement()
+# step 2 in bin/fde.js; keep the resolution order identical in bash and JS.
+# Lines are "<workspace-path> <slug>": the path may contain spaces, the slug
+# never does, so split on the LAST space (same as the JS lastIndexOf parse).
+registry_engagement_dir() {
+  local reg="$HOME/fde-engagements/.registry" slug
+  [ -f "$reg" ] || return 1
+  slug=$(awk 'BEGIN{ws=ENVIRON["PWD"]}
+    { i = match($0, / [^ ]*$/)
+      if (i > 0 && substr($0, 1, i - 1) == ws) { print substr($0, i + 1); exit } }' "$reg" 2>/dev/null)
+  [ -z "$slug" ] && return 1
+  [ -d "$HOME/fde-engagements/$slug/.fde" ] && printf '%s\n' "$HOME/fde-engagements/$slug/.fde" && return 0
+  return 1
+}
+
 ENG_DIR=$(resolve_engagement_dir "${FDEOPS_ENGAGEMENT:-${FDEOS_ENGAGEMENT:-}}")
+
+if [ -z "$ENG_DIR" ]; then
+  ENG_DIR=$(registry_engagement_dir)
+fi
 
 if [ -z "$ENG_DIR" ] && [ -f "CLAUDE.md" ]; then
   ENG=$(grep -m1 '^FDEOPS_ENGAGEMENT=\|^FDEOS_ENGAGEMENT=' CLAUDE.md 2>/dev/null | cut -d= -f2-)
