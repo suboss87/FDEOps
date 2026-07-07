@@ -1,6 +1,6 @@
 # fdeops Engagement Schema v1
 
-Open layout for engagement memory. **Default path:** `~/fde-engagements/<name>/.fde/` (create with `node bin/install.js init <name>` from repo, or `npx fdeops@latest init` when npm ≥ 3.0.0). Private to the engineer - not in shared git by default.
+Open layout for engagement memory. **Default path:** `~/fde-engagements/<name>/.fde/` (create + bind with `fde resume --init <name>` from the client workspace). Private to the engineer - not in shared git by default.
 
 Optional: `./.fde/` in a workspace only if the engagement allows it and it is gitignored.
 
@@ -8,10 +8,10 @@ Optional: `./.fde/` in a workspace only if the engagement allows it and it is gi
 
 | File | Purpose | Written by |
 |------|---------|------------|
-| `context.md` | Compact state; loaded every session | every phase + the `session-stop` hook (auto-capture) |
+| `context.md` | Compact state; loaded every session; dated debrief blocks | every phase + the `session-stop` hook (auto-capture) + `fde debrief` |
 | `brief.md` | Stated problem (hypothesis) | land |
 | `success.md` | Definition of done + out of scope | land |
-| `stakeholders.md` | Champions, resistance, trust signals | land (updated continuously) |
+| `stakeholders.md` | Champions, resistance, `[signal:green\|amber\|red]` trust tokens | land (updated continuously), `fde log contact --signal`, `fde debrief` |
 | `trust-profile.md` | Sacred data, AI policy (`<private>` tags) | land, overlays |
 
 ## Discovery and delivery
@@ -20,9 +20,9 @@ Optional: `./.fde/` in a workspace only if the engagement allows it and it is gi
 |------|---------|------------|
 | `reality.md` | Actual problem vs brief | discover |
 | `terrain.md` | Codebase map, hotspots, test gaps | discover, audit |
-| `decisions.md` | Plan + technical choices + reviews | plan, build, review |
-| `risks.md` | Live risk register | plan, build, rescue |
-| `delivery.md` | Shipped value (business-visible) | build, ship, close |
+| `decisions.md` | Plan + technical choices + reviews | plan, build, review, `fde debrief` |
+| `risks.md` | Live risk register | plan, build, rescue, `fde debrief` |
+| `delivery.md` | Shipped value (business-visible) | build, ship, close, `fde debrief` |
 
 ## Incidents and handoff
 
@@ -46,7 +46,8 @@ Optional: `./.fde/` in a workspace only if the engagement allows it and it is gi
 1. **`<private>...</private>`** - never sent to the AI or subagents.
 2. Phases load files **on demand**, not the whole directory.
 3. **Do not** mix two customers in one `.fde/`.
-4. **Deliverable = memory:** `init` creates only the core files; phase artifacts (`audit.md`, `chaos-log.md`, `handoff.md`, …) are created by their phases when they run - formats live in [skills/fde/references/](../skills/fde/references/).
+4. **Deliverable = memory:** `--init` creates only the core files; phase artifacts (`audit.md`, `chaos-log.md`, `handoff.md`, …) are created by their phases when they run - formats live in [skills/fde/references/](../skills/fde/references/).
 5. Every claim carries its evidence: `(ops lead, Day 5)` · `(churn: 47/90d)` · `(stated, unverified)`.
+6. **Trust signals are tokens:** the latest dated `[signal:green|amber|red]` in `stakeholders.md` drives `fde status` / `fde dashboard`; tokens older than 21 days show as stale. Keyword matching is only the fallback when no token exists.
 
-Scaffold: `node bin/install.js init <engagement-name>` (or `npx fdeops@latest init` when npm ≥ 3.0.0).
+Scaffold: `fde resume --init <engagement-name>` (creates the folder AND binds the current workspace to it).
