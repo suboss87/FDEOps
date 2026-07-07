@@ -1,0 +1,41 @@
+FDE RECON - meridian-dispatch
+local only · git + file reads · no AI, no network - nothing leaves this machine
+============================================================
+STACK  .java:180 .js:56 .json:41 .yml:33   first commit: 2014-02-19   last: 2026-06-09
+
+HOTSPOTS (churn 90d × test coverage) - handle with care:
+   47 commits/90d  src/main/java/com/meridian/dispatch/DispatchBoardService.java  ⚠ NO TEST NEIGHBOR
+   31 commits/90d  src/main/java/com/meridian/dispatch/routing/RouteAssigner.java  ⚠ NO TEST NEIGHBOR
+   19 commits/90d  scripts/nightly_export.js  ⚠ NO TEST NEIGHBOR
+   14 commits/90d  src/main/java/com/meridian/dispatch/api/BoardController.java  ⚠ NO TEST NEIGHBOR
+   12 commits/90d  config/carriers.yml  ⚠ NO TEST NEIGHBOR
+    9 commits/90d  src/main/java/com/meridian/dispatch/eta/EtaPoller.java
+    8 commits/90d  src/main/java/com/meridian/dispatch/model/Load.java  ⚠ NO TEST NEIGHBOR
+    6 commits/90d  pom.xml  ⚠ NO TEST NEIGHBOR
+
+"TEMPORARY" ARCHAEOLOGY (permanent code with an excuse):
+  src/main/java/com/meridian/dispatch/DispatchBoardService.java:214  // TEMPORARY: skip validation for nashville loads until depot codes are fixed (2019)
+  src/main/java/com/meridian/dispatch/routing/RouteAssigner.java:88  // HACK: hardcoded carrier priority - remove after Q3 2021 rate renegotiation
+  src/main/java/com/meridian/dispatch/api/BoardController.java:132  // FIXME: duplicate status enum, keep in sync with Load.java by hand
+  src/main/java/com/meridian/dispatch/eta/EtaPoller.java:57  // workaround: vendor API returns 200 with empty body on timeout, treat as no-op for now
+  scripts/nightly_export.js:41  // for now we re-read the whole board table, fine under 10k rows
+  scripts/nightly_export.js:118  // remove this after finance migrates off FTP (ticket OPS-812, 2022)
+
+AI COMPONENTS (no exception fires when these drift):
+  scripts/eta_summary.js:12  const OPENAI_MODEL = 'gpt-4o-mini' // summarize delay reasons for the morning email
+  scripts/eta_summary.js:30  // embedding lookup for similar-delay clustering, added summer 2025
+
+POSSIBLE HARDCODED SECRETS (values redacted):
+  config/carriers.yml:87  fastlane_api_key: "fl_l…REDACTED"
+  scripts/nightly_export.js:9  const FTP_PASSWORD = "disp…REDACTED"
+
+PREVIOUS ATTEMPTS (ask who ran these, and what happened):
+  git: 8c41f7a Revert "feat: read dispatch board from ops-api service"
+  git: 51d2e30 Revert "chore: enable ops-api reads for nashville depot"
+  git: 0b9ac12 rollback nashville pilot flags after depot code mismatch
+  README.md:9  NOTE: the 2023 ops-api rewrite was abandoned mid-migration; both read paths are still live.
+
+TEST LANDSCAPE  4 test file(s) across 236 code files
+
+------------------------------------------------------------
+Facts only - interpretation is the FDE's (or @fde's) job.
