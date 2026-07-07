@@ -1,0 +1,16 @@
+# Stakeholders
+
+| Name | Role | Stance | Notes |
+|------|------|--------|-------|
+| Sam Whitfield | COO (sponsor) | champion | Owns the 11-day number at board level. Wants a week-2 visible win. |
+| Dr. Amara Osei | Medical Director | neutral, watchful | Clinical veto. "No metric that pressures clinical judgment" (2026-07-01). |
+| Elena Vasquez | Staff architect | resistant - passed over | Proposed the same rebuild in 2025; not funded; not consulted on this engagement. Her team operates prod. |
+| Rosa Delgado | Intake coordinator | warming | Let us shadow intake 2026-07-01. Knows where the 11 days actually go. |
+
+## Signal history
+
+- [2026-06-30] [signal:green] Sam cleared his calendar for the full kickoff, brought the board deck numbers
+- [2026-07-01] [signal:amber] Elena declined the architecture working session, "conflicting priority" - no reschedule offered
+- [2026-07-03] [signal:red] Elena declined the second working session; told Sam "we already have a design for this" - engagement was scoped without her, her team runs prod, and she found out from the calendar invite
+
+**Trust:** RED (Elena, since 2026-07-03). She is the best source of truth in the building - the passed-over internal architect. Nothing ships to prod without her team. Fix this before any architecture work.
