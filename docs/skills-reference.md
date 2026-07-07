@@ -1,4 +1,4 @@
-# fdeops Reference - one skill, 34 methods across 6 domains
+# fdeops Reference - one skill, 35 methods across 6 domains
 
 v3 ships **one skill**: `@fde` ([skills/fde/SKILL.md](../skills/fde/SKILL.md)). You describe the situation; it routes to a phase and follows that phase's method from [skills/fde/references/](../skills/fde/references/). Engagement memory lives in `~/fde-engagements/<name>/.fde/` (one folder per customer).
 
@@ -77,6 +77,7 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 | [close](../skills/fde/references/close.md) | Retrospective, the 2am handoff document, what we learned |
 | [handoff-engineering](../skills/fde/references/handoff-engineering.md) | Operations runbook, knowledge transfer, confidence scoring |
 | [pattern-extract](../skills/fde/references/pattern-extract.md) | If you did it twice, encode it; patterns are compound interest |
+| [red-team](../skills/fde/references/red-team.md) | Stress-test a plan, handoff, or narrative before someone else does |
 
 ### Overlays (activate on signal)
 
@@ -109,7 +110,7 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 
 ## The `fde` CLI (deterministic core - works without AI)
 
-`scan` recon · `resume [--full] [--init <name>]` memory (bounded by default - current state + recent activity; `--full` for the complete log) + zero-ceremony bootstrap · `log <type> <text>` structured appends · `receipts <term>` agreements with dates · `capture` session snapshot · `status` portfolio triage · `dashboard [--open] [--out <path>]` render every engagement into one offline `fieldbook.html`. The skill calls these for mechanics; the AI does interpretation and judgment. Every command above runs locally - no AI needed.
+`scan` recon + "ASK ON DAY 1" questions (zero-config via `npx fdeops scan`) · `resume [--full] [--init <name>]` memory (bounded by default - current state + recent activity; `--full` for the complete log) + the one canonical setup step (`--init` creates AND binds the workspace) · `debrief <file>` (or stdin) route `decision:`/`risk:`/`delivery:`/`contact:` prefixed lines to their `.fde` files with dates, everything else to a dated block in `context.md` · `log <type> <text> [--signal green|amber|red]` structured appends; `--signal` writes the `[signal:…]` token that drives trust in status/dashboard (stale after 21 days) · `receipts <term>` agreements with dates · `capture` session snapshot · `status` portfolio triage · `dashboard [--open] [--out <path>]` render every engagement into one offline `fieldbook.html`. The skill calls these for mechanics; the AI does interpretation and judgment. Every command above runs locally - no AI needed.
 
 ---
 
@@ -118,7 +119,7 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 1. On entry the agent reads a bounded view of `context.md` (via `fde resume`) - nothing else until the phase needs it.
 2. **Deliverable = memory:** every phase's output IS a `.fde/` file; nothing is maintained by hand.
 3. Every claim carries evidence: `(ops lead, Day 5)` · `(churn: 47/90d)` · `(stated, unverified)`.
-4. On exit the agent appends where-we-left-off to `context.md`; the `session-stop` hook backstops it deterministically.
+4. On exit the agent appends where-we-left-off to `context.md`; the `session-stop` hook backstops it deterministically (hooks resolve the engagement via the workspace registry written by `fde resume --init`).
 5. One customer, one folder. Never merged.
 
 v2's 16 standalone skills were consolidated into the single `@fde` router in v3.
