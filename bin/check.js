@@ -220,17 +220,29 @@ for (const h of ['session-start', 'session-stop', 'pre-compact']) {
 }
 ok('hook exec bits')
 
+// registry-aware hooks: `fde resume --init` binds via ~/fde-engagements/.registry,
+// so every hook must consult it or registry-bound users get zero auto-capture
+for (const h of ['session-start', 'session-stop', 'pre-compact']) {
+  const body = read('hooks/' + h)
+  if (!body.includes('fde-engagements/.registry')) fail(`hooks/${h} must consult the workspace registry`)
+  if (!body.includes('registry_engagement_dir')) fail(`hooks/${h} missing registry_engagement_dir`)
+}
+ok('hooks registry-aware')
+
 // v3.1: the fde CLI (deterministic core)
 if (!fs.existsSync(path.join(root, 'bin', 'fde.js'))) {
   fail('bin/fde.js missing (the deterministic core)')
 } else {
   const cli = read('bin/fde.js')
-  for (const sub of ['cmdScan', 'cmdResume', 'cmdLog', 'cmdReceipts', 'cmdCapture', 'cmdStatus']) {
+  for (const sub of ['cmdScan', 'cmdResume', 'cmdLog', 'cmdDebrief', 'cmdReceipts', 'cmdCapture', 'cmdStatus']) {
     if (!cli.includes(sub)) fail(`fde.js missing ${sub}`)
   }
   if (!JSON.parse(read('package.json')).bin.fde) fail('package.json must expose the fde bin')
   if (!read('bin/install.js').includes('fde.js')) fail('install.js must deploy fde.js')
   if (!read('skills/fde/SKILL.md').includes('fde resume')) fail('SKILL.md must use the CLI for memory ops')
+  if (!cli.includes('[signal:')) fail('fde.js must support structured [signal:x] trust tokens')
+  if (!cli.includes('ASK ON DAY 1')) fail('fde.js scan must emit ASK ON DAY 1 questions')
+  if (!read('bin/install.js').includes('FDE_SUBCOMMANDS')) fail('install.js must pass fde subcommands through (npx fdeops scan)')
   ok('fde CLI present and wired')
 }
 const hooksJson = JSON.parse(read('hooks/hooks.json'))

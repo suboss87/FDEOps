@@ -13,6 +13,7 @@
  *   fde resume --full       same, but the complete context.md (no bound)
  *   fde resume --init <n>   create + bind an engagement for this workspace
  *   fde log <type> <text>   structured append (decision|risk|delivery|contact)
+ *   fde debrief [file]      meeting notes → structured memory (stdin if no file)
  *   fde receipts <term>     "what did we agree?" - search memory with dates
  *   fde capture             session-end snapshot → context.md (hooks use this)
  *   fde status              portfolio across ~/fde-engagements (red/amber/green)
@@ -28,6 +29,8 @@ const ENGAGEMENTS_ROOT = path.join(HOME, 'fde-engagements')
 const REGISTRY = path.join(ENGAGEMENTS_ROOT, '.registry')
 const CODE_EXT = ['.js', '.ts', '.tsx', '.jsx', '.py', '.java', '.go', '.rb', '.cs', '.php']
 const CONF_EXT = CODE_EXT.concat(['.env', '.yaml', '.yml', '.json'])
+// one routing table for structured appends - cmdLog and cmdDebrief share it
+const LOG_FILES = { decision: 'decisions.md', risk: 'risks.md', delivery: 'delivery.md', contact: 'stakeholders.md' }
 
 // constant-command runner - never receives user input
 function sh(cmd, cwd) {
@@ -143,12 +146,34 @@ function sectionBody(md, heading) {
 }
 
 // phase / trust / top risk / freshness - identical heuristic for status + dashboard.
+// Trust resolution: structured [signal:red|amber|green] tokens in stakeholders.md
+// (written by `fde log contact --signal` and `fde debrief`) win - the latest dated
+// one. Older than 21 days → stale: shown with a "?" marker + age so a forgotten
+// signal never silently drives triage. The keyword grep survives only as the
+// zero-effort floor when NO token exists anywhere - prose like "escalated to CTO,
+// resolved amicably" must not flip a client amber forever.
 function computeSignals(eng) {
   const ctx = readEng(eng, 'context.md'); const stake = readEng(eng, 'stakeholders.md'); const risks = readEng(eng, 'risks.md')
   const phase = (ctx.match(/phase[:* ]+\**([a-z-]+)/i) || [])[1] || '?'
-  const sLines = stake.split('\n').filter(l => !(/green/i.test(l) && /red|amber/i.test(l)))
-  const trust = sLines.some(l => /\bred\b/i.test(l)) ? 'RED'
-    : sLines.some(l => /amber|gone quiet|routing around|escalat/i.test(l)) ? 'amber' : 'green'
+  let latest = null
+  for (const l of stake.split('\n')) {
+    const sm = l.match(/\[signal:(red|amber|green)\]/i)
+    if (!sm) continue
+    const date = (l.match(/\[(\d{4}-\d{2}-\d{2})\]/) || [])[1] || ''
+    if (!latest || date >= latest.date) latest = { date, sig: sm[1].toLowerCase() }
+  }
+  let trust, signalAge = null, stale = false
+  if (latest) {
+    trust = latest.sig === 'red' ? 'RED' : latest.sig
+    if (latest.date) {
+      signalAge = Math.max(0, Math.floor((Date.now() - Date.parse(latest.date)) / 86400000))
+      stale = signalAge > 21
+    }
+  } else {
+    const sLines = stake.split('\n').filter(l => !(/green/i.test(l) && /red|amber/i.test(l)))
+    trust = sLines.some(l => /\bred\b/i.test(l)) ? 'RED'
+      : sLines.some(l => /amber|gone quiet|routing around|escalat/i.test(l)) ? 'amber' : 'green'
+  }
   const topRisk = (risks.split('\n').find(l => {
     const t = l.trim()
     return /^[-|]/.test(t) && t.length > 20 && !/^\|?[-\s|]+$/.test(t) &&
@@ -159,7 +184,7 @@ function computeSignals(eng) {
     ageDays = Math.floor((Date.now() - fs.statSync(path.join(eng, 'context.md')).mtimeMs) / 86400000)
     updated = ageDays === 0 ? 'today' : `${ageDays}d ago`
   } catch (_) {}
-  return { phase, trust, topRisk, updated, ageDays }
+  return { phase, trust, signalAge, stale, topRisk, updated, ageDays }
 }
 
 // ---------- commands ----------
@@ -183,6 +208,7 @@ function cmdScan() {
 
   // churn × tests = the load-bearing walls
   out.push('\nHOTSPOTS (churn 90d × test coverage) - handle with care:')
+  let firstUntested = ''
   if (isGit) {
     const churn = sh("git log --since='90 days ago' --name-only --pretty=format:") || ''
     const counts = {}
@@ -193,6 +219,7 @@ function cmdScan() {
     for (const [f, n] of top) {
       const base = path.basename(f).replace(/\.[^.]+$/, '')
       const tested = testFiles.some(t => t.includes(base))
+      if (!tested && !firstUntested) firstUntested = f
       out.push(`  ${String(n).padStart(3)} commits/90d  ${f}  ${tested ? '' : '⚠ NO TEST NEIGHBOR'}`)
     }
   } else out.push('  (not a git repo - churn unavailable)')
@@ -228,6 +255,18 @@ function cmdScan() {
   // test landscape
   const testCount = files.filter(f => /test|spec/i.test(f)).length
   out.push(`\nTEST LANDSCAPE  ${testCount} test file(s) across ${codeFiles.length} code files`)
+
+  // day-1 questions - each one earned by a finding above, skipped when empty
+  out.push('\nASK ON DAY 1:')
+  const asks = []
+  if (reverts || readmeHits.length) asks.push('Who ran the previous attempt(s), and what happened to them?')
+  if (firstUntested) asks.push(`What breaks when ${firstUntested} changes, and who owns it?`)
+  if (ai.length) asks.push(`How would anyone notice if ${ai[0].file}'s model output drifted?`)
+  if (sec.length) asks.push('What is the secret-rotation story?')
+  if (tmp.length) asks.push("Which of these 'temporary' fixes are now load-bearing contracts?")
+  asks.length
+    ? asks.slice(0, 5).forEach((q, i) => out.push(`  ${i + 1}. ${q}`))
+    : out.push('  (clean scan - ask what the last engineer wished they had known)')
 
   out.push('\n' + '-'.repeat(60))
   out.push("Facts only - interpretation is the FDE's (or @fde's) job.")
@@ -296,14 +335,63 @@ function resumeView(md) {
 }
 
 function cmdLog(args) {
-  const map = { decision: 'decisions.md', risk: 'risks.md', delivery: 'delivery.md', contact: 'stakeholders.md' }
+  args = args.slice()
+  // --signal red|amber|green (contact only) → structured token computeSignals trusts
+  let signal = ''
+  const sigIdx = args.indexOf('--signal')
+  if (sigIdx !== -1) {
+    signal = (args[sigIdx + 1] || '').toLowerCase()
+    if (!['red', 'amber', 'green'].includes(signal)) { console.error('usage: fde log contact <text> --signal red|amber|green'); process.exit(1) }
+    args.splice(sigIdx, 2)
+  }
   const type = args[0]; const text = args.slice(1).join(' ')
-  if (!map[type] || !text) { console.error('usage: fde log <decision|risk|delivery|contact> <text>'); process.exit(1) }
+  if (!LOG_FILES[type] || !text) { console.error('usage: fde log <decision|risk|delivery|contact> <text> [--signal red|amber|green]'); process.exit(1) }
+  if (signal && type !== 'contact') { console.error('--signal only applies to: fde log contact'); process.exit(1) }
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
   const date = new Date().toISOString().slice(0, 10)
-  fs.appendFileSync(path.join(eng, map[type]), `\n- [${date}] ${text}\n`)
-  console.log(`logged → ${map[type]}`)
+  fs.appendFileSync(path.join(eng, LOG_FILES[type]), `\n- [${date}] ${signal ? `[signal:${signal}] ` : ''}${text}\n`)
+  console.log(`logged → ${LOG_FILES[type]}${signal ? ` (signal:${signal})` : ''}`)
+}
+
+// Meeting notes → structured memory. Deterministic routing, zero AI: lines that
+// start with decision:/risk:/delivery:/contact: (case-insensitive) go to their
+// LOG_FILES target as dated bullets; everything else lands in context.md as one
+// dated debrief block. contact: lines may carry an inline [signal:x] token
+// anywhere in the text - preserved verbatim so computeSignals can trust it.
+function cmdDebrief(args) {
+  const eng = resolveEngagement()
+  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+  let input = ''
+  if (args[0]) {
+    try { input = fs.readFileSync(args[0].replace(/^~/, HOME), 'utf8') }
+    catch (_) { console.error(`cannot read ${args[0]}`); process.exit(1) }
+  } else {
+    try { input = fs.readFileSync(0, 'utf8') } catch (_) {} // stdin until EOF
+  }
+  const d = new Date()
+  const date = d.toISOString().slice(0, 10)
+  const counts = { decision: 0, risk: 0, delivery: 0, contact: 0 }
+  const ctxLines = []
+  for (const raw of input.split('\n')) {
+    const line = raw.trim()
+    if (!line) continue
+    const m = line.match(/^(decision|risk|delivery|contact):\s*(.+)$/i)
+    if (m) {
+      const type = m[1].toLowerCase()
+      fs.appendFileSync(path.join(eng, LOG_FILES[type]), `\n- [${date}] ${m[2]}\n`)
+      counts[type]++
+    } else ctxLines.push(line)
+  }
+  if (ctxLines.length) {
+    const stamp = `${date} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+    fs.appendFileSync(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${ctxLines.map(l => `- ${l}`).join('\n')}\n`)
+  }
+  const plural = { decision: 'decisions', risk: 'risks', delivery: 'deliveries', contact: 'contacts' }
+  const parts = Object.keys(counts).filter(t => counts[t])
+    .map(t => `${counts[t]} ${counts[t] === 1 ? t : plural[t]}`)
+  if (ctxLines.length) parts.push(`${ctxLines.length} context line${ctxLines.length === 1 ? '' : 's'}`)
+  console.log(parts.length ? `debrief routed → ${parts.join(', ')}` : 'debrief empty - nothing routed')
 }
 
 function cmdReceipts(args) {
@@ -353,16 +441,19 @@ function cmdStatus() {
     const eng = path.join(ENGAGEMENTS_ROOT, d, '.fde')
     if (!fs.existsSync(eng)) continue
     const s = computeSignals(eng)
-    rows.push({ name: d, phase: s.phase, trust: s.trust, updated: s.updated, topRisk: s.topRisk.slice(0, 60) })
+    rows.push({ name: d, phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, topRisk: s.topRisk.slice(0, 60) })
   }
   if (!rows.length) { console.log('no engagements yet'); return }
   const order = { RED: 0, amber: 1, green: 2 }
   rows.sort((a, b) => order[a.trust] - order[b.trust])
   console.log('FDE PORTFOLIO - trust-first triage (heuristic: red > amber > green)\n')
   for (const r of rows) {
-    console.log(`  [${r.trust.padEnd(5)}] ${r.name.padEnd(24)} phase:${r.phase.padEnd(10)} updated:${r.updated.padEnd(8)} ${r.topRisk}`)
+    // "amber?" = structured signal went stale (>21d) - reconfirm before trusting it
+    const label = r.trust + (r.stale ? '?' : '')
+    const sig = r.signalAge != null ? `signal ${r.signalAge}d old${r.stale ? ' (STALE - reconfirm)' : ''}  ` : ''
+    console.log(`  [${label.padEnd(6)}] ${r.name.padEnd(24)} phase:${r.phase.padEnd(10)} updated:${r.updated.padEnd(8)} ${sig}${r.topRisk}`)
   }
-  console.log('\nred/amber derive from stakeholders.md signal words - verify before acting.')
+  console.log('\ntrust: latest [signal:x] token in stakeholders.md wins (fde log contact --signal, fde debrief); keyword heuristic only when none exists - verify before acting.')
 }
 
 // ---------- dashboard (deterministic markdown → one local HTML) ----------
@@ -674,14 +765,18 @@ function cmdDashboard(args) {
     directiveClass = reds.length ? 'directive' : 'directive amber'
   }
 
+  // signal provenance: how old the structured trust token is, "?" when stale (>21d)
+  const signalMeta = e => e.signals.signalAge != null
+    ? `<span class="meta">signal ${e.signals.signalAge}d old${e.signals.stale ? ' - reconfirm' : ''}</span>` : ''
+
   // red engagements: full-width attention rows that dominate the page
   const attention = reds.map(e => {
     const id = 'eng-' + slugify(e.name)
     return [
       `<div class="attn" data-target="${id}" data-search="${e.searchBlob}">`,
-      `<div class="attn-head"><span class="dot red"></span><span class="trust-label t-red">RED</span>`,
+      `<div class="attn-head"><span class="dot red"></span><span class="trust-label t-red">RED${e.signals.stale ? '?' : ''}</span>`,
       `<h3>${inlineMd(e.name)}</h3>`,
-      `<span class="badge">${inlineMd(e.signals.phase)}</span><span class="meta">updated ${e.signals.updated}</span></div>`,
+      `<span class="badge">${inlineMd(e.signals.phase)}</span><span class="meta">updated ${e.signals.updated}</span>${signalMeta(e)}</div>`,
       e.signals.topRisk ? `<div class="risk">${inlineMd(e.signals.topRisk)}</div>` : '',
       e.next ? `<div class="next"><b>Next</b> ${inlineMd(e.next)}</div>` : '',
       `<div class="match-snippet"></div>`,
@@ -697,8 +792,8 @@ function cmdDashboard(args) {
     return [
       `<div class="card ${trustClass}${muted}" data-target="${id}" data-search="${e.searchBlob}">`,
       `<h3>${inlineMd(e.name)}</h3>`,
-      `<div class="row"><span class="dot ${trustClass}"></span><span class="trust-label t-${trustClass}">${trustClass}</span>`,
-      `<span class="badge">${inlineMd(e.signals.phase)}</span><span class="meta">updated ${e.signals.updated}</span></div>`,
+      `<div class="row"><span class="dot ${trustClass}"></span><span class="trust-label t-${trustClass}">${trustClass}${e.signals.stale ? '?' : ''}</span>`,
+      `<span class="badge">${inlineMd(e.signals.phase)}</span><span class="meta">updated ${e.signals.updated}</span>${signalMeta(e)}</div>`,
       e.next ? `<div class="next"><b>Next</b> ${inlineMd(e.next)}</div>` : '<div class="next meta">next action not set</div>',
       e.signals.topRisk ? `<div class="risk amber-risk">${inlineMd(e.signals.topRisk)}</div>` : '',
       `<div class="match-snippet"></div>`,
@@ -785,6 +880,7 @@ switch (cmd) {
   case 'scan': cmdScan(); break
   case 'resume': cmdResume(args); break
   case 'log': cmdLog(args); break
+  case 'debrief': cmdDebrief(args); break
   case 'receipts': cmdReceipts(args); break
   case 'capture': cmdCapture(); break
   case 'status': cmdStatus(); break
@@ -795,7 +891,8 @@ switch (cmd) {
   fde resume               load this workspace's engagement memory (bounded)
   fde resume --full        load the complete context.md (no bound)
   fde resume --init <name> create + bind engagement for this workspace
-  fde log <type> <text>    append decision|risk|delivery|contact
+  fde log <type> <text>    append decision|risk|delivery|contact (contact takes --signal red|amber|green)
+  fde debrief [file]       meeting notes → memory: decision:/risk:/delivery:/contact: lines route, rest → context.md (stdin if no file)
   fde receipts <term>      "what did we agree?" with dates
   fde capture              session-end memory snapshot (hooks use this)
   fde status               portfolio across all engagements
