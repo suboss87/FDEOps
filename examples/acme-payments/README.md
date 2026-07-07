@@ -8,8 +8,8 @@ Follow [README § The basic workflow](../../README.md#the-basic-workflow) while 
 
 ```bash
 cd fdeops && node bin/install.js
-node bin/install.js init acme-payments
-export FDEOPS_ENGAGEMENT=~/fde-engagements/acme-payments/.fde
+cd <your-client-workspace>
+fde resume --init acme-payments   # creates the engagement and binds this workspace
 ```
 
 Open your workspace for this embed. Type `@fde`.
