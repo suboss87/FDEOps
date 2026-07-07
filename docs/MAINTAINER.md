@@ -47,9 +47,9 @@ After a history rewrite + force-push, GitHub may show **“Crunching the latest 
 
 ---
 
-## Publish npm 2.1.0 (required for `npx fdeops@latest`)
+## Publish to npm (required for `npx fdeops@latest`)
 
-Registry may still serve **1.0.0** (old postinstall, no `init`). Community should use **git clone** until publish succeeds.
+Publish after every release so `npx fdeops` serves the current version (see `version` in package.json).
 
 ```bash
 cd fdeops
@@ -57,7 +57,7 @@ npm run check
 npm whoami                    # must be suboss87
 npm view fdeops version        # note current
 npm publish --access public
-npm view fdeops version        # must show 2.1.0
+npm view fdeops version        # must match package.json
 ```
 
 If publish fails with 401: `npm login` on the maintainer machine, then retry.
