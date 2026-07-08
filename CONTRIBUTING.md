@@ -11,7 +11,7 @@ This repository reflects one operator’s engagement OS - open-sourced for other
 | Channel | Use for |
 |---------|---------|
 | [GitHub Issues](https://github.com/suboss87/fdeops/issues) | Bugs, gaps (“situation X isn’t covered”), anonymized patterns that worked |
-| Discussions (if enabled) | Questions about fit on an engagement type |
+| [Discussions](https://github.com/suboss87/fdeops/discussions) | Questions about fit on an engagement type, workflow ideas, show-and-tell |
 
 **Do not** open PRs with client-identifying data, `.fde/` exports, or screenshots containing real names.
 
