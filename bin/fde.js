@@ -875,7 +875,17 @@ strong{font-weight:600}
 .fb-nav-reason.hide{display:none}
 .fb-nav-reason mark{background:var(--accent-bg);color:inherit;border-radius:2px;padding:0 1px}
 .fb-main{flex:1 1 auto;overflow-y:auto;background:var(--bg)}
-.fb-main-inner{max-width:760px;margin:0 auto;padding:28px 40px 64px}
+.fb-main-inner{max-width:1440px;margin:0 auto;padding:28px 48px 64px}
+.fb-grid-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px 40px;margin-top:22px}
+.fb-grid-wrap .fb-block{margin-top:0}
+.fb-top-grid{display:grid;grid-template-columns:1fr 260px;gap:0 32px;align-items:start}
+.fb-vitals{margin-top:22px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.fb-vital-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:12.5px}
+.fb-vital-row+.fb-vital-row{border-top:1px solid var(--line)}
+.fb-vital-label{font-family:'Geist Mono',monospace;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint)}
+.fb-vital-val{color:var(--ink);font-weight:600;text-align:right}
+.fb-vital-div{margin:4px 0;border-top:1px solid var(--line)}
+@media(max-width:920px){.fb-top-grid{grid-template-columns:1fr}.fb-vitals{max-width:400px}}
 .fb-view[hidden]{display:none}
 .fb-eyebrow{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-faint)}
 .fb-h1{font-family:'Geist Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-.01em;margin:6px 0 0}
@@ -888,9 +898,9 @@ strong{font-weight:600}
 .fb-sec-row{display:flex;align-items:baseline;gap:8px}
 .fb-sec-row .fb-sec{margin:0}
 .fb-count{font-family:'Geist Mono',monospace;font-size:10.5px;color:var(--ink-faint)}
-.fb-now-action{font-size:16.5px;font-weight:600;line-height:1.5;color:var(--ink)}
-.fb-now-session{margin-top:10px;font-size:14.5px;line-height:1.6;color:var(--ink-soft)}
-.fb-why{margin:0;font-size:14.5px;line-height:1.6;color:var(--ink)}
+.fb-now-action{max-width:760px;font-size:16.5px;font-weight:600;line-height:1.5;color:var(--ink)}
+.fb-now-session{max-width:760px;margin-top:10px;font-size:14.5px;line-height:1.6;color:var(--ink-soft)}
+.fb-why{max-width:760px;margin:0;font-size:14.5px;line-height:1.6;color:var(--ink)}
 .fb-accent-label{color:var(--accent);font-weight:600}
 .fb-stats{display:flex;gap:22px;flex-wrap:wrap;font-family:'Geist Mono',monospace;font-size:13.5px}
 .fb-stat{display:inline-flex;align-items:baseline;gap:6px;padding:2px 0}
@@ -1179,12 +1189,23 @@ ${e.lastSession ? `<div class="fb-now-session">${inlineMd(e.lastSession)}</div>`
 <p class="fb-why">${e.brief ? `<span class="t-faint">Brief:</span> ${inlineMd(e.brief)}` : ''}${e.brief && e.reality ? '&nbsp;&nbsp;' : ''}${e.reality ? `<span class="fb-accent-label">Reality:</span> ${inlineMd(e.reality)}` : ''}</p>
 </div>` : ''
 
-  const statsBlock = e.stats.length ? `<div class="fb-block">
-<div class="fb-sec">Movement</div>
-<div class="fb-stats">
-${e.stats.map(s => `<span class="fb-stat"><span class="t-faint">${inlineMd(s.label)}</span> <span class="t-faint">${inlineMd(s.from)}</span> <span class="fb-arrow">&rarr;</span> <span class="fb-stat-to">${inlineMd(s.to)}</span></span>`).join('\n')}
-</div>
-</div>` : ''
+  // Vitals: a fixed field-facing gut-check panel, not a Movement block that
+  // only exists when text mining finds numbers. Phase/trust/days/touched/high
+  // risk are ALWAYS known (computed elsewhere, never fabricated) - an FDE
+  // walking into a room needs these in one glance before they need prose.
+  // Sits beside Now/Why so that column's natural reading width doesn't leave
+  // the top of the page empty on a wide screen.
+  const vitalsRows = [
+    ['trust', trustWord(e.signals.trust), dotClass],
+    ['phase', e.phaseLabel, ''],
+    e.days != null ? ['day', String(e.days), ''] : null,
+    ['touched', e.signals.updated, e.quiet ? 'amber' : ''],
+    e.highRisks ? ['high risk', `${e.highRisks} open`, 'red'] : null,
+  ].filter(Boolean)
+  const vitalsBlock = `<div class="fb-vitals">
+${vitalsRows.map(([label, val, tone]) => `<div class="fb-vital-row"><span class="fb-vital-label">${escapeHtml(label)}</span><span class="fb-vital-val${tone ? ' t-' + tone : ''}">${escapeHtml(val)}</span></div>`).join('\n')}
+${e.stats.length ? `<div class="fb-vital-div"></div>${e.stats.map(s => `<div class="fb-vital-row"><span class="fb-vital-label">${inlineMd(s.label)}</span><span class="fb-vital-val">${inlineMd(s.from)} <span class="fb-arrow">&rarr;</span> <span class="fb-stat-to">${inlineMd(s.to)}</span></span></div>`).join('\n')}` : ''}
+</div>`
 
   const peopleBlock = e.stakeholders.length ? `<div class="fb-block">
 <div class="fb-sec">People</div>
@@ -1225,6 +1246,13 @@ ${e.log.map(g => `<div class="fb-row fb-log">
 ${e.moreSections.map(s => `<details class="fb-more"><summary class="fb-sec fb-more-sum">${escapeHtml(s.title)}</summary><div class="fb-more-body">${s.html}</div></details>`).join('\n')}
 </div>` : ''
 
+  // People + Risk pair naturally (who's involved / what's at stake) and read
+  // well side by side on a wide screen - a single 760px column left half the
+  // window empty. Stats stays full width (it's already a wrapping strip of
+  // small tiles that benefits from horizontal room); Log stays full width
+  // (a chronological list reads better long than squeezed into a column).
+  const pairedBlock = (peopleBlock || riskBlock) ? `<div class="fb-grid-wrap">${peopleBlock}${riskBlock}</div>` : ''
+
   return `<div id="view-eng-${e.slug}" class="fb-view" hidden>
 <div class="fb-eyebrow">.fde/${escapeHtml(e.slug)}</div>
 <div class="fb-title-row">
@@ -1232,7 +1260,11 @@ ${e.moreSections.map(s => `<details class="fb-more"><summary class="fb-sec fb-mo
 <span class="fb-trust"><span class="dot dot-lg ${dotClass}"></span><span class="t-${dotClass}">${trustWord(e.signals.trust)}</span></span>
 </div>
 <div class="fb-meta-line">${sectorLine}</div>
-${nowBlock}${whyBlock}${statsBlock}${peopleBlock}${riskBlock}${logBlock}${moreBlock}
+<div class="fb-top-grid">
+<div>${nowBlock}${whyBlock}</div>
+${vitalsBlock}
+</div>
+${pairedBlock}${logBlock}${moreBlock}
 </div>`
 }
 
