@@ -9,6 +9,16 @@
 
 The **second brain for Forward Deployed Engineers** - engineers embedded at a client, from first meeting to final handoff. Works the same for consultants, agency developers, solutions architects, and fractional CTOs.
 
+```
+  land      discover      plan      build      ship      close
+    |           |           |         |          |         |
+    +-----------+-----------+---------+----------+---------+
+          the fieldbook (.fde/) - one per engagement
+             written as a side effect of the work
+```
+
+Describe your situation - `@fde` routes to the phase, runs the method, and every artifact lands in that shared memory. Nothing to maintain by hand.
+
 ---
 
 ## The problem

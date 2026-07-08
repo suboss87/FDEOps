@@ -43,7 +43,7 @@ You do not read the phase methods. **`@fde` routes the AI and loads the right on
 
 The highest-frequency moment in client work: you walk out of a meeting with raw notes. Two ways in:
 
-**Via the agent (adds judgment):** paste the notes to `@fde`. The agent structures them into lines prefixed `decision:` / `risk:` / `delivery:` / `contact:` (adding `[signal:green|amber|red]` on contact lines when the notes carry trust information), shows you the structured version for confirmation, then pipes it to `fde debrief`.
+**Via the agent:** paste the notes to `@fde`. It removes the manual work of writing `decision:` / `risk:` / `delivery:` / `contact:` prefixes yourself (adding `[signal:green|amber|red]` on contact lines when the notes carry trust information) - it does not remove your review. It shows you the structured version first and only pipes it to `fde debrief` after you confirm.
 
 **Directly (zero tokens):** write the prefixes yourself and run:
 
