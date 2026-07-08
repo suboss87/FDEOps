@@ -122,7 +122,7 @@ fde resume --init <client>        # THE setup step: create + bind an engagement
 fde debrief notes.md              # route meeting notes into memory (also reads stdin)
 fde log decision "descope agreed with Dana"
 fde log contact "Diana gone quiet" --signal amber
-fde receipts <term>               # dated search; no hit means it was never logged - that is itself the answer
+fde receipts <term>               # dated search; no hit = a gap in the record, not proof of absence
 fde status                        # portfolio triage across all clients (red > amber > green)
 fde dashboard                     # render every engagement into one offline HTML fieldbook
 ```
@@ -152,6 +152,8 @@ The latest dated `[signal:...]` token per stakeholder drives the trust column in
 - **Local only.** Pure `git` + file reads - no network calls, no telemetry, no account. Works air-gapped.
 - **Plain markdown.** No database, no lock-in.
 - **No new data path.** The AI sees client code only when *you* point your agent at it; `<private>`-tagged data never enters the model's context.
+- **Nothing enters the record unreviewed.** The model drafts, you confirm (`fde debrief --dry-run` shows the routing first); the hooks record only git facts. Your fieldbook stays yours to defend.
+- **Know your sync surface.** `~/fde-engagements` lives in your home directory - your backup and cloud-sync setup now covers client notes. `fde resume --init` warns if the folder sits in a synced path. Read [PRIVACY.md](PRIVACY.md) before your first NDA'd engagement.
 
 Details: [PRIVACY.md](PRIVACY.md) · [SECURITY.md](SECURITY.md)
 
