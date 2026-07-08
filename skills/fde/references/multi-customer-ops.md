@@ -12,9 +12,9 @@ The solo FDE running three customers simultaneously is the norm, not the excepti
 
 ```
 ~/fde-engagements/
-  acme-corp/.fde/         ← Acme's engagement memory
-  globex/.fde/            ← Globex's engagement memory
-  initech/.fde/           ← Initech's engagement memory
+  garvey-payments/.fde/    ← Garvey's engagement memory
+  kesterman-freight/.fde/  ← Kesterman's engagement memory
+  rennick-health/.fde/     ← Rennick's engagement memory
 ```
 
 **Never:**
@@ -32,11 +32,11 @@ Cross-contamination is the fastest way to lose two engagements at once.
 
 | Customer | Trust signal | Top risk | Today's action | Time budget |
 |----------|-------------|----------|---------------|-------------|
-| Acme | green | Migration deadline Fri | Finish data mapping, send status | 4h |
-| Globex | AMBER | Sponsor went quiet Tue | Proactive conversation TODAY | 2h |
-| Initech | green | None active | Build slice 3, push PR | 2h |
+| Garvey | green | Canary blocked on their security ticket | Chase ticket, prep ship checklist | 4h |
+| Kesterman | AMBER | Sponsor went quiet Tue | Proactive conversation TODAY | 2h |
+| Rennick | green | None active | Build slice 3, push PR | 2h |
 
-Priority order: Globex (amber trust), Acme (deadline), Initech (steady)
+Priority order: Kesterman (amber trust), Garvey (deadline), Rennick (steady)
 ```
 
 **3. The triage rules.** In order of priority:
@@ -60,7 +60,7 @@ BEFORE STARTING CUSTOMER B:
   1. Run: fde resume (loads Customer B's engagement)
   2. Read context.md - where did we leave off?
   3. Confirm: what's the one thing to accomplish in this block?
-  4. Set a time boundary (e.g., "2 hours on Globex, then back to Acme")
+  4. Set a time boundary (e.g., "2 hours on Kesterman, then back to Garvey")
 ```
 
 The 3-line context update is the bridge. Without it, the next session starts with "what was I doing?" - that's 20 minutes of re-discovery each time.

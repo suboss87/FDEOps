@@ -1,4 +1,4 @@
-# Worked example: acme-payments (fictional)
+# Worked example: garvey-payments (fictional)
 
 Copy the **structure**, not the company names. These files show what a real week-1 → week-2 arc looks like in `.fde/`.
 
@@ -9,12 +9,12 @@ Follow [README § The basic workflow](../../README.md#the-basic-workflow) while 
 ```bash
 cd fdeops && node bin/install.js
 cd <your-client-workspace>
-fde resume --init acme-payments   # creates the engagement and binds this workspace
+fde resume --init garvey-payments   # creates the engagement and binds this workspace
 ```
 
 Open your workspace for this embed. Type `@fde`.
 
-> Files below live under `~/fde-engagements/acme-payments/.fde/` after `init`.  
+> Files below live under `~/fde-engagements/garvey-payments/.fde/` after `init`.  
 > This folder in the repo is a **reference copy** for readers.
 
 ---

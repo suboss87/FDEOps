@@ -1,0 +1,17 @@
+sync w/ randy + karen, thu 2026-07-02, 30 min, dispatch floor office
+(fictional demo data - fdeops examples)
+
+randy spent the first ten minutes on the nashville depot audit - corporate is
+on-site there all week and denise is running it. his read: "she's not ignoring
+you, she's underwater." unverified.
+
+decision: karen reviews the write-back design tuesday 2026-07-07 before any prod-path code
+decision: parity report stays the demo centerpeice thursday - randy wants the 94-to-98.8 chart, "that's the slide"
+risk: write-back can race the old ops-api read path - karen has seen double-writes from it before, 2023
+risk: if denise skips a third demo, the CFO readout slips past the 6-week mark
+contact: Denise Kowalczyk [signal:amber] skipped thursday demo again, no delegate, no reschedule - randy says nashville audit, unverified
+contact: Karen Mroz [signal:green] volunteered the 2023 double-write war story unprompted - first time she has offered history
+
+open q: who is the finance controller consuming the nightly export? still no name.
+open q: does the nashville audit change dashboard priority - ask denise directly, not through randy
+open q: randy mentioned the memphis depot lease is up in march, might matter for the depot codes fix - didn't catch the rest

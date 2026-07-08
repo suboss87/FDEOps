@@ -5,7 +5,7 @@
 | `skills/fde/` | **The one skill** - router (`SKILL.md`) + 35 skill methods and 5 overlays (`references/`) - installed to `~/.claude/skills/` |
 | `adapters/` | Thin per-tool pointers (Codex/`AGENTS.md`, Gemini, Cursor, Copilot) - `node bin/install.js adapters <dir>` |
 | `templates/.fde/` | Core memory templates for `fde resume --init` (phase artifacts are created by phases on demand) |
-| `examples/acme-payments/` | Fictional walkthrough with sample `.fde/` files |
+| `examples/garvey-payments/` | Fictional walkthrough with sample `.fde/` files |
 | `bin/fde.js` | The `fde` CLI - scan, resume, debrief, log, receipts, capture, status, dashboard |
 | `bin/install.js` | `node bin/install.js` (skills + hooks on disk) |
 | `hooks/` | `fdeops-session-start` (read), `fdeops-session-stop` (write), `fdeops-pre-compact` - registry-aware |
