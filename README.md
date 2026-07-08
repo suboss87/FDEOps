@@ -131,7 +131,7 @@ The latest dated `[signal:...]` token per stakeholder drives the trust column in
 
 <p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
 
-<p align="center"><img width="794" height="571" alt="FieldBook" src="https://github.com/user-attachments/assets/349a223e-0c5e-4300-a8fe-9e3bb042cbbe" /></p>
+<p align="center"><img width="1184" height="833" alt="Screenshot 2026-07-08 at 10 38 26" src="https://github.com/user-attachments/assets/75eb2629-27ea-45bc-bbf9-185cc79135a7" /></p>
 
 ---
 
