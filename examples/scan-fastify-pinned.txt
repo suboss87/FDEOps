@@ -1,0 +1,50 @@
+# Reproducible scan - fastify/fastify @ 94bcbcc6e2ef
+# Reproduce it yourself:
+#   git clone https://github.com/fastify/fastify && cd fastify
+#   git checkout 94bcbcc6e2ef3b8e8f8e8797fe551ccbe7b942fd
+#   npx fdeops scan
+# Generated: 2026-07-08 · fdeops v3.6.1 · output unedited below this line
+
+FDE RECON - fastify
+local only · git + file reads · no AI, no network - nothing leaves this machine
+============================================================
+STACK  .js:254 .md:51 .ts:33 .json:5   first commit: 2016-09-28   last: 2026-07-05
+
+HOTSPOTS (churn 90d × test coverage) - handle with care:
+   12 commits/90d  package.json  
+   10 commits/90d  lib/reply.js  
+    8 commits/90d  docs/Guides/Ecosystem.md  ⚠ NO TEST NEIGHBOR
+    7 commits/90d  fastify.js  
+    7 commits/90d  lib/route.js  
+    6 commits/90d  lib/request.js  
+    6 commits/90d  docs/Reference/Server.md  ⚠ NO TEST NEIGHBOR
+    5 commits/90d  docs/Reference/Errors.md  ⚠ NO TEST NEIGHBOR
+
+"TEMPORARY" ARCHAEOLOGY (permanent code with an excuse):
+  test/upgrade.test.js:35  clientIPv4.write('Sec-WebSocket-Protocol: com.xxx.service.v1\r\n')
+  test/upgrade.test.js:47  clientIPv6.write('Sec-WebSocket-Protocol: com.xxx.service.v1\r\n')
+  types/request.d.ts:51  // ^ Temporary Note: RequestType has been re-ordered to be the last argument in
+
+AI COMPONENTS (no exception fires when these drift):
+  none found
+
+POSSIBLE HARDCODED SECRETS (values redacted):
+  none found
+  (grep-grade check - run gitleaks or trufflehog for real secret coverage)
+
+PREVIOUS ATTEMPTS (ask who ran these, and what happened):
+  git: e02d602f docs(server): fix camelCase anchor links in TOC (#6530)
+  git: cdcc4de5 Revert "chore: upgrade borp to v1.0.0 (#6510)" (#6564)
+  git: af099471 docs(reference/decorators): conciseness improvements (#5966)
+  git: 4c443fdc docs(readme): revert from deprecated workflow badge syntax (#5877)
+  git: 276f4441 chore: revert eslint changes
+
+TEST LANDSCAPE  223 test file(s) across 287 code files
+
+ASK ON DAY 1:
+  1. Who ran the previous attempt(s), and what happened to them?
+  2. What breaks when docs/Guides/Ecosystem.md changes, and who owns it?
+  3. Which of these 'temporary' fixes are now load-bearing contracts?
+
+------------------------------------------------------------
+Facts only - interpretation is the FDE's (or @fde's) job.

@@ -232,7 +232,10 @@ function cmdScan() {
 
   // AI components - they fail silently
   out.push('\nAI COMPONENTS (no exception fires when these drift):')
-  const ai = grepFiles(codeFiles, /openai|anthropic|\bllm\b|gpt-|claude|embedding|vector store|inference/i, 10)
+  // NOTE: bare "inference" is banned from this regex - TypeScript codebases are
+  // full of "type inference" comments and the false positives poison the day-1
+  // questions. Model inference only, in explicit forms.
+  const ai = grepFiles(codeFiles, /openai|anthropic|\bllm\b|gpt-|claude|embedding|vector store|model inference|inference (?:api|endpoint|server|engine)/i, 10)
   ai.length ? ai.forEach(h => out.push(`  ${h.file}:${h.line}  ${h.text}`)) : out.push('  none found')
 
   // secrets (redacted)
@@ -243,6 +246,7 @@ function cmdScan() {
   sec.length
     ? sec.forEach(h => out.push(`  ${h.file}:${h.line}  ${h.text.replace(/(['"])([^'"]{4})[^'"]+(['"])/, '$1$2…REDACTED$3')}`))
     : out.push('  none found')
+  out.push('  (grep-grade check - run gitleaks or trufflehog for real secret coverage)')
 
   // previous attempts - the political archaeology
   out.push('\nPREVIOUS ATTEMPTS (ask who ran these, and what happened):')
@@ -289,11 +293,30 @@ function cmdResume(args) {
       else if (!fs.existsSync(dst)) fs.copyFileSync(src, dst)
     }
     fs.mkdirSync(path.join(fdeDir, 'retrospectives'), { recursive: true })
-    // bind THIS workspace to the engagement (zero ceremony next time)
-    const line = `${process.cwd()} ${slug}\n`
-    const reg = fs.existsSync(REGISTRY) ? fs.readFileSync(REGISTRY, 'utf8') : ''
-    if (!reg.includes(line.trim())) fs.appendFileSync(REGISTRY, line)
-    console.log(`ENGAGEMENT READY: ${fdeDir}\nbound to workspace: ${process.cwd()}`)
+    // bind THIS workspace to the engagement (zero ceremony next time).
+    // A workspace binds to exactly ONE engagement: rebinding REPLACES the old
+    // line - resolution is first-match-wins, so appending a second line would
+    // leave the stale binding winning and silently write to the wrong client.
+    const cwd = process.cwd()
+    const prev = readRegistry().find(r => r.workspace === cwd)
+    const kept = readRegistry().filter(r => r.workspace !== cwd).map(r => `${r.workspace} ${r.slug}`)
+    kept.push(`${cwd} ${slug}`)
+    fs.writeFileSync(REGISTRY, kept.join('\n') + '\n')
+    console.log(`ENGAGEMENT READY: ${fdeDir}\nbound to workspace: ${cwd}`)
+    if (prev && prev.slug !== slug) console.log(`rebound: this workspace previously wrote to "${prev.slug}" - that memory is untouched; sessions here now write to "${slug}"`)
+    // NDA surface: engagement notes must not silently leave the machine via file sync
+    const syncHit = /icloud|mobile documents|dropbox|onedrive|google drive|box sync/i.exec(ENGAGEMENTS_ROOT)
+    if (syncHit) console.log(`⚠ engagements root is inside a synced folder ("${syncHit[0]}") - client notes will leave this machine via sync. See PRIVACY.md.`)
+    return
+  }
+  if (args[0] === '--bind') {
+    // inspection: what does THIS workspace resolve to, and why
+    const cwd = process.cwd()
+    const reg = readRegistry().find(r => r.workspace === cwd)
+    const eng = resolveEngagement()
+    console.log(`workspace: ${cwd}`)
+    console.log(`registry:  ${reg ? `${reg.slug} (${path.join(ENGAGEMENTS_ROOT, reg.slug, '.fde')})` : '(not bound)'}`)
+    console.log(`resolves:  ${eng || '(nothing - run: fde resume --init <client>)'}`)
     return
   }
   const eng = resolveEngagement()
@@ -359,7 +382,16 @@ function cmdLog(args) {
 // LOG_FILES target as dated bullets; everything else lands in context.md as one
 // dated debrief block. contact: lines may carry an inline [signal:x] token
 // anywhere in the text - preserved verbatim so computeSignals can trust it.
+// Real notes arrive as markdown: "- decision: ...", "* contact: ...",
+// "**Decision:** ..." - strip bullet/bold dressing before matching, or the
+// prefix silently misses and a [signal:x] token lands in context.md, which
+// signal parsing never reads. Silent loss is the one failure a memory tool
+// cannot have. --dry-run prints the routing without writing anything.
 function cmdDebrief(args) {
+  args = args.slice()
+  const dryIdx = args.indexOf('--dry-run')
+  const dry = dryIdx !== -1
+  if (dry) args.splice(dryIdx, 1)
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
   let input = ''
@@ -374,24 +406,29 @@ function cmdDebrief(args) {
   const counts = { decision: 0, risk: 0, delivery: 0, contact: 0 }
   const ctxLines = []
   for (const raw of input.split('\n')) {
-    const line = raw.trim()
+    let line = raw.trim()
     if (!line) continue
-    const m = line.match(/^(decision|risk|delivery|contact):\s*(.+)$/i)
+    // markdown dressing: leading bullets (-, *, +) and bold around the prefix
+    const bare = line.replace(/^[-*+]\s+/, '').replace(/^\*\*(decision|risk|delivery|contact):?\*\*:?\s*/i, '$1: ')
+    const m = bare.match(/^(decision|risk|delivery|contact):\s*(.+)$/i)
     if (m) {
       const type = m[1].toLowerCase()
-      fs.appendFileSync(path.join(eng, LOG_FILES[type]), `\n- [${date}] ${m[2]}\n`)
+      if (dry) console.log(`→ ${LOG_FILES[type]}  - [${date}] ${m[2]}`)
+      else fs.appendFileSync(path.join(eng, LOG_FILES[type]), `\n- [${date}] ${m[2]}\n`)
       counts[type]++
     } else ctxLines.push(line)
   }
   if (ctxLines.length) {
     const stamp = `${date} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-    fs.appendFileSync(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${ctxLines.map(l => `- ${l}`).join('\n')}\n`)
+    if (dry) ctxLines.forEach(l => console.log(`→ context.md  - ${l}`))
+    else fs.appendFileSync(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${ctxLines.map(l => `- ${l}`).join('\n')}\n`)
   }
   const plural = { decision: 'decisions', risk: 'risks', delivery: 'deliveries', contact: 'contacts' }
   const parts = Object.keys(counts).filter(t => counts[t])
     .map(t => `${counts[t]} ${counts[t] === 1 ? t : plural[t]}`)
   if (ctxLines.length) parts.push(`${ctxLines.length} context line${ctxLines.length === 1 ? '' : 's'}`)
-  console.log(parts.length ? `debrief routed → ${parts.join(', ')}` : 'debrief empty - nothing routed')
+  const verb = dry ? 'debrief would route' : 'debrief routed'
+  console.log(parts.length ? `${verb} → ${parts.join(', ')}` : 'debrief empty - nothing routed')
 }
 
 function cmdReceipts(args) {
@@ -408,7 +445,7 @@ function cmdReceipts(args) {
       if (rx.test(l)) { console.log(`${f}:${i + 1}  ${l.trim().slice(0, 160)}`); found++ }
     })
   }
-  if (!found) console.log(`no record of "${term}" - if it was agreed, it was never logged. That is itself the answer.`)
+  if (!found) console.log(`no record of "${term}" - nothing was ever logged about it. A gap in the record, not proof of absence: if it WAS agreed, log it now, dated today.`)
 }
 
 function cmdCapture() {
@@ -890,9 +927,10 @@ switch (cmd) {
   fde scan                 day-1 recon of this repo (facts, no AI)
   fde resume               load this workspace's engagement memory (bounded)
   fde resume --full        load the complete context.md (no bound)
-  fde resume --init <name> create + bind engagement for this workspace
+  fde resume --init <name> create + bind engagement for this workspace (rebind replaces)
+  fde resume --bind        show what this workspace is bound to, and what resolves
   fde log <type> <text>    append decision|risk|delivery|contact (contact takes --signal red|amber|green)
-  fde debrief [file]       meeting notes → memory: decision:/risk:/delivery:/contact: lines route, rest → context.md (stdin if no file)
+  fde debrief [file]       meeting notes → memory: decision:/risk:/delivery:/contact: lines route, rest → context.md (stdin if no file; --dry-run previews)
   fde receipts <term>      "what did we agree?" with dates
   fde capture              session-end memory snapshot (hooks use this)
   fde status               portfolio across all engagements

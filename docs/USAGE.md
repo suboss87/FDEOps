@@ -48,10 +48,13 @@ The highest-frequency moment in client work: you walk out of a meeting with raw 
 **Directly (zero tokens):** write the prefixes yourself and run:
 
 ```bash
-fde debrief meeting-notes.md      # or pipe on stdin: pbpaste | fde debrief
+fde debrief meeting-notes.md            # or pipe on stdin: pbpaste | fde debrief
+fde debrief meeting-notes.md --dry-run  # preview the routing, write nothing
 ```
 
-Routing is deterministic: `decision:` lines → `decisions.md`, `risk:` → `risks.md`, `delivery:` → `delivery.md`, `contact:` → `stakeholders.md` - each dated. Every unprefixed line lands as a dated debrief block in `context.md`, so nothing is lost.
+Routing is deterministic: `decision:` lines → `decisions.md`, `risk:` → `risks.md`, `delivery:` → `delivery.md`, `contact:` → `stakeholders.md` - each dated. Markdown dressing is tolerated (`- decision:`, `* contact:`, `**Risk:**` all route). Every unprefixed line lands as a dated debrief block in `context.md`, so nothing is lost. Use `--dry-run` the first few times to watch where lines go before trusting it.
+
+Not sure which client a workspace writes to? `fde resume --bind` shows the binding and what actually resolves. Re-running `fde resume --init <other-client>` in a workspace **replaces** its binding (and says so) - a workspace writes to exactly one client, never two.
 
 ---
 
