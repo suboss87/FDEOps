@@ -729,6 +729,58 @@ function inlineMd(s) {
     .replace(/`([^`]+)`/g, '<code>$1</code>')
 }
 
+// Generic markdown -> HTML for the three .fde files that are reference
+// documents, not logs (success.md, terrain.md, trust-profile.md): they don't
+// fit the structured stakeholder/risk/log widgets, but they're real content
+// (trust-profile.md especially - sacred data and AI policy) and must stay
+// visible in the fieldbook, not silently dropped. Headings, tables, bullet
+// lists, and paragraphs only - matches what these files actually contain.
+function mdBlockHtml(md) {
+  const lines = md.split('\n')
+  const out = []; let i = 0
+  while (i < lines.length) {
+    const t = lines[i].trim()
+    if (!t) { i++; continue }
+    if (/^\|.*\|/.test(t)) {
+      const tbl = []
+      while (i < lines.length && /^\s*\|.*\|/.test(lines[i])) { tbl.push(lines[i]); i++ }
+      const parsed = parseMdTable(tbl.join('\n'))
+      if (parsed) {
+        out.push('<table class="fb-table"><thead><tr>' + parsed.headers.map(h => '<th>' + inlineMd(h) + '</th>').join('') + '</tr></thead><tbody>' +
+          parsed.rows.map(r => '<tr>' + r.map(c => '<td>' + inlineMd(c) + '</td>').join('') + '</tr>').join('') + '</tbody></table>')
+      }
+      continue
+    }
+    const h = t.match(/^(#{1,6})\s+(.*)$/)
+    if (h) { out.push('<div class="fb-sec">' + inlineMd(h[2]) + '</div>'); i++; continue }
+    if (/^[-*]\s+/.test(t)) {
+      const items = []
+      while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) { items.push('<li>' + inlineMd(lines[i].trim().replace(/^[-*]\s+/, '')) + '</li>'); i++ }
+      out.push('<ul class="fb-plain-list">' + items.join('') + '</ul>'); continue
+    }
+    const para = []
+    while (i < lines.length && lines[i].trim() && !/^\s*\|.*\|/.test(lines[i]) && !/^#{1,6}\s/.test(lines[i].trim()) && !/^[-*]\s+/.test(lines[i].trim())) {
+      para.push(lines[i].trim()); i++
+    }
+    out.push('<p class="fb-plain-p">' + inlineMd(para.join(' ')) + '</p>')
+  }
+  return out.join('\n')
+}
+
+// True if a file has real content beyond headings, empty table cells, and
+// blank bullets - same heuristic the old dashboard used to skip empty files.
+function hasRealContent(md) {
+  const txt = md
+    .replace(/^#{1,6}\s.*$/gm, '')
+    .replace(/^\s*\|[\s:|-]+\|\s*$/gm, '')
+    .replace(/^\s*\|[\s|]*\|\s*$/gm, '')
+    .replace(/\*\*[^*]+:\*\*\s*$/gm, '')
+    .replace(/[-*]\s*$/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return txt.length > 0
+}
+
 function gatherEngagements() {
   const list = []
   if (!fs.existsSync(ENGAGEMENTS_ROOT)) return list
@@ -856,6 +908,20 @@ strong{font-weight:600}
 .fb-log-date{font-family:'Geist Mono',monospace;font-size:11.5px;color:var(--ink-faint);flex:0 0 48px}
 .fb-log-kind{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.03em;text-transform:uppercase;flex:0 0 62px}
 .fb-log-text{flex:1 1 auto;font-size:14px;line-height:1.5;color:var(--ink)}
+.fb-more{border-top:1px solid var(--line);padding:12px 0}
+.fb-more:first-child{border-top:none;padding-top:0}
+.fb-more-sum{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px}
+.fb-more-sum::-webkit-details-marker{display:none}
+.fb-more-sum::before{content:'\\2023';color:var(--ink-faint);transition:transform .12s}
+.fb-more[open] .fb-more-sum::before{transform:rotate(90deg)}
+.fb-more-body{margin-top:10px}
+.fb-plain-p{font-size:14px;line-height:1.55;color:var(--ink-soft);margin:0 0 10px}
+.fb-plain-list{margin:0 0 10px;padding-left:18px}
+.fb-plain-list li{font-size:14px;line-height:1.55;color:var(--ink-soft);margin:2px 0}
+.fb-table{border-collapse:collapse;width:100%;margin:0 0 12px;font-size:13px}
+.fb-table th,.fb-table td{padding:6px 9px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.fb-table th{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint)}
+.fb-table tr:last-child td{border-bottom:none}
 .fb-queue-row,.fb-flag-row{cursor:pointer}
 .fb-queue-row:nth-child(even),.fb-flag-row:nth-child(even){background:var(--panel)}
 .fb-queue-slug{font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink-faint);flex:0 0 130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1153,6 +1219,12 @@ ${e.log.map(g => `<div class="fb-row fb-log">
 </div>
 </div>` : ''
 
+  // reference docs (success/terrain/trust-profile) - collapsed by default,
+  // never hidden entirely: trust-profile.md carries the data boundary
+  const moreBlock = e.moreSections.length ? `<div class="fb-block">
+${e.moreSections.map(s => `<details class="fb-more"><summary class="fb-sec fb-more-sum">${escapeHtml(s.title)}</summary><div class="fb-more-body">${s.html}</div></details>`).join('\n')}
+</div>` : ''
+
   return `<div id="view-eng-${e.slug}" class="fb-view" hidden>
 <div class="fb-eyebrow">.fde/${escapeHtml(e.slug)}</div>
 <div class="fb-title-row">
@@ -1160,7 +1232,7 @@ ${e.log.map(g => `<div class="fb-row fb-log">
 <span class="fb-trust"><span class="dot dot-lg ${dotClass}"></span><span class="t-${dotClass}">${trustWord(e.signals.trust)}</span></span>
 </div>
 <div class="fb-meta-line">${sectorLine}</div>
-${nowBlock}${whyBlock}${statsBlock}${peopleBlock}${riskBlock}${logBlock}
+${nowBlock}${whyBlock}${statsBlock}${peopleBlock}${riskBlock}${logBlock}${moreBlock}
 </div>`
 }
 
@@ -1207,10 +1279,20 @@ function cmdDashboard(args) {
     e.highRisks = e.risks.filter(r => r.severity === 'high').length
     e.quiet = e.signals.ageDays !== Infinity && e.signals.ageDays >= 3
     e.slug = slugify(e.name)
+    // reference documents, not logs - shown collapsed in a "More" block so
+    // trust-profile.md (sacred data, AI policy) stays visible, never dropped
+    e.moreSections = [
+      ['success.md', 'Success & scope'],
+      ['terrain.md', 'Terrain'],
+      ['trust-profile.md', 'Trust profile'],
+    ].map(([f, title]) => [title, readClean(e.dir, f)])
+      .filter(([, md]) => hasRealContent(md))
+      .map(([title, md]) => ({ title, html: mdBlockHtml(md) }))
     e.searchBlob = escapeHtml([
       e.name, e.next, e.lastSession, e.reality, e.brief,
       ...e.log.map(g => g.text), ...e.risks.map(r => r.text),
       ...e.stakeholders.map(p => `${p.name} ${p.role} ${p.note}`),
+      ...e.moreSections.map(s => s.title),
     ].join(' ').toLowerCase())
   })
 
