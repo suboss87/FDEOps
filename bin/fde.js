@@ -300,10 +300,17 @@ function extractStakeholders(eng) {
     const words = name.replace(/\([^)]*\)/g, '').split(/\s+/).filter(w => w && !/^(dr|mr|mrs|ms)\.?$/i.test(w))
     const frag = (words[0] || '').replace(/[^a-z0-9]/gi, '')
 
+    // Match the SUBJECT of the entry, not anyone it mentions in passing -
+    // "Renata declined... told Sam..." is Renata's signal, not Sam's, even
+    // though "Sam" appears in the text. Every real signal-history line in
+    // this codebase's own examples is written subject-first ("Denise skipped
+    // Thursday demo", "Randy opened the sheet..."), so requiring the name at
+    // the START of the entry (not .includes() anywhere in it) is the fix,
+    // not a stricter rule invented for its own sake.
     let signal = null, matchedDate = null
     if (frag.length >= 3) {
       for (const h of history) {
-        if (h.text.toLowerCase().includes(frag.toLowerCase()) && (!matchedDate || h.date >= matchedDate)) {
+        if (h.text.trim().toLowerCase().startsWith(frag.toLowerCase()) && (!matchedDate || h.date >= matchedDate)) {
           signal = h.signal; matchedDate = h.date
         }
       }
@@ -878,8 +885,8 @@ strong{font-weight:600}
 .fb-main-inner{max-width:1440px;margin:0 auto;padding:28px 48px 64px}
 .fb-grid-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px 40px;margin-top:22px}
 .fb-grid-wrap .fb-block{margin-top:0}
-.fb-top-grid{display:grid;grid-template-columns:1fr 260px;gap:0 32px;align-items:start}
-.fb-vitals{margin-top:22px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.fb-top-grid{display:grid;grid-template-columns:1fr 280px;gap:0 32px;align-items:stretch}
+.fb-vitals{display:flex;flex-direction:column;margin-top:22px;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
 .fb-vital-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:12.5px}
 .fb-vital-row+.fb-vital-row{border-top:1px solid var(--line)}
 .fb-vital-label{font-family:'Geist Mono',monospace;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint)}
@@ -1190,20 +1197,32 @@ ${e.lastSession ? `<div class="fb-now-session">${inlineMd(e.lastSession)}</div>`
 </div>` : ''
 
   // Vitals: a fixed field-facing gut-check panel, not a Movement block that
-  // only exists when text mining finds numbers. Phase/trust/days/touched/high
-  // risk are ALWAYS known (computed elsewhere, never fabricated) - an FDE
-  // walking into a room needs these in one glance before they need prose.
-  // Sits beside Now/Why so that column's natural reading width doesn't leave
-  // the top of the page empty on a wide screen.
+  // only exists when text mining finds numbers. Every row here is already
+  // computed elsewhere in this file for other purposes (status/dashboard
+  // triage, receipts, signals) - never a new fabricated field, just the
+  // existing facts surfaced where an FDE's eye lands first. Sits beside
+  // Now/Why so that column's natural reading width doesn't leave the top of
+  // the page empty on a wide screen, and carries enough real rows to earn
+  // roughly the same height instead of floating short beside a tall column.
+  const signalColor = p => p === 'green' ? '#12885c' : p === 'red' ? '#b23e2b' : '#a56a19'
+  const peopleBreakdown = e.stakeholders.length
+    ? ['green', 'amber', 'red'].map(sig => e.stakeholders.filter(p => p.signal === sig).length)
+      .map((n, i) => n ? `<span style="color:${signalColor(['green', 'amber', 'red'][i])}">${n}</span>` : null)
+      .filter(Boolean).join(' &middot; ')
+    : ''
   const vitalsRows = [
     ['trust', trustWord(e.signals.trust), dotClass],
+    e.signals.signalAge != null ? ['signal age', `${e.signals.signalAge}d${e.signals.stale ? ' - stale' : ''}`, e.signals.stale ? 'red' : ''] : null,
     ['phase', e.phaseLabel, ''],
     e.days != null ? ['day', String(e.days), ''] : null,
     ['touched', e.signals.updated, e.quiet ? 'amber' : ''],
-    e.highRisks ? ['high risk', `${e.highRisks} open`, 'red'] : null,
+    e.log.length ? ['last logged', formatLogDate(e.log[0].date), ''] : null,
+    e.risks.length ? ['risks', `${e.risks.length} open${e.highRisks ? ` (${e.highRisks} high)` : ''}`, e.highRisks ? 'red' : ''] : null,
+    e.stakeholders.length ? ['people', `${e.stakeholders.length}`, ''] : null,
   ].filter(Boolean)
   const vitalsBlock = `<div class="fb-vitals">
 ${vitalsRows.map(([label, val, tone]) => `<div class="fb-vital-row"><span class="fb-vital-label">${escapeHtml(label)}</span><span class="fb-vital-val${tone ? ' t-' + tone : ''}">${escapeHtml(val)}</span></div>`).join('\n')}
+${peopleBreakdown ? `<div class="fb-vital-row"><span class="fb-vital-label">signals</span><span class="fb-vital-val">${peopleBreakdown}</span></div>` : ''}
 ${e.stats.length ? `<div class="fb-vital-div"></div>${e.stats.map(s => `<div class="fb-vital-row"><span class="fb-vital-label">${inlineMd(s.label)}</span><span class="fb-vital-val">${inlineMd(s.from)} <span class="fb-arrow">&rarr;</span> <span class="fb-stat-to">${inlineMd(s.to)}</span></span></div>`).join('\n')}` : ''}
 </div>`
 
