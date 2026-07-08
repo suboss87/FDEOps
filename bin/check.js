@@ -182,8 +182,8 @@ else ok('SECURITY.md')
 
 const exampleFiles = ['reality.md', 'decisions.md', 'delivery.md', 'stakeholders.md']
 for (const f of exampleFiles) {
-  const p = path.join(root, 'examples', 'acme-payments', '.fde', f)
-  if (!fs.existsSync(p)) fail(`examples/acme-payments/.fde/${f} missing`)
+  const p = path.join(root, 'examples', 'garvey-payments', '.fde', f)
+  if (!fs.existsSync(p)) fail(`examples/garvey-payments/.fde/${f} missing`)
 }
 ok('examples walkthrough files')
 
