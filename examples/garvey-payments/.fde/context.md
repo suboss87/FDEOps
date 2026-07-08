@@ -1,7 +1,7 @@
 # Engagement context (example)
 
-**Engagement:** acme-payments  
-**Customer:** Acme Corp (fictional)  
+**Engagement:** garvey-payments  
+**Customer:** Garvey Payment Systems (fictional)  
 **Phase:** build  
 **Last updated:** 2026-05-30
 
@@ -15,4 +15,4 @@ Tell `@fde` "ready to deploy" after security sign-off - it walks you through the
 
 ## Notes for the next session
 
-Memory path: `~/fde-engagements/acme-payments/.fde/` (not in shared git).
+Memory path: `~/fde-engagements/garvey-payments/.fde/` (not in shared git).

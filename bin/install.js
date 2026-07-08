@@ -199,7 +199,7 @@ function cmdInstall() {
   console.log('    node bin/install.js init <engagement-name>')
   console.log('')
   console.log('  Example:')
-  console.log('    node bin/install.js init acme-payments')
+  console.log('    node bin/install.js init garvey-payments')
   console.log('  (npm 3.0.0+: npx fdeops@latest init <engagement-name>)')
   console.log('')
   console.log('  Use another AI tool (Cursor, Codex, Gemini CLI, Copilot)? Wire it up:')

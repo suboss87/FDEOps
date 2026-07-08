@@ -63,7 +63,7 @@ After loading `context.md` via `fde resume`, run a quick integrity scan and open
 
 **Always open with a 2-3 line state summary:**
 
-> "Last session you shipped the payment retry slice. Plan is 3/5 tasks done. Diana saw the demo Tuesday - signal is green. One thing worth noting: [finding, or 'nothing flagged - where do you want to pick up?']"
+> "Last session you shipped the payment retry slice. Plan is 3/5 tasks done. Denise saw the demo Tuesday - signal is green. One thing worth noting: [finding, or 'nothing flagged - where do you want to pick up?']"
 
 **What to scan (in order, surface only what matters):**
 
@@ -147,7 +147,7 @@ After updating `.fde/` artifacts, suggest the ONE next move that accelerates the
 
 **The format:** One line, directed, based on engagement state. Not a menu.
 
-> "Updated. Terrain is mapped - ready to plan the slices, or does Diana need to see this first?"
+> "Updated. Terrain is mapped - ready to plan the slices, or does Denise need to see this first?"
 
 > "Shipped and logged. Task 4 touches the billing module where that open risk sits. Worth addressing that before starting?"
 

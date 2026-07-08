@@ -15,7 +15,7 @@ Day-to-day reference below.
 1. Run `npx fdeops scan` in a repo - recon + the "ASK ON DAY 1" questions, zero config
 2. Read **Who this is for** and **Without fdeops vs with fdeops** in the README
 3. Bind a workspace: `fde resume --init <client-name>` (the one setup step)
-4. Skim [examples/acme-payments/](../examples/acme-payments/) Day 1 → Day 10
+4. Skim [examples/garvey-payments/](../examples/garvey-payments/) Day 1 → Day 10
 5. In your **AI chat** (not email to a person): `@fde` + your actual situation
 
 You do not read the phase methods. **`@fde` routes the AI and loads the right one.**
@@ -63,7 +63,7 @@ Not sure which client a workspace writes to? `fde resume --bind` shows the bindi
 Log stakeholder temperature as structured tokens, not vibes:
 
 ```bash
-fde log contact "Diana gone quiet since the demo" --signal amber
+fde log contact "Denise gone quiet since the demo" --signal amber
 ```
 
 That writes a `[signal:amber]` token into `stakeholders.md`. The **latest dated token per engagement drives the trust column** in `fde status` and `fde dashboard`; a signal older than 21 days shows as **stale** - a prompt to check in, not a verdict. If no tokens exist, status falls back to the older keyword heuristic.

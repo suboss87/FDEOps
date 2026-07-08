@@ -41,15 +41,15 @@ fdeops adds the missing layer: memory scoped to the **client** - plain markdown 
 **2. Bind your client workspace** - run once, inside the workspace:
 
 ```bash
-fde resume --init acme
+fde resume --init garvey
 ```
 
-fdeops' `--init` creates the engagement memory at `~/fde-engagements/acme/.fde/` (plain markdown, private to your machine) and binds this workspace to it. The hooks read that binding - context auto-loads at session start, auto-captures at session end. That is the whole setup.
+fdeops' `--init` creates the engagement memory at `~/fde-engagements/garvey/.fde/` (plain markdown, private to your machine) and binds this workspace to it. The hooks read that binding - context auto-loads at session start, auto-captures at session end. That is the whole setup.
 
 **3. Work**
 
 ```text
-@fde I just got the brief. New client, payments platform, 3-week timeline.
+@fde I just got the brief. New client, payments platform, they want it live before their Q3 audit.
 ```
 
 `@fde` is the one skill fdeops installs. Describe what's happening; it routes to the right field method and the memory writes itself. Full workflow: [docs/USAGE.md](docs/USAGE.md).
@@ -120,8 +120,8 @@ fde scan                          # day-1 recon + ASK ON DAY 1 questions (works 
 fde resume                        # load this workspace's engagement
 fde resume --init <client>        # THE setup step: create + bind an engagement
 fde debrief notes.md              # route meeting notes into memory (also reads stdin)
-fde log decision "descope agreed with Dana"
-fde log contact "Diana gone quiet" --signal amber
+fde log decision "descope agreed with Kowalczyk"
+fde log contact "Denise gone quiet" --signal amber
 fde receipts <term>               # dated search; no hit = a gap in the record, not proof of absence
 fde status                        # portfolio triage across all clients (red > amber > green)
 fde dashboard                     # render every engagement into one offline HTML fieldbook
