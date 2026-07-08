@@ -1,4 +1,4 @@
-# fdeops
+# FDEOps
 
 **Your AI agent forgets your client every morning. fdeops remembers.**
 
