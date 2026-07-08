@@ -2,7 +2,7 @@
 
 v3 ships **one skill**: `@fde` ([skills/fde/SKILL.md](../skills/fde/SKILL.md)). You describe the situation; it routes to a phase and follows that phase's method from [skills/fde/references/](../skills/fde/references/). Engagement memory lives in `~/fde-engagements/<name>/.fde/` (one folder per customer).
 
-Each reference is a **method, not advice**: the thinking the agent does, the artifact it drafts, and the checkpoint with the human FDE.
+Each reference is a **method, not advice**: the thinking the agent does, the artifact it drafts, and the checkpoint with the human FDE. The **Use when** column below is what the router actually matches on - the phrases in `skills/fde/SKILL.md` that send you to that skill, not a paraphrase.
 
 ---
 
@@ -11,75 +11,75 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 ### 1. Embed & Trust
 *First days. Getting access, building credibility, understanding scope.*
 
-| Skill | What it does |
-|-------|-------------|
-| [land](../skills/fde/references/land.md) | First 48 hours: interrogate the brief, map stakeholders, define success before code |
-| [audit](../skills/fde/references/audit.md) | Taking over mid-project: verify claims, find the load-bearing wall |
-| [stakeholder-radar](../skills/fde/references/stakeholder-radar.md) | Map who decides, who blocks, who's about to escalate |
-| [trust-engineering](../skills/fde/references/trust-engineering.md) | The trust ladder from observer to trusted; navigate AI policy |
-| [scope-defense](../skills/fde/references/scope-defense.md) | "Let me place it": scope receipts, the accumulation conversation |
+| Skill | What it does | Use when |
+|-------|-------------|----------|
+| [land](../skills/fde/references/land.md) | First 48 hours: interrogate the brief, map stakeholders, define success before code | Starting fresh, new customer, first meeting, just got the brief |
+| [audit](../skills/fde/references/audit.md) | Taking over mid-project: verify claims, find the load-bearing wall | Taking over, previous consultant left, joining mid-project |
+| [stakeholder-radar](../skills/fde/references/stakeholder-radar.md) | Map who decides, who blocks, who's about to escalate | Need to understand who matters, who decides, who blocks quietly |
+| [trust-engineering](../skills/fde/references/trust-engineering.md) | The trust ladder from observer to trusted; navigate AI policy | Need to earn access, navigate AI policy, build credibility |
+| [scope-defense](../skills/fde/references/scope-defense.md) | "Let me place it": scope receipts, the accumulation conversation | "Also can you...", scope expanding, timeline unchanged |
 
 ### 2. Discover & Diagnose
 *Finding the real problem. Testing what the brief claims.*
 
-| Skill | What it does |
-|-------|-------------|
-| [discover](../skills/fde/references/discover.md) | Scan repo + hunt the workaround + **workshop facilitation** + **data estate assessment** |
-| [assumption-audit](../skills/fde/references/assumption-audit.md) | Extract untested assumptions, classify by blast radius, kill the riskiest first |
-| [use-case-scoring](../skills/fde/references/use-case-scoring.md) | Score on value x urgency x alignment x data readiness / complexity |
-| [sketch](../skills/fde/references/sketch.md) | Prototype the killer assumption in one day; kill fast, log the learning |
+| Skill | What it does | Use when |
+|-------|-------------|----------|
+| [discover](../skills/fde/references/discover.md) | Scan repo + hunt the workaround + **workshop facilitation** + **data estate assessment** | Don't know the real problem, brief feels wrong, shadow processes |
+| [assumption-audit](../skills/fde/references/assumption-audit.md) | Extract untested assumptions, classify by blast radius, kill the riskiest first | The brief feels too neat, assumptions untested, "we just need..." |
+| [use-case-scoring](../skills/fde/references/use-case-scoring.md) | Score on value x urgency x alignment x data readiness / complexity | Multiple use cases competing, "we want to do everything" |
+| [sketch](../skills/fde/references/sketch.md) | Prototype the killer assumption in one day; kill fast, log the learning | Need to validate a direction, prototype, demo to de-risk |
 
 ### 3. Plan & Align
 *Sequencing work and getting sponsor alignment.*
 
-| Skill | What it does |
-|-------|-------------|
-| [plan](../skills/fde/references/plan.md) | Work backwards from success + **estimation** (3-point sizing) + **migration strategy** |
-| [business-case](../skills/fde/references/business-case.md) | Cost of doing nothing -> investment -> return -> sensitivity check |
-| [options-analysis](../skills/fde/references/options-analysis.md) | Three genuine options (conservative / pragmatic / ambitious) |
-| [initiative-triage](../skills/fde/references/initiative-triage.md) | 20 things are "urgent"; pick 3 for Now, make trade-offs visible |
+| Skill | What it does | Use when |
+|-------|-------------|----------|
+| [plan](../skills/fde/references/plan.md) | Work backwards from success + **estimation** (3-point sizing) + **migration strategy** | Break this down, what order, sequence the build |
+| [business-case](../skills/fde/references/business-case.md) | Cost of doing nothing -> investment -> return -> sensitivity check | Sponsor needs justification, need to defend budget or timeline |
+| [options-analysis](../skills/fde/references/options-analysis.md) | Three genuine options (conservative / pragmatic / ambitious) | Significant decision, multiple approaches, "what should we do?" |
+| [initiative-triage](../skills/fde/references/initiative-triage.md) | 20 things are "urgent"; pick 3 for Now, make trade-offs visible | 20 things are "urgent," need to pick the 3 that matter |
 
 ### 4. Build & Guard
 *Safe implementation on someone else's codebase.*
 
-| Skill | What it does |
-|-------|-------------|
-| [build](../skills/fde/references/build.md) | Blast radius + legacy safety + **integration design** + **team amplification** |
-| [incremental-build](../skills/fde/references/incremental-build.md) | Vertical slices, 100-300 lines each, visible progress every 2-3 days |
-| [test-on-legacy](../skills/fde/references/test-on-legacy.md) | Characterise first, Strangler Fig, spot lying tests |
-| [blast-radius](../skills/fde/references/blast-radius.md) | Trace dependencies, classify impact (CONTAINED -> IRREVERSIBLE) |
-| [debug](../skills/fde/references/debug.md) | Systematic: reproduce -> isolate -> one hypothesis -> verify |
-| [rescue](../skills/fde/references/rescue.md) | Production fire, trust fire, wrong-brief-mid-build, **or full pivot** |
-| [security-audit](../skills/fde/references/security-audit.md) | Threat model in 5 minutes, STRIDE pass, secrets scan |
-| [observability](../skills/fde/references/observability.md) | Define "working" before instrumenting; the four metrics |
+| Skill | What it does | Use when |
+|-------|-------------|----------|
+| [build](../skills/fde/references/build.md) | Blast radius + legacy safety + **integration design** + **team amplification** | Ready to build, implementing, legacy change, ship a feature end to end |
+| [incremental-build](../skills/fde/references/incremental-build.md) | Vertical slices, 100-300 lines each, visible progress every 2-3 days | Large feature, need visible progress every 2-3 days |
+| [test-on-legacy](../skills/fde/references/test-on-legacy.md) | Characterise first, Strangler Fig, spot lying tests | No tests, legacy code, need to make changes safely |
+| [blast-radius](../skills/fde/references/blast-radius.md) | Trace dependencies, classify impact (CONTAINED -> IRREVERSIBLE) | What could go wrong, touching shared infrastructure, need to assess impact |
+| [debug](../skills/fde/references/debug.md) | Systematic: reproduce -> isolate -> one hypothesis -> verify | Something's broken, can't reproduce, shouldn't be happening |
+| [rescue](../skills/fde/references/rescue.md) | Production fire, trust fire, wrong-brief-mid-build, **or full pivot** | Production down, urgent - or stakeholder gone quiet, trust slipping |
+| [security-audit](../skills/fde/references/security-audit.md) | Threat model in 5 minutes, STRIDE pass, secrets scan | Security check, auth/payments/user data, compliance question |
+| [observability](../skills/fde/references/observability.md) | Define "working" before instrumenting; the four metrics | Need monitoring, can't tell when things break, shipping to prod |
 
 ### 5. Ship & Verify
 *Getting to production without surprises.*
 
-| Skill | What it does |
-|-------|-------------|
-| [ship](../skills/fde/references/ship.md) | Pre-flight + canary + rollback + **scale-readiness gate** + **progressive adoption** |
-| [review](../skills/fde/references/review.md) | Scope first (did we build what was agreed), then safety |
-| [rollback-drill](../skills/fde/references/rollback-drill.md) | Test the escape route on staging before you need it at 2am |
-| [qa-live](../skills/fde/references/qa-live.md) | Test from the user's chair, real browser, five perspectives |
+| Skill | What it does | Use when |
+|-------|-------------|----------|
+| [ship](../skills/fde/references/ship.md) | Pre-flight + canary + rollback + **scale-readiness gate** + **progressive adoption** | Ready to deploy, going live, pre-flight check |
+| [review](../skills/fde/references/review.md) | Scope first (did we build what was agreed), then safety | Review this change, is it safe, does it match what we agreed |
+| [rollback-drill](../skills/fde/references/rollback-drill.md) | Test the escape route on staging before you need it at 2am | "We can always revert" - need to actually test the escape route |
+| [qa-live](../skills/fde/references/qa-live.md) | Test from the user's chair, real browser, five perspectives | Need to test from user perspective, "works on my machine" |
 
 ### 6. Operate & Close
 *Running the engagement and ending it well.*
 
-| Skill | What it does |
-|-------|-------------|
-| [status](../skills/fde/references/status.md) | Sponsor update from the week's actual record |
-| [demo-prep](../skills/fde/references/demo-prep.md) | The one number, live-vs-canned, five hard questions |
-| [debrief](../skills/fde/references/debrief.md) | Walk out of any meeting -> decisions, signals, actions in memory |
-| [exec-narrative](../skills/fde/references/exec-narrative.md) | Pyramid: governing thought, three supports, SCQA frame |
-| [dashboard](../skills/fde/references/dashboard.md) | Portfolio view across all customers, trust-ordered |
-| [multi-customer-ops](../skills/fde/references/multi-customer-ops.md) | Daily triage, context-switch, cross-contamination prevention |
-| [close](../skills/fde/references/close.md) | Retrospective, the 2am handoff document, what we learned |
-| [handoff-engineering](../skills/fde/references/handoff-engineering.md) | Operations runbook, knowledge transfer, confidence scoring |
-| [pattern-extract](../skills/fde/references/pattern-extract.md) | If you did it twice, encode it; patterns are compound interest |
-| [red-team](../skills/fde/references/red-team.md) | Stress-test a plan, handoff, or narrative before someone else does |
+| Skill | What it does | Use when |
+|-------|-------------|----------|
+| [status](../skills/fde/references/status.md) | Sponsor update from the week's actual record | Weekly update due, "need to send the sponsor something" |
+| [demo-prep](../skills/fde/references/demo-prep.md) | The one number, live-vs-canned, five hard questions | Demo coming up, show-and-tell, exec walkthrough |
+| [debrief](../skills/fde/references/debrief.md) | Walk out of any meeting -> decisions, signals, actions in memory | Just out of a meeting, raw notes, "they said...", "debrief" |
+| [exec-narrative](../skills/fde/references/exec-narrative.md) | Pyramid: governing thought, three supports, SCQA frame | Sponsor's boss needs a summary, board update, justify continued investment |
+| [dashboard](../skills/fde/references/dashboard.md) | Portfolio view across all customers, trust-ordered | Status across all my customers |
+| [multi-customer-ops](../skills/fde/references/multi-customer-ops.md) | Daily triage, context-switch, cross-contamination prevention | Juggling 2+ customers, losing track, context-switching |
+| [close](../skills/fde/references/close.md) | Retrospective, the 2am handoff document, what we learned | Wrapping up, handoff, making yourself replaceable |
+| [handoff-engineering](../skills/fde/references/handoff-engineering.md) | Operations runbook, knowledge transfer, confidence scoring | Engagement ending, team needs to operate without you |
+| [pattern-extract](../skills/fde/references/pattern-extract.md) | If you did it twice, encode it; patterns are compound interest | Something worked well and will apply to future engagements |
+| [red-team](../skills/fde/references/red-team.md) | Stress-test a plan, handoff, or narrative before someone else does | "Red-team this," "stress-test my plan," poke holes, what am I missing |
 
-### Overlays (activate on signal)
+### Overlays (activate on signal, alongside whatever skill is running)
 
 | Overlay | Triggers on | What it adds |
 |---------|------------|-------------|
@@ -92,6 +92,8 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 ---
 
 ## Engagement phases (quick reference)
+
+The 10 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 35.
 
 | Phase | Enter when | Method highlights | Writes |
 |-------|-----------|-------------------|--------|
@@ -110,7 +112,7 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 
 ## The `fde` CLI (deterministic core - works without AI)
 
-`scan` recon + "ASK ON DAY 1" questions (zero-config via `npx fdeops scan`) · `resume [--full] [--init <name>]` memory (bounded by default - current state + recent activity; `--full` for the complete log) + the one canonical setup step (`--init` creates AND binds the workspace) · `debrief <file>` (or stdin) route `decision:`/`risk:`/`delivery:`/`contact:` prefixed lines to their `.fde` files with dates, everything else to a dated block in `context.md` · `log <type> <text> [--signal green|amber|red]` structured appends; `--signal` writes the `[signal:…]` token that drives trust in status/dashboard (stale after 21 days) · `receipts <term>` agreements with dates · `capture` session snapshot · `status` portfolio triage · `dashboard [--open] [--out <path>]` render every engagement into one offline `fieldbook.html`. The skill calls these for mechanics; the AI does interpretation and judgment. Every command above runs locally - no AI needed.
+`scan` recon + "ASK ON DAY 1" questions (zero-config via `npx fdeops scan`) · `resume [--full] [--init <name>]` memory (bounded by default - current state + recent activity; `--full` for the complete log) + the one canonical setup step (`--init` creates AND binds the workspace) · `debrief <file>` (or stdin) route `decision:`/`risk:`/`delivery:`/`contact:` prefixed lines to their `.fde` files with dates, everything else to a dated block in `context.md` · `log <type> <text> [--signal green|amber|red]` structured appends; `--signal` writes the `[signal:...]` token that drives trust in status/dashboard (stale after 21 days) · `receipts <term>` agreements with dates · `capture` session snapshot · `status` portfolio triage · `dashboard [--open] [--out <path>]` render every engagement into one offline `fieldbook.html`. The skill calls these for mechanics; the AI does interpretation and judgment. Every command above runs locally - no AI needed.
 
 ---
 
