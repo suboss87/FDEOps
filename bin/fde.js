@@ -908,6 +908,7 @@ strong{font-weight:600}
 .fb-now-action{font-size:16.5px;font-weight:600;line-height:1.5;color:var(--ink)}
 .fb-now-session{margin-top:10px;font-size:14.5px;line-height:1.6;color:var(--ink-soft)}
 .fb-why{margin:0;font-size:14.5px;line-height:1.6;color:var(--ink)}
+.fb-why-reality{margin-top:8px}
 .fb-accent-label{color:var(--accent);font-weight:600}
 .fb-stats{display:flex;gap:22px;flex-wrap:wrap;font-family:'Geist Mono',monospace;font-size:13.5px}
 .fb-stat{display:inline-flex;align-items:baseline;gap:6px;padding:2px 0}
@@ -1191,9 +1192,14 @@ function clientViewHtml(e) {
 ${e.lastSession ? `<div class="fb-now-session">${inlineMd(e.lastSession)}</div>` : ''}
 </div>`
 
+  // Brief vs reality is the whole point of "discover" - what they said they
+  // needed vs what's actually true. Squeezed onto one truncated line, that
+  // contrast disappears. Each gets its own line, its own room to finish a
+  // thought, not a race to fit before an ellipsis.
   const whyBlock = (e.brief || e.reality) ? `<div class="fb-block">
 <div class="fb-sec">Why</div>
-<p class="fb-why">${e.brief ? `<span class="t-faint">Brief:</span> ${inlineMd(e.brief)}` : ''}${e.brief && e.reality ? '&nbsp;&nbsp;' : ''}${e.reality ? `<span class="fb-accent-label">Reality:</span> ${inlineMd(e.reality)}` : ''}</p>
+${e.brief ? `<p class="fb-why"><span class="t-faint">What they asked for:</span> ${inlineMd(e.brief)}</p>` : ''}
+${e.reality ? `<p class="fb-why fb-why-reality"><span class="fb-accent-label">What's actually true:</span> ${inlineMd(e.reality)}</p>` : ''}
 </div>` : ''
 
   // Vitals: a fixed field-facing gut-check panel, not a Movement block that
@@ -1324,8 +1330,11 @@ function cmdDashboard(args) {
     e.next = (sectionBody(ctx, 'Next action').split('\n').find(l => l.trim()) || '').trim()
     e.hasNext = !!e.next
     e.lastSession = firstLine(sectionBody(ctx, 'Current state'), 240)
-    e.brief = firstLine(readClean(e.dir, 'brief.md'), 140)
-    e.reality = firstLine(readClean(e.dir, 'reality.md'), 140)
+    // 220, not 140 - now that brief/reality each get their own full-width
+    // line instead of sharing one, a shorter cap just meant more sentences
+    // cut off mid-thought for no reason.
+    e.brief = firstLine(readClean(e.dir, 'brief.md'), 220)
+    e.reality = firstLine(readClean(e.dir, 'reality.md'), 220)
     e.overlay = detectOverlay(e.dir)
     e.days = daysElapsed(e.dir)
     e.phaseLabel = phaseLabel(e.signals.phase)
