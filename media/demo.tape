@@ -14,11 +14,11 @@ Type "$ claude"
 Enter
 Sleep 800ms
 
-Type "> @fde I'm on site at Meridian. Brief says 'fix the slow shipping-rates API.'"
+Type "> @fde I'm on site at Kesterman. Brief says 'fix the slow shipping-rates API.'"
 Enter
 Sleep 2s
 
-Type "  reading ~/fde-engagements/meridian/.fde/context.md ... new engagement"
+Type "  reading ~/fde-engagements/kesterman/.fde/context.md ... new engagement"
 Enter
 Type "  routing -> discover"
 Enter

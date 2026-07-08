@@ -3,10 +3,10 @@
 ## Plan (land phase)
 
 1. ~~Kickoff + brief interrogation~~ done 2026-06-30
-2. ~~Shadow intake (Rosa), start reality.md~~ done 2026-07-01
-3. Elena 1:1 - review HER 2025 design before proposing anything. Target 2026-07-08.
+2. ~~Shadow intake (Tammy), start reality.md~~ done 2026-07-01
+3. Renata 1:1 - review HER 2025 design before proposing anything. Target 2026-07-08.
 4. Intake timestamp pull (Epic report) - confirm or kill the clarification-loop theory
-5. Agreed success.md signed by Sam + Dr. Osei + Elena by 2026-07-10
+5. Agreed success.md signed by Sam + Dr. Mehta + Renata by 2026-07-10
 
 No build tasks until 3-5 land. Week-2 visible-win candidate: pending-clarification queue alert (count only, no PHI in the alert path).
 
@@ -19,7 +19,7 @@ No build tasks until 3-5 land. Week-2 visible-win candidate: pending-clarificati
 - Rationale: one PHI leak ends the engagement and the reference; no week-2 win is worth that
 - Owner: Sam Whitfield (policy request filed with compliance 2026-06-30)
 
-### [2026-07-02] Pause the architecture track until Elena is in the room
+### [2026-07-02] Pause the architecture track until Renata is in the room
 - Context: two declined sessions; her 2025 deck reportedly reaches the same diagnosis as our week-1 theory
 - Options considered: (a) proceed with Sam's blessing and brief her later, (b) pause and put her design first
 - Decision: (b). No architecture artifacts produced or shared until the 1:1 happens; her design gets reviewed first, in her language.
