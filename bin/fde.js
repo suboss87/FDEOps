@@ -1204,25 +1204,31 @@ ${e.lastSession ? `<div class="fb-now-session">${inlineMd(e.lastSession)}</div>`
   // Now/Why so that column's natural reading width doesn't leave the top of
   // the page empty on a wide screen, and carries enough real rows to earn
   // roughly the same height instead of floating short beside a tall column.
-  const signalColor = p => p === 'green' ? '#12885c' : p === 'red' ? '#b23e2b' : '#a56a19'
-  const peopleBreakdown = e.stakeholders.length
+  // Plain English, not fdeops shorthand - a junior FDE reading this for the
+  // first time gets the same clear meaning as someone who wrote the CLI.
+  // "signal" (the --signal flag's own word) becomes "trust"; a bare day
+  // count becomes "started: 3 days ago" in the same relative-time phrasing
+  // as everything else here, so there's one pattern to learn, not several.
+  const dotGlyph = sig => sig === 'green' ? '&#9679;' : sig === 'red' ? '&#9675;' : '&#9632;' // filled circle / hollow ring / filled square - same shapes as the People list below
+  const signalColor = sig => sig === 'green' ? '#12885c' : sig === 'red' ? '#b23e2b' : '#a56a19'
+  const teamStatus = e.stakeholders.length
     ? ['green', 'amber', 'red'].map(sig => e.stakeholders.filter(p => p.signal === sig).length)
-      .map((n, i) => n ? `<span style="color:${signalColor(['green', 'amber', 'red'][i])}">${n}</span>` : null)
-      .filter(Boolean).join(' &middot; ')
+      .map((n, i) => n ? `<span style="color:${signalColor(['green', 'amber', 'red'][i])}">${dotGlyph(['green', 'amber', 'red'][i])} ${n}</span>` : null)
+      .filter(Boolean).join(' &nbsp; ')
     : ''
   const vitalsRows = [
     ['trust', trustWord(e.signals.trust), dotClass],
-    e.signals.signalAge != null ? ['signal age', `${e.signals.signalAge}d${e.signals.stale ? ' - stale' : ''}`, e.signals.stale ? 'red' : ''] : null,
+    e.signals.signalAge != null ? ['trust confirmed', e.signals.signalAge === 0 ? 'today' : `${e.signals.signalAge} days ago${e.signals.stale ? ' - recheck' : ''}`, e.signals.stale ? 'red' : ''] : null,
     ['phase', e.phaseLabel, ''],
-    e.days != null ? ['day', String(e.days), ''] : null,
-    ['touched', e.signals.updated, e.quiet ? 'amber' : ''],
-    e.log.length ? ['last logged', formatLogDate(e.log[0].date), ''] : null,
-    e.risks.length ? ['risks', `${e.risks.length} open${e.highRisks ? ` (${e.highRisks} high)` : ''}`, e.highRisks ? 'red' : ''] : null,
+    e.days != null ? ['started', e.days === 0 ? 'today' : `${e.days} days ago`, ''] : null,
+    ['last updated', e.signals.updated, e.quiet ? 'amber' : ''],
+    e.log.length ? ['last note', formatLogDate(e.log[0].date), ''] : null,
+    e.risks.length ? ['open risks', `${e.risks.length}${e.highRisks ? ` (${e.highRisks} urgent)` : ''}`, e.highRisks ? 'red' : ''] : null,
     e.stakeholders.length ? ['people', `${e.stakeholders.length}`, ''] : null,
   ].filter(Boolean)
   const vitalsBlock = `<div class="fb-vitals">
 ${vitalsRows.map(([label, val, tone]) => `<div class="fb-vital-row"><span class="fb-vital-label">${escapeHtml(label)}</span><span class="fb-vital-val${tone ? ' t-' + tone : ''}">${escapeHtml(val)}</span></div>`).join('\n')}
-${peopleBreakdown ? `<div class="fb-vital-row"><span class="fb-vital-label">signals</span><span class="fb-vital-val">${peopleBreakdown}</span></div>` : ''}
+${teamStatus ? `<div class="fb-vital-row"><span class="fb-vital-label">team status</span><span class="fb-vital-val">${teamStatus}</span></div>` : ''}
 ${e.stats.length ? `<div class="fb-vital-div"></div>${e.stats.map(s => `<div class="fb-vital-row"><span class="fb-vital-label">${inlineMd(s.label)}</span><span class="fb-vital-val">${inlineMd(s.from)} <span class="fb-arrow">&rarr;</span> <span class="fb-stat-to">${inlineMd(s.to)}</span></span></div>`).join('\n')}` : ''}
 </div>`
 
@@ -1386,7 +1392,7 @@ ${engagements.length ? `<span class="fb-need">${attentionCount}/${engagements.le
 </header>
 <div class="fb-body">
 <aside class="fb-rail">
-<div class="fb-rail-search"><input id="fb-search" class="fb-search" placeholder="grep clients, log, risks…" spellcheck="false"></div>
+<div class="fb-rail-search"><input id="fb-search" class="fb-search" placeholder="search clients, notes, risks…" spellcheck="false"></div>
 <div class="fb-rail-list fb-scroll">
 <button class="fb-nav" data-target="today">
 <div class="fb-nav-row"><span class="fb-nav-today">today</span>${engagements.length ? `<span class="fb-nav-count">${attentionCount} need you</span>` : ''}</div>
