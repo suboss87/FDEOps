@@ -133,7 +133,7 @@ The latest dated `[signal:...]` token per stakeholder drives the trust column in
 
 `fde dashboard (FieldBook)` renders every engagement into one offline HTML fieldbook - engagements sorted by trust, next action and open risks per client, one glance to know where to start:
 
-<p align="center"><img width="1512" height="895" alt="Screenshot 2026-07-08 at 12 43 07" src="https://github.com/user-attachments/assets/56b4944a-7222-4344-8ff0-8cef03531938" /></p>
+<p align="center"><img width="1336" height="624" alt="Screenshot 2026-07-08 at 12 45 07" src="https://github.com/user-attachments/assets/5683614c-7730-4a3a-860d-185053a377eb" /></p>
 
 ---
 
