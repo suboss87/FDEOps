@@ -132,7 +132,7 @@ The latest dated `[signal:...]` token per stakeholder drives the trust column in
 <p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
 
 Fieldbook dashboard showing multiple client engagements sorted by trust signal, with next actions and open risks per client
-<p align="center"><img width="1184" height="833" alt="Screenshot 2026-07-08 at 10 38 26" src="https://github.com/user-attachments/assets/a0e7eeb2-3128-4798-b23d-833aae487a80" /></p>
+<p align="center"><img width="1176" height="686" alt="Screenshot 2026-07-08 at 10 40 17" src="https://github.com/user-attachments/assets/c9bd4b03-457e-4770-974a-0495759b1339" /></p>
 
 
 ---
