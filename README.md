@@ -11,62 +11,30 @@ Built for **Forward Deployed Engineers**. Works for anyone embedded in client wo
 
 ---
 
-## Try it in 30 seconds
+## The problem
 
-No install, no config, no account. From any repo you're allowed to read:
+You're embedded at a client. Every morning you open your AI coding agent and it has no idea what happened yesterday - so you re-paste last week's context, re-explain the stakeholders, re-state the scope change from Tuesday.
 
-```bash
-npx fdeops scan
-```
+Your agent has memory now, but it's scoped to a **repo**. Client work isn't shaped like a repo:
 
-```text
-FDE RECON - acme-payments-api
-local only · git + file reads · no AI, no network - nothing leaves this machine
-============================================================
-STACK  .ts:412 .tsx:96 .yml:14 .json:31   first commit: 2019-03-14   last: 2026-07-03
+- One engagement spans four repos, a dozen stakeholders, and decisions made in meetings your agent never saw
+- Scope shifts get absorbed silently - five "small" additions later, the timeline slips and nobody remembers agreeing to any of them
+- A sponsor will one day ask *"when did we agree to that?"* - and there is no record
+- A stakeholder goes quiet in week 3 - you notice in week 6
 
-HOTSPOTS (churn 90d × test coverage) - handle with care:
-   31 commits/90d  src/billing/invoice.ts  ⚠ NO TEST NEIGHBOR
-   19 commits/90d  src/sync/replay.ts  ⚠ NO TEST NEIGHBOR
+The context that decides whether an engagement succeeds lives in rooms, chats, and hallway decisions. Nothing writes it down where your tools can use it.
 
-"TEMPORARY" ARCHAEOLOGY (permanent code with an excuse):
-  src/sync/replay.ts:88  // HACK: double-retry, remove after Q3 migration
+## How fdeops solves it
 
-AI COMPONENTS (no exception fires when these drift):
-  src/support/triage.ts:41  model: 'gpt-4o-mini'  // classifies inbound tickets
+fdeops adds the missing layer: **memory scoped to the client, not the repo** - plain markdown files at `~/fde-engagements/<client>/.fde/`, written as a side effect of doing the work.
 
-PREVIOUS ATTEMPTS (ask who ran these, and what happened):
-  git: 9f31c2a revert: roll back invoice rewrite (#482)
+- **Session start** - a hook loads where you left off. Your agent opens with: *"Last session you were on the ingest retry - CTO demo is Friday, Diana's signal went amber."* Zero re-pasting.
+- **After every meeting** - paste your raw notes; `fde debrief` routes decisions, risks, deliveries, and stakeholder signals to the right files, dated, deterministically. The meeting is in the record before it evaporates.
+- **Session end** - a hook snapshots the state. Tomorrow starts where today ended.
+- **When the scope dispute lands** - `fde receipts "reconciliation"` answers with dates, from your own files. And when there's no record: *"if it was agreed, it was never logged. That is itself the answer."* For billable work, a dated, local audit trail is not a nice-to-have.
+- **On top of the memory** - one `@fde` skill routes your agent to field methods for every phase of the engagement: landing, discovery, planning, building, shipping, closing.
 
-TEST LANDSCAPE  47 test file(s) across 388 code files
-
-ASK ON DAY 1
-  1. invoice.ts changes 31×/quarter with no test neighbor - who owns billing, and what broke last time?
-  2. The invoice rewrite was reverted (#482) - who ran it, and why did it turn back?
-  3. There's a live model call in ticket triage - who notices if its output drifts?
-------------------------------------------------------------
-Facts only - interpretation is the FDE's (or @fde's) job.
-```
-
-*(sample output, trimmed - your repo produces your findings)*
-
-That's day-1 recon plus the questions the brief never mentions: pure `git` and file reads, no AI, no network. If that's useful, the rest of fdeops is what happens on day 2 and every day after.
-
-<p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
-
----
-
-## The engagement layer
-
-Your AI coding agent has memory now - scoped to a **repo**. Client work isn't shaped like a repo. One engagement spans four repos, a dozen stakeholders, a scope that shifts on Tuesdays, and a sponsor who will one day ask "when did we agree to that?"
-
-fdeops is the layer above: **memory scoped to the client**, kept in plain markdown at `~/fde-engagements/<client>/.fde/`, written as a side effect of doing the work. It works *with* your agent's native repo memory - CLAUDE.md still holds how the code works; the fieldbook holds how the *engagement* works.
-
-**Monday morning.** Open your agent in the client workspace. The session-start hook runs `fde resume` and the agent opens with where you left off: "Last session you were on the ingest retry - CTO demo is Friday, Diana's signal went amber." Zero re-pasting, zero re-explaining.
-
-**After every meeting.** Paste your raw notes - `fde debrief` routes decisions, risks, deliveries, and stakeholder signals to the right files, dated, deterministically. The meeting is in the record before it evaporates.
-
-**When the scope dispute lands.** `fde receipts "reconciliation"` answers with dates, from your own files. And when there's no record: *"if it was agreed, it was never logged. That is itself the answer."* For billable client work, a dated, local, plain-text audit trail of what was agreed and delivered is not a nice-to-have.
+It works *with* your agent's native repo memory - CLAUDE.md still holds how the code works; the fieldbook holds how the *engagement* works.
 
 ## Without fdeops vs with fdeops
 
@@ -78,6 +46,43 @@ fdeops is the layer above: **memory scoped to the client**, kept in plain markdo
 | **Quiet stakeholder** | You notice three weeks too late | `[signal:amber]` logged the day it happened; portfolio triage surfaces it |
 | **Multiple clients** | Wrong client name in a status update, details blur | One folder per client, never cross-contaminated |
 | **The sponsor meeting** | "We completed the API endpoint" | "Manual reconciliation dropped from 3 FTEs to 0.5 - here's the rollback if it turns" |
+
+---
+
+## See it work in 30 seconds
+
+The memory pays off over an engagement. This part you can test right now - no install, no config, no account, on any repo you're allowed to read:
+
+```bash
+npx fdeops scan
+```
+
+`scan` is day-1 recon of an unfamiliar codebase: pure `git` and file reads, no AI, no network. It maps the terrain - what changes most, what has no tests, where the last attempt failed - and ends with the questions the brief never mentions:
+
+```text
+FDE RECON - acme-payments-api
+============================================================
+HOTSPOTS (churn 90d × test coverage) - handle with care:
+   31 commits/90d  src/billing/invoice.ts  ⚠ NO TEST NEIGHBOR
+
+"TEMPORARY" ARCHAEOLOGY (permanent code with an excuse):
+  src/sync/replay.ts:88  // HACK: double-retry, remove after Q3 migration
+
+PREVIOUS ATTEMPTS (ask who ran these, and what happened):
+  git: 9f31c2a revert: roll back invoice rewrite (#482)
+
+ASK ON DAY 1
+  1. invoice.ts changes 31×/quarter with no test neighbor - who owns billing, and what broke last time?
+  2. The invoice rewrite was reverted (#482) - who ran it, and why did it turn back?
+------------------------------------------------------------
+Facts only - interpretation is the FDE's (or @fde's) job.
+```
+
+*(sample output, trimmed - your repo produces your findings)*
+
+If the scan is useful on day 1, the memory is what makes day 30 start like day 1.
+
+<p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
 
 ---
 
