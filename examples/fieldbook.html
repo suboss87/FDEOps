@@ -62,7 +62,17 @@ strong{font-weight:600}
 .fb-nav-reason.hide{display:none}
 .fb-nav-reason mark{background:var(--accent-bg);color:inherit;border-radius:2px;padding:0 1px}
 .fb-main{flex:1 1 auto;overflow-y:auto;background:var(--bg)}
-.fb-main-inner{max-width:760px;margin:0 auto;padding:28px 40px 64px}
+.fb-main-inner{max-width:1440px;margin:0 auto;padding:28px 48px 64px}
+.fb-grid-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px 40px;margin-top:22px}
+.fb-grid-wrap .fb-block{margin-top:0}
+.fb-top-grid{display:grid;grid-template-columns:1fr 260px;gap:0 32px;align-items:start}
+.fb-vitals{margin-top:22px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.fb-vital-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:12.5px}
+.fb-vital-row+.fb-vital-row{border-top:1px solid var(--line)}
+.fb-vital-label{font-family:'Geist Mono',monospace;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint)}
+.fb-vital-val{color:var(--ink);font-weight:600;text-align:right}
+.fb-vital-div{margin:4px 0;border-top:1px solid var(--line)}
+@media(max-width:920px){.fb-top-grid{grid-template-columns:1fr}.fb-vitals{max-width:400px}}
 .fb-view[hidden]{display:none}
 .fb-eyebrow{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-faint)}
 .fb-h1{font-family:'Geist Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-.01em;margin:6px 0 0}
@@ -75,9 +85,9 @@ strong{font-weight:600}
 .fb-sec-row{display:flex;align-items:baseline;gap:8px}
 .fb-sec-row .fb-sec{margin:0}
 .fb-count{font-family:'Geist Mono',monospace;font-size:10.5px;color:var(--ink-faint)}
-.fb-now-action{font-size:16.5px;font-weight:600;line-height:1.5;color:var(--ink)}
-.fb-now-session{margin-top:10px;font-size:14.5px;line-height:1.6;color:var(--ink-soft)}
-.fb-why{margin:0;font-size:14.5px;line-height:1.6;color:var(--ink)}
+.fb-now-action{max-width:760px;font-size:16.5px;font-weight:600;line-height:1.5;color:var(--ink)}
+.fb-now-session{max-width:760px;margin-top:10px;font-size:14.5px;line-height:1.6;color:var(--ink-soft)}
+.fb-why{max-width:760px;margin:0;font-size:14.5px;line-height:1.6;color:var(--ink)}
 .fb-accent-label{color:var(--accent);font-weight:600}
 .fb-stats{display:flex;gap:22px;flex-wrap:wrap;font-family:'Geist Mono',monospace;font-size:13.5px}
 .fb-stat{display:inline-flex;align-items:baseline;gap:6px;padding:2px 0}
@@ -218,14 +228,24 @@ strong{font-weight:600}
 <span class="fb-trust"><span class="dot dot-lg red"></span><span class="t-red">at risk</span></span>
 </div>
 <div class="fb-meta-line">Embed &amp; Trust &middot; day 0 &middot; touched today</div>
-<div class="fb-block">
+<div class="fb-top-grid">
+<div><div class="fb-block">
 <div class="fb-sec">Now</div>
 <div class="fb-now-action">Renata 1:1, target 2026-07-08 - Sam books it. Agenda is HER 2025 design, not ours. Obtain the deck beforehand if she will share it.</div>
 <div class="fb-now-session">Week 1, day 4. Brief interrogated, intake shadowed, day-1 deliverable shipped. Trust RED: Renata Fischer (staff architect, passed over on the 2025 rebuild, her team runs prod) declined two working sessions and learned about the engagement…</div>
 </div><div class="fb-block">
 <div class="fb-sec">Why</div>
 <p class="fb-why"><span class="t-faint">Brief:</span> Referral intake is drowning - 11 days average from fax to scheduled appointment. We want an AI triage assistant that reads incoming referra…&nbsp;&nbsp;<span class="fb-accent-label">Reality:</span> triage reading time is minutes; the 11 days hide in (a) incomplete referrals bouncing back to referring PCPs and (b) a scheduling queue onl…</p>
-</div><div class="fb-block">
+</div></div>
+<div class="fb-vitals">
+<div class="fb-vital-row"><span class="fb-vital-label">trust</span><span class="fb-vital-val t-red">at risk</span></div>
+<div class="fb-vital-row"><span class="fb-vital-label">phase</span><span class="fb-vital-val">Embed &amp; Trust</span></div>
+<div class="fb-vital-row"><span class="fb-vital-label">day</span><span class="fb-vital-val">0</span></div>
+<div class="fb-vital-row"><span class="fb-vital-label">touched</span><span class="fb-vital-val">today</span></div>
+
+</div>
+</div>
+<div class="fb-grid-wrap"><div class="fb-block">
 <div class="fb-sec">People</div>
 <div class="fb-list">
 <div class="fb-row fb-person">
@@ -277,7 +297,7 @@ strong{font-weight:600}
 <span class="fb-risk-text">Success not agreed: Sam&#39;s 5-day target vs Dr. Mehta&#39;s clinical-judgment veto</span>
 </div>
 </div>
-</div><div class="fb-block">
+</div></div><div class="fb-block">
 <div class="fb-sec">Log</div>
 <div class="fb-list">
 <div class="fb-row fb-log">
@@ -326,19 +346,25 @@ strong{font-weight:600}
 <span class="fb-trust"><span class="dot dot-lg amber"></span><span class="t-amber">watch</span></span>
 </div>
 <div class="fb-meta-line">Build &amp; Guard &middot; day 0 &middot; touched today</div>
-<div class="fb-block">
+<div class="fb-top-grid">
+<div><div class="fb-block">
 <div class="fb-sec">Now</div>
 <div class="fb-now-action">Book 15 min with Denise Monday 2026-07-06: scope accumulation conversation (3 adds in 13 days, receipts in decisions.md) + confirm Thursday demo. If no reply by Tuesday noon, ask Randy for a floor-level read.</div>
 <div class="fb-now-session">Week 4. Build slices 1-2 shipped (sheet shadow-read + parity report, 98.8% parity). Slice 3 (write-back) in progress, target 2026-07-08. Trust amber: Denise unresponsive to demo invites since 2026-07-01; third scope add arrived same day, p…</div>
 </div><div class="fb-block">
 <div class="fb-sec">Why</div>
 <p class="fb-why"><span class="t-faint">Brief:</span> Dispatch has no visibility. Build us an ops dashboard - live board of every load, every truck, every delay.&quot; (Denise Kowalczyk, VP Ops, kic…&nbsp;&nbsp;<span class="fb-accent-label">Reality:</span> the ops team&#39;s spreadsheet is the real system of record. <code>dispatch-board.xlsx</code> (shared drive, Randy&#39;s team) is where loads are actually ass…</p>
-</div><div class="fb-block">
-<div class="fb-sec">Movement</div>
-<div class="fb-stats">
-<span class="fb-stat"><span class="t-faint">sheet vs DB</span> <span class="t-faint">94.1%</span> <span class="fb-arrow">&rarr;</span> <span class="fb-stat-to">98.8%</span></span>
+</div></div>
+<div class="fb-vitals">
+<div class="fb-vital-row"><span class="fb-vital-label">trust</span><span class="fb-vital-val t-amber">watch</span></div>
+<div class="fb-vital-row"><span class="fb-vital-label">phase</span><span class="fb-vital-val">Build &amp; Guard</span></div>
+<div class="fb-vital-row"><span class="fb-vital-label">day</span><span class="fb-vital-val">0</span></div>
+<div class="fb-vital-row"><span class="fb-vital-label">touched</span><span class="fb-vital-val">today</span></div>
+<div class="fb-vital-row"><span class="fb-vital-label">high risk</span><span class="fb-vital-val t-red">2 open</span></div>
+<div class="fb-vital-div"></div><div class="fb-vital-row"><span class="fb-vital-label">sheet vs DB</span><span class="fb-vital-val">94.1% <span class="fb-arrow">&rarr;</span> <span class="fb-stat-to">98.8%</span></span></div>
 </div>
-</div><div class="fb-block">
+</div>
+<div class="fb-grid-wrap"><div class="fb-block">
 <div class="fb-sec">People</div>
 <div class="fb-list">
 <div class="fb-row fb-person">
@@ -390,7 +416,7 @@ strong{font-weight:600}
 <span class="fb-risk-text">2019 &quot;temporary&quot; Nashville validation skip (DispatchBoardService.java:214) is load-bearing</span>
 </div>
 </div>
-</div><div class="fb-block">
+</div></div><div class="fb-block">
 <div class="fb-sec">Log</div>
 <div class="fb-list">
 <div class="fb-row fb-log">
@@ -471,14 +497,24 @@ strong{font-weight:600}
 <span class="fb-trust"><span class="dot dot-lg green"></span><span class="t-green">steady</span></span>
 </div>
 <div class="fb-meta-line">Build &amp; Guard &middot; day 0 &middot; touched today</div>
-<div class="fb-block">
+<div class="fb-top-grid">
+<div><div class="fb-block">
 <div class="fb-sec">Now</div>
 <div class="fb-now-action">Tell <code>@fde</code> &quot;ready to deploy&quot; after security sign-off - it walks you through the ship pre-flight checklist. Update handoff.md if engagement ends next week.</div>
 <div class="fb-now-session">Day 10. Ingest retry on staging. Finance trial agreed. Prod canary pending their security ticket.</div>
 </div><div class="fb-block">
 <div class="fb-sec">Why</div>
 <p class="fb-why"><span class="t-faint">Brief:</span> Payments API returns 500s for EU merchants.&nbsp;&nbsp;<span class="fb-accent-label">Reality:</span> EU payment failures in the API are a symptom. Root workflow: finance reprocesses failed EU rows manually in Excel each night because ingest…</p>
-</div><div class="fb-block">
+</div></div>
+<div class="fb-vitals">
+<div class="fb-vital-row"><span class="fb-vital-label">trust</span><span class="fb-vital-val t-green">steady</span></div>
+<div class="fb-vital-row"><span class="fb-vital-label">phase</span><span class="fb-vital-val">Build &amp; Guard</span></div>
+<div class="fb-vital-row"><span class="fb-vital-label">day</span><span class="fb-vital-val">0</span></div>
+<div class="fb-vital-row"><span class="fb-vital-label">touched</span><span class="fb-vital-val">today</span></div>
+
+</div>
+</div>
+<div class="fb-grid-wrap"><div class="fb-block">
 <div class="fb-sec">People</div>
 <div class="fb-list">
 <div class="fb-row fb-person">
@@ -506,7 +542,7 @@ strong{font-weight:600}
 <span class="fb-person-note">Ask if partial migration exists</span>
 </div>
 </div>
-</div><div class="fb-block">
+</div></div><div class="fb-block">
 <div class="fb-sec">Log</div>
 <div class="fb-list">
 <div class="fb-row fb-log">
