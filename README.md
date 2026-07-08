@@ -1,6 +1,6 @@
 # fdeops
 
-**Your AI coding agent forgets your client every morning. fdeops remembers.**
+**Your AI agents forgets your client every morning. fdeops remembers.**
 
 [![npm version](https://img.shields.io/npm/v/fdeops)](https://www.npmjs.com/package/fdeops)
 [![CI](https://github.com/suboss87/fdeops/actions/workflows/validate.yml/badge.svg)](https://github.com/suboss87/fdeops/actions)
@@ -13,7 +13,7 @@ Built for **Forward Deployed Engineers** - engineers embedded at a client, from 
 
 ## The problem
 
-Your AI coding agent's memory is scoped to a **repo**. Client work isn't: one engagement spans several repos, a dozen stakeholders, and decisions made in meetings your agent never saw. That context lives in rooms, chats, and hallway conversations - nothing writes it down where your tools can use it.
+Your AI agent's memory is scoped to a **repo**. Client work isn't: one engagement spans several repos, a dozen stakeholders, and decisions made in meetings your agent never saw. That context lives in rooms, chats, and hallway conversations - nothing writes it down where your tools can use it.
 
 fdeops adds the missing layer: memory scoped to the **client** - plain markdown at `~/fde-engagements/<client>/.fde/`, written as a side effect of doing the work. Local only, zero dependencies, no network, no telemetry.
 
