@@ -27,6 +27,8 @@ Your AI agent's memory is scoped to a **repo**. Client work isn't: one engagemen
 
 fdeops adds the missing layer: memory scoped to the **client** - plain markdown at `~/fde-engagements/<client>/.fde/`, written as a side effect of doing the work. Local only, zero dependencies, no network, no telemetry.
 
+A notes app stores what you type. fdeops loads the right client into your AI agent's context automatically and turns meetings into dated receipts you can defend - the difference is what happens without you opening it.
+
 ## Without fdeops vs with fdeops
 
 | Moment | Without fdeops | With fdeops |
@@ -79,6 +81,17 @@ Not ready to install? `npx fdeops scan` runs on any repo you can read - day-1 re
 - **Advanced:** the `FDEOPS_ENGAGEMENT` env var overrides the workspace registry - only for unusual setups. Full matrix: [docs/install.md](docs/install.md)
 
 </details>
+
+---
+
+## The week
+
+This is the actual habit, not the 35 skills:
+
+- **Monday morning** - open your agent, context loads, you're not re-explaining anything
+- **After a meeting** - `fde debrief` turns raw notes into dated decisions, risks, and signals
+- **Mid-scope-fight** - `fde receipts <term>` answers "when did we agree to that?"
+- **Friday** - `fde status` gives you the sponsor update from the week's actual record
 
 ---
 

@@ -2,7 +2,7 @@
 
 **fdeops is authored and maintained by [Subash Natarajan](https://github.com/suboss87).**
 
-This repository reflects one operator’s engagement OS - open-sourced for other FDEs to use, not a multi-maintainer framework with delegated merge rights.
+This repository reflects one operator’s field kit - open-sourced for other FDEs to use, not a multi-maintainer framework with delegated merge rights.
 
 ---
 
