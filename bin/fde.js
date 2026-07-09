@@ -547,10 +547,11 @@ function cmdResume(args) {
     process.exit(2)
   }
   console.log(`ENGAGEMENT: ${eng}\n`)
-  try {
-    const ctx = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
-    console.log(args.includes('--full') ? ctx : resumeView(ctx))
-  } catch (_) { console.log('(context.md empty - new engagement)') }
+  // readClean, not fs.readFileSync: this output is what an agent loads as
+  // context, so it goes through the same <private> redaction as the dashboard.
+  const ctx = readClean(eng, 'context.md')
+  if (!ctx) { console.log('(context.md empty - new engagement)') }
+  else { console.log(args.includes('--full') ? ctx : resumeView(ctx)) }
 }
 
 // Token discipline: context.md grows every session (the session-stop hook
