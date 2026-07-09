@@ -79,6 +79,31 @@ if [ "$IS_FDE_PROJECT" -eq 0 ]; then
   exit 0
 fi
 
+# Mirrors stripPrivate() in bin/fde.js: this is what an agent loads as
+# context, so <private>...</private> blocks (sacred data, never-AI content)
+# must never reach here unredacted, same guarantee as the dashboard renderer.
+# <private> blocks are written one per line in the templates (own line, own
+# closing tag), so a line-based state machine matches the real usage; an
+# unclosed <private> redacts to end-of-file, same as the JS regex fallback.
+strip_private() {
+  awk '
+    BEGIN { inblock = 0 }
+    {
+      line = $0
+      if (inblock) {
+        if (index(line, "</private>") > 0) { inblock = 0 }
+        next
+      }
+      if (index(line, "<private>") > 0) {
+        print "(private - redacted)"
+        if (index(line, "</private>") == 0) { inblock = 1 }
+        next
+      }
+      print line
+    }
+  ' "$1"
+}
+
 # Token discipline: context.md grows every session (session-stop appends a
 # snapshot). Inject a bounded view - curated head + most recent activity -
 # instead of the whole log. Mirrors resumeView() in bin/fde.js; keep in sync.
@@ -106,7 +131,10 @@ if [ -n "$BOOTSTRAP" ]; then
 fi
 
 if [ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ]; then
-  CONTENT="$CONTENT---\nEngagement context ($CONTEXT_FILE):\n$(bounded_context "$CONTEXT_FILE")\n"
+  REDACTED_CONTEXT=$(mktemp)
+  strip_private "$CONTEXT_FILE" > "$REDACTED_CONTEXT"
+  CONTENT="$CONTENT---\nEngagement context ($CONTEXT_FILE):\n$(bounded_context "$REDACTED_CONTEXT")\n"
+  rm -f "$REDACTED_CONTEXT"
 fi
 
 printf '%b' "$CONTENT"
