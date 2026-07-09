@@ -1,6 +1,6 @@
 # AGENTS.md - working in the fdeops repository
 
-This repository **is** fdeops - the operating system for Forward Deployed Engineers. One `@fde` skill routes an entire client engagement across six domains, the `fde` CLI does the deterministic work, and per-customer memory writes itself into `.fde/` files.
+This repository **is** fdeops - the second brain for Forward Deployed Engineers. One `@fde` skill routes an entire client engagement across six domains, the `fde` CLI does the deterministic work, and per-customer memory writes itself into `.fde/` files.
 
 ## If you are helping use fdeops in an engagement
 

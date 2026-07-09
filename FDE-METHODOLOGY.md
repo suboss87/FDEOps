@@ -1,6 +1,6 @@
 # The Forward Deployed Engineering Methodology
 
-fdeops implements this methodology as an installable engagement OS: skills plus `.fde/` artifacts so one **human engineer** can run client work end to end with an **AI coding agent** (not a human “agent” on the team).
+fdeops implements this methodology as an installable field kit: skills plus `.fde/` artifacts so one **human engineer** can run client work end to end with an **AI coding agent** (not a human “agent” on the team).
 
 ## What Is an FDE?
 Forward Deployed Engineers embed directly with customers, bridging the gap between product capability and enterprise reality. Originated as a discipline at companies deploying engineers directly into customer operations. a16z called it "the hottest job in tech."

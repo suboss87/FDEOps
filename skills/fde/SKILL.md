@@ -1,6 +1,6 @@
 ---
 name: fde
-description: The operating system for Forward Deployed Engineers. 35 skills across 6 domains - from first meeting to final handoff. Tell it your situation, it routes to the right skill, does the work, and the engagement memory writes itself.
+description: The second brain for Forward Deployed Engineers. 35 skills across 6 domains - from first meeting to final handoff. Tell it your situation, it routes to the right skill, does the work, and the engagement memory writes itself.
 ---
 
 # @fde
