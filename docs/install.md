@@ -16,8 +16,10 @@ fdeops installs on **your laptop** - where **your AI coding agent** runs. Not on
 ```
 
 ```bash
-fde resume --init <client-name>                # 2. run once, inside the client's workspace
+npx fdeops resume --init <client-name>         # 2. run once, inside the client's workspace
 ```
+
+The plugin install alone does **not** put a bare `fde` command on your shell PATH. `npx fdeops <command>` always works with nothing pre-installed; run `npm i -g fdeops` once if you want the short `fde` form used in the rest of these docs.
 
 Done. `fde resume --init` creates `~/fde-engagements/<client-name>/.fde/` and **binds this workspace to it in the workspace registry**. The session hooks read that binding, so memory auto-loads at session start and auto-captures at session end - nothing else to configure, no environment variables.
 
@@ -57,7 +59,7 @@ node bin/install.js
 The canonical way - one command, run inside the client's workspace:
 
 ```bash
-fde resume --init <client-name>
+fde resume --init <client-name>      # or: npx fdeops resume --init <client-name>
 ```
 
 ```text

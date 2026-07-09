@@ -51,8 +51,10 @@ fdeops adds the missing layer: memory scoped to the **client** - plain markdown 
 **2. Bind your client workspace** - run once, inside the workspace:
 
 ```bash
-fde resume --init garvey
+npx fdeops resume --init garvey
 ```
+
+(`npx` needs nothing pre-installed. Want the bare `fde` command the rest of this README uses? `npm i -g fdeops` - the plugin install alone does not put `fde` on your PATH.)
 
 fdeops' `--init` creates the engagement memory at `~/fde-engagements/garvey/.fde/` (plain markdown, private to your machine) and binds this workspace to it. The hooks read that binding - context auto-loads at session start, auto-captures at session end. That is the whole setup.
 
@@ -64,7 +66,7 @@ fdeops' `--init` creates the engagement memory at `~/fde-engagements/garvey/.fde
 
 `@fde` is the one skill fdeops installs. Describe what's happening; it routes to the right field method and the memory writes itself. Full workflow: [docs/USAGE.md](docs/USAGE.md).
 
-Not ready to install? `npx fdeops scan` runs on any repo you can read - day-1 recon (pure `git` + file reads, no config, no account) that maps hotspots, test gaps, and reverted attempts, and ends with the ASK ON DAY 1 questions the brief never mentions.
+Not ready to install? `npx fdeops scan` runs on any repo you can read - day-1 recon (pure `git` + file reads, no config, no account) that maps hotspots, test gaps, and reverted attempts, and ends with the ASK ON DAY 1 questions the brief never mentions. The scan is heuristic by design - treat its output as leads to verify on day one, not findings.
 
 <details>
 <summary><strong>Other install paths</strong> - Cursor, Codex, Copilot, Gemini CLI, local LLMs, air-gapped</summary>
@@ -100,7 +102,7 @@ Two hooks and one router, on top of the fieldbook:
 
 Overlays for regulated domains (AI, fintech, healthcare, government) activate on signal. fdeops complements your agent's native repo memory: CLAUDE.md holds how the *code* works; the fieldbook holds how the *engagement* works. Full matrix: [docs/skills.md](docs/skills.md).
 
-Works with **Claude Code** - **Cursor** - **Copilot** - **Devin** - **Gemini CLI** - **Ollama** - **LM Studio** - any model that reads a markdown file.
+Works with **Claude Code** - **Cursor** - **Copilot** - **Gemini CLI** - **Ollama** - **LM Studio** - any model that reads a markdown file.
 
 ---
 
