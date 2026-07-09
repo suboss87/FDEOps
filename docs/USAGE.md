@@ -98,6 +98,8 @@ One folder per client, one binding per workspace. Never merge contexts. `fde sta
 
 ## What fdeops does not do
 
+The skills are methods refined from real engagements, not autonomy - they tell you what to check, not what to decide. Concretely, fdeops does not:
+
 - Replace **you** in meetings or politics
 - Grant repo access or stakeholder buy-in
 - Replace legal/compliance review (overlays are judgment aids only)

@@ -174,6 +174,7 @@ Details: [PRIVACY.md](PRIVACY.md) · [SECURITY.md](SECURITY.md)
 ## Principles
 
 - **The artifact is the memory** - producing work and recording it are one action
+- **Methods, not autonomy** - each skill tells you what to check; the judgment, the trust, and the consequences stay yours
 - **Trust before production** - earn the right to touch their systems
 - **Brief is a hypothesis** - discover before building the wrong thing
 - **Evidence on every claim** - these files get defended in front of skeptical clients
