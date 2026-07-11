@@ -56,8 +56,8 @@ MARKER="[fdeops context preserved"
 [ -f "$CONTEXT_FILE" ] || exit 0
 
 # Avoid unbounded growth: skip if we already preserved today.
-if grep -q "$MARKER" "$CONTEXT_FILE" 2>/dev/null; then
-  LAST=$(grep "$MARKER" "$CONTEXT_FILE" | tail -1)
+if grep -Fq "$MARKER" "$CONTEXT_FILE" 2>/dev/null; then
+  LAST=$(grep -F "$MARKER" "$CONTEXT_FILE" | tail -1)
   if echo "$LAST" | grep -q "$(date -u +%Y-%m-%d)"; then
     exit 0
   fi
