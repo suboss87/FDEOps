@@ -145,8 +145,9 @@ test('scan emits repo facts, redacts likely secrets, and asks earned day-1 quest
   assert.equal(scan.status, 0, scan.stderr)
   assert.match(scan.stdout, /FDE RECON - workspace/)
   assert.match(scan.stdout, /POSSIBLE HARDCODED SECRETS/)
-  assert.match(scan.stdout, /abcd…REDACTED/)
+  assert.match(scan.stdout, /API_KEY="REDACTED"/)
   assert.doesNotMatch(scan.stdout, /abcd123456789/)
+  assert.doesNotMatch(scan.stdout, /abcd/, 'no characters of the secret value may show')
   assert.match(scan.stdout, /AI COMPONENTS/)
   assert.match(scan.stdout, /TEMPORARY/)
   assert.match(scan.stdout, /ASK ON DAY 1:/)
@@ -169,6 +170,53 @@ test('dashboard renders local HTML and redacts private blocks', () => {
   const html = fs.readFileSync(out, 'utf8')
   assert.match(html, /FDEOPS/)
   assert.match(html, /Visible policy/)
-  assert.match(html, /private - redacted from dashboard/)
+  assert.match(html, /private - redacted/)
   assert.doesNotMatch(html, /4111-1111-1111-1111/)
+})
+
+// --- privacy regression suite: every read path that can reach the model or a
+// shared artifact must redact <private>, in every tag case. Each secret marker
+// below reproduces a leak a brutal simulator found on 2026-07-11.
+test('receipts never greps <private> content back out', () => {
+  const sandbox = makeSandbox('priv-receipts')
+  runFde(sandbox, ['resume', '--init', 'nda'])
+  const eng = engagementPath(sandbox, 'nda')
+  fs.writeFileSync(path.join(eng, 'decisions.md'),
+    '# Decisions\n- normal: use Stripe\n- <private>stripe key SECRET-RCPT-1</private>\n')
+  const r = runFde(sandbox, ['receipts', 'SECRET'])
+  assert.doesNotMatch(r.stdout, /SECRET-RCPT-1/, 'receipts leaked a <private> secret')
+  // positive control: non-private content is still findable
+  const ok = runFde(sandbox, ['receipts', 'Stripe'])
+  assert.match(ok.stdout, /Stripe/, 'receipts over-redacted normal content')
+})
+
+test('status never prints a <private> risk line', () => {
+  const sandbox = makeSandbox('priv-status')
+  runFde(sandbox, ['resume', '--init', 'nda'])
+  const eng = engagementPath(sandbox, 'nda')
+  fs.writeFileSync(path.join(eng, 'risks.md'),
+    '# Risks\n- <private>root pw SECRET-STAT-2 open</private>\n')
+  const s = runFde(sandbox, ['status'])
+  assert.doesNotMatch(s.stdout, /SECRET-STAT-2/, 'status leaked a <private> risk')
+})
+
+test('scan redaction shows no characters of a secret value', () => {
+  const sandbox = makeSandbox('priv-scan')
+  fs.writeFileSync(path.join(sandbox.workspace, 'app.js'), 'const k = "sk-live-SECRETSCAN424242"\n')
+  const git = a => spawnSync('git', a, { cwd: sandbox.workspace, encoding: 'utf8' })
+  git(['init']); git(['add', '-A'])
+  git(['-c', 'user.email=t@t.com', '-c', 'user.name=t', 'commit', '-m', 's'])
+  const scan = runFde(sandbox, ['scan'])
+  // no value chars at all - not even the sk-l provider prefix
+  assert.doesNotMatch(scan.stdout, /sk-l/, 'scan leaked the secret value prefix')
+})
+
+test('resolving by directory name warns instead of silently attaching', () => {
+  const sandbox = makeSandbox('priv-guess')
+  runFde(sandbox, ['resume', '--init', 'acme'])
+  // a DIFFERENT, unbound workspace whose basename matches the acme slug
+  const stray = path.join(sandbox.dir, 'acme')
+  fs.mkdirSync(stray, { recursive: true })
+  const r = runFde(sandbox, ['resume'], { cwd: fs.realpathSync(stray) })
+  assert.match(r.stderr, /directory name/i, 'dir-name resolution must warn, not be silent')
 })
