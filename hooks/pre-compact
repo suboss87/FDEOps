@@ -63,12 +63,33 @@ if grep -Fq "$MARKER" "$CONTEXT_FILE" 2>/dev/null; then
   fi
 fi
 
+# Redact <private> before extracting lines - this content is appended to
+# context.md, which session-start loads into the model. A closed private block
+# collapses to one placeholder line, so its inner text can't be tail'd or
+# grepped out tag-stripped. Case-insensitive, mirrors the JS /gi redactor.
+strip_private() {
+  awk '
+    BEGIN { inblock = 0 }
+    {
+      line = $0
+      lc = tolower(line)
+      if (inblock) { if (index(lc, "</private>") > 0) { inblock = 0 } next }
+      if (index(lc, "<private>") > 0) {
+        print "(private - redacted)"
+        if (index(lc, "</private>") == 0) { inblock = 1 }
+        next
+      }
+      print line
+    }
+  ' "$1"
+}
+
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 LAST_DECISIONS=""
 OPEN_RISKS=""
 
-[ -f "$DECISIONS_FILE" ] && LAST_DECISIONS=$(tail -20 "$DECISIONS_FILE" 2>/dev/null)
-[ -f "$RISKS_FILE" ] && OPEN_RISKS=$(grep -iE "open|active|unresolved" "$RISKS_FILE" 2>/dev/null | head -8)
+[ -f "$DECISIONS_FILE" ] && LAST_DECISIONS=$(strip_private "$DECISIONS_FILE" 2>/dev/null | tail -20)
+[ -f "$RISKS_FILE" ] && OPEN_RISKS=$(strip_private "$RISKS_FILE" 2>/dev/null | grep -iE "open|active|unresolved" | head -8)
 
 cat >> "$CONTEXT_FILE" 2>/dev/null << EOF
 

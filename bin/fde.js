@@ -111,9 +111,17 @@ function resolveEngagement() {
       }
     } catch (_) {}
   }
-  // 4) workspace dir name matches an engagement slug
+  // 4) workspace dir name matches an engagement slug. This is a convenience,
+  // NOT a binding - an unbound directory that merely happens to be named like a
+  // client (a fork, a demo, a second client with the same codename) would
+  // otherwise attach to that client's memory silently and get written into.
+  // Never silent: warn on stderr so cross-client contamination can't happen
+  // unnoticed, and tell the user how to make the binding explicit.
   const guess = path.join(ENGAGEMENTS_ROOT, slugify(path.basename(cwd)), '.fde')
-  if (fs.existsSync(guess)) return guess
+  if (fs.existsSync(guess)) {
+    process.stderr.write(`⚠ resolved engagement by directory name ("${slugify(path.basename(cwd))}"), not a saved binding. If this is the right client, run \`fde resume --init ${slugify(path.basename(cwd))}\` here to bind it; if not, you are about to read/write the WRONG client's memory.\n`)
+    return guess
+  }
   // 5) in-repo .fde (engagement-approved only)
   if (fs.existsSync(path.join(cwd, '.fde'))) return path.join(cwd, '.fde')
   return null
@@ -157,7 +165,9 @@ function sectionBody(md, heading) {
 // zero-effort floor when NO token exists anywhere - prose like "escalated to CTO,
 // resolved amicably" must not flip a client amber forever.
 function computeSignals(eng) {
-  const ctx = readEng(eng, 'context.md'); const stake = readEng(eng, 'stakeholders.md'); const risks = readEng(eng, 'risks.md')
+  // readClean, not readEng: status/dashboard echo topRisk and stakeholder lines
+  // to the terminal and the rendered HTML - a <private> risk must never surface.
+  const ctx = readClean(eng, 'context.md'); const stake = readClean(eng, 'stakeholders.md'); const risks = readClean(eng, 'risks.md')
   const phase = (ctx.match(/phase[:* ]+\**([a-z-]+)/i) || [])[1] || '?'
   let latest = null
   for (const l of stake.split('\n')) {
@@ -463,7 +473,7 @@ function cmdScan() {
   const sec = grepFiles(confFiles, /(api[_-]?key|secret|password|token)\s*[:=]\s*['"][^'"]{8,}/i, 10)
     .filter(h => !/example|template|test|sample|placeholder/i.test(h.file + h.text))
   sec.length
-    ? sec.forEach(h => out.push(`  ${h.file}:${h.line}  ${h.text.replace(/(['"])([^'"]{4})[^'"]+(['"])/, '$1$2…REDACTED$3')}`))
+    ? sec.forEach(h => out.push(`  ${h.file}:${h.line}  ${h.text.replace(/(['"])[^'"]+(['"])/, '$1REDACTED$2')}`))
     : out.push('  none found')
   out.push('  (grep-grade check - run gitleaks or trufflehog for real secret coverage)')
 
@@ -661,7 +671,10 @@ function cmdReceipts(args) {
   for (const f of ['decisions.md', 'delivery.md', 'risks.md', 'stakeholders.md', 'context.md', 'success.md', 'brief.md', 'reality.md']) {
     const p = path.join(eng, f)
     if (!fs.existsSync(p)) continue
-    fs.readFileSync(p, 'utf8').split('\n').forEach((l, i) => {
+    // readClean, not raw read: receipts must not grep sealed <private> notes back
+    // out. Redaction can shift line numbers past a multi-line block; the file:line
+    // is advisory, and not leaking a sealed secret is worth an approximate number.
+    readClean(eng, f).split('\n').forEach((l, i) => {
       if (rx.test(l)) { console.log(`${f}:${i + 1}  ${l.trim().slice(0, 160)}`); found++ }
     })
   }
@@ -725,9 +738,14 @@ function escapeHtml(s) {
 // Closed pairs are redacted; an unclosed <private> redacts to end-of-text so a
 // forgotten closing tag can never leak the rest of the file.
 function stripPrivate(md) {
+  // Redact <private> before <!-- --> so a private block that itself contains a
+  // comment can't survive. Closed pairs first; then any unclosed <private> to
+  // end-of-text so a forgotten close tag never leaks the rest of the file.
+  // Case-insensitive (<PRIVATE> too). This is the ONE redactor every read path
+  // that can reach the model or a shared artifact must go through - see readClean.
   return md
-    .replace(/<private>[\s\S]*?<\/private>/gi, '(private - redacted from dashboard)')
-    .replace(/<private>[\s\S]*$/i, '(private - redacted from dashboard)')
+    .replace(/<private>[\s\S]*?<\/private>/gi, '(private - redacted)')
+    .replace(/<private>[\s\S]*$/i, '(private - redacted)')
     .replace(/<!--[\s\S]*?-->/g, '')
 }
 

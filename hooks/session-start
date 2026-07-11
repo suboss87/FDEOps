@@ -86,17 +86,21 @@ fi
 # closing tag), so a line-based state machine matches the real usage; an
 # unclosed <private> redacts to end-of-file, same as the JS regex fallback.
 strip_private() {
+  # Detection is case-insensitive (matches the JS /gi redactor) - <PRIVATE>,
+  # <Private>, <private> all redact. Detect on a lowercased copy of the line;
+  # never print the original when a tag is present.
   awk '
     BEGIN { inblock = 0 }
     {
       line = $0
+      lc = tolower(line)
       if (inblock) {
-        if (index(line, "</private>") > 0) { inblock = 0 }
+        if (index(lc, "</private>") > 0) { inblock = 0 }
         next
       }
-      if (index(line, "<private>") > 0) {
+      if (index(lc, "<private>") > 0) {
         print "(private - redacted)"
-        if (index(line, "</private>") == 0) { inblock = 1 }
+        if (index(lc, "</private>") == 0) { inblock = 1 }
         next
       }
       print line
