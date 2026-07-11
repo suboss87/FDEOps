@@ -1,0 +1,42 @@
+name: Field report
+description: Share real usage feedback from an fdeops engagement
+title: "[field-report]: "
+labels: ["field-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this only for real usage feedback. Do not include confidential client data, credentials, or private stakeholder details.
+  - type: textarea
+    id: role
+    attributes:
+      label: Your role/context
+      description: Forward deployed engineer, consultant, solutions engineer, agency developer, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: What workflow did you try?
+      description: Example: resume/init, debrief, receipts, status, dashboard, scan.
+    validations:
+      required: true
+  - type: textarea
+    id: worked
+    attributes:
+      label: What worked?
+    validations:
+      required: true
+  - type: textarea
+    id: friction
+    attributes:
+      label: What was confusing, brittle, or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence you can safely share
+      description: Sanitized command output, screenshots, or reproduction steps. Do not include client secrets.
+    validations:
+      required: false
