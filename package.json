@@ -7,8 +7,9 @@
     "fde": "bin/fde.js"
   },
   "scripts": {
-    "check": "node bin/check.js",
-    "prepublishOnly": "node bin/check.js"
+    "check": "node bin/check.js && npm test",
+    "test": "node --test test/*.test.js",
+    "prepublishOnly": "node bin/check.js && npm test"
   },
   "files": [
     "bin/",
