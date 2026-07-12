@@ -93,9 +93,17 @@ function resolveEngagement() {
   // 1) explicit env (back-compat: accept old FDEOS_ENGAGEMENT too)
   const env = (process.env.FDEOPS_ENGAGEMENT || process.env.FDEOS_ENGAGEMENT || '').replace(/^~/, HOME).trim()
   if (env && fs.existsSync(env)) return env
-  // 2) workspace registry binding (written by resume --init)
+  // 2) workspace registry binding (written by resume --init). Match the cwd OR
+  // any ancestor of it - FDEs run commands from src/, packages/api/, etc., not
+  // just the repo root where they bound. Nearest (deepest) registered ancestor
+  // wins, exactly like git searching upward for .git. `startsWith(workspace +
+  // sep)` requires a true path-boundary ancestor, so /work/repo-2 never matches
+  // a binding on /work/repo. Kept in lockstep with registry_engagement_dir in
+  // hooks/session-start, session-stop, pre-compact.
   const cwd = process.cwd()
-  const reg = readRegistry().find(r => r.workspace === cwd)
+  const reg = readRegistry()
+    .filter(r => cwd === r.workspace || cwd.startsWith(r.workspace + path.sep))
+    .sort((a, b) => b.workspace.length - a.workspace.length)[0]
   if (reg) {
     const p = path.join(ENGAGEMENTS_ROOT, reg.slug, '.fde')
     if (fs.existsSync(p)) return p
@@ -667,18 +675,42 @@ function cmdReceipts(args) {
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
   const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
-  let found = 0
-  for (const f of ['decisions.md', 'delivery.md', 'risks.md', 'stakeholders.md', 'context.md', 'success.md', 'brief.md', 'reality.md']) {
-    const p = path.join(eng, f)
-    if (!fs.existsSync(p)) continue
-    // readClean, not raw read: receipts must not grep sealed <private> notes back
-    // out. Redaction can shift line numbers past a multi-line block; the file:line
-    // is advisory, and not leaking a sealed secret is worth an approximate number.
-    readClean(eng, f).split('\n').forEach((l, i) => {
-      if (rx.test(l)) { console.log(`${f}:${i + 1}  ${l.trim().slice(0, 160)}`); found++ }
-    })
+  // "receipts" answers "what did we AGREE?" - so dated, agreed records are the
+  // receipt. brief.md is the client's hypothesis and reality.md/context.md are
+  // working notes; a hit there is a CLAIM, not an agreement. Keeping them in the
+  // same list let an FDE cite a sales promise as a receipt - so they get a
+  // separate, clearly-labelled section that is never mistaken for the record.
+  const AGREEMENTS = ['decisions.md', 'delivery.md', 'success.md', 'risks.md', 'stakeholders.md']
+  const CLAIMS = ['brief.md', 'reality.md', 'context.md']
+  const collect = files => {
+    const hits = []
+    for (const f of files) {
+      if (!fs.existsSync(path.join(eng, f))) continue
+      // readClean, not raw read: receipts must not grep sealed <private> notes
+      // back out. Redaction can shift line numbers past a multi-line block; the
+      // file:line is advisory - not leaking a sealed secret is worth that.
+      readClean(eng, f).split('\n').forEach((l, i) => {
+        if (rx.test(l)) hits.push(`  ${f}:${i + 1}  ${l.trim().slice(0, 160)}`)
+      })
+    }
+    return hits
   }
-  if (!found) console.log(`no record of "${term}" - nothing was ever logged about it. A gap in the record, not proof of absence: if it WAS agreed, log it now, dated today.`)
+  const agreed = collect(AGREEMENTS)
+  const claimed = collect(CLAIMS)
+  if (agreed.length) {
+    console.log('AGREED (dated record - defensible):')
+    agreed.forEach(h => console.log(h))
+  }
+  if (claimed.length) {
+    if (agreed.length) console.log('')
+    console.log('CLAIMS & working notes (stated, NOT an agreement - verify before citing):')
+    claimed.forEach(h => console.log(h))
+  }
+  if (!agreed.length && !claimed.length) {
+    console.log(`no record of "${term}" - nothing was ever logged about it. A gap in the record, not proof of absence: if it WAS agreed, log it now, dated today.`)
+  } else if (!agreed.length) {
+    console.log('\n(no dated agreement matched - only unverified claims above. If this was agreed, log it: fde log decision "...")')
+  }
 }
 
 function cmdCapture() {

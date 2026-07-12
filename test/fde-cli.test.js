@@ -220,3 +220,47 @@ test('resolving by directory name warns instead of silently attaching', () => {
   const r = runFde(sandbox, ['resume'], { cwd: fs.realpathSync(stray) })
   assert.match(r.stderr, /directory name/i, 'dir-name resolution must warn, not be silent')
 })
+
+test('binding resolves from a nested subdirectory, not just the exact bind dir', () => {
+  const sandbox = makeSandbox('nested')
+  runFde(sandbox, ['resume', '--init', 'northwind'])
+  const nested = path.join(sandbox.workspace, 'src', 'api', 'deep')
+  fs.mkdirSync(nested, { recursive: true })
+  const nestedReal = fs.realpathSync(nested)
+
+  // resume from deep inside the tree resolves the bound engagement (was NO ENGAGEMENT)
+  const resume = runFde(sandbox, ['resume'], { cwd: nestedReal })
+  assert.equal(resume.status, 0, resume.stderr)
+  assert.match(resume.stdout, /ENGAGEMENT: .*northwind/)
+
+  // and a write from the subdirectory lands in the same engagement
+  const log = runFde(sandbox, ['log', 'decision', 'logged from a nested dir'], { cwd: nestedReal })
+  assert.equal(log.status, 0, log.stderr)
+  const decisions = fs.readFileSync(path.join(engagementPath(sandbox, 'northwind'), 'decisions.md'), 'utf8')
+  assert.match(decisions, /logged from a nested dir/)
+})
+
+test('a sibling directory with a shared path prefix does NOT match the binding', () => {
+  const sandbox = makeSandbox('sibling')
+  // bind .../workspace, then probe a sibling .../workspace-2 (shared prefix, not an ancestor)
+  runFde(sandbox, ['resume', '--init', 'clienta'])
+  const sibling = sandbox.workspace + '-2'
+  fs.mkdirSync(sibling, { recursive: true })
+  const r = runFde(sandbox, ['resume'], { cwd: fs.realpathSync(sibling) })
+  assert.match(r.stdout, /NO ENGAGEMENT/, 'shared-prefix sibling must not resolve to the binding')
+})
+
+test('receipts separates dated agreements from unverified claims', () => {
+  const sandbox = makeSandbox('receipts-claims')
+  runFde(sandbox, ['resume', '--init', 'nw'])
+  const eng = engagementPath(sandbox, 'nw')
+  fs.writeFileSync(path.join(eng, 'decisions.md'), '# Decisions\n- [2026-07-11] descope reporting until audit\n')
+  fs.writeFileSync(path.join(eng, 'brief.md'), '# Brief\nvendor promised TLS before the audit\n')
+
+  const agreed = runFde(sandbox, ['receipts', 'descope'])
+  assert.match(agreed.stdout, /AGREED/, 'a dated decision must show under AGREED')
+
+  const claim = runFde(sandbox, ['receipts', 'TLS'])
+  assert.match(claim.stdout, /CLAIMS & working notes/, 'a brief line must be labelled a claim')
+  assert.match(claim.stdout, /NOT an agreement/, 'the claim must be explicitly flagged as not an agreement')
+})
