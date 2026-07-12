@@ -26,9 +26,15 @@ resolve_engagement_dir() {
 registry_engagement_dir() {
   local reg="$HOME/fde-engagements/.registry" slug
   [ -f "$reg" ] || return 1
-  slug=$(awk 'BEGIN{ws=ENVIRON["PWD"]}
+  slug=$(awk 'BEGIN{ws=ENVIRON["PWD"]; best=-1}
     { i = match($0, / [^ ]*$/)
-      if (i > 0 && substr($0, 1, i - 1) == ws) { print substr($0, i + 1); exit } }' "$reg" 2>/dev/null)
+      if (i > 0) {
+        wpath = substr($0, 1, i - 1)
+        if (ws == wpath || index(ws, wpath "/") == 1) {
+          if (length(wpath) > best) { best = length(wpath); slug = substr($0, i + 1) }
+        }
+      } }
+    END { if (best >= 0) print slug }' "$reg" 2>/dev/null)
   [ -z "$slug" ] && return 1
   [ -d "$HOME/fde-engagements/$slug/.fde" ] && printf '%s\n' "$HOME/fde-engagements/$slug/.fde" && return 0
   return 1
