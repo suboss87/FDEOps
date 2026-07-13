@@ -24,7 +24,11 @@ resolve_engagement_dir() {
 # Lines are "<workspace-path> <slug>": the path may contain spaces, the slug
 # never does, so split on the LAST space (same as the JS lastIndexOf parse).
 registry_engagement_dir() {
-  local reg="$HOME/fde-engagements/.registry" slug
+  # FDEOPS_ENGAGEMENTS_ROOT mirrors ENGAGEMENTS_ROOT in bin/fde.js - the CLI and
+  # hooks MUST agree on the root or an isolated setup gets split memory.
+  local root="${FDEOPS_ENGAGEMENTS_ROOT:-$HOME/fde-engagements}"
+  root="${root/#\~/$HOME}"
+  local reg="$root/.registry" slug
   [ -f "$reg" ] || return 1
   slug=$(awk 'BEGIN{ws=ENVIRON["PWD"]; best=-1}
     { i = match($0, / [^ ]*$/)
@@ -36,7 +40,7 @@ registry_engagement_dir() {
       } }
     END { if (best >= 0) print slug }' "$reg" 2>/dev/null)
   [ -z "$slug" ] && return 1
-  [ -d "$HOME/fde-engagements/$slug/.fde" ] && printf '%s\n' "$HOME/fde-engagements/$slug/.fde" && return 0
+  [ -d "$root/$slug/.fde" ] && printf '%s\n' "$root/$slug/.fde" && return 0
   return 1
 }
 
