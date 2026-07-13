@@ -221,12 +221,15 @@ for (const h of ['session-start', 'session-stop', 'pre-compact']) {
 }
 ok('hook exec bits')
 
-// registry-aware hooks: `fde resume --init` binds via ~/fde-engagements/.registry,
-// so every hook must consult it or registry-bound users get zero auto-capture
+// registry-aware hooks: `fde resume --init` binds via <root>/.registry, so every
+// hook must consult it or registry-bound users get zero auto-capture. The root
+// is FDEOPS_ENGAGEMENTS_ROOT with a ~/fde-engagements default - hooks must use
+// the env-aware root (CLI/hook parity), not a hardcoded home path.
 for (const h of ['session-start', 'session-stop', 'pre-compact']) {
   const body = read('hooks/' + h)
-  if (!body.includes('fde-engagements/.registry')) fail(`hooks/${h} must consult the workspace registry`)
+  if (!/\.registry/.test(body)) fail(`hooks/${h} must consult the workspace registry`)
   if (!body.includes('registry_engagement_dir')) fail(`hooks/${h} missing registry_engagement_dir`)
+  if (!body.includes('FDEOPS_ENGAGEMENTS_ROOT')) fail(`hooks/${h} must honor FDEOPS_ENGAGEMENTS_ROOT (CLI/hook root parity)`)
 }
 ok('hooks registry-aware')
 
