@@ -127,7 +127,7 @@ The FDE's job is to make themselves replaceable. Not at handoff - every day. A c
 
 - **`decisions.md`** - each significant choice: what, alternatives considered, why this one. For non-trivial architecture decisions, present three options to the FDE (safe / pragmatic / aggressive) with costs and a recommendation - three options is a real decision; one option is a request for trust. Integration contracts go here too.
 - **`risks.md`** - new risks discovered while building.
-- **`delivery.md`** - what shipped, in business terms (time saved, failures prevented), and how to roll back. This is the value log the dashboard and close read.
+- **`delivery.md`** - append a **value ledger** row for every ship: Date | Slice | Promised | Measured | Evidence | Rollback. "Measured" may be `pending` until the pulse exists - never skip the promised column. Narrative under Shipped is optional color; the ledger is the record status and close read.
 
 ## Checkpoint
 
