@@ -28,6 +28,7 @@ This is what makes fdeops a second brain instead of a chat window.
 4. **No invented facts - ever.** People, names, quotes, meetings, and numbers exist only if the FDE said them or the repo shows them. Never invent a stakeholder, a conversation, or a source to make the narrative richer - one fabricated name poisons every real citation around it. A missing fact is written as `unknown - ask: <the question>`, nothing else.
 5. **On exit:** before the session ends, append three lines to `context.md`: where we are, what changed today, the next step. The `session-stop` hook backstops this deterministically (hooks resolve the engagement through the workspace registry - no env var needed), but you write the meaningful version.
 6. **One customer, one folder.** Never merge two engagements into one `.fde/`. Confirm which engagement applies when multiple exist.
+7. **Never delete a code-read section when rewriting an artifact.** `stakeholders.md`'s `## Signal history` holds dated `[signal:...]` tokens that `fde status`/`fde receipts`/the dashboard read verbatim; `risks.md`'s `## Retired` is read the same way. Rewriting either file as an artifact (land, audit, stakeholder-radar) is fine - dropping one of these sections is not. Carry existing entries forward untouched.
 
 ## Data boundary (confirm before touching their code)
 

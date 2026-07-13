@@ -7,6 +7,16 @@ const { spawnSync } = require('node:child_process')
 
 const root = path.join(__dirname, '..')
 const fde = path.join(root, 'bin', 'fde.js')
+const installer = path.join(root, 'bin', 'install.js')
+
+function runInstall(sandbox, args, opts = {}) {
+  const result = spawnSync(process.execPath, [installer, ...args], {
+    cwd: opts.cwd || sandbox.workspace,
+    env: { ...process.env, HOME: sandbox.home, USERPROFILE: sandbox.home },
+    encoding: 'utf8',
+  })
+  return { status: result.status, stdout: result.stdout || '', stderr: result.stderr || '' }
+}
 
 function makeSandbox(name) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), `fdeops-${name}-`))
@@ -326,4 +336,67 @@ test('resume bounds a long context.md and survives <private> redaction (anchor n
   assert.match(r.stdout, /lines of earlier session log hidden/, 'long context must be bounded')
   assert.match(r.stdout, /RECENT tail marker Z/, 'the recent tail must still show')
   assert.doesNotMatch(r.stdout, /OLD session log line 5\b/, 'the old middle must be hidden, not dumped')
+})
+
+test('adapters-only install places the skill the pointer files reference', () => {
+  // Ground simulation found: `npx fdeops adapters .` (the documented Cursor/
+  // Codex path) wrote a pointer to ~/.claude/skills/fde/SKILL.md without ever
+  // placing that file - a dangling reference for any non-Claude user who
+  // never separately ran bare `npx fdeops`.
+  const sandbox = makeSandbox('adapters-skill')
+  const r = runInstall(sandbox, ['adapters', '.'])
+  assert.equal(r.status, 0, r.stderr)
+  assert.equal(fs.existsSync(path.join(sandbox.home, '.claude', 'skills', 'fde', 'SKILL.md')), true,
+    'adapters must install the skill it points at, not just the pointer')
+  const cursorRule = fs.readFileSync(path.join(sandbox.workspace, '.cursor', 'rules', 'fde.mdc'), 'utf8')
+  assert.match(cursorRule, /~\/\.claude\/skills\/fde\/SKILL\.md/)
+})
+
+test('signal tokens land under Signal history regardless of writer or token position', () => {
+  const sandbox = makeSandbox('signal-history')
+  runFde(sandbox, ['resume', '--init', 'trustco'])
+  const eng = engagementPath(sandbox, 'trustco')
+
+  // fde log contact --signal: token right after the date
+  const cli = runFde(sandbox, ['log', 'contact', 'Dana went quiet', '--signal', 'red'])
+  assert.equal(cli.status, 0, cli.stderr)
+
+  // fde debrief: token at the END of the text (the skill's own contact: convention)
+  const debrief = runFde(sandbox, ['debrief'], { input: 'contact: Priya seemed cold on the call [signal:amber]' })
+  assert.equal(debrief.status, 0, debrief.stderr)
+
+  const stakeholders = fs.readFileSync(path.join(eng, 'stakeholders.md'), 'utf8')
+  const section = stakeholders.slice(stakeholders.indexOf('## Signal history'))
+  assert.match(section, /\[signal:red\] Dana went quiet/, 'CLI-format signal must land inside the section')
+  assert.match(section, /Priya seemed cold on the call \[signal:amber\]/, 'debrief-format signal must land inside the section')
+})
+
+test('a full stakeholder-table rewrite that preserves Signal history keeps the trust color', () => {
+  // The exact failure a ground-FDE simulation hit: land.md tells the agent to
+  // write stakeholders.md as a full artifact. A rewrite that drops the section
+  // entirely still loses the signal (nothing can save a full overwrite that
+  // deletes it - that's a skill-discipline problem, not a CLI one) - but a
+  // rewrite that PRESERVES the section, as the template now instructs, must
+  // keep working end to end through fde status.
+  const sandbox = makeSandbox('rewrite-survives')
+  runFde(sandbox, ['resume', '--init', 'clobberco'])
+  const eng = engagementPath(sandbox, 'clobberco')
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Dana went quiet', '--signal', 'red']).status, 0)
+
+  fs.writeFileSync(path.join(eng, 'stakeholders.md'), [
+    '# Stakeholders',
+    '',
+    '| Who | Role | Signal | Notes |',
+    '|-----|------|--------|-------|',
+    '| Dana | sponsor | red | went quiet 8 days |',
+    '',
+    '## Signal history',
+    '',
+    '- [2026-07-13] [signal:red] Dana went quiet',
+    '',
+  ].join('\n'))
+
+  const status = runFde(sandbox, ['status'])
+  assert.equal(status.status, 0, status.stderr)
+  assert.match(status.stdout, /\[RED\s*\]\s*clobberco/, 'trust must still read RED after a section-preserving rewrite')
 })

@@ -142,6 +142,16 @@ function cmdAdapters(targetDir) {
   console.log(`  fdeops cross-platform adapters → ${dest}`)
   console.log('  One brain (skills/fde/SKILL.md). These are thin pointers per tool.')
   console.log('')
+  // The pointers below all point at ~/.claude/skills/fde/SKILL.md. Only the
+  // default install (bare `npx fdeops` / `node bin/install.js`) used to place
+  // that file - `adapters` alone wrote pointers to a brain that didn't exist
+  // yet, a dangling reference for anyone following the documented Cursor/Codex
+  // path. installSkills() is idempotent (safe to call every run).
+  if (!fs.existsSync(path.join(GLOBAL_SKILLS_DIR, 'fde', 'SKILL.md'))) {
+    installSkills()
+    console.log('  Skills → ~/.claude/skills/  (installed - the pointers below need this)')
+    console.log('')
+  }
   for (const a of ADAPTER_TARGETS) {
     if (!fs.existsSync(a.src)) { console.log(`  skip   ${a.label} (template missing)`); continue }
     placePointer(path.join(dest, a.dest), fs.readFileSync(a.src, 'utf8'), a.label, a.appendable)
