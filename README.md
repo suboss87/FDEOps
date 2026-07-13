@@ -17,7 +17,7 @@ The **second brain for Forward Deployed Engineers** - engineers embedded at a cl
              written as a side effect of the work
 ```
 
-Describe your situation - `@fde` routes to the phase, runs the method, and every artifact lands in that shared memory. Nothing to maintain by hand.
+Describe your situation - `@fde` routes to the right method and writes the matching `.fde/` artifact. Phase methods (land → close) live in the skill; the CLI owns scan, memory, and receipts. You still confirm judgment — the fieldbook does not maintain itself without you.
 
 ---
 
@@ -86,7 +86,7 @@ Not ready to install? `npx fdeops scan` runs on any repo you can read - day-1 re
 
 ## The week
 
-This is the actual habit, not the 35 skills:
+This is the actual habit — the high-frequency loop, not the full skill matrix:
 
 - **Monday morning** - open your agent, context loads, you're not re-explaining anything
 - **After a meeting** - `fde debrief` turns raw notes into dated decisions, risks, and signals
@@ -148,15 +148,17 @@ fde debrief notes.md              # route meeting notes into memory (also reads 
 fde log decision "descope agreed with Kowalczyk"
 fde log contact "Denise gone quiet" --signal amber
 fde receipts <term>               # dated search; no hit = a gap in the record, not proof of absence
-fde status                        # portfolio triage across all clients (red > amber > green)
-fde dashboard                     # render every engagement into one offline HTML fieldbook
+fde status                        # current engagement triage (add --all for every client)
+fde dashboard                     # current engagement fieldbook (add --all for every client)
 ```
+
+Optional: `export FDEOPS_ENGAGEMENTS_ROOT=~/path/to/engagements` to isolate init/status/dashboard from the default `~/fde-engagements`.
 
 The latest dated `[signal:...]` token per stakeholder drives the trust column in `status` and `dashboard`; signals older than 21 days show as stale.
 
 <p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
 
-`fde dashboard (FieldBook)` renders every engagement into one offline HTML fieldbook - engagements sorted by trust, next action and open risks per client, one glance to know where to start:
+`fde dashboard` (FieldBook) renders the **current** engagement by default. Pass `--all` for every client sorted by trust:
 
 <p align="center"><img width="1336" height="624" alt="Screenshot 2026-07-08 at 12 45 07" src="https://github.com/user-attachments/assets/5683614c-7730-4a3a-860d-185053a377eb" /></p>
 

@@ -1,6 +1,6 @@
 ---
 name: fde
-description: The second brain for Forward Deployed Engineers. 35 skills across 6 domains - from first meeting to final handoff. Tell it your situation, it routes to the right skill, does the work, and the engagement memory writes itself.
+description: Second brain for Forward Deployed Engineers. One @fde router over field methods plus a local CLI for scan, memory, and receipts. Tell it your situation — it routes, does the work, and writes the engagement fieldbook.
 ---
 
 # @fde
@@ -14,7 +14,7 @@ When this skill says "ask the FDE," it means the human. When it says "write to `
 
 ## Purpose
 
-The single entry point for an entire client engagement - 35 skills across 6 domains covering the full FDE lifecycle. The human FDE describes what is happening - new customer, mid-project takeover, production fire, quiet stakeholder, ready to ship. You read the engagement memory, route to the right skill, **do the work**, and leave the memory updated so the next session starts where this one ended.
+The single entry point for an entire client engagement. Field methods cover the FDE lifecycle (land through close, plus daily verbs and overlays). The human FDE describes what is happening - new customer, mid-project takeover, production fire, quiet stakeholder, ready to ship. You read the engagement memory, route to the right method, **do the work**, and leave the memory updated so the next session starts where this one ended.
 
 You are not an advisor reading tips aloud. Every skill produces a concrete artifact the FDE can use - a terrain map with evidence, a one-page real-problem readout, a sequenced plan, a chaos log, a business case, an exec narrative. The artifact is the deliverable AND the memory.
 
@@ -153,7 +153,7 @@ After updating `.fde/` artifacts, suggest the ONE next move that accelerates the
 
 > "Brief written. You don't have repo access yet - want me to draft the request or are you handling that?"
 
-## Routing - 6 domains, 35 skills
+## Routing - 6 domains
 
 Route on what you hear, then **read the skill reference from this skill's `references/` directory and follow its method**. Do not improvise from memory - the method is the product.
 

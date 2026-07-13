@@ -116,7 +116,18 @@ The hooks honor the workspace registry written by `fde resume --init` - bind a w
 
 ---
 
-## Advanced: `FDEOPS_ENGAGEMENT` override
+## Advanced: engagement overrides
+
+### `FDEOPS_ENGAGEMENTS_ROOT`
+
+Puts the whole engagements tree (init, registry, status, dashboard) somewhere other than `~/fde-engagements`. Use this for dogfood or isolated simulations:
+
+```bash
+export FDEOPS_ENGAGEMENTS_ROOT=~/fde-sims/client-a
+fde resume --init meridian
+```
+
+### `FDEOPS_ENGAGEMENT` (single-folder override)
 
 You do **not** need this for normal use - the workspace registry handles engagement resolution. The env var exists as an explicit override for unusual setups (one workspace serving several clients, shared machines, scripted environments):
 

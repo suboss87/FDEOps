@@ -16,8 +16,8 @@
  *   fde debrief [file]      meeting notes → structured memory (stdin if no file)
  *   fde receipts <term>     "what did we agree?" - search memory with dates
  *   fde capture             session-end snapshot → context.md (hooks use this)
- *   fde status              portfolio across ~/fde-engagements (red/amber/green)
- *   fde dashboard           render every engagement into one local fieldbook.html
+ *   fde status [--all]      current engagement (default) or full portfolio (--all)
+ *   fde dashboard [--all]   current engagement fieldbook (default) or all (--all)
  */
 const fs = require('fs')
 const path = require('path')
@@ -25,8 +25,12 @@ const os = require('os')
 const { execSync, execFileSync } = require('child_process')
 
 const HOME = os.homedir()
-const ENGAGEMENTS_ROOT = path.join(HOME, 'fde-engagements')
+// FDEOPS_ENGAGEMENTS_ROOT isolates init/status/dashboard (and the registry) for
+// dogfood/simulations. Default remains ~/fde-engagements.
+const ENGAGEMENTS_ROOT = ((process.env.FDEOPS_ENGAGEMENTS_ROOT || '').trim().replace(/^~/, HOME))
+  || path.join(HOME, 'fde-engagements')
 const REGISTRY = path.join(ENGAGEMENTS_ROOT, '.registry')
+const DEBRIEF_MAX_BYTES = 256 * 1024
 const CODE_EXT = ['.js', '.ts', '.tsx', '.jsx', '.py', '.java', '.go', '.rb', '.cs', '.php']
 const CONF_EXT = CODE_EXT.concat(['.env', '.yaml', '.yml', '.json'])
 // one routing table for structured appends - cmdLog and cmdDebrief share it
@@ -634,10 +638,26 @@ function cmdDebrief(args) {
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
   let input = ''
   if (args[0]) {
-    try { input = fs.readFileSync(args[0].replace(/^~/, HOME), 'utf8') }
-    catch (_) { console.error(`cannot read ${args[0]}`); process.exit(1) }
+    const notesPath = args[0].replace(/^~/, HOME)
+    let st
+    try { st = fs.statSync(notesPath) } catch (_) { console.error(`cannot read ${args[0]}`); process.exit(1) }
+    if (st.size > DEBRIEF_MAX_BYTES) {
+      console.error(`debrief refused: ${args[0]} is ${st.size} bytes (max ${DEBRIEF_MAX_BYTES}). Split the notes or paste the relevant section.`)
+      process.exit(1)
+    }
+    let buf
+    try { buf = fs.readFileSync(notesPath) } catch (_) { console.error(`cannot read ${args[0]}`); process.exit(1) }
+    if (buf.includes(0)) {
+      console.error(`debrief refused: ${args[0]} looks binary (null bytes). Paste text notes only.`)
+      process.exit(1)
+    }
+    input = buf.toString('utf8')
   } else {
     try { input = fs.readFileSync(0, 'utf8') } catch (_) {} // stdin until EOF
+    if (Buffer.byteLength(input, 'utf8') > DEBRIEF_MAX_BYTES) {
+      console.error(`debrief refused: stdin is over ${DEBRIEF_MAX_BYTES} bytes. Split the notes.`)
+      process.exit(1)
+    }
   }
   const d = new Date()
   const date = d.toISOString().slice(0, 10)
@@ -735,26 +755,42 @@ function cmdCapture() {
   try { fs.appendFileSync(path.join(eng, 'context.md'), block) } catch (_) {}
 }
 
-function cmdStatus() {
+function engagementSlugFromPath(eng) {
+  return path.basename(path.dirname(eng))
+}
+
+function cmdStatus(args) {
+  const all = args.includes('--all')
   if (!fs.existsSync(ENGAGEMENTS_ROOT)) { console.log('no engagements yet - fde resume --init <name>'); return }
   const rows = []
-  for (const d of fs.readdirSync(ENGAGEMENTS_ROOT)) {
-    if (d.startsWith('.')) continue
-    const eng = path.join(ENGAGEMENTS_ROOT, d, '.fde')
-    if (!fs.existsSync(eng)) continue
+  if (all) {
+    for (const d of fs.readdirSync(ENGAGEMENTS_ROOT)) {
+      if (d.startsWith('.')) continue
+      const eng = path.join(ENGAGEMENTS_ROOT, d, '.fde')
+      if (!fs.existsSync(eng)) continue
+      const s = computeSignals(eng)
+      rows.push({ name: d, phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, topRisk: s.topRisk.slice(0, 60) })
+    }
+  } else {
+    const eng = resolveEngagement()
+    if (!eng) {
+      console.error('no engagement bound to this workspace.\nrun: fde resume --init <name>   or   fde status --all')
+      process.exit(2)
+    }
     const s = computeSignals(eng)
-    rows.push({ name: d, phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, topRisk: s.topRisk.slice(0, 60) })
+    rows.push({ name: engagementSlugFromPath(eng), phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, topRisk: s.topRisk.slice(0, 60) })
   }
   if (!rows.length) { console.log('no engagements yet'); return }
   const order = { RED: 0, amber: 1, green: 2 }
   rows.sort((a, b) => order[a.trust] - order[b.trust])
-  console.log('FDE PORTFOLIO - trust-first triage (heuristic: red > amber > green)\n')
+  console.log((all ? 'FDE PORTFOLIO' : 'FDE STATUS') + ' - trust-first triage (heuristic: red > amber > green)\n')
   for (const r of rows) {
     // "amber?" = structured signal went stale (>21d) - reconfirm before trusting it
     const label = r.trust + (r.stale ? '?' : '')
     const sig = r.signalAge != null ? `signal ${r.signalAge}d old${r.stale ? ' (STALE - reconfirm)' : ''}  ` : ''
     console.log(`  [${label.padEnd(6)}] ${r.name.padEnd(24)} phase:${r.phase.padEnd(10)} updated:${r.updated.padEnd(8)} ${sig}${r.topRisk}`)
   }
+  if (!all) console.log('\n(current engagement only - pass --all for the full portfolio)')
   console.log('\ntrust: latest [signal:x] token in stakeholders.md wins (fde log contact --signal, fde debrief); keyword heuristic only when none exists - verify before acting.')
 }
 
@@ -839,8 +875,12 @@ function hasRealContent(md) {
   return txt.length > 0
 }
 
-function gatherEngagements() {
+function gatherEngagements(opts = {}) {
   const list = []
+  if (opts.only) {
+    list.push({ name: engagementSlugFromPath(opts.only), dir: opts.only, signals: computeSignals(opts.only) })
+    return list
+  }
   if (!fs.existsSync(ENGAGEMENTS_ROOT)) return list
   for (const d of fs.readdirSync(ENGAGEMENTS_ROOT).sort()) {
     if (d.startsWith('.')) continue
@@ -1364,11 +1404,22 @@ function paletteItemsHtml(ordered) {
 }
 
 function cmdDashboard(args) {
+  const all = args.includes('--all')
   const outIdx = args.indexOf('--out')
   const outPath = outIdx !== -1 && args[outIdx + 1]
     ? path.resolve(args[outIdx + 1].replace(/^~/, HOME))
-    : path.join(ENGAGEMENTS_ROOT, 'fieldbook.html')
-  const engagements = gatherEngagements()
+    : path.join(ENGAGEMENTS_ROOT, all ? 'fieldbook.html' : 'fieldbook-current.html')
+  let engagements
+  if (all) {
+    engagements = gatherEngagements()
+  } else {
+    const eng = resolveEngagement()
+    if (!eng) {
+      console.error('no engagement bound to this workspace.\nrun: fde resume --init <name>   or   fde dashboard --all')
+      process.exit(2)
+    }
+    engagements = gatherEngagements({ only: eng })
+  }
   const counts = { green: 0, amber: 0, RED: 0 }
   engagements.forEach(e => { counts[e.signals.trust]++ })
   const today = formatToday(new Date())
@@ -1506,7 +1557,7 @@ switch (cmd) {
   case 'debrief': cmdDebrief(args); break
   case 'receipts': cmdReceipts(args); break
   case 'capture': cmdCapture(); break
-  case 'status': cmdStatus(); break
+  case 'status': cmdStatus(args); break
   case 'dashboard': cmdDashboard(args); break
   default:
     console.log(`fde - deterministic core of fdeops
@@ -1519,6 +1570,7 @@ switch (cmd) {
   fde debrief [file]       meeting notes → memory: decision:/risk:/delivery:/contact: lines route, rest → context.md (stdin if no file; --dry-run previews)
   fde receipts <term>      "what did we agree?" with dates
   fde capture              session-end memory snapshot (hooks use this)
-  fde status               portfolio across all engagements
-  fde dashboard            render every engagement into one local fieldbook.html`)
+  fde status [--all]       current engagement status (pass --all for full portfolio)
+  fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
+  env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)`)
 }
