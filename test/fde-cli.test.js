@@ -26,6 +26,7 @@ function runFde(sandbox, args, opts = {}) {
       USERPROFILE: sandbox.home,
       FDEOPS_ENGAGEMENT: '',
       FDEOS_ENGAGEMENT: '',
+      ...(opts.env || {}),
     },
     input: opts.input,
     encoding: 'utf8',
@@ -263,4 +264,45 @@ test('receipts separates dated agreements from unverified claims', () => {
   const claim = runFde(sandbox, ['receipts', 'TLS'])
   assert.match(claim.stdout, /CLAIMS & working notes/, 'a brief line must be labelled a claim')
   assert.match(claim.stdout, /NOT an agreement/, 'the claim must be explicitly flagged as not an agreement')
+})
+
+test('status defaults to the bound engagement; --all shows the portfolio', () => {
+  const sandbox = makeSandbox('status-scope')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'alpha']).status, 0)
+  const ws2 = path.join(sandbox.dir, 'workspace-b')
+  fs.mkdirSync(ws2, { recursive: true })
+  const sandboxB = { ...sandbox, workspace: fs.realpathSync(ws2) }
+  assert.equal(runFde(sandboxB, ['resume', '--init', 'beta'], { cwd: sandboxB.workspace }).status, 0)
+
+  const one = runFde(sandbox, ['status'])
+  assert.equal(one.status, 0, one.stderr)
+  assert.match(one.stdout, /alpha/)
+  assert.doesNotMatch(one.stdout, /beta/)
+  assert.match(one.stdout, /current engagement only/)
+
+  const all = runFde(sandbox, ['status', '--all'])
+  assert.equal(all.status, 0, all.stderr)
+  assert.match(all.stdout, /alpha/)
+  assert.match(all.stdout, /beta/)
+})
+
+test('debrief refuses binary notes files', () => {
+  const sandbox = makeSandbox('debrief-bin')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'binclient']).status, 0)
+  const notes = path.join(sandbox.dir, 'notes.bin')
+  fs.writeFileSync(notes, Buffer.from([0x00, 0x01, 0x02, 0x03, 0x41]))
+  const r = runFde(sandbox, ['debrief', notes])
+  assert.notEqual(r.status, 0)
+  assert.match(r.stderr, /binary/i)
+})
+
+test('FDEOPS_ENGAGEMENTS_ROOT isolates init from the default home tree', () => {
+  const sandbox = makeSandbox('root-env')
+  const altRoot = path.join(sandbox.dir, 'alt-engagements')
+  const init = runFde(sandbox, ['resume', '--init', 'isolated'], {
+    env: { FDEOPS_ENGAGEMENTS_ROOT: altRoot },
+  })
+  assert.equal(init.status, 0, init.stderr)
+  assert.equal(fs.existsSync(path.join(altRoot, 'isolated', '.fde', 'context.md')), true)
+  assert.equal(fs.existsSync(path.join(sandbox.home, 'fde-engagements', 'isolated')), false)
 })

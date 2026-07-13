@@ -54,3 +54,5 @@ Optional: `./.fde/` in a workspace only if the engagement allows it and it is gi
 8. **Plans need a kill list; deliveries need a value ledger.** No finished plan without Now/Next/Later/Kill. No ship without promised → measured → evidence (measured may be pending).
 
 Scaffold: `fde resume --init <engagement-name>` (creates the folder AND binds the current workspace to it).
+
+Optional root: `FDEOPS_ENGAGEMENTS_ROOT` relocates the engagements tree used by init, registry, status, and dashboard (see [install.md](./install.md)).
