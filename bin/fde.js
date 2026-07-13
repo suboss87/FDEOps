@@ -588,7 +588,12 @@ function resumeView(md) {
   // matches the bash hook's `wc -l` and the two bounded views stay byte-aligned.
   if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop()
   if (lines.length <= 160) return md
-  let headEnd = lines.findIndex(l => l.includes('fdeops auto-capture'))
+  // Anchor on the "## Session end" heading, NOT the "<!-- fdeops auto-capture -->"
+  // comment: this text is read via readClean (stripPrivate strips HTML comments),
+  // so the comment is gone by the time we get here. The heading is written on the
+  // very next line by cmdCapture and the session-stop hook and survives redaction.
+  // The bash bounded_context() anchors on the same heading - keep them identical.
+  let headEnd = lines.findIndex(l => /^##\s+Session end\b/.test(l.trim()))
   if (headEnd === -1) headEnd = 120
   headEnd = Math.min(headEnd, 120)
   const tailStart = Math.max(headEnd, lines.length - 40)
