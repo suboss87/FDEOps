@@ -681,7 +681,7 @@ function cmdReceipts(args) {
   // same list let an FDE cite a sales promise as a receipt - so they get a
   // separate, clearly-labelled section that is never mistaken for the record.
   const AGREEMENTS = ['decisions.md', 'delivery.md', 'success.md', 'risks.md', 'stakeholders.md']
-  const CLAIMS = ['brief.md', 'reality.md', 'context.md']
+  const CLAIMS = ['brief.md', 'assumptions.md', 'reality.md', 'context.md']
   const collect = files => {
     const hits = []
     for (const f of files) {

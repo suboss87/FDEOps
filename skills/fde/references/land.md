@@ -72,11 +72,19 @@ Before the end of day 1, ship one visible thing: a small bug fix, a cleanup the 
 
 **`trust-profile.md`** - sacred data (`<private>` tagged), fears heard, AI policy, approval chain. Sensitive: never loaded for status reads, never into subagent prompts.
 
-One falsifiable hypothesis about the real problem goes at the bottom of `brief.md` - discover will test it.
+**`assumptions.md`** - seed every unverified claim from the brief (and the day-1 hypothesis) as rows with blast radius CRITICAL / LOAD-BEARING / CONVENIENCE and status `OPEN`. Do not wait for assumption-audit - land makes the register exist. Example:
+
+```markdown
+| # | Assumption | Blast radius | How we test | Status | Evidence |
+|---|------------|--------------|-------------|--------|----------|
+| 1 | <claim from brief> | CRITICAL | <cheapest falsifying test> | OPEN | (stated, unverified) |
+```
+
+One falsifiable hypothesis about the real problem also goes at the bottom of `brief.md` - discover / assumption-audit will test it.
 
 ## Checkpoint
 
-One page back to the FDE: success + sign-off owner, out-of-scope boundary, sacred data, stakeholder map with veto power, AI posture, the hypothesis. If it doesn't fit one page, the engagement isn't understood yet.
+One page back to the FDE: success + sign-off owner, out-of-scope boundary, sacred data, stakeholder map with veto power, AI posture, the hypothesis, and the top CRITICAL assumptions still OPEN. If it doesn't fit one page, the engagement isn't understood yet.
 
 If remote: trust-building takes ~40% longer - push for a short video call before anything asynchronous.
 
@@ -84,6 +92,6 @@ If remote: trust-building takes ~40% longer - push for a short video call before
 
 - Never start technical work before `success.md` exists.
 - Sacred data never enters AI context. Ever.
-- The brief is a hypothesis; discover confirms it.
+- The brief is a hypothesis; discover confirms it. Seed `assumptions.md` on day one.
 - The passed-over internal team is the best source of truth, not an obstacle.
 - If the customer cannot define success, that is the first problem to solve.
