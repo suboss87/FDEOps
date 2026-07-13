@@ -169,6 +169,45 @@ function sectionBody(md, heading) {
   return body.join('\n').trim()
 }
 
+// Append `entry` as the last line of a "## Heading" section, creating the
+// section at end-of-file if it doesn't exist yet. Plain fs.appendFileSync
+// would land the entry after ANY later section the agent added (e.g. a
+// "## Notes" heading appended after "## Signal history"), silently moving a
+// signal token outside the section the reader scans - this keeps it inside
+// regardless of what follows.
+function appendUnderSection(md, heading, entry) {
+  const lines = md.split('\n')
+  const start = lines.findIndex(l => new RegExp('^#{1,6}\\s+' + heading + '\\b', 'i').test(l.trim()))
+  if (start === -1) {
+    const sep = md.length && !md.endsWith('\n') ? '\n' : ''
+    return `${md}${sep}\n## ${heading}\n\n${entry}\n`
+  }
+  let end = lines.length
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^#{1,6}\s/.test(lines[i].trim())) { end = i; break }
+  }
+  const before = lines.slice(0, end)
+  const after = lines.slice(end)
+  while (before.length > start + 1 && before[before.length - 1].trim() === '') before.pop()
+  before.push(entry)
+  if (after.length) before.push('')
+  return before.concat(after).join('\n')
+}
+
+// Shared by cmdLog and cmdDebrief so the two writers can't drift (the earlier
+// bug: fde log's format and fde debrief's format both existed, only one of
+// them matched what extractStakeholders actually read). A contact entry
+// carrying a [signal:x] token - however it got there - lands inside
+// "## Signal history"; everything else is a plain end-of-file append.
+function appendLogEntry(eng, type, entry) {
+  const p = path.join(eng, LOG_FILES[type])
+  if (type === 'contact' && /\[signal:(red|amber|green)\]/i.test(entry)) {
+    fs.writeFileSync(p, appendUnderSection(readEng(eng, LOG_FILES[type]), 'Signal history', entry))
+  } else {
+    fs.appendFileSync(p, `\n${entry}\n`)
+  }
+}
+
 // phase / trust / top risk / freshness - identical heuristic for status + dashboard.
 // Trust resolution: structured [signal:red|amber|green] tokens in stakeholders.md
 // (written by `fde log contact --signal` and `fde debrief`) win - the latest dated
@@ -305,9 +344,20 @@ function extractStakeholders(eng) {
   const notesIdx = colIndex(headers, /notes?/i)
 
   const history = []
+  // Format-agnostic on token position: `fde log contact --signal` writes
+  // "[date] [signal:x] text" (token right after the date), but `fde debrief`
+  // appends the token at the END of whatever the agent wrote per the skill's
+  // own contact: convention - "[date] text [signal:x]". Both are subject-first
+  // once the token is stripped, so match the token anywhere on the line rather
+  // than requiring it immediately after the date; a debrief-written signal was
+  // silently invisible to per-stakeholder matching before this.
   sectionBody(md, 'Signal history').split('\n').forEach(l => {
-    const m = l.trim().match(/^-\s*\[(\d{4}-\d{2}-\d{2})\]\s*\[signal:(red|amber|green)\]\s*(.+)$/i)
-    if (m) history.push({ date: m[1], signal: m[2].toLowerCase(), text: m[3] })
+    const dm = l.trim().match(/^-\s*\[(\d{4}-\d{2}-\d{2})\]\s*(.*)$/i)
+    if (!dm) return
+    const sm = dm[2].match(/\[signal:(red|amber|green)\]/i)
+    if (!sm) return
+    const text = dm[2].replace(/\[signal:(red|amber|green)\]/i, '').trim()
+    history.push({ date: dm[1], signal: sm[1].toLowerCase(), text })
   })
 
   return rows.map(cs => {
@@ -620,7 +670,8 @@ function cmdLog(args) {
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
   const date = new Date().toISOString().slice(0, 10)
-  fs.appendFileSync(path.join(eng, LOG_FILES[type]), `\n- [${date}] ${signal ? `[signal:${signal}] ` : ''}${text}\n`)
+  const entry = `- [${date}] ${signal ? `[signal:${signal}] ` : ''}${text}`
+  appendLogEntry(eng, type, entry)
   console.log(`logged → ${LOG_FILES[type]}${signal ? ` (signal:${signal})` : ''}`)
 }
 
@@ -676,8 +727,12 @@ function cmdDebrief(args) {
     const m = bare.match(/^(decision|risk|delivery|contact):\s*(.+)$/i)
     if (m) {
       const type = m[1].toLowerCase()
-      if (dry) console.log(`→ ${LOG_FILES[type]}  - [${date}] ${m[2]}`)
-      else fs.appendFileSync(path.join(eng, LOG_FILES[type]), `\n- [${date}] ${m[2]}\n`)
+      const entry = `- [${date}] ${m[2]}`
+      if (dry) console.log(`→ ${LOG_FILES[type]}  ${entry}`)
+      // appendLogEntry, not a blind append: a contact: line may carry an
+      // inline [signal:x] token (the skill's own convention) and must land
+      // inside "## Signal history" the same way `fde log --signal` does.
+      else appendLogEntry(eng, type, entry)
       counts[type]++
     } else ctxLines.push(line)
   }

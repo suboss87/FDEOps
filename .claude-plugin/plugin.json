@@ -1,7 +1,7 @@
 {
   "name": "fdeops",
   "description": "Second brain for Forward Deployed Engineers. One @fde skill - enter at day one, mid-project, or mid-fire; it routes, does the phase work, and the engagement memory writes itself.",
-  "version": "3.7.7",
+  "version": "3.7.8",
   "category": "productivity",
   "tags": [
     "community-managed"

@@ -69,6 +69,7 @@ Before the end of day 1, ship one visible thing: a small bug fix, a cleanup the 
 |-----|------|--------|-------|
 | <name> | sponsor / champion / resistor / veto / passed-over | green/amber/red | <evidence, day> |
 ```
+If `stakeholders.md` already has a `## Signal history` section (it does from the template), **never delete or overwrite it** when you rewrite this file - it holds the dated `[signal:...]` tokens `fde log contact --signal` and `fde debrief` write, and `fde status`/`fde receipts`/the dashboard read only from that section. Edit the table above it freely; keep the section below intact.
 
 **`trust-profile.md`** - sacred data (`<private>` tagged), fears heard, AI policy, approval chain. Sensitive: never loaded for status reads, never into subagent prompts.
 
