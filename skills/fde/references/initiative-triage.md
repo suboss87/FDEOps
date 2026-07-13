@@ -61,7 +61,24 @@ Notice: every stakeholder's initiative is P0 or P1. That's the problem this skil
 
 ## Artifact
 
-**`decisions.md`** - the triage table with scores, lanes, and the commitment statement. Dated. Referenced by plan and status.
+**`decisions.md`** - the triage table with scores, lanes, **and an explicit Kill / Later commitment**. Dated. Referenced by plan and status.
+
+Required closing block (plan will not treat triage as done without it):
+
+```markdown
+## Triage - <date>
+### Now (max 3)
+| # | Initiative | Score | Why now |
+...
+### Next
+...
+### Kill / defer (not this phase)
+| Initiative | Why not now | Who accepted |
+|------------|-------------|--------------|
+| ... | ... | <name, date> |
+
+Commitment: we ship only Now. Additions require a removal.
+```
 
 **`reality.md`** - if triage revealed that the engagement scope is larger than the timeline supports, update the assessment.
 

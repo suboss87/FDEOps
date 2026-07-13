@@ -154,6 +154,8 @@ Score every candidate use case before anything gets prototyped:
 
 Every line carries its evidence. `(churn: 47/90d)` `(ops lead, Day 5)` `(stated, unverified)`.
 
+**`assumptions.md`** - update statuses from what discovery proved or disproved. Seed any new OPEN assumptions the brief never named. CRITICAL + OPEN must be named in the checkpoint.
+
 ## Checkpoint (before any build)
 
 Present to the FDE, four things, one paragraph each - no padding:

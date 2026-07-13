@@ -32,6 +32,7 @@ const requiredTemplates = [
   'decisions.md',
   'risks.md',
   'delivery.md',
+  'assumptions.md',
 ]
 
 for (const f of requiredTemplates) {
@@ -180,7 +181,7 @@ else ok('docs/schema.md')
 if (!fs.existsSync(path.join(root, 'SECURITY.md'))) fail('SECURITY.md missing')
 else ok('SECURITY.md')
 
-const exampleFiles = ['reality.md', 'decisions.md', 'delivery.md', 'stakeholders.md']
+const exampleFiles = ['reality.md', 'decisions.md', 'delivery.md', 'stakeholders.md', 'assumptions.md']
 for (const f of exampleFiles) {
   const p = path.join(root, 'examples', 'garvey-payments', '.fde', f)
   if (!fs.existsSync(p)) fail(`examples/garvey-payments/.fde/${f} missing`)

@@ -22,7 +22,7 @@ An FDE plan is not a sprint backlog. The technical sequence is the easy part. Th
 
 ## Method (you do this work)
 
-**0. Lock scope first.** Read `success.md`. If out-of-scope is undefined, define it now with the FDE - a plan on undefined scope accumulates silent commitments.
+**0. Lock scope first.** Read `success.md` and `assumptions.md`. If out-of-scope is undefined, define it now with the FDE - a plan on undefined scope accumulates silent commitments. If any CRITICAL assumption is still `OPEN`, stop and run assumption-audit / discover before sequencing work.
 
 **1. Work backwards from success.** What's the last thing that must be true before done? And before that? That's the dependency chain - not a wish list.
 
@@ -36,24 +36,43 @@ An FDE plan is not a sprint backlog. The technical sequence is the easy part. Th
 
 **6. Stakeholder touchpoints every 2–3 tasks.** "Show progress to <name from stakeholders.md>." Not ceremony: a customer who sees small wins stays bought in; silence gets filled with doubt.
 
+**7. End with a kill list.** Every plan names what you will **not** do this phase. If everything is "later," you have no plan - you have a wish list. Cap **Now** at 3 slices (same discipline as initiative-triage).
+
 **Acceptance criteria gate:** no task moves to build without written happy-path AND unhappy-path criteria. Can't write them = the task isn't understood; the open question goes to the customer **before** the task starts. Vague criteria surface later as scope creep and rework.
 
 ## Artifact
 
 The plan goes to **`decisions.md`** - always. Build reads the plan from `decisions.md`; anywhere else and the build starts blind.
 
+A plan is **not done** until all four blocks exist:
+
 ```markdown
+## Plan - <date>
+### Now (max 3)
 Task N: <outcome, not activity>
 Delivers: <what someone can see/test>
 Accepts: <happy path> / <unhappy path>
 Touches: <files/systems - blast radius declared upfront>
 Risk: <what could go wrong + fallback>
 Verify: <specific check>
+Value promised: <business unit change this slice claims>
+
+### Next
+- ...
+
+### Later
+- ...
+
+### Kill list (explicitly not this phase)
+| Item | Why killed / deferred | Who accepted |
+|------|----------------------|--------------|
+| <rewrite / nice-to-have / political ask> | <evidence> | <name, date> |
 ```
 
+No kill list → not a finished plan. Reopen with the FDE until the deferrals are written.
 ## Checkpoint
 
-Walk the FDE through: sequence + why this order, where the fragile work sits, where the touchpoints land, the acceptance gate on task 1. One question: "Which stakeholder sees the first visible slice, and when?"
+Walk the FDE through: sequence + why this order, where the fragile work sits, where the touchpoints land, the acceptance gate on task 1, and the kill list. One question: "Which stakeholder sees the first visible slice, and when?" Second: "Who accepted what we are not doing?"
 
 ## Method - estimation (when the sponsor asks "how long, how much?")
 
@@ -118,5 +137,6 @@ Never quietly update tasks. Name the reset: update `reality.md` and `success.md`
 - Fragile zones early. Fail fast.
 - Every 2–3 tasks, a stakeholder touchpoint. Trust decays without visibility.
 - No written acceptance criteria, no build.
+- No kill list, no finished plan.
 - Estimates are ranges, not promises. Name the assumptions.
 - Migrations: leaf nodes first, core last. Rollback before cutover.

@@ -52,21 +52,25 @@ Evidence first, then the question. Let them reach the conclusion.
 
 ## Artifact
 
-**`reality.md`** - append an assumptions section:
+**`assumptions.md`** - this IS the register (create if land did not). Keep one live table; do not only bury results in `reality.md`:
+
 ```markdown
-## Assumptions audited - <date>
-| # | Assumption | Classification | Validation | Result | Impact |
-|---|-----------|---------------|------------|--------|--------|
-| 1 | API is the bottleneck | CRITICAL | p95 instrumentation | DISPROVED - 80% DB | Approach changes from API rewrite to query optimisation |
-| 2 | Team will adopt new tool | LOAD-BEARING | 3 individual interviews | CONFIRMED - 2/3 enthusiastic | Proceed with adoption plan |
-| 3 | Data clean enough for ML | CRITICAL | 200-record sample | PARTIAL - 12% null rate on key field | Data cleaning task added to plan |
+| # | Assumption | Blast radius | How we test | Status | Evidence |
+|---|------------|--------------|-------------|--------|----------|
+| 1 | API is the bottleneck | CRITICAL | p95 instrumentation 24h | DISPROVED | 80% wait in DB layer (Day N) |
+| 2 | Team will adopt new tool | LOAD-BEARING | 3 individual interviews | CONFIRMED | 2/3 describe a use case unprompted |
+| 3 | Data clean enough for ML | CRITICAL | 200-record sample | PARTIAL → OPEN follow-up | 12% nulls on key field; cleaning task added |
 ```
 
-**`decisions.md`** - if an assumption was disproved and the approach changed: what shifted, why, the evidence.
+Status values: `OPEN` · `TESTING` · `CONFIRMED` · `DISPROVED` · `PARKED`. A CRITICAL row still `OPEN` blocks plan.
+
+**`reality.md`** - short pointer only: which assumptions changed the approach and the implication for build.
+
+**`decisions.md`** - if an assumption was disproved and the approach changed: what shifted, why, the evidence, same day.
 
 ## Checkpoint
 
-Tell the FDE: how many assumptions extracted, how many critical, which ones were tested, which changed the direction. If a critical assumption is disproved: recommend the next move (rescope, pivot, or the conversation with the sponsor) before the FDE asks.
+Tell the FDE: how many assumptions extracted, how many critical, which ones were tested, which changed the direction. If a critical assumption is disproved: recommend the next move (rescope, pivot, or the conversation with the sponsor) before the FDE asks. If any CRITICAL remains OPEN: do not route to plan.
 
 ## Principles
 
