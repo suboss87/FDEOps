@@ -306,3 +306,24 @@ test('FDEOPS_ENGAGEMENTS_ROOT isolates init from the default home tree', () => {
   assert.equal(fs.existsSync(path.join(altRoot, 'isolated', '.fde', 'context.md')), true)
   assert.equal(fs.existsSync(path.join(sandbox.home, 'fde-engagements', 'isolated')), false)
 })
+
+test('resume bounds a long context.md and survives <private> redaction (anchor not stripped)', () => {
+  const sandbox = makeSandbox('resume-bound')
+  runFde(sandbox, ['resume', '--init', 'boundy'])
+  const eng = engagementPath(sandbox, 'boundy')
+  const lines = ['# Context']
+  for (let i = 1; i <= 40; i++) lines.push(`HEAD curated state line ${i}`)
+  lines.push('<!-- fdeops auto-capture -->')
+  lines.push('## Session end - 2026-07-01 09:00')
+  for (let i = 1; i <= 150; i++) lines.push(`OLD session log line ${i}`)
+  lines.push('RECENT tail marker Z')
+  fs.writeFileSync(path.join(eng, 'context.md'), lines.join('\n') + '\n')
+
+  const r = runFde(sandbox, ['resume'])
+  assert.equal(r.status, 0, r.stderr)
+  // the bounded view must actually bound (readClean strips the <!-- --> anchor,
+  // so this only works if resumeView anchors on the "## Session end" heading)
+  assert.match(r.stdout, /lines of earlier session log hidden/, 'long context must be bounded')
+  assert.match(r.stdout, /RECENT tail marker Z/, 'the recent tail must still show')
+  assert.doesNotMatch(r.stdout, /OLD session log line 5\b/, 'the old middle must be hidden, not dumped')
+})

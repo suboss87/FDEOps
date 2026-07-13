@@ -126,7 +126,10 @@ bounded_context() {
   total=$(wc -l < "$f" 2>/dev/null | tr -d ' ')
   [ -z "$total" ] && { cat "$f"; return; }
   if [ "$total" -le 160 ]; then cat "$f"; return; fi
-  head_end=$(grep -n -m1 'fdeops auto-capture' "$f" 2>/dev/null | cut -d: -f1)
+  # Anchor on the "## Session end" heading, matching resumeView() in bin/fde.js.
+  # The JS path reads via readClean (strips HTML comments), so both sides must
+  # anchor on a marker that survives redaction - the heading, not the comment.
+  head_end=$(grep -n -m1 '^## Session end' "$f" 2>/dev/null | cut -d: -f1)
   if [ -n "$head_end" ]; then head_end=$((head_end - 1)); else head_end=120; fi
   [ "$head_end" -gt 120 ] && head_end=120
   [ "$head_end" -lt 0 ] && head_end=0
