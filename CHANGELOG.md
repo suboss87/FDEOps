@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.8.2 — 2026-07-14
+
+Filesystem last-mile hardenings from brutal edge-case report v2.
+
+### Fixed
+- **Human fs errors** — permission denied / disk full / lock failures print one line and exit 1; no Node stack dumps on the field path.
+- **Atomic `resume --init`** — new engagements build in a staging dir and rename into place; partial failures clean up instead of leaving a half-built tree.
+- **Symlink write guard** — `lstat` refuses appends/writes when a memory file is a symlink (would escape the engagement tree).
+
 ## 3.8.1 — 2026-07-14
 
 Field edge-case follow-ups from live multi-client / hostile-handoff review.

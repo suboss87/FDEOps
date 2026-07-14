@@ -489,3 +489,46 @@ test('corrupted stakeholders.md does not default to green', () => {
   assert.match(status.stdout, /memory unreadable/i)
   assert.doesNotMatch(status.stdout, /\[green\s*\]\s*wreck/)
 })
+
+test('write through a symlinked memory file is refused', () => {
+  const sandbox = makeSandbox('symlink-write')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'linkco']).status, 0)
+  const eng = engagementPath(sandbox, 'linkco')
+  const outside = path.join(sandbox.dir, 'outside-decisions.md')
+  fs.writeFileSync(outside, 'OUTSIDE\n')
+  const decisions = path.join(eng, 'decisions.md')
+  fs.unlinkSync(decisions)
+  fs.symlinkSync(outside, decisions)
+  const log = runFde(sandbox, ['log', 'decision', 'must not escape'])
+  assert.notEqual(log.status, 0)
+  assert.match(log.stderr, /symlink/i)
+  assert.doesNotMatch(log.stderr, /writeFileUtf8|at Object/)
+  assert.equal(fs.readFileSync(outside, 'utf8'), 'OUTSIDE\n')
+})
+
+test('read-only engagement dir fails with a human message, not a stack dump', () => {
+  const sandbox = makeSandbox('readonly-eng')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'lockco']).status, 0)
+  const eng = engagementPath(sandbox, 'lockco')
+  fs.chmodSync(eng, 0o555)
+  let log
+  try {
+    log = runFde(sandbox, ['log', 'decision', 'blocked by perms'])
+  } finally {
+    fs.chmodSync(eng, 0o755)
+  }
+  assert.notEqual(log.status, 0)
+  assert.match(log.stderr, /permission denied|read-only|locked down/i)
+  assert.doesNotMatch(log.stderr, /writeFileUtf8|at Object\.|node:fs/)
+})
+
+test('resume --init creates a complete engagement (atomic path)', () => {
+  const sandbox = makeSandbox('atomic-init')
+  const init = runFde(sandbox, ['resume', '--init', 'freshco'])
+  assert.equal(init.status, 0, init.stderr)
+  const eng = engagementPath(sandbox, 'freshco')
+  for (const f of ['context.md', 'decisions.md', 'stakeholders.md', 'brief.md']) {
+    assert.equal(fs.existsSync(path.join(eng, f)), true, `missing ${f}`)
+  }
+  assert.equal(fs.existsSync(path.join(sandbox.home, 'fde-engagements', '.init-freshco-' + process.pid)), false)
+})
