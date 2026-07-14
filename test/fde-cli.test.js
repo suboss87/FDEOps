@@ -532,3 +532,45 @@ test('resume --init creates a complete engagement (atomic path)', () => {
   }
   assert.equal(fs.existsSync(path.join(sandbox.home, 'fde-engagements', '.init-freshco-' + process.pid)), false)
 })
+
+test('worst-of-stakeholder trust: Randy green cannot clear Denise amber', () => {
+  const sandbox = makeSandbox('worst-trust')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'haulline']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Denise unresponsive after board prep', '--signal', 'amber']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Randy opened the sheet and is helping', '--signal', 'green']).status, 0)
+  const status = runFde(sandbox, ['status'])
+  assert.equal(status.status, 0, status.stderr)
+  assert.match(status.stdout, /\[amber\s*\]\s*haulline/)
+  assert.match(status.stdout, /Denise unresponsive/)
+  assert.doesNotMatch(status.stdout, /\[green\s*\]\s*haulline/)
+})
+
+test('resume leads with triage; log phase advances portfolio phase', () => {
+  const sandbox = makeSandbox('resume-triage')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'monday']).status, 0)
+  const eng = engagementPath(sandbox, 'monday')
+  fs.writeFileSync(path.join(eng, 'context.md'), [
+    '# Engagement context',
+    '**Phase:** unset',
+    '',
+    '## Next action',
+    '- confirm Denise channel before Thursday demo',
+    '',
+  ].join('\n'))
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Denise cooling', '--signal', 'amber']).status, 0)
+
+  const resume = runFde(sandbox, ['resume'])
+  assert.equal(resume.status, 0, resume.stderr)
+  const head = resume.stdout.split('ENGAGEMENT:')[0]
+  assert.match(head, /TRIAGE/)
+  assert.match(head, /amber/)
+  assert.match(head, /Denise cooling/)
+  assert.match(head, /confirm Denise channel/)
+
+  const before = runFde(sandbox, ['status'])
+  assert.match(before.stdout, /phase:unset/)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'discover']).status, 0)
+  const after = runFde(sandbox, ['status'])
+  assert.match(after.stdout, /phase:discover/)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /\*\*Phase:\*\*\s*discover/)
+})
