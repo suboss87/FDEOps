@@ -18,7 +18,15 @@ When the FDE types **`@fde`** or describes an engagement situation (new customer
 
 Read and write engagement files under the workspace's bound engagement: run `fde resume` to resolve it (binding created once with `fde resume --init <name>`; default `~/fde-engagements/<name>/.fde/`). `FDEOPS_ENGAGEMENT` (expand `~`) overrides when set. Use `./.fde/` only when the engagement approves it and it is gitignored.
 
-On entry, run `fde resume` (fallback `node ~/.claude/fdeops/fde.js resume`) to load `context.md`. Use the CLI for deterministic work - `fde scan | log | receipts | status | dashboard` - instead of improvising shell.
+**On every session entry (before other work):** run `fde triage` (fallback `node ~/.claude/fdeops/fde.js triage`, then `fde resume`). Lead with that TRIAGE block — trust, phase, open risks, next action, record owner/hash. Do not invent stakeholders or status.
+
+Use the CLI for deterministic work - `fde scan | log | debrief | prep | doctor | receipts | status | dashboard` - instead of improvising shell.
+
+### Meeting → memory loop
+- Messy notes: `fde debrief --smart notes.md` → review `.debrief-propose` → `fde debrief --apply`
+- Prefixed notes: `fde debrief notes.md` (or pipe stdin)
+- Walk-in: `fde prep "Denise sync"`
+- Nothing enters the record unreviewed when using `--smart` (confirm with `--apply`)
 
 ## Voice
 

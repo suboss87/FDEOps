@@ -142,9 +142,13 @@ Deterministic, offline, zero tokens - the skill adds judgment on top:
 
 ```bash
 fde scan                          # day-1 recon + ASK ON DAY 1 questions (works via npx)
-fde resume                        # load this workspace's engagement
-fde resume --init <client>        # THE setup step: create + bind an engagement
-fde debrief notes.md              # route meeting notes into memory (also reads stdin)
+fde resume                        # TRIAGE + load this workspace's engagement
+fde resume --init <client>        # THE setup step: create + bind + git-version .fde/
+fde triage                        # TRIAGE only (session hooks / Cursor entry)
+fde debrief notes.md              # route prefixed meeting notes (also reads stdin)
+fde debrief --smart notes.md      # propose routing from messy notes → --apply to confirm
+fde prep "Denise sync"            # grounded walk-in brief from existing memory
+fde doctor                        # lint: stale signals, unset phase, gaps
 fde log decision "descope agreed with Kowalczyk"
 fde log contact "Denise gone quiet" --signal amber
 fde receipts <term>               # dated search; no hit = a gap in the record, not proof of absence
@@ -154,7 +158,7 @@ fde dashboard                     # current engagement fieldbook (add --all for 
 
 Optional: `export FDEOPS_ENGAGEMENTS_ROOT=~/path/to/engagements` to isolate init/status/dashboard from the default `~/fde-engagements`.
 
-The latest dated `[signal:...]` token per stakeholder drives the trust column in `status` and `dashboard`; signals older than 21 days show as stale.
+Each `.fde/` is a local git repo (no remote, no telemetry) — dated entries carry an author tag; every write commits so receipts are tamper-evident. Worst-of `[signal:...]` per stakeholder drives trust; signals older than 21 days show as stale.
 
 <p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
 
