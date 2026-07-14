@@ -5,13 +5,13 @@
     "url": "https://github.com/suboss87"
   },
   "metadata": {
-    "description": "Second brain for Forward Deployed Engineers - one @fde skill, phase methods that do the work, self-writing engagement memory."
+    "description": "Second brain for Forward Deployed Engineers - one @fde skill, phase methods, and local .fde/ engagement memory."
   },
   "plugins": [
     {
       "name": "fdeops",
       "source": "./",
-      "description": "Second brain for Forward Deployed Engineers: one @fde entry point that routes by situation (land, discover, build, rescue, ship, close), does the phase work, and writes per-customer engagement memory itself. Healthcare, fintech, and government overlays included."
+      "description": "Second brain for Forward Deployed Engineers: one @fde entry point that routes by situation (land, discover, build, rescue, ship, close), does the phase work, and keeps per-customer engagement memory in local .fde/ files. Healthcare, fintech, and government overlays included."
     }
   ]
 }
