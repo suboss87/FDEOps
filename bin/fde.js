@@ -752,26 +752,12 @@ function colIndex(headers, rx) { return headers.findIndex(h => rx.test(h)) }
 // a person and a bullet that happens to name them. No token match -> keyword
 // heuristic on the stance/signal cell. No table at all -> empty, never
 // fabricated.
-function extractStakeholders(eng) {
+function parseSignalHistoryEntries(eng) {
+  // Format-agnostic on token position: CLI writes "[date] [signal:x] text";
+  // debrief may put the token at the end. Author tags [@x] are stripped for matching.
   const md = readClean(eng, 'stakeholders.md')
-  const table = parseMdTable(md)
-  if (!table) return []
-  const { headers, rows } = table
-  const nameIdx = colIndex(headers, /name/i)
-  if (nameIdx === -1) return []
-  const roleIdx = colIndex(headers, /^role$/i)
-  const stanceIdx = colIndex(headers, /stance|signal/i)
-  const notesIdx = colIndex(headers, /notes?/i)
-
-  const history = []
-  // Format-agnostic on token position: `fde log contact --signal` writes
-  // "[date] [signal:x] text" (token right after the date), but `fde debrief`
-  // appends the token at the END of whatever the agent wrote per the skill's
-  // own contact: convention - "[date] text [signal:x]". Both are subject-first
-  // once the token is stripped, so match the token anywhere on the line rather
-  // than requiring it immediately after the date; a debrief-written signal was
-  // silently invisible to per-stakeholder matching before this.
   const histText = sectionBody(md, 'Signal history') + '\n' + readEng(eng, SIGNAL_LEDGER)
+  const history = []
   histText.split('\n').forEach(l => {
     const dm = l.trim().match(/^-\s*\[(\d{4}-\d{2}-\d{2})\]\s*(.*)$/i)
     if (!dm) return
@@ -783,61 +769,109 @@ function extractStakeholders(eng) {
       .trim()
     history.push({ date: dm[1], signal: sm[1].toLowerCase(), text })
   })
-
-  return rows.map(cs => {
-    const name = (cs[nameIdx] || '').trim()
-    if (!name) return null
-    const role = roleIdx !== -1 ? (cs[roleIdx] || '').trim() : ''
-    const stance = stanceIdx !== -1 ? (cs[stanceIdx] || '').trim() : ''
-    const note = notesIdx !== -1 ? (cs[notesIdx] || '').trim() : ''
-
-    // naive match fragment: first real word of the name, skipping honorifics,
-    // so "Dr. Anand Mehta" matches signal-history prose on "Anand", not "Dr."
-    const words = name.replace(/\([^)]*\)/g, '').split(/\s+/).filter(w => w && !/^(dr|mr|mrs|ms)\.?$/i.test(w))
-    const frag = (words[0] || '').replace(/[^a-z0-9]/gi, '')
-
-    // Match the SUBJECT of the entry, not anyone it mentions in passing -
-    // "Renata declined... told Sam..." is Renata's signal, not Sam's, even
-    // though "Sam" appears in the text. Every real signal-history line in
-    // this codebase's own examples is written subject-first ("Denise skipped
-    // Thursday demo", "Randy opened the sheet..."), so requiring the name at
-    // the START of the entry (not .includes() anywhere in it) is the fix,
-    // not a stricter rule invented for its own sake.
-    let signal = null, matchedDate = null
-    if (frag.length >= 3) {
-      for (const h of history) {
-        if (h.text.trim().toLowerCase().startsWith(frag.toLowerCase()) && (!matchedDate || h.date >= matchedDate)) {
-          signal = h.signal; matchedDate = h.date
-        }
-      }
-    }
-    if (!signal) {
-      const s = stance.toLowerCase()
-      signal = /champion|steady|\bgreen\b/.test(s) ? 'green'
-        : /resistant|hostile|blocker|\bred\b/.test(s) ? 'red'
-        : 'amber' // neutral / cooling / warming / not met / unknown / no signal cell at all
-    }
-    return { name, role, note, signal }
-  }).filter(Boolean)
+  return history
 }
 
-// Risks: same table parser, matched on a "Risk" column. Real files carry no
-// severity field, so severity is a coarse high/med keyword guess on the risk
-// text itself - a guess, same honesty as computeSignals()'s trust fallback,
-// not a claim of real triage. "## Retired" rows are prose bullets, not table
-// rows, so the table parser above already stops before them - they feed the
-// log instead (see extractLog).
+function displayNameFromSignalText(text) {
+  const t = String(text).trim()
+  const proper = t.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/)
+  if (proper) return proper[1]
+  const word = t.split(/\s+/).find(w => w && !/^(dr|mr|mrs|ms)\.?$/i.test(w))
+  return word ? word.replace(/[^A-Za-z0-9.-]/g, '') : t.slice(0, 24)
+}
+
+// Stakeholders for prep/dashboard: table rows PLUS people who only appear in
+// Signal history / .signal-ledger (the common log-shaped path after debrief).
+function extractStakeholders(eng) {
+  const md = readClean(eng, 'stakeholders.md')
+  const table = parseMdTable(md)
+  const history = parseSignalHistoryEntries(eng)
+  const byKey = new Map()
+
+  if (table) {
+    const { headers, rows } = table
+    const nameIdx = colIndex(headers, /name|who/i)
+    if (nameIdx !== -1) {
+      const roleIdx = colIndex(headers, /^role$/i)
+      const stanceIdx = colIndex(headers, /stance|signal/i)
+      const notesIdx = colIndex(headers, /notes?/i)
+      for (const cs of rows) {
+        const name = (cs[nameIdx] || '').trim()
+        if (!name) continue
+        const role = roleIdx !== -1 ? (cs[roleIdx] || '').trim() : ''
+        const stance = stanceIdx !== -1 ? (cs[stanceIdx] || '').trim() : ''
+        const note = notesIdx !== -1 ? (cs[notesIdx] || '').trim() : ''
+        const words = name.replace(/\([^)]*\)/g, '').split(/\s+/).filter(w => w && !/^(dr|mr|mrs|ms)\.?$/i.test(w))
+        const frag = (words[0] || '').replace(/[^a-z0-9]/gi, '')
+        let signal = null, matchedDate = null
+        if (frag.length >= 3) {
+          for (const h of history) {
+            if (h.text.trim().toLowerCase().startsWith(frag.toLowerCase()) && (!matchedDate || h.date >= matchedDate)) {
+              signal = h.signal; matchedDate = h.date
+            }
+          }
+        }
+        if (!signal) {
+          const s = stance.toLowerCase()
+          signal = /champion|steady|\bgreen\b/.test(s) ? 'green'
+            : /resistant|hostile|blocker|\bred\b/.test(s) ? 'red'
+            : 'amber'
+        }
+        byKey.set(signalSubjectKey(name), { name, role, note, signal, source: 'table' })
+      }
+    }
+  }
+
+  // Latest signal per subject; fill gaps when the FDE never filled the table.
+  const latest = new Map()
+  for (const h of history) {
+    const key = signalSubjectKey(h.text)
+    const prev = latest.get(key)
+    if (!prev || h.date >= prev.date) latest.set(key, h)
+  }
+  for (const [key, h] of latest) {
+    if (byKey.has(key)) {
+      const cur = byKey.get(key)
+      byKey.set(key, { ...cur, signal: h.signal, note: cur.note || h.text.slice(0, 80) })
+    } else {
+      byKey.set(key, {
+        name: displayNameFromSignalText(h.text),
+        role: '',
+        note: h.text.slice(0, 80),
+        signal: h.signal,
+        source: 'signal',
+      })
+    }
+  }
+  return [...byKey.values()]
+}
+
+// Risks: table rows AND dated CLI/debrief bullets. Empty template cells ignored.
 function extractRisks(eng) {
   const md = readClean(eng, 'risks.md')
-  const table = parseMdTable(md)
-  if (!table) return []
-  const riskIdx = colIndex(table.headers, /^risk$/i)
-  if (riskIdx === -1) return []
-  const HIGH = /critical|blocker|exposure|breach|urgent|at risk|at stake|\brace\b/i
-  return table.rows.map(cs => {
-    const text = (cs[riskIdx] || '').trim()
-    return text ? { text, severity: HIGH.test(text) ? 'high' : 'med' } : null
-  }).filter(Boolean)
+  const body = md.split(/^#{1,6}\s+Retired\b/im)[0] || md
+  const HIGH = /critical|blocker|exposure|breach|urgent|at risk|at stake|\brace\b|rollback|no test/i
+  const out = []
+  const seen = new Set()
+  const push = (text) => {
+    const t = String(text || '').trim()
+    if (!t || seen.has(t.toLowerCase())) return
+    seen.add(t.toLowerCase())
+    out.push({ text: t, severity: HIGH.test(t) ? 'high' : 'med' })
+  }
+  const table = parseMdTable(body)
+  if (table) {
+    const riskIdx = colIndex(table.headers, /^risk$/i)
+    if (riskIdx !== -1) {
+      for (const cs of table.rows) push(cs[riskIdx])
+    }
+  }
+  for (const raw of body.split('\n')) {
+    const t = raw.trim()
+    const m = t.match(/^-\s*\[\d{4}-\d{2}-\d{2}\]\s*(?:\[@[^\]]+\]\s*)?(.*)$/)
+    if (m) push(m[1])
+  }
+  return out
 }
 
 // Best-effort scan for "before -> after" metric callouts in delivery/decisions
@@ -1219,31 +1253,74 @@ function setContextPhase(eng, phase) {
 // anywhere in the text - preserved verbatim so computeSignals can trust it.
 // --smart: heuristic propose from messy prose (confirm with --apply). No network.
 // --dry-run prints the routing without writing anything.
+function inferContactSignal(text) {
+  const t = String(text)
+  if (/\b(hostile|blocker|fired|refused|walked out|\bred\b|escalat(?:ed|ion) to (?:cto|legal))\b/i.test(t)) return 'red'
+  if (/\b(gone quiet|unresponsive|skipped|cooling|seemed cold|no-show|missed the|amber)\b/i.test(t)) return 'amber'
+  if (/\b(champion|helping|opened the|warming|supportive|on board|\bgreen\b|saw demo)\b/i.test(t)) return 'green'
+  return ''
+}
+
+function looksLikePersonLine(text) {
+  // "Denise …" / "Randy opened…" — capitalized subject + field verb.
+  return /^[A-Z][a-z]{1,20}\b/.test(text) &&
+    /\b(helping|quiet|skipped|said|will|opened|resistant|champion|warm|cold|unresponsive|demo|sheet|slack)\b/i.test(text)
+}
+
 function smartProposeText(input) {
   const out = []
   for (const raw of input.split('\n')) {
     const line = raw.trim()
     if (!line) continue
-    const bare = line
+    let bare = line
       .replace(/^[-*+]\s+/, '')
-      .replace(/^\*\*(decision|risk|delivery|contact):?\*\*:?\s*/i, '$1: ')
-    if (/^(decision|risk|delivery|contact):\s*/i.test(bare)) {
-      out.push(bare.replace(/^(decision|risk|delivery|contact):\s*/i, (m, t) => `${t.toLowerCase()}: `))
+      .replace(/^\*\*(decision|risk|delivery|contact|next):?\*\*:?\s*/i, '$1: ')
+    if (/^(decision|risk|delivery|contact|next):\s*/i.test(bare)) {
+      let routed = bare.replace(/^(decision|risk|delivery|contact|next):\s*/i, (m, t) => `${t.toLowerCase()}: `)
+      if (/^contact:/i.test(routed) && !/\[signal:(red|amber|green)\]/i.test(routed)) {
+        const sig = inferContactSignal(routed)
+        if (sig) routed = routed.replace(/\s*$/, ` [signal:${sig}]`)
+      }
+      out.push(routed)
       continue
     }
-    if (/\b(we (decided|agreed)|decision:|descope|agreed to|agreement was)\b/i.test(bare)) {
+    if (/^(next action|follow-?ups?|action items?|todo):\s*/i.test(bare) ||
+        /\b(next action|walk in with|follow up with)\b/i.test(bare)) {
+      const next = bare.replace(/^(next action|follow-?ups?|action items?|todo):\s*/i, '').trim()
+      out.push(`next: ${next}`)
+      continue
+    }
+    if (/\b(we (decided|agreed)|decision:|descope|agreed to|agreement was|freeze scope)\b/i.test(bare)) {
       out.push(`decision: ${bare}`)
-    } else if (/\b(risk|blocker|concern|at risk|worried|exposure|mitigation)\b/i.test(bare)) {
+    } else if (/\b(open question|who signs|unclear who|unresolved)\b/i.test(bare)) {
+      out.push(`risk: ${bare}`)
+    } else if (/\b(risk|blocker|concern|at risk|worried|exposure|mitigation|no tested|no rollback)\b/i.test(bare)) {
       out.push(`risk: ${bare}`)
     } else if (/\b(shipped|delivered|deployed|merged PR|rolled out|went live)\b/i.test(bare)) {
       out.push(`delivery: ${bare}`)
-    } else if (/\b(gone quiet|champion|resistant|unresponsive|skipped|cooling|signal:)\b/i.test(bare)) {
-      out.push(`contact: ${bare}`)
+    } else if (looksLikePersonLine(bare) ||
+               /\b(gone quiet|champion|resistant|unresponsive|skipped|cooling|signal:)\b/i.test(bare)) {
+      const sig = inferContactSignal(bare)
+      out.push(sig ? `contact: ${bare} [signal:${sig}]` : `contact: ${bare}`)
     } else {
       out.push(bare)
     }
   }
   return out.join('\n') + (out.length ? '\n' : '')
+}
+
+function setNextAction(eng, text) {
+  ensureMemoryGit(eng)
+  const bullet = `- ${String(text).replace(/^[-*]\s+/, '').trim()}`
+  const p = path.join(eng, 'context.md')
+  let md = readEng(eng, 'context.md')
+  if (!md) md = '# Engagement context\n\n'
+  if (/^##\s+Next action\b/im.test(md)) {
+    md = md.replace(/(^##\s+Next action\b[^\n]*\n)([\s\S]*?)(?=^##\s|\s*$)/im, `$1\n${bullet}\n\n`)
+  } else {
+    md = md.replace(/\n*$/, `\n\n## Next action\n\n${bullet}\n`)
+  }
+  withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
 }
 
 function readDebriefInput(args) {
@@ -1276,17 +1353,24 @@ function readDebriefInput(args) {
 function routeDebriefInput(eng, input, { dry, force }) {
   const d = new Date()
   const date = d.toISOString().slice(0, 10)
-  const counts = { decision: 0, risk: 0, delivery: 0, contact: 0 }
+  const counts = { decision: 0, risk: 0, delivery: 0, contact: 0, next: 0 }
   const ctxLines = []
+  let nextAction = ''
   ensureMemoryGit(eng)
   for (const raw of input.split('\n')) {
     let line = raw.trim()
     if (!line) continue
-    const bare = line.replace(/^[-*+]\s+/, '').replace(/^\*\*(decision|risk|delivery|contact):?\*\*:?\s*/i, '$1: ')
-    const m = bare.match(/^(decision|risk|delivery|contact):\s*(.+)$/i)
+    const bare = line.replace(/^[-*+]\s+/, '').replace(/^\*\*(decision|risk|delivery|contact|next):?\*\*:?\s*/i, '$1: ')
+    const m = bare.match(/^(decision|risk|delivery|contact|next):\s*(.+)$/i)
     if (m) {
       const type = m[1].toLowerCase()
       let body = m[2]
+      if (type === 'next') {
+        if (dry) console.log(`→ context.md ## Next action  - ${body}`)
+        else nextAction = body
+        counts.next++
+        continue
+      }
       const sigInline = (body.match(/\[signal:(red|amber|green)\]/i) || [])[1]
       if (sigInline) body = body.replace(/\[signal:(red|amber|green)\]/i, '').trim()
       const hit = findSecretHit(body)
@@ -1306,12 +1390,13 @@ function routeDebriefInput(eng, input, { dry, force }) {
       ctxLines.push(line)
     }
   }
+  if (nextAction && !dry) setNextAction(eng, nextAction)
   if (ctxLines.length) {
     const stamp = `${date} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     if (dry) ctxLines.forEach(l => console.log(`→ context.md  - ${l}`))
     else lockedAppendFile(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${ctxLines.map(l => `- ${l}`).join('\n')}\n`)
   }
-  return { counts, ctxLines, date }
+  return { counts, ctxLines, date, nextAction }
 }
 
 function cmdDebrief(args) {
@@ -1363,9 +1448,11 @@ function cmdDebrief(args) {
     try { fs.unlinkSync(path.join(eng, DEBRIEF_PROPOSE)) } catch (_) {}
     if (hash) console.log(`memory @${hash}`)
   }
-  const plural = { decision: 'decisions', risk: 'risks', delivery: 'deliveries', contact: 'contacts' }
+  const plural = {
+    decision: 'decisions', risk: 'risks', delivery: 'deliveries', contact: 'contacts', next: 'next actions',
+  }
   const parts = Object.keys(counts).filter(t => counts[t])
-    .map(t => `${counts[t]} ${counts[t] === 1 ? t : plural[t]}`)
+    .map(t => `${counts[t]} ${counts[t] === 1 ? (t === 'next' ? 'next action' : t) : plural[t]}`)
   if (ctxLines.length) parts.push(`${ctxLines.length} context line${ctxLines.length === 1 ? '' : 's'}`)
   const verb = dry ? 'debrief would route' : 'debrief routed'
   console.log(parts.length ? `${verb} → ${parts.join(', ')}` : 'debrief empty - nothing routed')
@@ -1524,13 +1611,13 @@ function cmdPrep(args) {
   if (owner || head) console.log(`  record: ${owner ? owner.email : '?'}${head ? `  @${head}` : ''}`)
 
   const people = extractStakeholders(eng).slice(0, 8)
-  console.log('\nStakeholders')
-  if (!people.length) console.log('  (none in table yet)')
+  console.log('\nStakeholders (table + signal history)')
+  if (!people.length) console.log('  (none yet - log contacts with --signal)')
   else people.forEach(p => console.log(`  [${p.signal}] ${p.name}${p.role ? ` — ${p.role}` : ''}${p.note ? ` · ${p.note.slice(0, 60)}` : ''}`))
 
   const risks = extractRisks(eng).slice(0, 5)
-  console.log('\nOpen risks (from risks.md table)')
-  if (!risks.length) console.log('  (none parsed)')
+  console.log('\nOpen risks (table + dated bullets)')
+  if (!risks.length) console.log('  (none logged)')
   else risks.forEach(r => console.log(`  [${r.severity}] ${r.text.slice(0, 100)}`))
 
   const success = firstLine(readClean(eng, 'success.md'), 160)
