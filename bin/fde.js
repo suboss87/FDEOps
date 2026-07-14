@@ -416,31 +416,82 @@ function stakeholdersMemoryHealth(eng) {
   return { ok: true, warn: '' }
 }
 
+// Subject key for a signal-history line - first real name word (same spirit as
+// extractStakeholders). A green about Randy must not clear an amber about Denise.
+function signalSubjectKey(text) {
+  const words = String(text).replace(/\([^)]*\)/g, '').split(/\s+/).filter(w => w && !/^(dr|mr|mrs|ms)\.?$/i.test(w))
+  const frag = (words[0] || '').replace(/[^a-z0-9]/gi, '').toLowerCase()
+  return frag.length >= 3 ? frag : ('anon:' + String(text).slice(0, 48).toLowerCase())
+}
+
+function parsePhase(ctx) {
+  // Template ships "**Phase:** land | discover | ..." - that is UNSET, not land.
+  const m = ctx.match(/\*\*Phase:\*\*\s*(.+)/i) || ctx.match(/^phase[:\s*]+(.+)$/im)
+  if (!m) return '?'
+  const raw = m[1].replace(/\*/g, '').trim()
+  if (!raw || /\|/.test(raw) || /^unset$/i.test(raw) || /^[\[(]/.test(raw)) return '?'
+  const one = raw.toLowerCase().match(/^(land|discover|plan|build|ship|close)\b/)
+  return one ? one[1] : '?'
+}
+
+function countOpenRisks(eng) {
+  const md = readClean(eng, 'risks.md')
+  const body = md.split(/^#{1,6}\s+Retired\b/im)[0] || md
+  let n = 0
+  for (const raw of body.split('\n')) {
+    const t = raw.trim()
+    if (!t || t.startsWith('<!--') || /^#{1,6}\s/.test(t)) continue
+    if (/risk\s*\|\s*status|mitigation/i.test(t) || /^\|?[\s|:-]+$/.test(t)) continue
+    if (/^[-*]/.test(t) || (/^\|/.test(t) && t.length > 12)) n++
+  }
+  return n
+}
+
+function nextActionLine(ctx) {
+  const body = sectionBody(ctx, 'Next action')
+  for (const raw of body.split('\n')) {
+    const t = raw.trim().replace(/^[-*]\s+/, '')
+    if (t) return t.slice(0, 120)
+  }
+  return ''
+}
+
 function computeSignals(eng) {
   // readClean, not readEng: status/dashboard echo topRisk and stakeholder lines
   // to the terminal and the rendered HTML - a <private> risk must never surface.
   const ctx = readClean(eng, 'context.md'); const stake = readClean(eng, 'stakeholders.md'); const risks = readClean(eng, 'risks.md')
   // Prefer structured tokens from stakeholders + CLI ledger (ledger survives wipes)
   const signalText = stake + '\n' + readClean(eng, SIGNAL_LEDGER)
-  const phase = (ctx.match(/phase[:* ]+\**([a-z-]+)/i) || [])[1] || '?'
-  let latest = null
+  const phase = parsePhase(ctx)
+  // Latest signal PER stakeholder, then worst-of those actives.
+  // Global "latest wins" let a green from person B hide a sponsor crisis on A.
+  const byPerson = new Map()
   for (const l of signalText.split('\n')) {
     const sm = l.match(/\[signal:(red|amber|green)\]/i)
     if (!sm) continue
     const date = (l.match(/\[(\d{4}-\d{2}-\d{2})\]/) || [])[1] || ''
     const text = l.replace(/^\s*-\s*/, '').replace(/\[signal:(red|amber|green)\]/i, '').replace(/\[\d{4}-\d{2}-\d{2}\]/, '').trim()
-    if (!latest || date >= latest.date) latest = { date, sig: sm[1].toLowerCase(), text }
+    const key = signalSubjectKey(text)
+    const prev = byPerson.get(key)
+    if (!prev || date >= prev.date) byPerson.set(key, { date, sig: sm[1].toLowerCase(), text })
+  }
+  const RANK = { red: 0, amber: 1, green: 2 }
+  let worst = null
+  for (const s of byPerson.values()) {
+    if (!worst || RANK[s.sig] < RANK[worst.sig] || (RANK[s.sig] === RANK[worst.sig] && s.date >= worst.date)) {
+      worst = s
+    }
   }
   const mem = stakeholdersMemoryHealth(eng)
   let trust, signalAge = null, stale = false, trustReason = ''
-  if (!mem.ok && !latest) {
+  if (!mem.ok && !worst) {
     trust = 'amber'
     trustReason = mem.warn
-  } else if (latest) {
-    trust = latest.sig === 'red' ? 'RED' : latest.sig
-    trustReason = (latest.text || '').slice(0, 80)
-    if (latest.date) {
-      signalAge = Math.max(0, Math.floor((Date.now() - Date.parse(latest.date)) / 86400000))
+  } else if (worst) {
+    trust = worst.sig === 'red' ? 'RED' : worst.sig
+    trustReason = (worst.text || '').slice(0, 80)
+    if (worst.date) {
+      signalAge = Math.max(0, Math.floor((Date.now() - Date.parse(worst.date)) / 86400000))
       stale = signalAge > 21
     }
   } else {
@@ -455,13 +506,32 @@ function computeSignals(eng) {
   }) || '').replace(/\|/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80)
   // Prefer the trust trigger (signal / memory warn) over a random risk line when triage is not green
   const reason = (trust !== 'green' && (trustReason || mem.warn)) ? (trustReason || mem.warn) : topRisk
+  const openRisks = countOpenRisks(eng)
+  const nextAction = nextActionLine(ctx)
   let updated = 'never', ageDays = Infinity
   try {
     ageDays = Math.floor((Date.now() - fs.statSync(path.join(eng, 'context.md')).mtimeMs) / 86400000)
     updated = ageDays === 0 ? 'today' : `${ageDays}d ago`
   } catch (_) {}
-  return { phase, trust, signalAge, stale, topRisk, reason, memoryWarn: mem.warn, updated, ageDays }
+  return { phase, trust, signalAge, stale, topRisk, reason, memoryWarn: mem.warn, openRisks, nextAction, updated, ageDays }
 }
+
+function resumeTriage(eng) {
+  const s = computeSignals(eng)
+  const label = s.trust + (s.stale ? '?' : '')
+  const phase = s.phase === '?' ? 'unset' : s.phase
+  const lines = [
+    `TRIAGE  [${label.padEnd(6)}]  phase:${phase}  updated:${s.updated}  open risks:${s.openRisks}`,
+  ]
+  if (s.reason) {
+    const age = s.signalAge != null ? ` (${s.signalAge}d old${s.stale ? ', STALE - reconfirm' : ''})` : ''
+    lines.push(`  trust: ${s.reason}${age}`)
+  }
+  if (s.nextAction) lines.push(`  next: ${s.nextAction}`)
+  else lines.push('  next: (none set - add under ## Next action in context.md)')
+  return lines.join('\n')
+}
+
 
 // ---------- dashboard content extractors (best-effort, read-only) ----------
 // The fieldbook's structured widgets (stakeholders, risks, log, stats) want
@@ -867,7 +937,9 @@ function cmdResume(args) {
     console.log(`NO ENGAGEMENT for this workspace.\nexisting: ${list}\ncreate + bind one:  fde resume --init <client-name>`)
     process.exit(2)
   }
-  console.log(`ENGAGEMENT: ${eng}\n`)
+  // Monday-morning command: triage first (trust / phase / risks / next), then memory.
+  console.log(resumeTriage(eng))
+  console.log(`\nENGAGEMENT: ${eng}\n`)
   // readClean, not fs.readFileSync: this output is what an agent loads as
   // context, so it goes through the same <private> redaction as the dashboard.
   const ctx = readClean(eng, 'context.md')
@@ -945,10 +1017,23 @@ function cmdLog(args) {
     args.splice(sigIdx, 2)
   }
   const type = args[0]; const text = args.slice(1).join(' ')
-  if (!LOG_FILES[type] || !text) { console.error('usage: fde log <decision|risk|delivery|contact> <text> [--signal red|amber|green] [--force]\n       fde log --undo'); process.exit(1) }
-  if (signal && type !== 'contact') { console.error('--signal only applies to: fde log contact'); process.exit(1) }
   const eng = resolveEngagement({ forWrite: true })
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+
+  // fde log phase <land|discover|plan|build|ship|close> - advances portfolio phase
+  if (type === 'phase') {
+    const phase = (text || '').toLowerCase().trim()
+    if (!['land', 'discover', 'plan', 'build', 'ship', 'close'].includes(phase)) {
+      console.error('usage: fde log phase <land|discover|plan|build|ship|close>')
+      process.exit(1)
+    }
+    setContextPhase(eng, phase)
+    console.log(`phase → ${phase}`)
+    return
+  }
+
+  if (!LOG_FILES[type] || !text) { console.error('usage: fde log <decision|risk|delivery|contact> <text> [--signal red|amber|green] [--force]\n       fde log phase <land|discover|plan|build|ship|close>\n       fde log --undo'); process.exit(1) }
+  if (signal && type !== 'contact') { console.error('--signal only applies to: fde log contact'); process.exit(1) }
   const hit = findSecretHit(text)
   if (hit && !force) { refuseSecret('log text', hit); process.exit(1) }
   if (hit && force) console.error(`warning: logging possible ${hit} (--force)`)
@@ -957,6 +1042,23 @@ function cmdLog(args) {
   appendLogEntry(eng, type, entry)
   console.log(`logged → ${LOG_FILES[type]}${signal ? ` (signal:${signal})` : ''}`)
 }
+
+function setContextPhase(eng, phase) {
+  const p = path.join(eng, 'context.md')
+  let md = readEng(eng, 'context.md')
+  if (!md) md = '# Engagement context\n\n'
+  if (/\*\*Phase:\*\*/i.test(md)) {
+    md = md.replace(/\*\*Phase:\*\*\s*.*/i, `**Phase:** ${phase}`)
+  } else {
+    md = md.replace(/\n*$/, `\n\n**Phase:** ${phase}\n`)
+  }
+  const today = new Date().toISOString().slice(0, 10)
+  if (/\*\*Last updated:\*\*/i.test(md)) {
+    md = md.replace(/\*\*Last updated:\*\*\s*.*/i, `**Last updated:** ${today}`)
+  }
+  withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
+}
+
 
 // Meeting notes → structured memory. Deterministic routing, zero AI: lines that
 // start with decision:/risk:/delivery:/contact: (case-insensitive) go to their
@@ -1146,10 +1248,10 @@ function cmdStatus(args) {
     // "amber?" = structured signal went stale (>21d) - reconfirm before trusting it
     const label = r.trust + (r.stale ? '?' : '')
     const sig = r.signalAge != null ? `signal ${r.signalAge}d old${r.stale ? ' (STALE - reconfirm)' : ''}  ` : ''
-    console.log(`  [${label.padEnd(6)}] ${r.name.padEnd(24)} phase:${r.phase.padEnd(10)} updated:${r.updated.padEnd(8)} ${sig}${r.reason}`)
+    console.log(`  [${label.padEnd(6)}] ${r.name.padEnd(24)} phase:${(r.phase === '?' ? 'unset' : r.phase).padEnd(10)} updated:${r.updated.padEnd(8)} ${sig}${r.reason}`)
   }
   if (!all) console.log('\n(current engagement only - pass --all for the full portfolio)')
-  console.log('\ntrust: latest [signal:x] token in stakeholders.md wins (fde log contact --signal, fde debrief); keyword heuristic only when none exists - verify before acting.')
+  console.log('\ntrust: worst active [signal:x] across stakeholders (latest per person) - a green from B cannot clear an amber/red on A; keyword heuristic only when none exists.')
 }
 
 // ---------- dashboard (deterministic markdown → one local HTML) ----------
@@ -1920,6 +2022,7 @@ function printUsage() {
   fde resume --init <name> create + bind engagement for this workspace (rebind replaces)
   fde resume --bind        show what this workspace is bound to, and what resolves
   fde log <type> <text>    append decision|risk|delivery|contact (contact takes --signal red|amber|green; --force to allow secret-like text)
+  fde log phase <phase>    set engagement phase (land|discover|plan|build|ship|close)
   fde log --undo           remove the last CLI log/debrief entry from memory
   fde debrief [file]       meeting notes → memory: decision:/risk:/delivery:/contact: lines route, rest → context.md (stdin if no file; --dry-run; --force)
   fde receipts <term>      "what did we agree?" with dates

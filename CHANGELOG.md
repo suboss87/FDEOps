@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.8.3 — 2026-07-14
+
+Real field-use fixes: trust colors that cannot lie at 5pm, Monday resume that earns its keep, honest phase.
+
+### Fixed
+- **Worst-of-stakeholder trust** — latest `[signal:x]` is kept per person, then the worst active color wins. A green about Randy no longer clears Denise’s sponsor amber/red.
+- **`fde resume` leads with TRIAGE** — trust, phase, open risks, next action, then engagement memory.
+- **Phase is honest** — template defaults to `unset` (not fake `land`); `fde log phase <land|discover|plan|build|ship|close>` advances it.
+
 ## 3.8.2 — 2026-07-14
 
 Filesystem last-mile hardenings from brutal edge-case report v2.

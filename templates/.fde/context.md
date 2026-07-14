@@ -4,7 +4,7 @@
 
 **Engagement:**
 **Customer:**
-**Phase:** land | discover | build | ship | close
+**Phase:** unset
 **Last updated:**
 
 ## Current state
