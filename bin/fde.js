@@ -217,9 +217,46 @@ function removeExactEntryLine(md, entry) {
 }
 
 
+// Map Node fs errno codes to one-line field messages - never dump a stack at an FDE.
+function formatFsError(err, action, target) {
+  const code = err && err.code
+  const where = path.basename(String(target || '')) || String(target || 'path')
+  if (code === 'ENOSPC') return `cannot ${action} ${where} - disk full`
+  if (code === 'EACCES' || code === 'EPERM' || code === 'EROFS') {
+    return `cannot ${action} ${where} - permission denied (read-only or locked down)`
+  }
+  if (code === 'ELOOP') return `cannot ${action} ${where} - symlink loop`
+  if (code === 'ENOENT') return `cannot ${action} ${where} - path missing`
+  return `cannot ${action} ${where}${code ? ` (${code})` : ''}${err && err.message && !code ? ': ' + err.message : ''}`
+}
+
+function failFs(err, action, target) {
+  console.error(formatFsError(err, action, target))
+  process.exit(1)
+}
+
+// Refuse writes that would follow a symlink out of the engagement tree.
+// Missing path is fine (new file). Soft mode returns the message instead of exiting
+// (session capture must never crash a hook).
+function refuseSymlinkWrite(p, opts = {}) {
+  try {
+    if (fs.lstatSync(p).isSymbolicLink()) {
+      const msg = `refused: ${path.basename(p)} is a symlink - write would leave the engagement tree. Replace it with a real file.`
+      if (opts.soft) return msg
+      console.error(msg)
+      process.exit(1)
+    }
+  } catch (e) {
+    if (e.code === 'ENOENT') return null
+    if (opts.soft) return formatFsError(e, 'check', p)
+    failFs(e, 'check', p)
+  }
+  return null
+}
+
 // Exclusive create lock + retry. Two parallel agent sessions (or hook + CLI)
 // appending the same .fde file otherwise interleave/corrupt under load.
-function withFileLock(targetPath, fn) {
+function withFileLock(targetPath, fn, opts = {}) {
   const lockPath = targetPath + '.lock'
   const deadline = Date.now() + 5000
   while (true) {
@@ -227,14 +264,19 @@ function withFileLock(targetPath, fn) {
     try {
       fd = fs.openSync(lockPath, 'wx')
     } catch (e) {
-      if (e.code !== 'EEXIST') throw e
-      if (Date.now() > deadline) {
-        console.error(`could not lock ${path.basename(targetPath)} - another writer is active; retry`)
-        process.exit(1)
+      if (e.code === 'EEXIST') {
+        if (Date.now() > deadline) {
+          const msg = `could not lock ${path.basename(targetPath)} - another writer is active; retry`
+          if (opts.soft) throw Object.assign(new Error(msg), { code: 'ELOCKED' })
+          console.error(msg)
+          process.exit(1)
+        }
+        const waitUntil = Date.now() + 20
+        while (Date.now() < waitUntil) { /* spin */ }
+        continue
       }
-      const waitUntil = Date.now() + 20
-      while (Date.now() < waitUntil) { /* spin */ }
-      continue
+      if (opts.soft) throw e
+      failFs(e, 'lock', targetPath)
     }
     try {
       return fn()
@@ -245,14 +287,39 @@ function withFileLock(targetPath, fn) {
   }
 }
 
-function atomicWriteFile(p, content) {
+function atomicWriteFile(p, content, opts = {}) {
+  const blocked = refuseSymlinkWrite(p, opts)
+  if (blocked) {
+    if (opts.soft) throw Object.assign(new Error(blocked), { code: 'ESYMLINK' })
+    return
+  }
   const tmp = `${p}.${process.pid}.${Date.now()}.tmp`
-  fs.writeFileSync(tmp, content)
-  fs.renameSync(tmp, p)
+  try {
+    fs.writeFileSync(tmp, content)
+    fs.renameSync(tmp, p)
+  } catch (e) {
+    try { fs.unlinkSync(tmp) } catch (_) {}
+    if (opts.soft) throw e
+    failFs(e, 'write', p)
+  }
 }
 
-function lockedAppendFile(p, text) {
-  withFileLock(p, () => { fs.appendFileSync(p, text) })
+function lockedAppendFile(p, text, opts = {}) {
+  const blocked = refuseSymlinkWrite(p, opts)
+  if (blocked) {
+    if (opts.soft) throw Object.assign(new Error(blocked), { code: 'ESYMLINK' })
+    return
+  }
+  try {
+    withFileLock(p, () => { fs.appendFileSync(p, text) }, opts)
+  } catch (e) {
+    if (opts.soft) throw e
+    failFs(e, 'append', p)
+  }
+}
+
+function rmTreeQuiet(dir) {
+  try { fs.rmSync(dir, { recursive: true, force: true }) } catch (_) {}
 }
 
 // Pull the body under a "## Heading" up to the next "##" (or EOF).
@@ -722,14 +789,50 @@ function cmdResume(args) {
     const tpl = templatesDir()
     if (!tpl) { console.error('templates not found - run from the fdeops clone or reinstall'); process.exit(1) }
     const slug = slugify(name)
-    const fdeDir = path.join(ENGAGEMENTS_ROOT, slug, '.fde')
-    fs.mkdirSync(fdeDir, { recursive: true })
-    for (const f of fs.readdirSync(tpl)) {
-      const src = path.join(tpl, f); const dst = path.join(fdeDir, f)
-      if (fs.statSync(src).isDirectory()) fs.mkdirSync(dst, { recursive: true })
-      else if (!fs.existsSync(dst)) fs.copyFileSync(src, dst)
+    const engRoot = path.join(ENGAGEMENTS_ROOT, slug)
+    const fdeDir = path.join(engRoot, '.fde')
+    const existed = fs.existsSync(fdeDir)
+
+    const fillTemplates = (destFde) => {
+      for (const f of fs.readdirSync(tpl)) {
+        const src = path.join(tpl, f); const dst = path.join(destFde, f)
+        if (fs.statSync(src).isDirectory()) fs.mkdirSync(dst, { recursive: true })
+        else if (!fs.existsSync(dst)) fs.copyFileSync(src, dst)
+      }
+      fs.mkdirSync(path.join(destFde, 'retrospectives'), { recursive: true })
     }
-    fs.mkdirSync(path.join(fdeDir, 'retrospectives'), { recursive: true })
+
+    try {
+      if (!existed) {
+        // Atomic create: build under a staging dir, then rename into place.
+        // Disk-full / permission mid-copy must not leave a half-built engagement.
+        fs.mkdirSync(ENGAGEMENTS_ROOT, { recursive: true })
+        const stagingRoot = path.join(ENGAGEMENTS_ROOT, `.init-${slug}-${process.pid}`)
+        const stagingEng = path.join(stagingRoot, slug)
+        const stagingFde = path.join(stagingEng, '.fde')
+        rmTreeQuiet(stagingRoot)
+        try {
+          fs.mkdirSync(stagingFde, { recursive: true })
+          fillTemplates(stagingFde)
+          // If a partial engRoot exists from an older failed run, remove it first.
+          if (fs.existsSync(engRoot)) rmTreeQuiet(engRoot)
+          fs.renameSync(stagingEng, engRoot)
+          rmTreeQuiet(stagingRoot)
+        } catch (e) {
+          rmTreeQuiet(stagingRoot)
+          if (fs.existsSync(engRoot) && !fs.existsSync(path.join(engRoot, '.fde', 'context.md'))) {
+            rmTreeQuiet(engRoot)
+          }
+          failFs(e, 'create engagement', engRoot)
+        }
+      } else {
+        // Re-init / rebind: only fill missing template files in place.
+        fillTemplates(fdeDir)
+      }
+    } catch (e) {
+      failFs(e, 'init engagement', fdeDir)
+    }
+
     // bind THIS workspace to the engagement (zero ceremony next time).
     // A workspace binds to exactly ONE engagement: rebinding REPLACES the old
     // line - resolution is first-match-wins, so appending a second line would
@@ -1007,7 +1110,7 @@ function cmdCapture() {
   if (branch) block += `- workspace: \`${branch}\` @ ${lastCommit || 'no commits yet'}\n`
   if (changed) block += `- uncommitted: ${changed}\n`
   if (updated) block += `- engagement files updated: ${updated}\n`
-  try { lockedAppendFile(path.join(eng, 'context.md'), block) } catch (_) {}
+  try { lockedAppendFile(path.join(eng, 'context.md'), block, { soft: true }) } catch (_) {}
 }
 
 function engagementSlugFromPath(eng) {
@@ -1789,8 +1892,13 @@ ${clientViews}
 <script>${dashScript()}</script>
 </body></html>`
 
-  fs.mkdirSync(path.dirname(outPath), { recursive: true })
-  fs.writeFileSync(outPath, html)
+  try {
+    fs.mkdirSync(path.dirname(outPath), { recursive: true })
+    refuseSymlinkWrite(outPath)
+    fs.writeFileSync(outPath, html)
+  } catch (e) {
+    failFs(e, 'write fieldbook', outPath)
+  }
   console.log(`fieldbook → ${outPath}`)
   console.log(`${engagements.length} engagement(s) rendered · ${counts.RED} red / ${counts.amber} amber / ${counts.green} green · 0 tokens (pure render)`)
   if (args.includes('--open')) {
