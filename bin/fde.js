@@ -12,8 +12,14 @@
  *   fde resume              find this workspace's engagement, print bounded context
  *   fde resume --full       same, but the complete context.md (no bound)
  *   fde resume --init <n>   create + bind an engagement for this workspace
+ *   fde triage              deterministic TRIAGE block (hooks / Cursor entry)
  *   fde log <type> <text>   structured append (decision|risk|delivery|contact)
  *   fde debrief [file]      meeting notes → structured memory (stdin if no file)
+ *   fde debrief --smart     propose routing from messy notes; --apply commits it
+ *   fde prep [label]        grounded walk-in brief from existing .fde/ only
+ *   fde doctor              deterministic memory lint (stale signals, gaps)
+ *   fde garden [--apply]    propose safe consolidations; apply only with --apply
+ *   fde owner [set …]       who keeps this engagement record
  *   fde receipts <term>     "what did we agree?" - search memory with dates
  *   fde capture             session-end snapshot → context.md (hooks use this)
  *   fde status [--all]      current engagement (default) or full portfolio (--all)
@@ -322,6 +328,131 @@ function rmTreeQuiet(dir) {
   try { fs.rmSync(dir, { recursive: true, force: true }) } catch (_) {}
 }
 
+// ---------- versioned engagement memory (tamper-evident receipts) ----------
+// Each .fde/ is its own git repo. Writes auto-commit. No new npm deps - shell git.
+// Skips quietly if git is missing (warn once). Cross-process safety stays on
+// withFileLock + atomic rename; this layer is history + attribution, not locking.
+
+const OWNER_FILE = '.owner'
+const DEBRIEF_PROPOSE = '.debrief-propose'
+let _gitWarned = false
+
+function gitBinOk() {
+  try {
+    execFileSync('git', ['--version'], { stdio: 'ignore', timeout: 5000 })
+    return true
+  } catch (_) { return false }
+}
+
+function readOwner(eng) {
+  try {
+    const raw = fs.readFileSync(path.join(eng, OWNER_FILE), 'utf8')
+    const name = (raw.match(/^name:\s*(.+)$/m) || [])[1]
+    const email = (raw.match(/^email:\s*(.+)$/m) || [])[1]
+    if (name && email) return { name: name.trim(), email: email.trim() }
+  } catch (_) {}
+  return null
+}
+
+function writeOwnerIfMissing(eng) {
+  if (readOwner(eng)) return readOwner(eng)
+  const name = sh('git config user.name') || process.env.USER || process.env.LOGNAME || 'fde'
+  const email = sh('git config user.email') || `${String(name).replace(/\s+/g, '.').toLowerCase()}@local`
+  const body = `name: ${name}\nemail: ${email}\n`
+  try {
+    withFileLock(path.join(eng, OWNER_FILE), () => {
+      atomicWriteFile(path.join(eng, OWNER_FILE), body)
+    })
+  } catch (_) {
+    try { atomicWriteFile(path.join(eng, OWNER_FILE), body) } catch (_) {}
+  }
+  return { name, email }
+}
+
+function authorBracket(eng) {
+  const o = writeOwnerIfMissing(eng)
+  const id = (o.email.includes('@') ? o.email.split('@')[0] : o.name)
+    .replace(/[^\w.-]/g, '')
+    .slice(0, 40)
+  return id ? `@${id}` : ''
+}
+
+function datedEntry(eng, date, text, signal) {
+  const who = authorBracket(eng)
+  const bits = [`- [${date}]`]
+  if (who) bits.push(`[${who}]`)
+  if (signal) bits.push(`[signal:${signal}]`)
+  bits.push(text)
+  return bits.join(' ')
+}
+
+function ensureMemoryGit(eng) {
+  if (!eng || !fs.existsSync(eng)) return false
+  if (fs.existsSync(path.join(eng, '.git'))) {
+    writeOwnerIfMissing(eng)
+    return true
+  }
+  if (!gitBinOk()) {
+    if (!_gitWarned) {
+      process.stderr.write('⚠ git not found - engagement memory will not be versioned (receipts stay dated, but not tamper-evident)\n')
+      _gitWarned = true
+    }
+    writeOwnerIfMissing(eng)
+    return false
+  }
+  try {
+    execFileSync('git', ['init'], { cwd: eng, stdio: 'ignore', timeout: 10000 })
+    atomicWriteFile(
+      path.join(eng, '.gitignore'),
+      ['*.lock', '*.tmp', '.last-write', '.debrief-propose', ''].join('\n')
+    )
+    writeOwnerIfMissing(eng)
+    commitMemory(eng, 'init engagement memory')
+    return true
+  } catch (_) {
+    return false
+  }
+}
+
+function commitMemory(eng, message) {
+  if (!eng || !fs.existsSync(path.join(eng, '.git'))) {
+    if (!ensureMemoryGit(eng)) return null
+  }
+  if (!gitBinOk()) return null
+  const owner = writeOwnerIfMissing(eng)
+  try {
+    execFileSync('git', ['add', '-A'], { cwd: eng, stdio: 'ignore', timeout: 10000 })
+    const porcelain = execFileSync('git', ['status', '--porcelain'], {
+      cwd: eng, encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'],
+    })
+    if (!String(porcelain || '').trim()) return null
+    const env = {
+      ...process.env,
+      GIT_AUTHOR_NAME: owner.name,
+      GIT_AUTHOR_EMAIL: owner.email,
+      GIT_COMMITTER_NAME: owner.name,
+      GIT_COMMITTER_EMAIL: owner.email,
+    }
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', String(message || 'memory write').slice(0, 72)], {
+      cwd: eng, stdio: 'ignore', timeout: 15000, env,
+    })
+    return execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
+      cwd: eng, encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString().trim()
+  } catch (_) {
+    return null
+  }
+}
+
+function memoryHead(eng) {
+  if (!eng || !fs.existsSync(path.join(eng, '.git'))) return ''
+  try {
+    return execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
+      cwd: eng, encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString().trim()
+  } catch (_) { return '' }
+}
+
 // Pull the body under a "## Heading" up to the next "##" (or EOF).
 function sectionBody(md, heading) {
   const lines = md.split('\n')
@@ -365,7 +496,8 @@ function appendUnderSection(md, heading, entry) {
 // them matched what extractStakeholders actually read). A contact entry
 // carrying a [signal:x] token - however it got there - lands inside
 // "## Signal history"; everything else is a plain end-of-file append.
-function appendLogEntry(eng, type, entry) {
+function appendLogEntry(eng, type, entry, opts = {}) {
+  ensureMemoryGit(eng)
   const p = path.join(eng, LOG_FILES[type])
   if (type === 'contact' && /\[signal:(red|amber|green)\]/i.test(entry)) {
     withFileLock(p, () => {
@@ -377,6 +509,7 @@ function appendLogEntry(eng, type, entry) {
     lockedAppendFile(p, `\n${entry}\n`)
   }
   recordLastWrite(eng, LOG_FILES[type], entry)
+  if (!opts.skipCommit) commitMemory(eng, opts.commitMsg || `log ${type}`)
 }
 
 // phase / trust / top risk / freshness - identical heuristic for status + dashboard.
@@ -418,10 +551,12 @@ function stakeholdersMemoryHealth(eng) {
 
 // Subject key for a signal-history line - first real name word (same spirit as
 // extractStakeholders). A green about Randy must not clear an amber about Denise.
+// Strip author tags [@email-local] so attribution never becomes the subject key.
 function signalSubjectKey(text) {
-  const words = String(text).replace(/\([^)]*\)/g, '').split(/\s+/).filter(w => w && !/^(dr|mr|mrs|ms)\.?$/i.test(w))
+  const cleaned = String(text).replace(/\[@[^\]]+\]/g, '').replace(/\([^)]*\)/g, '')
+  const words = cleaned.split(/\s+/).filter(w => w && !/^(dr|mr|mrs|ms)\.?$/i.test(w))
   const frag = (words[0] || '').replace(/[^a-z0-9]/gi, '').toLowerCase()
-  return frag.length >= 3 ? frag : ('anon:' + String(text).slice(0, 48).toLowerCase())
+  return frag.length >= 3 ? frag : ('anon:' + cleaned.slice(0, 48).toLowerCase())
 }
 
 function parsePhase(ctx) {
@@ -470,7 +605,11 @@ function computeSignals(eng) {
     const sm = l.match(/\[signal:(red|amber|green)\]/i)
     if (!sm) continue
     const date = (l.match(/\[(\d{4}-\d{2}-\d{2})\]/) || [])[1] || ''
-    const text = l.replace(/^\s*-\s*/, '').replace(/\[signal:(red|amber|green)\]/i, '').replace(/\[\d{4}-\d{2}-\d{2}\]/, '').trim()
+    const text = l.replace(/^\s*-\s*/, '')
+      .replace(/\[signal:(red|amber|green)\]/i, '')
+      .replace(/\[\d{4}-\d{2}-\d{2}\]/, '')
+      .replace(/\[@[^\]]+\]/g, '')
+      .trim()
     const key = signalSubjectKey(text)
     const prev = byPerson.get(key)
     if (!prev || date >= prev.date) byPerson.set(key, { date, sig: sm[1].toLowerCase(), text })
@@ -638,7 +777,10 @@ function extractStakeholders(eng) {
     if (!dm) return
     const sm = dm[2].match(/\[signal:(red|amber|green)\]/i)
     if (!sm) return
-    const text = dm[2].replace(/\[signal:(red|amber|green)\]/i, '').trim()
+    const text = dm[2]
+      .replace(/\[signal:(red|amber|green)\]/i, '')
+      .replace(/\[@[^\]]+\]/g, '')
+      .trim()
     history.push({ date: dm[1], signal: sm[1].toLowerCase(), text })
   })
 
@@ -917,6 +1059,12 @@ function cmdResume(args) {
     // NDA surface: engagement notes must not silently leave the machine via file sync
     const syncHit = /icloud|mobile documents|dropbox|onedrive|google drive|box sync/i.exec(ENGAGEMENTS_ROOT)
     if (syncHit) console.log(`⚠ engagements root is inside a synced folder ("${syncHit[0]}") - client notes will leave this machine via sync. See PRIVACY.md.`)
+    // Tamper-evident fieldbook: version .fde/ with git (local only, no remote).
+    if (ensureMemoryGit(fdeDir)) {
+      const owner = readOwner(fdeDir)
+      const head = memoryHead(fdeDir)
+      console.log(`memory git: ${head || 'ready'}${owner ? `  owner: ${owner.email}` : ''}`)
+    }
     return
   }
   if (args[0] === '--bind') {
@@ -999,7 +1147,8 @@ function cmdLogUndo() {
     if (led != null) withFileLock(ledgerPath, () => { atomicWriteFile(ledgerPath, led.endsWith('\n') ? led : led + '\n') })
   }
   try { fs.unlinkSync(metaPath) } catch (_) {}
-  console.log(`undid last write → ${meta.file}`)
+  const hash = commitMemory(eng, `undo ${meta.file}`)
+  console.log(`undid last write → ${meta.file}${hash ? ` @${hash}` : ''}`)
 }
 
 function cmdLog(args) {
@@ -1027,8 +1176,8 @@ function cmdLog(args) {
       console.error('usage: fde log phase <land|discover|plan|build|ship|close>')
       process.exit(1)
     }
-    setContextPhase(eng, phase)
-    console.log(`phase → ${phase}`)
+    const hash = setContextPhase(eng, phase)
+    console.log(`phase → ${phase}${hash ? ` @${hash}` : ''}`)
     return
   }
 
@@ -1038,12 +1187,14 @@ function cmdLog(args) {
   if (hit && !force) { refuseSecret('log text', hit); process.exit(1) }
   if (hit && force) console.error(`warning: logging possible ${hit} (--force)`)
   const date = new Date().toISOString().slice(0, 10)
-  const entry = `- [${date}] ${signal ? `[signal:${signal}] ` : ''}${text}`
+  const entry = datedEntry(eng, date, text, signal || '')
   appendLogEntry(eng, type, entry)
-  console.log(`logged → ${LOG_FILES[type]}${signal ? ` (signal:${signal})` : ''}`)
+  const hash = memoryHead(eng)
+  console.log(`logged → ${LOG_FILES[type]}${signal ? ` (signal:${signal})` : ''}${hash ? ` @${hash}` : ''}`)
 }
 
 function setContextPhase(eng, phase) {
+  ensureMemoryGit(eng)
   const p = path.join(eng, 'context.md')
   let md = readEng(eng, 'context.md')
   if (!md) md = '# Engagement context\n\n'
@@ -1057,6 +1208,7 @@ function setContextPhase(eng, phase) {
     md = md.replace(/\*\*Last updated:\*\*\s*.*/i, `**Last updated:** ${today}`)
   }
   withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
+  return commitMemory(eng, `phase ${phase}`)
 }
 
 
@@ -1065,21 +1217,36 @@ function setContextPhase(eng, phase) {
 // LOG_FILES target as dated bullets; everything else lands in context.md as one
 // dated debrief block. contact: lines may carry an inline [signal:x] token
 // anywhere in the text - preserved verbatim so computeSignals can trust it.
-// Real notes arrive as markdown: "- decision: ...", "* contact: ...",
-// "**Decision:** ..." - strip bullet/bold dressing before matching, or the
-// prefix silently misses and a [signal:x] token lands in context.md, which
-// signal parsing never reads. Silent loss is the one failure a memory tool
-// cannot have. --dry-run prints the routing without writing anything.
-function cmdDebrief(args) {
-  args = args.slice()
-  const dryIdx = args.indexOf('--dry-run')
-  const dry = dryIdx !== -1
-  if (dry) args.splice(dryIdx, 1)
-  let force = false
-  const forceIdx = args.indexOf('--force')
-  if (forceIdx !== -1) { force = true; args.splice(forceIdx, 1) }
-  const eng = resolveEngagement({ forWrite: true })
-  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+// --smart: heuristic propose from messy prose (confirm with --apply). No network.
+// --dry-run prints the routing without writing anything.
+function smartProposeText(input) {
+  const out = []
+  for (const raw of input.split('\n')) {
+    const line = raw.trim()
+    if (!line) continue
+    const bare = line
+      .replace(/^[-*+]\s+/, '')
+      .replace(/^\*\*(decision|risk|delivery|contact):?\*\*:?\s*/i, '$1: ')
+    if (/^(decision|risk|delivery|contact):\s*/i.test(bare)) {
+      out.push(bare.replace(/^(decision|risk|delivery|contact):\s*/i, (m, t) => `${t.toLowerCase()}: `))
+      continue
+    }
+    if (/\b(we (decided|agreed)|decision:|descope|agreed to|agreement was)\b/i.test(bare)) {
+      out.push(`decision: ${bare}`)
+    } else if (/\b(risk|blocker|concern|at risk|worried|exposure|mitigation)\b/i.test(bare)) {
+      out.push(`risk: ${bare}`)
+    } else if (/\b(shipped|delivered|deployed|merged PR|rolled out|went live)\b/i.test(bare)) {
+      out.push(`delivery: ${bare}`)
+    } else if (/\b(gone quiet|champion|resistant|unresponsive|skipped|cooling|signal:)\b/i.test(bare)) {
+      out.push(`contact: ${bare}`)
+    } else {
+      out.push(bare)
+    }
+  }
+  return out.join('\n') + (out.length ? '\n' : '')
+}
+
+function readDebriefInput(args) {
   let input = ''
   if (args[0]) {
     const notesPath = args[0].replace(/^~/, HOME)
@@ -1097,36 +1264,39 @@ function cmdDebrief(args) {
     }
     input = buf.toString('utf8')
   } else {
-    try { input = fs.readFileSync(0, 'utf8') } catch (_) {} // stdin until EOF
+    try { input = fs.readFileSync(0, 'utf8') } catch (_) {}
     if (Buffer.byteLength(input, 'utf8') > DEBRIEF_MAX_BYTES) {
       console.error(`debrief refused: stdin is over ${DEBRIEF_MAX_BYTES} bytes. Split the notes.`)
       process.exit(1)
     }
   }
+  return input
+}
+
+function routeDebriefInput(eng, input, { dry, force }) {
   const d = new Date()
   const date = d.toISOString().slice(0, 10)
   const counts = { decision: 0, risk: 0, delivery: 0, contact: 0 }
   const ctxLines = []
+  ensureMemoryGit(eng)
   for (const raw of input.split('\n')) {
     let line = raw.trim()
     if (!line) continue
-    // markdown dressing: leading bullets (-, *, +) and bold around the prefix
     const bare = line.replace(/^[-*+]\s+/, '').replace(/^\*\*(decision|risk|delivery|contact):?\*\*:?\s*/i, '$1: ')
     const m = bare.match(/^(decision|risk|delivery|contact):\s*(.+)$/i)
     if (m) {
       const type = m[1].toLowerCase()
-      const body = m[2]
+      let body = m[2]
+      const sigInline = (body.match(/\[signal:(red|amber|green)\]/i) || [])[1]
+      if (sigInline) body = body.replace(/\[signal:(red|amber|green)\]/i, '').trim()
       const hit = findSecretHit(body)
       if (hit && !force) {
         console.error(`skipped ${type} line - looks like a ${hit}. Redact it, or re-run with --force.`)
         continue
       }
-      const entry = `- [${date}] ${body}`
+      const entry = datedEntry(eng, date, body, type === 'contact' && sigInline ? sigInline.toLowerCase() : '')
       if (dry) console.log(`→ ${LOG_FILES[type]}  ${entry}`)
-      // appendLogEntry, not a blind append: a contact: line may carry an
-      // inline [signal:x] token (the skill's own convention) and must land
-      // inside "## Signal history" the same way `fde log --signal` does.
-      else appendLogEntry(eng, type, entry)
+      else appendLogEntry(eng, type, entry, { skipCommit: true })
       counts[type]++
     } else {
       if (findSecretHit(line) && !force) {
@@ -1140,6 +1310,58 @@ function cmdDebrief(args) {
     const stamp = `${date} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     if (dry) ctxLines.forEach(l => console.log(`→ context.md  - ${l}`))
     else lockedAppendFile(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${ctxLines.map(l => `- ${l}`).join('\n')}\n`)
+  }
+  return { counts, ctxLines, date }
+}
+
+function cmdDebrief(args) {
+  args = args.slice()
+  const dryIdx = args.indexOf('--dry-run')
+  const dry = dryIdx !== -1
+  if (dry) args.splice(dryIdx, 1)
+  const smartIdx = args.indexOf('--smart')
+  const smart = smartIdx !== -1
+  if (smart) args.splice(smartIdx, 1)
+  const applyIdx = args.indexOf('--apply')
+  const apply = applyIdx !== -1
+  if (apply) args.splice(applyIdx, 1)
+  let force = false
+  const forceIdx = args.indexOf('--force')
+  if (forceIdx !== -1) { force = true; args.splice(forceIdx, 1) }
+
+  const eng = resolveEngagement({ forWrite: true })
+  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+
+  let input = ''
+  if (apply && !smart && !args[0]) {
+    try { input = fs.readFileSync(path.join(eng, DEBRIEF_PROPOSE), 'utf8') } catch (_) {
+      console.error('nothing to apply - run: fde debrief --smart <notes.md>   then   fde debrief --apply')
+      process.exit(1)
+    }
+  } else {
+    input = readDebriefInput(args)
+  }
+
+  if (smart) {
+    const proposed = smartProposeText(input)
+    const proposePath = path.join(eng, DEBRIEF_PROPOSE)
+    withFileLock(proposePath, () => { atomicWriteFile(proposePath, proposed) })
+    console.log('SMART PROPOSE (heuristic - review before apply; no new facts invented beyond line rewrites)\n')
+    routeDebriefInput(eng, proposed, { dry: true, force })
+    if (!apply) {
+      console.log(`\nproposal saved → ${proposePath}`)
+      console.log('confirm:  fde debrief --apply')
+      console.log('(edit the propose file first if a line mis-routed)')
+      return
+    }
+    input = proposed
+  }
+
+  const { counts, ctxLines } = routeDebriefInput(eng, input, { dry, force })
+  if (!dry) {
+    const hash = commitMemory(eng, 'debrief')
+    try { fs.unlinkSync(path.join(eng, DEBRIEF_PROPOSE)) } catch (_) {}
+    if (hash) console.log(`memory @${hash}`)
   }
   const plural = { decision: 'decisions', risk: 'risks', delivery: 'deliveries', contact: 'contacts' }
   const parts = Object.keys(counts).filter(t => counts[t])
@@ -1196,6 +1418,7 @@ function cmdReceipts(args) {
 function cmdCapture() {
   const eng = resolveEngagement({ forWrite: true })
   if (!eng) process.exit(0) // silent: capture must never break a session
+  // Workspace git facts (cwd), not the engagement memory repo.
   const branch = sh('git branch --show-current')
   const lastCommit = sh("git log -1 --format='%h %s'").slice(0, 100)
   // porcelain lines are "XY path" - sh() trims, so parse by first whitespace
@@ -1212,7 +1435,206 @@ function cmdCapture() {
   if (branch) block += `- workspace: \`${branch}\` @ ${lastCommit || 'no commits yet'}\n`
   if (changed) block += `- uncommitted: ${changed}\n`
   if (updated) block += `- engagement files updated: ${updated}\n`
-  try { lockedAppendFile(path.join(eng, 'context.md'), block, { soft: true }) } catch (_) {}
+  try {
+    ensureMemoryGit(eng)
+    lockedAppendFile(path.join(eng, 'context.md'), block, { soft: true })
+    commitMemory(eng, 'session capture')
+  } catch (_) {}
+}
+
+function cmdTriage() {
+  const eng = resolveEngagement()
+  if (!eng) {
+    console.error('no engagement - run: fde resume --init <name>')
+    process.exit(2)
+  }
+  console.log(resumeTriage(eng))
+  const owner = readOwner(eng) || writeOwnerIfMissing(eng)
+  const head = memoryHead(eng)
+  if (owner || head) {
+    console.log(`  record: ${owner ? owner.email : '?'}${head ? `  memory@${head}` : '  (unversioned)'}`)
+  }
+}
+
+function cmdOwner(args) {
+  const eng = resolveEngagement({ forWrite: args[0] === 'set' })
+  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+  if (args[0] === 'set') {
+    const email = args[1]
+    if (!email || !email.includes('@')) {
+      console.error('usage: fde owner set <email> [name...]')
+      process.exit(1)
+    }
+    const name = args.slice(2).join(' ') || email.split('@')[0]
+    ensureMemoryGit(eng)
+    withFileLock(path.join(eng, OWNER_FILE), () => {
+      atomicWriteFile(path.join(eng, OWNER_FILE), `name: ${name}\nemail: ${email}\n`)
+    })
+    const hash = commitMemory(eng, 'owner set')
+    console.log(`owner → ${name} <${email}>${hash ? ` @${hash}` : ''}`)
+    return
+  }
+  const o = readOwner(eng) || writeOwnerIfMissing(eng)
+  console.log(`owner: ${o.name} <${o.email}>`)
+  const head = memoryHead(eng)
+  if (head) console.log(`memory HEAD: ${head}`)
+  else console.log('memory HEAD: (unversioned - git init on next write)')
+}
+
+function cmdDoctor() {
+  const eng = resolveEngagement()
+  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+  const issues = []
+  const s = computeSignals(eng)
+  if (s.phase === '?') {
+    const hasWork = /\[\d{4}-\d{2}-\d{2}\]/.test(readEng(eng, 'decisions.md') + readEng(eng, 'delivery.md'))
+    if (hasWork) issues.push('phase is unset but dated work exists - run: fde log phase <land|discover|plan|build|ship|close>')
+    else issues.push('phase is unset - set when you know where you are: fde log phase land')
+  }
+  if (s.stale) issues.push(`trust signal is STALE (${s.signalAge}d) - reconfirm with fde log contact ... --signal`)
+  if (s.memoryWarn) issues.push(s.memoryWarn)
+  if (!readOwner(eng)) issues.push('no .owner - run any write or: fde owner set you@firm.com')
+  if (!fs.existsSync(path.join(eng, '.git'))) issues.push('memory not git-versioned - next write will init, or re-run resume --init')
+  const success = readClean(eng, 'success.md')
+  if (!firstLine(success, 80)) issues.push('success.md has no stated done-definition - fill before plan/build')
+  if (!sectionBody(readClean(eng, 'context.md'), 'Next action')) {
+    issues.push('no ## Next action in context.md - Monday morning has nothing to drive')
+  }
+  console.log(`FDE DOCTOR - ${engagementSlugFromPath(eng)}`)
+  console.log(resumeTriage(eng))
+  if (!issues.length) {
+    console.log('\nOK - no structural issues (judgment still yours)')
+    process.exit(0)
+  }
+  console.log(`\n${issues.length} issue(s):`)
+  issues.forEach((i, n) => console.log(`  ${n + 1}. ${i}`))
+  process.exit(1)
+}
+
+function cmdPrep(args) {
+  const eng = resolveEngagement()
+  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+  const label = args.join(' ').trim() || 'next meeting'
+  // Grounded brief: only text already in .fde/. No invention (Rowboat meeting-prep rule).
+  console.log(`MEETING PREP — ${label}`)
+  console.log('(grounded in local .fde/ only - if a fact is missing, it is missing)\n')
+  console.log(resumeTriage(eng))
+  const owner = readOwner(eng)
+  const head = memoryHead(eng)
+  if (owner || head) console.log(`  record: ${owner ? owner.email : '?'}${head ? `  @${head}` : ''}`)
+
+  const people = extractStakeholders(eng).slice(0, 8)
+  console.log('\nStakeholders')
+  if (!people.length) console.log('  (none in table yet)')
+  else people.forEach(p => console.log(`  [${p.signal}] ${p.name}${p.role ? ` — ${p.role}` : ''}${p.note ? ` · ${p.note.slice(0, 60)}` : ''}`))
+
+  const risks = extractRisks(eng).slice(0, 5)
+  console.log('\nOpen risks (from risks.md table)')
+  if (!risks.length) console.log('  (none parsed)')
+  else risks.forEach(r => console.log(`  [${r.severity}] ${r.text.slice(0, 100)}`))
+
+  const success = firstLine(readClean(eng, 'success.md'), 160)
+  console.log('\nSuccess looks like')
+  console.log(success ? `  ${success}` : '  (success.md empty)')
+
+  const decisions = readClean(eng, 'decisions.md').split('\n')
+    .filter(l => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(l.trim()))
+    .slice(-5)
+  console.log('\nRecent decisions')
+  if (!decisions.length) console.log('  (none logged)')
+  else decisions.forEach(l => console.log(`  ${l.trim().slice(0, 120)}`))
+
+  const next = nextActionLine(readClean(eng, 'context.md'))
+  console.log('\nWalk in with')
+  console.log(next ? `  ${next}` : '  (set ## Next action in context.md)')
+}
+
+function cmdGarden(args) {
+  const apply = args.includes('--apply')
+  const eng = resolveEngagement({ forWrite: apply })
+  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+  // Gardener contract (from Rowboat note_curation): no new facts, no deleted substance,
+  // reversible via git, confirm before apply. Mechanical only - no LLM rewrite.
+  console.log('GARDEN (contract: no new facts · no deleted substance · reversible via memory git)')
+  console.log(resumeTriage(eng))
+  const proposals = []
+  const s = computeSignals(eng)
+  if (s.stale) {
+    proposals.push({
+      id: 'reconfirm-signal',
+      kind: 'manual',
+      text: `Reconfirm stale ${s.trust} signal (${s.signalAge}d): fde log contact "…" --signal`,
+    })
+  }
+  const ctx = readEng(eng, 'context.md')
+  const sessionBlocks = []
+  const lines = ctx.split('\n')
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^##\s+Session end\s+-\s+(\d{4}-\d{2}-\d{2})\b/)
+    if (!m) continue
+    const age = Math.floor((Date.now() - Date.parse(m[1])) / 86400000)
+    if (age >= 60) sessionBlocks.push({ line: i, date: m[1], age })
+  }
+  if (sessionBlocks.length >= 3) {
+    proposals.push({
+      id: 'archive-sessions',
+      kind: 'apply',
+      text: `Archive ${sessionBlocks.length} session-end blocks older than 60d into context-archive.md`,
+      sessionBlocks,
+    })
+  }
+  if (!proposals.length) {
+    console.log('\nNothing to garden.')
+    return
+  }
+  console.log(`\n${proposals.length} proposal(s):`)
+  proposals.forEach((p, i) => console.log(`  ${i + 1}. [${p.kind}] ${p.text}`))
+  if (!apply) {
+    console.log('\nApply mechanical items only:  fde garden --apply')
+    console.log('Manual items stay yours. Every apply commits to memory git.')
+    return
+  }
+  ensureMemoryGit(eng)
+  let applied = 0
+  for (const p of proposals) {
+    if (p.id !== 'archive-sessions') continue
+    const cutDates = new Set(p.sessionBlocks.map(b => b.date))
+    const keep = []
+    const archive = []
+    let mode = 'keep'
+    let buf = []
+    const flush = () => {
+      if (!buf.length) return
+      ;(mode === 'archive' ? archive : keep).push(...buf)
+      buf = []
+    }
+    for (const line of lines) {
+      const m = line.match(/^##\s+Session end\s+-\s+(\d{4}-\d{2}-\d{2})\b/)
+      if (m) {
+        flush()
+        mode = cutDates.has(m[1]) ? 'archive' : 'keep'
+      } else if (/^##\s+/.test(line) && mode === 'archive') {
+        flush()
+        mode = 'keep'
+      }
+      buf.push(line)
+    }
+    flush()
+    if (!archive.length) continue
+    const archPath = path.join(eng, 'context-archive.md')
+    const prev = fs.existsSync(archPath) ? fs.readFileSync(archPath, 'utf8') : '# Context archive\n\n'
+    withFileLock(archPath, () => {
+      atomicWriteFile(archPath, prev.replace(/\n*$/, '\n\n') + archive.join('\n').trim() + '\n')
+    })
+    withFileLock(path.join(eng, 'context.md'), () => {
+      atomicWriteFile(path.join(eng, 'context.md'), keep.join('\n').replace(/\n*$/, '\n'))
+    })
+    applied++
+    console.log(`applied: archived ${p.sessionBlocks.length} old session-end blocks → context-archive.md`)
+  }
+  const hash = commitMemory(eng, 'garden')
+  if (!applied) console.log('no mechanical proposals applied (manual items remain)')
+  else console.log(`garden done${hash ? ` @${hash}` : ''}`)
 }
 
 function engagementSlugFromPath(eng) {
@@ -2021,24 +2443,36 @@ function printUsage() {
   fde resume --full        load the complete context.md (no bound)
   fde resume --init <name> create + bind engagement for this workspace (rebind replaces)
   fde resume --bind        show what this workspace is bound to, and what resolves
+  fde triage               TRIAGE block only (hooks / Cursor session entry)
   fde log <type> <text>    append decision|risk|delivery|contact (contact takes --signal red|amber|green; --force to allow secret-like text)
   fde log phase <phase>    set engagement phase (land|discover|plan|build|ship|close)
   fde log --undo           remove the last CLI log/debrief entry from memory
-  fde debrief [file]       meeting notes → memory: decision:/risk:/delivery:/contact: lines route, rest → context.md (stdin if no file; --dry-run; --force)
+  fde debrief [file]       meeting notes → memory (prefixed lines; --dry-run; --force)
+  fde debrief --smart      propose routing from messy notes → review → fde debrief --apply
+  fde prep [label]         grounded walk-in brief from existing .fde/ only
+  fde doctor               lint engagement memory (stale signals, gaps)
+  fde garden [--apply]     propose safe consolidations (contract: no new facts; git-reversible)
+  fde owner [set email]    who keeps this engagement record
   fde receipts <term>      "what did we agree?" with dates
   fde capture              session-end memory snapshot (hooks use this)
   fde status [--all]       current engagement status (pass --all for full portfolio)
   fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
   env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)
-  writes require a workspace bind (or FDEOPS_ENGAGEMENT) - folder-name match is read-only`)
+  writes require a workspace bind (or FDEOPS_ENGAGEMENT) - folder-name match is read-only
+  .fde/ is git-versioned locally for tamper-evident receipts (no remote, no telemetry)`)
 }
 
 const [cmd, ...args] = process.argv.slice(2)
 switch (cmd) {
   case 'scan': cmdScan(); break
   case 'resume': cmdResume(args); break
+  case 'triage': cmdTriage(); break
   case 'log': cmdLog(args); break
   case 'debrief': cmdDebrief(args); break
+  case 'prep': cmdPrep(args); break
+  case 'doctor': cmdDoctor(); break
+  case 'garden': cmdGarden(args); break
+  case 'owner': cmdOwner(args); break
   case 'receipts': cmdReceipts(args); break
   case 'capture': cmdCapture(); break
   case 'status': cmdStatus(args); break

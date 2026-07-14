@@ -147,7 +147,39 @@ if [ -n "$BOOTSTRAP" ]; then
   CONTENT="$CONTENT$(cat "$BOOTSTRAP")\n\n"
 fi
 
+# Same TRIAGE block as `fde resume` / `fde triage` - Monday morning must not
+# depend on the model remembering to run a CLI command. Prefer the installed
+# fde binary; fall back to the plugin/repo copy of bin/fde.js.
+resolve_fde() {
+  if command -v fde >/dev/null 2>&1; then
+    printf '%s\n' "fde"
+    return 0
+  fi
+  for candidate in \
+    "${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/bin/fde.js}" \
+    "$(dirname "$0")/../bin/fde.js" \
+    "$HOME/.claude/fdeops/fde.js" \
+    "$HOME/.claude/plugins/fdeops/bin/fde.js"; do
+    if [ -n "$candidate" ] && [ -f "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
 if [ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ]; then
+  FDE_CMD=$(resolve_fde || true)
+  if [ -n "$FDE_CMD" ]; then
+    if [ "$FDE_CMD" = "fde" ]; then
+      TRIAGE=$(fde triage 2>/dev/null || true)
+    else
+      TRIAGE=$(node "$FDE_CMD" triage 2>/dev/null || true)
+    fi
+    if [ -n "$TRIAGE" ]; then
+      CONTENT="$CONTENT---\n$TRIAGE\n\n"
+    fi
+  fi
   REDACTED_CONTEXT=$(mktemp)
   strip_private "$CONTEXT_FILE" > "$REDACTED_CONTEXT"
   CONTENT="$CONTENT---\nEngagement context ($CONTEXT_FILE):\n$(bounded_context "$REDACTED_CONTEXT")\n"

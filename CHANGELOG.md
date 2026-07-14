@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.9.0 — 2026-07-14
+
+Defensible memory + frictionless debrief loop. Still a field kit — not a coworker shell. Zero telemetry; CLI stays offline.
+
+### Added
+- **Versioned `.fde/`** — `git init` inside engagement memory; every log/debrief/capture/phase/garden write auto-commits. Tamper-evident receipts (`@hash` on writes). No new dependencies.
+- **Owner attribution** — `.owner` + `[@author]` on dated entries; `fde owner` / `fde owner set`.
+- **`fde triage`** — same TRIAGE block as `fde resume`; session-start hook and Cursor adapter load it on entry.
+- **`fde doctor`** — deterministic lint (stale signals, unset phase, empty success, missing next action).
+- **`fde debrief --smart` / `--apply`** — heuristic propose from messy notes → review → confirm. Prefix router unchanged for air-gap.
+- **`fde prep [label]`** — grounded walk-in brief from existing `.fde/` only (no invention).
+- **`fde garden [--apply]`** — contract: no new facts, no deleted substance, git-reversible; mechanical archive of 60d+ session-end blocks.
+- **`docs/field-reports/`** — attack-our-own-tool notes shipped in-repo.
+
+### Fixed
+- Session-start now injects TRIAGE (not only raw `context.md`), matching `fde resume`.
+
 ## 3.8.3 — 2026-07-14
 
 Real field-use fixes: trust colors that cannot lie at 5pm, Monday resume that earns its keep, honest phase.

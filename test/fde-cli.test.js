@@ -89,7 +89,7 @@ test('log writes dated entries and enforces contact-only signal tokens', () => {
   assert.match(bad.stderr, /--signal only applies to/)
 
   const eng = engagementPath(sandbox, 'acme')
-  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /- \[\d{4}-\d{2}-\d{2}\] ship retry slice/)
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /- \[\d{4}-\d{2}-\d{2}\](?: \[@[\w.-]+\])? ship retry slice/)
   assert.match(fs.readFileSync(path.join(eng, 'stakeholders.md'), 'utf8'), /\[signal:green\] Denise saw demo/)
 })
 
@@ -109,7 +109,7 @@ test('debrief --dry-run routes markdown-style notes without writing files', () =
   const dryRun = runFde(sandbox, ['debrief', '--dry-run'], { input: notes })
 
   assert.equal(dryRun.status, 0, dryRun.stderr)
-  assert.match(dryRun.stdout, /→ decisions\.md\s+- \[\d{4}-\d{2}-\d{2}\] keep launch date/)
+  assert.match(dryRun.stdout, /→ decisions\.md\s+- \[\d{4}-\d{2}-\d{2}\](?: \[@[\w.-]+\])? keep launch date/)
   assert.match(dryRun.stdout, /→ risks\.md/)
   assert.match(dryRun.stdout, /→ delivery\.md/)
   assert.match(dryRun.stdout, /→ stakeholders\.md/)
@@ -125,7 +125,7 @@ test('receipts escapes regex metacharacters and reports literal matches', () => 
 
   const found = runFde(sandbox, ['receipts', 'a+b?'])
   assert.equal(found.status, 0, found.stderr)
-  assert.match(found.stdout, /decisions\.md:\d+\s+- \[\d{4}-\d{2}-\d{2}\] literal a\+b\? scope/)
+  assert.match(found.stdout, /decisions\.md:\d+\s+- \[\d{4}-\d{2}-\d{2}\](?: \[@[\w.-]+\])? literal a\+b\? scope/)
 
   const missing = runFde(sandbox, ['receipts', 'a.b'])
   assert.equal(missing.status, 0, missing.stderr)
@@ -390,7 +390,7 @@ test('signal tokens land under Signal history regardless of writer or token posi
   const stakeholders = fs.readFileSync(path.join(eng, 'stakeholders.md'), 'utf8')
   const section = stakeholders.slice(stakeholders.indexOf('## Signal history'))
   assert.match(section, /\[signal:red\] Dana went quiet/, 'CLI-format signal must land inside the section')
-  assert.match(section, /Priya seemed cold on the call \[signal:amber\]/, 'debrief-format signal must land inside the section')
+  assert.match(section, /\[signal:amber\] Priya seemed cold on the call/, 'debrief-format signal must land inside the section (normalized token position)')
 })
 
 test('a full stakeholder-table rewrite that preserves Signal history keeps the trust color', () => {
@@ -573,4 +573,84 @@ test('resume leads with triage; log phase advances portfolio phase', () => {
   const after = runFde(sandbox, ['status'])
   assert.match(after.stdout, /phase:discover/)
   assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /\*\*Phase:\*\*\s*discover/)
+})
+
+test('engagement memory is git-versioned with owner attribution on writes', () => {
+  const sandbox = makeSandbox('mem-git')
+  const init = runFde(sandbox, ['resume', '--init', 'ledgerco'])
+  assert.equal(init.status, 0, init.stderr)
+  assert.match(init.stdout, /memory git:/)
+  const eng = engagementPath(sandbox, 'ledgerco')
+  assert.equal(fs.existsSync(path.join(eng, '.git')), true)
+  assert.equal(fs.existsSync(path.join(eng, '.owner')), true)
+
+  const log = runFde(sandbox, ['log', 'decision', 'descope reporting until audit'])
+  assert.equal(log.status, 0, log.stderr)
+  assert.match(log.stdout, /@[0-9a-f]+/)
+  const decisions = fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8')
+  assert.match(decisions, /\[@[\w.-]+\]/)
+  assert.match(decisions, /descope reporting until audit/)
+
+  const head = spawnSync('git', ['-C', eng, 'log', '-1', '--format=%s'], { encoding: 'utf8' })
+  assert.equal(head.status, 0, head.stderr)
+  assert.match(head.stdout, /log decision/)
+})
+
+test('debrief --smart proposes then --apply writes after confirm', () => {
+  const sandbox = makeSandbox('smart-debrief')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'messyco']).status, 0)
+  const notes = path.join(sandbox.workspace, 'notes.txt')
+  fs.writeFileSync(notes, [
+    'We agreed to descope the reporting slice until after the audit.',
+    'Risk: payroll file still has no rollback drill.',
+    'Denise gone quiet after Thursday board prep.',
+    'Randy will open the sheet tomorrow.',
+  ].join('\n'))
+
+  const propose = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(propose.status, 0, propose.stderr)
+  assert.match(propose.stdout, /SMART PROPOSE/)
+  assert.match(propose.stdout, /fde debrief --apply/)
+  const eng = engagementPath(sandbox, 'messyco')
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-propose')), true)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /descope the reporting/)
+
+  const apply = runFde(sandbox, ['debrief', '--apply'])
+  assert.equal(apply.status, 0, apply.stderr)
+  assert.match(apply.stdout, /debrief routed/)
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /descope the reporting/)
+  assert.match(fs.readFileSync(path.join(eng, 'risks.md'), 'utf8'), /payroll file/)
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-propose')), false)
+})
+
+test('triage, prep, and doctor surface engagement state', () => {
+  const sandbox = makeSandbox('triage-prep')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'walkin']).status, 0)
+  const eng = engagementPath(sandbox, 'walkin')
+  fs.writeFileSync(path.join(eng, 'context.md'), [
+    '# Engagement context',
+    '**Phase:** discover',
+    '',
+    '## Next action',
+    '- confirm Denise channel',
+    '',
+  ].join('\n'))
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\n\nPayroll runs without manual patch on Friday.\n')
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Denise cooling', '--signal', 'amber']).status, 0)
+
+  const triage = runFde(sandbox, ['triage'])
+  assert.equal(triage.status, 0, triage.stderr)
+  assert.match(triage.stdout, /TRIAGE/)
+  assert.match(triage.stdout, /amber/)
+  assert.match(triage.stdout, /record:/)
+
+  const prep = runFde(sandbox, ['prep', 'Denise sync'])
+  assert.equal(prep.status, 0, prep.stderr)
+  assert.match(prep.stdout, /MEETING PREP/)
+  assert.match(prep.stdout, /Denise sync/)
+  assert.match(prep.stdout, /confirm Denise channel/)
+
+  const doctor = runFde(sandbox, ['doctor'])
+  assert.equal(doctor.status, 0, doctor.stderr)
+  assert.match(doctor.stdout, /OK/)
 })
