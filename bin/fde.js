@@ -170,6 +170,52 @@ function readClean(eng, f) { return stripPrivate(readEng(eng, f)) }
 // that drops stakeholders.md "## Signal history" - skill discipline still
 // matters, but CLI-logged trust tokens must not vanish with the markdown.
 const SIGNAL_LEDGER = '.signal-ledger'
+const LAST_WRITE = '.last-write'
+
+// Heuristic secret shapes - warn/block CLI writes so a wrong-client paste is not silent.
+// Not a scanner product; high-signal patterns an FDE actually pastes by mistake.
+const SECRET_PATTERNS = [
+  { name: 'AWS access key id', re: /\bAKIA[0-9A-Z]{16}\b/ },
+  { name: 'GitHub token', re: /\bghp_[A-Za-z0-9]{20,}\b/ },
+  { name: 'GitHub fine-grained token', re: /\bgithub_pat_[A-Za-z0-9_]{20,}\b/ },
+  { name: 'OpenAI-style key', re: /\bsk-[A-Za-z0-9]{20,}\b/ },
+  { name: 'Slack token', re: /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/ },
+  { name: 'PEM private key', re: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
+  { name: 'Bearer token', re: /\bBearer\s+[A-Za-z0-9._\-]{20,}\b/ },
+]
+
+function findSecretHit(text) {
+  for (const p of SECRET_PATTERNS) {
+    if (p.re.test(String(text))) return p.name
+  }
+  return null
+}
+
+function refuseSecret(kind, hit) {
+  console.error(
+    `refused: ${kind} looks like a ${hit}.\n` +
+    `Do not log credentials into engagement memory. Redact first, or pass --force if this is intentional.\n` +
+    `If you already wrote one: fde log --undo`
+  )
+}
+
+function recordLastWrite(eng, file, entry) {
+  const p = path.join(eng, LAST_WRITE)
+  withFileLock(p, () => {
+    atomicWriteFile(p, JSON.stringify({ file, entry, at: new Date().toISOString() }) + '\n')
+  })
+}
+
+function removeExactEntryLine(md, entry) {
+  const target = entry.trim()
+  const lines = md.split('\n')
+  const idx = lines.findIndex(l => l.trim() === target)
+  if (idx === -1) return null
+  lines.splice(idx, 1)
+  while (idx < lines.length && lines[idx] === '') lines.splice(idx, 1)
+  return lines.join('\n')
+}
+
 
 // Exclusive create lock + retry. Two parallel agent sessions (or hook + CLI)
 // appending the same .fde file otherwise interleave/corrupt under load.
@@ -263,6 +309,7 @@ function appendLogEntry(eng, type, entry) {
   } else {
     lockedAppendFile(p, `\n${entry}\n`)
   }
+  recordLastWrite(eng, LOG_FILES[type], entry)
 }
 
 // phase / trust / top risk / freshness - identical heuristic for status + dashboard.
@@ -272,6 +319,36 @@ function appendLogEntry(eng, type, entry) {
 // signal never silently drives triage. The keyword grep survives only as the
 // zero-effort floor when NO token exists anywhere - prose like "escalated to CTO,
 // resolved amicably" must not flip a client amber forever.
+function stakeholdersMemoryHealth(eng) {
+  // Hostile handoff: binary / unparseable stakeholders must not read as healthy green.
+  let buf
+  try { buf = fs.readFileSync(path.join(eng, 'stakeholders.md')) } catch (_) {
+    return { ok: true, warn: '' }
+  }
+  if (buf.includes(0)) {
+    return { ok: false, warn: 'memory unreadable - verify (binary data in stakeholders.md)' }
+  }
+  const md = buf.toString('utf8')
+  const ledger = readEng(eng, SIGNAL_LEDGER)
+  if (/\[signal:(red|amber|green)\]/i.test(md + '\n' + ledger)) {
+    return { ok: true, warn: '' }
+  }
+  const trustLine = md.match(/\*\*Trust:\*\*\s*([A-Za-z?]+)/i)
+  if (trustLine && !/^(red|amber|green)$/i.test(trustLine[1])) {
+    return { ok: false, warn: 'memory unreadable - verify (invalid trust value)' }
+  }
+  const table = parseMdTable(md)
+  const meaningful = md.split('\n').filter(l => {
+    const t = l.trim()
+    return t && !t.startsWith('#') && !t.startsWith('<!--') && !/^\|?\s*:?-{3,}/.test(t)
+  }).length
+  // Content present but no table and no structured signal → do not invent "green"
+  if (meaningful >= 3 && !table) {
+    return { ok: false, warn: 'memory unreadable - verify (stakeholders.md unparseable)' }
+  }
+  return { ok: true, warn: '' }
+}
+
 function computeSignals(eng) {
   // readClean, not readEng: status/dashboard echo topRisk and stakeholder lines
   // to the terminal and the rendered HTML - a <private> risk must never surface.
@@ -284,11 +361,17 @@ function computeSignals(eng) {
     const sm = l.match(/\[signal:(red|amber|green)\]/i)
     if (!sm) continue
     const date = (l.match(/\[(\d{4}-\d{2}-\d{2})\]/) || [])[1] || ''
-    if (!latest || date >= latest.date) latest = { date, sig: sm[1].toLowerCase() }
+    const text = l.replace(/^\s*-\s*/, '').replace(/\[signal:(red|amber|green)\]/i, '').replace(/\[\d{4}-\d{2}-\d{2}\]/, '').trim()
+    if (!latest || date >= latest.date) latest = { date, sig: sm[1].toLowerCase(), text }
   }
-  let trust, signalAge = null, stale = false
-  if (latest) {
+  const mem = stakeholdersMemoryHealth(eng)
+  let trust, signalAge = null, stale = false, trustReason = ''
+  if (!mem.ok && !latest) {
+    trust = 'amber'
+    trustReason = mem.warn
+  } else if (latest) {
     trust = latest.sig === 'red' ? 'RED' : latest.sig
+    trustReason = (latest.text || '').slice(0, 80)
     if (latest.date) {
       signalAge = Math.max(0, Math.floor((Date.now() - Date.parse(latest.date)) / 86400000))
       stale = signalAge > 21
@@ -303,12 +386,14 @@ function computeSignals(eng) {
     return /^[-|]/.test(t) && t.length > 20 && !/^\|?[-\s|]+$/.test(t) &&
       !/risk\s*\|\s*status|mitigation/i.test(t) && !t.startsWith('<!--')
   }) || '').replace(/\|/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80)
+  // Prefer the trust trigger (signal / memory warn) over a random risk line when triage is not green
+  const reason = (trust !== 'green' && (trustReason || mem.warn)) ? (trustReason || mem.warn) : topRisk
   let updated = 'never', ageDays = Infinity
   try {
     ageDays = Math.floor((Date.now() - fs.statSync(path.join(eng, 'context.md')).mtimeMs) / 86400000)
     updated = ageDays === 0 ? 'today' : `${ageDays}d ago`
   } catch (_) {}
-  return { phase, trust, signalAge, stale, topRisk, updated, ageDays }
+  return { phase, trust, signalAge, stale, topRisk, reason, memoryWarn: mem.warn, updated, ageDays }
 }
 
 // ---------- dashboard content extractors (best-effort, read-only) ----------
@@ -715,8 +800,39 @@ function resumeView(md) {
   return `${head}\n\n_(\u2026 ${hidden} lines of earlier session log hidden \u2014 \`fde resume --full\` or open context.md for the full history)_\n\n${tail}`
 }
 
+function cmdLogUndo() {
+  const eng = resolveEngagement({ forWrite: true })
+  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+  const metaPath = path.join(eng, LAST_WRITE)
+  let meta
+  try { meta = JSON.parse(fs.readFileSync(metaPath, 'utf8')) } catch (_) {
+    console.error('nothing to undo - no prior fde log/debrief write recorded')
+    process.exit(1)
+  }
+  if (!meta.file || !meta.entry) { console.error('corrupt .last-write - cannot undo'); process.exit(1) }
+  const target = path.join(eng, meta.file)
+  const before = readEng(eng, meta.file)
+  const after = removeExactEntryLine(before, meta.entry)
+  if (after == null) {
+    console.error(`cannot undo - entry no longer in ${meta.file} (edited by hand?). Remove it manually.`)
+    process.exit(1)
+  }
+  withFileLock(target, () => { atomicWriteFile(target, after.endsWith('\n') ? after : after + '\n') })
+  if (/\[signal:(red|amber|green)\]/i.test(meta.entry)) {
+    const ledgerPath = path.join(eng, SIGNAL_LEDGER)
+    const led = removeExactEntryLine(readEng(eng, SIGNAL_LEDGER), meta.entry)
+    if (led != null) withFileLock(ledgerPath, () => { atomicWriteFile(ledgerPath, led.endsWith('\n') ? led : led + '\n') })
+  }
+  try { fs.unlinkSync(metaPath) } catch (_) {}
+  console.log(`undid last write → ${meta.file}`)
+}
+
 function cmdLog(args) {
   args = args.slice()
+  if (args[0] === '--undo') { cmdLogUndo(); return }
+  let force = false
+  const forceIdx = args.indexOf('--force')
+  if (forceIdx !== -1) { force = true; args.splice(forceIdx, 1) }
   // --signal red|amber|green (contact only) → structured token computeSignals trusts
   let signal = ''
   const sigIdx = args.indexOf('--signal')
@@ -726,10 +842,13 @@ function cmdLog(args) {
     args.splice(sigIdx, 2)
   }
   const type = args[0]; const text = args.slice(1).join(' ')
-  if (!LOG_FILES[type] || !text) { console.error('usage: fde log <decision|risk|delivery|contact> <text> [--signal red|amber|green]'); process.exit(1) }
+  if (!LOG_FILES[type] || !text) { console.error('usage: fde log <decision|risk|delivery|contact> <text> [--signal red|amber|green] [--force]\n       fde log --undo'); process.exit(1) }
   if (signal && type !== 'contact') { console.error('--signal only applies to: fde log contact'); process.exit(1) }
   const eng = resolveEngagement({ forWrite: true })
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+  const hit = findSecretHit(text)
+  if (hit && !force) { refuseSecret('log text', hit); process.exit(1) }
+  if (hit && force) console.error(`warning: logging possible ${hit} (--force)`)
   const date = new Date().toISOString().slice(0, 10)
   const entry = `- [${date}] ${signal ? `[signal:${signal}] ` : ''}${text}`
   appendLogEntry(eng, type, entry)
@@ -751,6 +870,9 @@ function cmdDebrief(args) {
   const dryIdx = args.indexOf('--dry-run')
   const dry = dryIdx !== -1
   if (dry) args.splice(dryIdx, 1)
+  let force = false
+  const forceIdx = args.indexOf('--force')
+  if (forceIdx !== -1) { force = true; args.splice(forceIdx, 1) }
   const eng = resolveEngagement({ forWrite: true })
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
   let input = ''
@@ -788,14 +910,26 @@ function cmdDebrief(args) {
     const m = bare.match(/^(decision|risk|delivery|contact):\s*(.+)$/i)
     if (m) {
       const type = m[1].toLowerCase()
-      const entry = `- [${date}] ${m[2]}`
+      const body = m[2]
+      const hit = findSecretHit(body)
+      if (hit && !force) {
+        console.error(`skipped ${type} line - looks like a ${hit}. Redact it, or re-run with --force.`)
+        continue
+      }
+      const entry = `- [${date}] ${body}`
       if (dry) console.log(`→ ${LOG_FILES[type]}  ${entry}`)
       // appendLogEntry, not a blind append: a contact: line may carry an
       // inline [signal:x] token (the skill's own convention) and must land
       // inside "## Signal history" the same way `fde log --signal` does.
       else appendLogEntry(eng, type, entry)
       counts[type]++
-    } else ctxLines.push(line)
+    } else {
+      if (findSecretHit(line) && !force) {
+        console.error('skipped context line - looks like a secret. Redact it, or re-run with --force.')
+        continue
+      }
+      ctxLines.push(line)
+    }
   }
   if (ctxLines.length) {
     const stamp = `${date} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
@@ -890,7 +1024,7 @@ function cmdStatus(args) {
       const eng = path.join(ENGAGEMENTS_ROOT, d, '.fde')
       if (!fs.existsSync(eng)) continue
       const s = computeSignals(eng)
-      rows.push({ name: d, phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, topRisk: s.topRisk.slice(0, 60) })
+      rows.push({ name: d, phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: (s.reason || s.topRisk).slice(0, 60) })
     }
   } else {
     const eng = resolveEngagement()
@@ -899,7 +1033,7 @@ function cmdStatus(args) {
       process.exit(2)
     }
     const s = computeSignals(eng)
-    rows.push({ name: engagementSlugFromPath(eng), phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, topRisk: s.topRisk.slice(0, 60) })
+    rows.push({ name: engagementSlugFromPath(eng), phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: (s.reason || s.topRisk).slice(0, 60) })
   }
   if (!rows.length) { console.log('no engagements yet'); return }
   const order = { RED: 0, amber: 1, green: 2 }
@@ -909,7 +1043,7 @@ function cmdStatus(args) {
     // "amber?" = structured signal went stale (>21d) - reconfirm before trusting it
     const label = r.trust + (r.stale ? '?' : '')
     const sig = r.signalAge != null ? `signal ${r.signalAge}d old${r.stale ? ' (STALE - reconfirm)' : ''}  ` : ''
-    console.log(`  [${label.padEnd(6)}] ${r.name.padEnd(24)} phase:${r.phase.padEnd(10)} updated:${r.updated.padEnd(8)} ${sig}${r.topRisk}`)
+    console.log(`  [${label.padEnd(6)}] ${r.name.padEnd(24)} phase:${r.phase.padEnd(10)} updated:${r.updated.padEnd(8)} ${sig}${r.reason}`)
   }
   if (!all) console.log('\n(current engagement only - pass --all for the full portfolio)')
   console.log('\ntrust: latest [signal:x] token in stakeholders.md wins (fde log contact --signal, fde debrief); keyword heuristic only when none exists - verify before acting.')
@@ -1677,8 +1811,9 @@ function printUsage() {
   fde resume --full        load the complete context.md (no bound)
   fde resume --init <name> create + bind engagement for this workspace (rebind replaces)
   fde resume --bind        show what this workspace is bound to, and what resolves
-  fde log <type> <text>    append decision|risk|delivery|contact (contact takes --signal red|amber|green)
-  fde debrief [file]       meeting notes → memory: decision:/risk:/delivery:/contact: lines route, rest → context.md (stdin if no file; --dry-run previews)
+  fde log <type> <text>    append decision|risk|delivery|contact (contact takes --signal red|amber|green; --force to allow secret-like text)
+  fde log --undo           remove the last CLI log/debrief entry from memory
+  fde debrief [file]       meeting notes → memory: decision:/risk:/delivery:/contact: lines route, rest → context.md (stdin if no file; --dry-run; --force)
   fde receipts <term>      "what did we agree?" with dates
   fde capture              session-end memory snapshot (hooks use this)
   fde status [--all]       current engagement status (pass --all for full portfolio)
