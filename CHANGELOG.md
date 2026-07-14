@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.9.1 — 2026-07-14
+
+Field-sim closeout: prep and smart debrief match how FDEs actually write memory (logs, not only tables).
+
+### Fixed
+- **`fde prep` reads log-shaped memory** — stakeholders from Signal history / ledger when the table is empty; risks from dated bullets as well as the table.
+- **`fde debrief --smart`** — infers `[signal:amber|green|red]` from contact language; person lines like “Randy opened the sheet…” route as contacts; open questions → risks; `next:` / “Next action:” updates `## Next action`.
+- Worst-of trust still holds when smart apply lands Denise amber + Randy green in one pass.
+
 ## 3.9.0 — 2026-07-14
 
 Defensible memory + frictionless debrief loop. Still a field kit — not a coworker shell. Zero telemetry; CLI stays offline.

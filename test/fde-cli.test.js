@@ -604,12 +604,17 @@ test('debrief --smart proposes then --apply writes after confirm', () => {
     'We agreed to descope the reporting slice until after the audit.',
     'Risk: payroll file still has no rollback drill.',
     'Denise gone quiet after Thursday board prep.',
-    'Randy will open the sheet tomorrow.',
+    'Randy opened the tracking sheet and is helping with recon.',
+    'Open question: who signs success for go-live?',
+    'Next action: confirm Denise channel before Thursday demo',
   ].join('\n'))
 
   const propose = runFde(sandbox, ['debrief', '--smart', notes])
   assert.equal(propose.status, 0, propose.stderr)
   assert.match(propose.stdout, /SMART PROPOSE/)
+  assert.match(propose.stdout, /\[signal:amber\].*Denise|Denise.*\[signal:amber\]/)
+  assert.match(propose.stdout, /\[signal:green\].*Randy|Randy.*\[signal:green\]/)
+  assert.match(propose.stdout, /Next action/)
   assert.match(propose.stdout, /fde debrief --apply/)
   const eng = engagementPath(sandbox, 'messyco')
   assert.equal(fs.existsSync(path.join(eng, '.debrief-propose')), true)
@@ -620,7 +625,14 @@ test('debrief --smart proposes then --apply writes after confirm', () => {
   assert.match(apply.stdout, /debrief routed/)
   assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /descope the reporting/)
   assert.match(fs.readFileSync(path.join(eng, 'risks.md'), 'utf8'), /payroll file/)
+  assert.match(fs.readFileSync(path.join(eng, 'risks.md'), 'utf8'), /who signs success/)
+  assert.match(fs.readFileSync(path.join(eng, 'stakeholders.md'), 'utf8'), /\[signal:amber\]/)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /confirm Denise channel/)
   assert.equal(fs.existsSync(path.join(eng, '.debrief-propose')), false)
+
+  const status = runFde(sandbox, ['status'])
+  assert.match(status.stdout, /\[amber\s*\]/)
+  assert.doesNotMatch(status.stdout, /\[green\s*\]\s*messyco/)
 })
 
 test('triage, prep, and doctor surface engagement state', () => {
@@ -637,6 +649,7 @@ test('triage, prep, and doctor surface engagement state', () => {
   ].join('\n'))
   fs.writeFileSync(path.join(eng, 'success.md'), '# Success\n\nPayroll runs without manual patch on Friday.\n')
   assert.equal(runFde(sandbox, ['log', 'contact', 'Denise cooling', '--signal', 'amber']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'risk', 'no tested rollback on Friday batch']).status, 0)
 
   const triage = runFde(sandbox, ['triage'])
   assert.equal(triage.status, 0, triage.stderr)
@@ -648,6 +661,8 @@ test('triage, prep, and doctor surface engagement state', () => {
   assert.equal(prep.status, 0, prep.stderr)
   assert.match(prep.stdout, /MEETING PREP/)
   assert.match(prep.stdout, /Denise sync/)
+  assert.match(prep.stdout, /\[amber\].*Denise/)
+  assert.match(prep.stdout, /no tested rollback/)
   assert.match(prep.stdout, /confirm Denise channel/)
 
   const doctor = runFde(sandbox, ['doctor'])
