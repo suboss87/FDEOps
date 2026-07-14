@@ -459,3 +459,33 @@ test('dashboard scoped render and scan smoke', () => {
   assert.equal(scan.status, 0, scan.stderr)
   assert.match(scan.stdout, /FDE RECON|ASK ON DAY 1|heuristic/i)
 })
+
+test('log refuses secret-like text and --undo removes the last entry', () => {
+  const sandbox = makeSandbox('secret-undo')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'secco']).status, 0)
+  const eng = engagementPath(sandbox, 'secco')
+  const before = fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8')
+
+  const refused = runFde(sandbox, ['log', 'decision', 'leaked AKIAIOSFODNN7EXAMPLE into chat'])
+  assert.equal(refused.status, 1)
+  assert.match(refused.stderr, /AWS access key/i)
+  assert.equal(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), before)
+
+  assert.equal(runFde(sandbox, ['log', 'decision', 'ship the retry slice']).status, 0)
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /ship the retry slice/)
+  const undo = runFde(sandbox, ['log', '--undo'])
+  assert.equal(undo.status, 0, undo.stderr)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /ship the retry slice/)
+})
+
+test('corrupted stakeholders.md does not default to green', () => {
+  const sandbox = makeSandbox('corrupt-mem')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'wreck']).status, 0)
+  const eng = engagementPath(sandbox, 'wreck')
+  fs.writeFileSync(path.join(eng, 'stakeholders.md'), Buffer.from([0x23, 0x20, 0x53, 0x00, 0x01, 0x02]))
+  const status = runFde(sandbox, ['status'])
+  assert.equal(status.status, 0, status.stderr)
+  assert.match(status.stdout, /\[amber\s*\]\s*wreck/)
+  assert.match(status.stdout, /memory unreadable/i)
+  assert.doesNotMatch(status.stdout, /\[green\s*\]\s*wreck/)
+})

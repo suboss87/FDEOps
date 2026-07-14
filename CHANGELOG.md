@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.8.1 — 2026-07-14
+
+Field edge-case follow-ups from live multi-client / hostile-handoff review.
+
+### Fixed
+- **Secret hygiene** — `fde log` / routed `fde debrief` lines that look like credentials (AKIA…, `ghp_…`, PEM keys, etc.) are refused; pass `--force` only if intentional. `fde log --undo` removes the last CLI write.
+- **Corrupt memory ≠ green** — binary or unparseable `stakeholders.md` (or invalid `**Trust:**` value) surfaces as amber with `memory unreadable - verify`, not a healthy green.
+- **Status reason** — non-green rows prefer the triggering signal / memory warning over a random latest risk line.
+
 ## 3.8.0 — 2026-07-14
 
 Trust + hygiene cut for the field kit (second brain), not an OS.
