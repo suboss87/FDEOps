@@ -232,6 +232,28 @@ test('resolving by directory name warns instead of silently attaching', () => {
   assert.match(r.stderr, /directory name/i, 'dir-name resolution must warn, not be silent')
 })
 
+test('basename match cannot write into another client memory', () => {
+  const sandbox = makeSandbox('no-basename-write')
+  runFde(sandbox, ['resume', '--init', 'acme'])
+  const before = fs.readFileSync(path.join(engagementPath(sandbox, 'acme'), 'decisions.md'), 'utf8')
+  const stray = path.join(sandbox.dir, 'acme')
+  fs.mkdirSync(stray, { recursive: true })
+  const log = runFde(sandbox, ['log', 'decision', 'WRONG CLIENT WRITE'], { cwd: fs.realpathSync(stray) })
+  assert.notEqual(log.status, 0, 'unbound same-name folder must not write')
+  assert.match(log.stderr, /no binding|explicit bind/i)
+  const after = fs.readFileSync(path.join(engagementPath(sandbox, 'acme'), 'decisions.md'), 'utf8')
+  assert.equal(after, before, 'decisions.md must be unchanged')
+})
+
+test('unknown command exits non-zero', () => {
+  const sandbox = makeSandbox('badcmd')
+  const r = runFde(sandbox, ['definitely-not-a-command'])
+  assert.equal(r.status, 1)
+  assert.match(r.stdout, /fde scan/)
+  const help = runFde(sandbox, ['help'])
+  assert.equal(help.status, 0)
+})
+
 test('binding resolves from a nested subdirectory, not just the exact bind dir', () => {
   const sandbox = makeSandbox('nested')
   runFde(sandbox, ['resume', '--init', 'northwind'])
@@ -373,11 +395,8 @@ test('signal tokens land under Signal history regardless of writer or token posi
 
 test('a full stakeholder-table rewrite that preserves Signal history keeps the trust color', () => {
   // The exact failure a ground-FDE simulation hit: land.md tells the agent to
-  // write stakeholders.md as a full artifact. A rewrite that drops the section
-  // entirely still loses the signal (nothing can save a full overwrite that
-  // deletes it - that's a skill-discipline problem, not a CLI one) - but a
-  // rewrite that PRESERVES the section, as the template now instructs, must
-  // keep working end to end through fde status.
+  // write stakeholders.md as a full artifact. A rewrite that PRESERVES the
+  // section, as the template now instructs, must keep working end to end.
   const sandbox = makeSandbox('rewrite-survives')
   runFde(sandbox, ['resume', '--init', 'clobberco'])
   const eng = engagementPath(sandbox, 'clobberco')
@@ -399,4 +418,44 @@ test('a full stakeholder-table rewrite that preserves Signal history keeps the t
   const status = runFde(sandbox, ['status'])
   assert.equal(status.status, 0, status.stderr)
   assert.match(status.stdout, /\[RED\s*\]\s*clobberco/, 'trust must still read RED after a section-preserving rewrite')
+})
+
+test('CLI signal ledger keeps trust RED after Signal history is wiped', () => {
+  const sandbox = makeSandbox('ledger-survives')
+  runFde(sandbox, ['resume', '--init', 'ledgerco'])
+  const eng = engagementPath(sandbox, 'ledgerco')
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Dana went quiet', '--signal', 'red']).status, 0)
+  assert.equal(fs.existsSync(path.join(eng, '.signal-ledger')), true)
+
+  // Agent rewrite that drops the section entirely - ledger must still drive trust.
+  fs.writeFileSync(path.join(eng, 'stakeholders.md'), [
+    '# Stakeholders',
+    '',
+    '| Who | Role | Signal | Notes |',
+    '|-----|------|--------|-------|',
+    '| Dana | sponsor | unknown | |',
+    '',
+  ].join('\n'))
+
+  const status = runFde(sandbox, ['status'])
+  assert.equal(status.status, 0, status.stderr)
+  assert.match(status.stdout, /\[RED\s*\]\s*ledgerco/, 'trust must read RED from .signal-ledger after wipe')
+})
+
+test('dashboard scoped render and scan smoke', () => {
+  const sandbox = makeSandbox('dash-scan')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'dashco']).status, 0)
+  const dash = runFde(sandbox, ['dashboard'])
+  assert.equal(dash.status, 0, dash.stderr)
+  assert.match(dash.stdout, /fieldbook-current\.html/)
+  const htmlPath = (dash.stdout.match(/\/[^\s]+\.html/) || [])[0]
+  assert.ok(htmlPath && fs.existsSync(htmlPath))
+  const html = fs.readFileSync(htmlPath, 'utf8')
+  assert.match(html, /dashco/)
+  assert.doesNotMatch(html, /<script[^>]+src=/i)
+
+  fs.writeFileSync(path.join(sandbox.workspace, 'app.js'), 'module.exports = 1\n')
+  const scan = runFde(sandbox, ['scan'])
+  assert.equal(scan.status, 0, scan.stderr)
+  assert.match(scan.stdout, /FDE RECON|ASK ON DAY 1|heuristic/i)
 })

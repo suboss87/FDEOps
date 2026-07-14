@@ -93,7 +93,11 @@ function readRegistry() {
   } catch (_) { return [] }
 }
 
-function resolveEngagement() {
+function resolveEngagement(opts = {}) {
+  // opts.forWrite: memory mutations (log/debrief/capture) require an intentional
+  // bind - env, registry, pointer, or in-repo .fde. Basename matching is
+  // read-only convenience; writing on a folder-name guess contaminates clients.
+  const forWrite = !!opts.forWrite
   // 1) explicit env (back-compat: accept old FDEOS_ENGAGEMENT too)
   const env = (process.env.FDEOPS_ENGAGEMENT || process.env.FDEOS_ENGAGEMENT || '').replace(/^~/, HOME).trim()
   if (env && fs.existsSync(env)) return env
@@ -123,15 +127,21 @@ function resolveEngagement() {
       }
     } catch (_) {}
   }
-  // 4) workspace dir name matches an engagement slug. This is a convenience,
-  // NOT a binding - an unbound directory that merely happens to be named like a
-  // client (a fork, a demo, a second client with the same codename) would
-  // otherwise attach to that client's memory silently and get written into.
-  // Never silent: warn on stderr so cross-client contamination can't happen
-  // unnoticed, and tell the user how to make the binding explicit.
-  const guess = path.join(ENGAGEMENTS_ROOT, slugify(path.basename(cwd)), '.fde')
+  // 4) workspace dir name matches an engagement slug. Read-only convenience.
+  // NEVER a write target - an unbound checkout named like a client must not
+  // append into that client's memory.
+  const slugGuess = slugify(path.basename(cwd))
+  const guess = path.join(ENGAGEMENTS_ROOT, slugGuess, '.fde')
   if (fs.existsSync(guess)) {
-    process.stderr.write(`⚠ resolved engagement by directory name ("${slugify(path.basename(cwd))}"), not a saved binding. If this is the right client, run \`fde resume --init ${slugify(path.basename(cwd))}\` here to bind it; if not, you are about to read/write the WRONG client's memory.\n`)
+    if (forWrite) {
+      process.stderr.write(
+        `no binding for this workspace - folder name matched "${slugGuess}" but writes require an explicit bind.\n` +
+        `run: fde resume --init ${slugGuess}\n` +
+        ` or: export FDEOPS_ENGAGEMENT=${guess}\n`
+      )
+      return null
+    }
+    process.stderr.write(`⚠ resolved engagement by directory name ("${slugGuess}"), not a saved binding (read-only). If this is the right client, run \`fde resume --init ${slugGuess}\` here to bind it before logging or debriefing.\n`)
     return guess
   }
   // 5) in-repo .fde (engagement-approved only)
@@ -155,6 +165,49 @@ function readEng(eng, f) {
 // Read + redact in one step - the default way dashboard code should ever touch
 // a markdown file, so a forgotten stripPrivate() call can't leak a <private> block.
 function readClean(eng, f) { return stripPrivate(readEng(eng, f)) }
+
+// CLI-owned append-only mirror of [signal:x] lines. Survives an agent rewrite
+// that drops stakeholders.md "## Signal history" - skill discipline still
+// matters, but CLI-logged trust tokens must not vanish with the markdown.
+const SIGNAL_LEDGER = '.signal-ledger'
+
+// Exclusive create lock + retry. Two parallel agent sessions (or hook + CLI)
+// appending the same .fde file otherwise interleave/corrupt under load.
+function withFileLock(targetPath, fn) {
+  const lockPath = targetPath + '.lock'
+  const deadline = Date.now() + 5000
+  while (true) {
+    let fd
+    try {
+      fd = fs.openSync(lockPath, 'wx')
+    } catch (e) {
+      if (e.code !== 'EEXIST') throw e
+      if (Date.now() > deadline) {
+        console.error(`could not lock ${path.basename(targetPath)} - another writer is active; retry`)
+        process.exit(1)
+      }
+      const waitUntil = Date.now() + 20
+      while (Date.now() < waitUntil) { /* spin */ }
+      continue
+    }
+    try {
+      return fn()
+    } finally {
+      try { fs.closeSync(fd) } catch (_) {}
+      try { fs.unlinkSync(lockPath) } catch (_) {}
+    }
+  }
+}
+
+function atomicWriteFile(p, content) {
+  const tmp = `${p}.${process.pid}.${Date.now()}.tmp`
+  fs.writeFileSync(tmp, content)
+  fs.renameSync(tmp, p)
+}
+
+function lockedAppendFile(p, text) {
+  withFileLock(p, () => { fs.appendFileSync(p, text) })
+}
 
 // Pull the body under a "## Heading" up to the next "##" (or EOF).
 function sectionBody(md, heading) {
@@ -202,9 +255,13 @@ function appendUnderSection(md, heading, entry) {
 function appendLogEntry(eng, type, entry) {
   const p = path.join(eng, LOG_FILES[type])
   if (type === 'contact' && /\[signal:(red|amber|green)\]/i.test(entry)) {
-    fs.writeFileSync(p, appendUnderSection(readEng(eng, LOG_FILES[type]), 'Signal history', entry))
+    withFileLock(p, () => {
+      atomicWriteFile(p, appendUnderSection(readEng(eng, LOG_FILES[type]), 'Signal history', entry))
+    })
+    // Durable CLI ledger - not rewritten by agent artifact passes.
+    lockedAppendFile(path.join(eng, SIGNAL_LEDGER), `${entry}\n`)
   } else {
-    fs.appendFileSync(p, `\n${entry}\n`)
+    lockedAppendFile(p, `\n${entry}\n`)
   }
 }
 
@@ -219,9 +276,11 @@ function computeSignals(eng) {
   // readClean, not readEng: status/dashboard echo topRisk and stakeholder lines
   // to the terminal and the rendered HTML - a <private> risk must never surface.
   const ctx = readClean(eng, 'context.md'); const stake = readClean(eng, 'stakeholders.md'); const risks = readClean(eng, 'risks.md')
+  // Prefer structured tokens from stakeholders + CLI ledger (ledger survives wipes)
+  const signalText = stake + '\n' + readClean(eng, SIGNAL_LEDGER)
   const phase = (ctx.match(/phase[:* ]+\**([a-z-]+)/i) || [])[1] || '?'
   let latest = null
-  for (const l of stake.split('\n')) {
+  for (const l of signalText.split('\n')) {
     const sm = l.match(/\[signal:(red|amber|green)\]/i)
     if (!sm) continue
     const date = (l.match(/\[(\d{4}-\d{2}-\d{2})\]/) || [])[1] || ''
@@ -351,7 +410,8 @@ function extractStakeholders(eng) {
   // once the token is stripped, so match the token anywhere on the line rather
   // than requiring it immediately after the date; a debrief-written signal was
   // silently invisible to per-stakeholder matching before this.
-  sectionBody(md, 'Signal history').split('\n').forEach(l => {
+  const histText = sectionBody(md, 'Signal history') + '\n' + readEng(eng, SIGNAL_LEDGER)
+  histText.split('\n').forEach(l => {
     const dm = l.trim().match(/^-\s*\[(\d{4}-\d{2}-\d{2})\]\s*(.*)$/i)
     if (!dm) return
     const sm = dm[2].match(/\[signal:(red|amber|green)\]/i)
@@ -470,7 +530,8 @@ function extractLog(eng) {
   sectionBody(readClean(eng, 'risks.md'), 'Retired').split('\n').forEach(l => {
     const m = l.trim().match(FLAT); if (m) push(m[1], m[2], 'receipt')
   })
-  sectionBody(readClean(eng, 'stakeholders.md'), 'Signal history').split('\n').forEach(l => {
+  const signalLog = sectionBody(readClean(eng, 'stakeholders.md'), 'Signal history') + '\n' + readClean(eng, SIGNAL_LEDGER)
+  signalLog.split('\n').forEach(l => {
     const m = l.trim().match(FLAT); if (m) push(m[1], m[2], 'note')
   })
 
@@ -592,7 +653,7 @@ function cmdResume(args) {
     const prev = readRegistry().find(r => r.workspace === cwd)
     const kept = readRegistry().filter(r => r.workspace !== cwd).map(r => `${r.workspace} ${r.slug}`)
     kept.push(`${cwd} ${slug}`)
-    fs.writeFileSync(REGISTRY, kept.join('\n') + '\n')
+    withFileLock(REGISTRY, () => { atomicWriteFile(REGISTRY, kept.join('\n') + '\n') })
     console.log(`ENGAGEMENT READY: ${fdeDir}\nbound to workspace: ${cwd}`)
     if (prev && prev.slug !== slug) console.log(`rebound: this workspace previously wrote to "${prev.slug}" - that memory is untouched; sessions here now write to "${slug}"`)
     // NDA surface: engagement notes must not silently leave the machine via file sync
@@ -667,7 +728,7 @@ function cmdLog(args) {
   const type = args[0]; const text = args.slice(1).join(' ')
   if (!LOG_FILES[type] || !text) { console.error('usage: fde log <decision|risk|delivery|contact> <text> [--signal red|amber|green]'); process.exit(1) }
   if (signal && type !== 'contact') { console.error('--signal only applies to: fde log contact'); process.exit(1) }
-  const eng = resolveEngagement()
+  const eng = resolveEngagement({ forWrite: true })
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
   const date = new Date().toISOString().slice(0, 10)
   const entry = `- [${date}] ${signal ? `[signal:${signal}] ` : ''}${text}`
@@ -690,7 +751,7 @@ function cmdDebrief(args) {
   const dryIdx = args.indexOf('--dry-run')
   const dry = dryIdx !== -1
   if (dry) args.splice(dryIdx, 1)
-  const eng = resolveEngagement()
+  const eng = resolveEngagement({ forWrite: true })
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
   let input = ''
   if (args[0]) {
@@ -739,7 +800,7 @@ function cmdDebrief(args) {
   if (ctxLines.length) {
     const stamp = `${date} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     if (dry) ctxLines.forEach(l => console.log(`→ context.md  - ${l}`))
-    else fs.appendFileSync(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${ctxLines.map(l => `- ${l}`).join('\n')}\n`)
+    else lockedAppendFile(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${ctxLines.map(l => `- ${l}`).join('\n')}\n`)
   }
   const plural = { decision: 'decisions', risk: 'risks', delivery: 'deliveries', contact: 'contacts' }
   const parts = Object.keys(counts).filter(t => counts[t])
@@ -794,7 +855,7 @@ function cmdReceipts(args) {
 }
 
 function cmdCapture() {
-  const eng = resolveEngagement()
+  const eng = resolveEngagement({ forWrite: true })
   if (!eng) process.exit(0) // silent: capture must never break a session
   const branch = sh('git branch --show-current')
   const lastCommit = sh("git log -1 --format='%h %s'").slice(0, 100)
@@ -812,7 +873,7 @@ function cmdCapture() {
   if (branch) block += `- workspace: \`${branch}\` @ ${lastCommit || 'no commits yet'}\n`
   if (changed) block += `- uncommitted: ${changed}\n`
   if (updated) block += `- engagement files updated: ${updated}\n`
-  try { fs.appendFileSync(path.join(eng, 'context.md'), block) } catch (_) {}
+  try { lockedAppendFile(path.join(eng, 'context.md'), block) } catch (_) {}
 }
 
 function engagementSlugFromPath(eng) {
@@ -1609,18 +1670,8 @@ ${clientViews}
   }
 }
 
-const [cmd, ...args] = process.argv.slice(2)
-switch (cmd) {
-  case 'scan': cmdScan(); break
-  case 'resume': cmdResume(args); break
-  case 'log': cmdLog(args); break
-  case 'debrief': cmdDebrief(args); break
-  case 'receipts': cmdReceipts(args); break
-  case 'capture': cmdCapture(); break
-  case 'status': cmdStatus(args); break
-  case 'dashboard': cmdDashboard(args); break
-  default:
-    console.log(`fde - deterministic core of fdeops
+function printUsage() {
+  console.log(`fde - deterministic core of fdeops
   fde scan                 day-1 recon of this repo (facts, no AI)
   fde resume               load this workspace's engagement memory (bounded)
   fde resume --full        load the complete context.md (no bound)
@@ -1632,5 +1683,27 @@ switch (cmd) {
   fde capture              session-end memory snapshot (hooks use this)
   fde status [--all]       current engagement status (pass --all for full portfolio)
   fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
-  env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)`)
+  env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)
+  writes require a workspace bind (or FDEOPS_ENGAGEMENT) - folder-name match is read-only`)
+}
+
+const [cmd, ...args] = process.argv.slice(2)
+switch (cmd) {
+  case 'scan': cmdScan(); break
+  case 'resume': cmdResume(args); break
+  case 'log': cmdLog(args); break
+  case 'debrief': cmdDebrief(args); break
+  case 'receipts': cmdReceipts(args); break
+  case 'capture': cmdCapture(); break
+  case 'status': cmdStatus(args); break
+  case 'dashboard': cmdDashboard(args); break
+  case 'help':
+  case '-h':
+  case '--help':
+    printUsage()
+    break
+  default:
+    printUsage()
+    // Missing or unknown command must fail - exit 0 made typos look like success in scripts/hooks.
+    process.exit(1)
 }

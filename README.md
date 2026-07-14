@@ -37,7 +37,7 @@ A notes app stores what you type. fdeops loads the right client into your AI age
 | **After a meeting** | Notes rot in a scratch file | `fde debrief` routes decisions, risks, deliveries, and contacts into the record, dated |
 | **Scope dispute** | "Small" additions absorbed silently; no record when the sponsor asks | `fde receipts <term>` answers "when did we agree to that?" with dates |
 | **Quiet stakeholder** | Noticed three weeks too late | `fde log contact --signal amber` the day it happens; `fde status` surfaces it |
-| **Multiple clients** | Details blur across engagements | One folder per client, never cross-contaminated |
+| **Multiple clients** | Details blur across engagements | One folder per client; bind the workspace so writes cannot land on a name-alike checkout |
 
 ---
 
@@ -66,7 +66,7 @@ fdeops' `--init` creates the engagement memory at `~/fde-engagements/garvey/.fde
 @fde I just got the brief. New client, payments platform, they want it live before their Q3 audit.
 ```
 
-`@fde` is the one skill fdeops installs. Describe what's happening; it routes to the right field method and the memory writes itself. Full workflow: [docs/USAGE.md](docs/USAGE.md).
+`@fde` is the one skill fdeops installs. Describe what's happening; it routes to the right field method and writes matching `.fde/` artifacts — you still confirm judgment. Full workflow: [docs/USAGE.md](docs/USAGE.md).
 
 Not ready to install? `npx fdeops scan` runs on any repo you can read - day-1 recon (pure `git` + file reads, no config, no account) that maps hotspots, test gaps, and reverted attempts, and ends with the ASK ON DAY 1 questions the brief never mentions. The scan is heuristic by design - treat its output as leads to verify on day one, not findings.
 
