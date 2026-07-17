@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.9.6 — 2026-07-17
+
+Adoption contract in code: human speaks natural language; agent runs the CLI.
+
+### Changed
+- **`@fde` skill** - explicit Human surface vs agent plumbing; never ask the FDE to type `fde …`; route walk-in prep to `fde prep`; prefer `fde debrief --smart` → confirm → `--apply`.
+- **`references/debrief.md`** - smart path first; agent owns the CLI.
+- **Session-start pointer + Cursor adapter** - same contract.
+- **README** - week as what you say; CLI reframed as under-the-hood map.
+
 ## 3.9.5 — 2026-07-17
 
 Token discipline: SessionStart matches progressive-disclosure L1.

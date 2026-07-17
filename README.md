@@ -33,7 +33,7 @@ Day to day you only need `@fde` and normal English. No command cheat sheet.
 | **Someone disputes scope** | `@fde` when did we agree to drop that feature? | Dated answers from the record (or a clear gap if nothing was logged) |
 | **End of week** | `@fde` draft the sponsor update from the record | Status grounded in what actually happened |
 
-Same client folder every time (`~/fde-engagements/<client>/.fde/`). Your AI coding agent reads it on every session. Optional CLI commands for scripts and power users live under [The CLI](#the-cli).
+Same client folder every time (`~/fde-engagements/<client>/.fde/`). Your AI coding agent reads it on every session. Optional terminal tools live under [Under the hood](#under-the-hood-optional).
 
 ---
 
@@ -129,41 +129,50 @@ Every entry is dated and sourced, so you can defend it in front of skeptical sta
 
 ---
 
-## The CLI
+## Under the hood (optional)
 
-Optional. Daily work is `@fde` + natural language; the agent calls these for you. Use them directly for scripts, air-gap, or when you prefer the terminal.
+**You do not need to learn these for daily work.** Chat with `@fde`; the agent runs the local tools. The list below is for setup, air-gap, or if you prefer the terminal.
+
+**Humans only need (once / occasional):**
 
 ```bash
-fde resume                        # short "where we are" for this workspace
-fde resume --init <client>        # one-time setup: create + bind fieldbook
-fde debrief --smart notes.md      # propose routing from messy notes → --apply to confirm
-fde prep "meeting with the sponsor"  # brief from existing memory
-fde receipts <term>               # dated search (no hit = gap in the record)
-fde status                        # engagement summary (--all for every client)
-fde scan                          # day-1 recon (works via npx, no install)
+npx fdeops resume --init <client>   # one-time: create + bind this workspace
+npx fdeops resume                   # check "where we are"
+npx fdeops scan                     # try day-1 recon with no install
+npx fdeops dashboard                # optional local HTML view of the fieldbook
 ```
 
+**What you say → what the agent runs** (you never have to type the right-hand side):
+
+| You say | Agent runs |
+|---------|------------|
+| Debrief these notes | `fde debrief --smart …` → you confirm → `--apply` |
+| Prep me for the sponsor meeting | `fde prep "…"` |
+| When did we agree to drop that? | `fde receipts …` |
+| Draft the sponsor update | `fde status` (+ judgment in chat) |
+| Log that the sponsor went quiet | `fde log contact "…" --signal amber` |
+
 <details>
-<summary><strong>More commands</strong></summary>
+<summary><strong>Full command list</strong> (power users / scripts)</summary>
 
 ```bash
-fde triage                        # short status block (what hooks inject on entry)
-fde debrief notes.md              # prefix router: decision: / risk: / delivery: / contact:
-fde doctor                        # lint: stale signals, unset phase, gaps
+fde triage                        # short status (also injected by session hooks)
+fde debrief notes.md              # if notes already use decision: / risk: / … prefixes
+fde doctor                        # check the fieldbook for gaps
 fde log decision "…"
 fde log contact "…" --signal amber
-fde dashboard                     # FieldBook HTML (--all for every client)
+fde dashboard --all               # every client, sorted by trust
 ```
 
 Optional: `export FDEOPS_ENGAGEMENTS_ROOT=~/path/to/engagements` to isolate from `~/fde-engagements`.
 
-Each `.fde/` is a local git repo (no remote, no telemetry) - dated entries carry an author tag; every write commits so receipts are tamper-evident. Worst-of `[signal:...]` per stakeholder drives trust; signals older than 21 days show as stale.
+Each `.fde/` is a local git repo (no remote, no telemetry). More detail: [docs/USAGE.md](docs/USAGE.md).
 
 </details>
 
 <p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
 
-`fde dashboard` (FieldBook) renders the **current** engagement by default. Pass `--all` for every client sorted by trust:
+Optional FieldBook view (`fde dashboard`) - current engagement by default:
 
 <p align="center"><img width="1336" height="624" alt="fde dashboard FieldBook" src="https://github.com/user-attachments/assets/5683614c-7730-4a3a-860d-185053a377eb" /></p>
 
