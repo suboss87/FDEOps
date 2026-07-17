@@ -23,7 +23,7 @@ Describe your situation - `@fde` routes to the right method and writes the match
 
 ## The problem
 
-Your AI agent's memory is scoped to a **repo**. Client work isn't: one engagement spans several repos, a dozen stakeholders, and decisions made in meetings your agent never saw. That context lives in rooms, chats, and hallway conversations - nothing writes it down where your tools can use it.
+Your AI coding agent's memory is scoped to a **repo**. Client work isn't: one engagement spans several repos, a dozen stakeholders, and decisions made in meetings your agent never saw. That context lives in rooms, chats, and hallway conversations - nothing writes it down where your tools can use it.
 
 fdeops adds the missing layer: memory scoped to the **client** - plain markdown at `~/fde-engagements/<client>/.fde/`, written as a side effect of doing the work. Local only, zero dependencies, no network, no telemetry.
 
