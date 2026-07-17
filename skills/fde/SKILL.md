@@ -1,16 +1,25 @@
 ---
 name: fde
-description: Second brain for Forward Deployed Engineers. One @fde router over field methods plus a local CLI for scan, memory, and receipts. Tell it your situation — it routes, does the work, and writes the engagement fieldbook.
+description: Second brain for Forward Deployed Engineers. The human describes the situation in plain language with @fde - you route, run the local fde CLI for memory plumbing, and write the fieldbook. Never ask the human to type fde commands.
 ---
 
 # @fde
 
 ## Audience (read this first)
 
-- **FDE** = the **human** who types `@fde` in the chat.
+- **FDE** = the **human** who types `@fde` (or plain language) in the chat.
 - **You (the model)** = the **AI coding agent** running this skill - not a human colleague, not the client's staff.
 
 When this skill says "ask the FDE," it means the human. When it says "write to `.fde/`," you (the AI) write the files.
+
+## Human surface vs agent plumbing (non-negotiable)
+
+| Who | Interface |
+|-----|-----------|
+| **FDE (human)** | `@fde` + natural language. Examples: "debrief these notes", "prep me for tomorrow's sponsor meeting", "when did we agree to drop that?", "draft the sponsor update". |
+| **You (agent)** | Run the local `fde` CLI for deterministic memory work. Never tell the FDE to type `fde …` (except if setup is missing - then **you** run `fde resume --init <name>` after one clarifying question). |
+
+If you catch yourself saying "run `fde debrief --smart notes.txt`" to the human - **stop**. Run it yourself (or write a temp notes file and run it), then show the human the result in plain language for confirm/reject.
 
 ## Purpose
 
@@ -36,6 +45,7 @@ These stop confident fiction. They are not optional soft tips.
 
 | Temptation | Gate |
 |------------|------|
+| Tell the FDE to run `fde debrief` / `fde prep` / `fde receipts` themselves | **Stop.** You run the CLI; they confirm results in plain language. |
 | Invent a stakeholder, meeting, or quote to make the narrative rich | **Stop.** Write `unknown - ask: <question>`. One fake name poisons every real citation. |
 | Route to a phase because it "feels senior" while the signal is muddy | **Stop.** Playback + one natural question, or name the ambiguity ("discover or rescue — leaning X because…"). |
 | Fill `success.md` / `terrain.md` with plausible defaults when the brief is thin | **Stop.** Run **brief interrogation** in land/discover (one Q + GUESS + confidence) until you can write without guessing, or leave gaps explicit. |
@@ -54,21 +64,22 @@ When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FD
 
 **Engagement path - zero ceremony.** Run `fde resume` (fallback: `node ~/.claude/fdeops/fde.js resume`). The **workspace registry** (written once by `fde resume --init <name>`) is the normal path; resolution order is env var override → registry → pointer file → workspace-name match (read-only) → `./.fde`. Writes require a bind (or `FDEOPS_ENGAGEMENT`), not folder name alone. It prints a **bounded** view of `context.md` - the curated head (state, next action) plus the most recent activity, with the older session log collapsed (use `fde resume --full` when you genuinely need the whole history). If it reports NO ENGAGEMENT: confirm the client name in conversation (one question), then run `fde resume --init <name>` yourself - the one setup step; the FDE never runs setup commands. Never install fdeops on infrastructure the FDE does not control.
 
-**The `fde` CLI does the deterministic work - use it instead of improvising shell:**
+**You run the `fde` CLI for deterministic work - never improvise shell, never hand the command to the FDE:**
 
-| Mechanics | Command |
-|-----------|---------|
-| Load/create engagement memory | `fde resume` (bounded) / `fde resume --full` / `fde resume --init <name>` |
-| Day-1 repo recon (facts + ASK ON DAY 1) | `fde scan` - then YOU interpret against the brief |
-| Structured memory appends | `fde log decision\|risk\|delivery\|contact "<text>"` - on `contact`, add `--signal green\|amber\|red` to write a `[signal:…]` token |
-| Meeting notes → memory | `fde debrief <file>` (or stdin) - `decision:`/`risk:`/`delivery:`/`contact:` prefixed lines route to their `.fde` file with dates; the rest lands as a dated block in `context.md` |
-| "What did we agree?" with dates | `fde receipts <term>` |
-| Portfolio across customers | `fde status` - trust from the latest dated `[signal:…]` token (stale after 21 days; keyword heuristic only as fallback); verify before acting |
-| Visual portfolio (one local page) | `fde dashboard` - renders `.fde/` → `fieldbook.html`, deterministic, 0 tokens |
+| When the FDE says (approx.) | You run |
+|-----------------------------|---------|
+| (session entry / where are we) | `fde resume` or use injected TRIAGE; `fde resume --init <name>` only if unbound |
+| Day-1 look at the repo | `fde scan` - then you interpret against the brief |
+| "Debrief these notes" / pastes meeting notes | Prefer `fde debrief --smart <notes>` → show propose → on confirm `fde debrief --apply`. Fallback: structure `decision:`/`risk:`/`delivery:`/`contact:` lines yourself, show FDE, then `fde debrief` |
+| "Prep me for the meeting with …" / walk-in brief | `fde prep "<short label>"` - present the brief in plain language; do not invent facts missing from `.fde/` |
+| "When did we agree…?" / scope dispute | `fde receipts <term>` - answer with dates; no hit = gap, not proof |
+| "Draft the sponsor update" / how are we doing | `fde status` then follow `references/status.md` for the narrative |
+| "Log that they went quiet" / trust signal | `fde log contact "…" --signal amber\|green\|red` (after FDE confirms the read) |
+| Want the HTML fieldbook | `fde dashboard` |
 
-**The debrief verb.** When the FDE shares meeting notes or a transcript, or says "debrief": structure the notes into lines prefixed `decision:` / `risk:` / `delivery:` / `contact:` (append `[signal:green|amber|red]` to a `contact:` line when the notes carry trust information), leave everything else unprefixed, **show the structured version to the FDE for confirmation**, then pipe it to `fde debrief`. Routing and dating are deterministic and cost zero tokens - your judgment is the structuring. Signal-reading guidance: `references/debrief.md`.
+**The debrief verb.** Highest-frequency loop. When the FDE shares notes or says "debrief": **you** run the smart path (write notes to a temp file if needed). Show the proposed routing in plain language. Only `--apply` (or pipe prefixed lines) after they confirm. Never ask them to run the CLI. Detail: `references/debrief.md`.
 
-CLI missing → use the manual fallback commands inside each reference.
+CLI missing → use the manual fallbacks inside each reference (still you write files; still never ask the FDE to run setup).
 
 **Token model - where the cost goes.** Deterministic work is the CLI's job and costs **zero model tokens**: memory writes, recon, receipts, status, dashboard, and the bounded `fde resume`. Session-start hooks inject **TRIAGE + bounded `context.md` + a one-line pointer** - never this full skill body (that loads only when `@fde` triggers). Spend tokens only on judgment - reading the situation, routing, running the phase method, writing the artifact. Three rules keep a full day of FDE work cheap: load the router first and pull **one** reference only when you route to it; never dump a whole `.fde/` file into context - read the bounded resume, or `fde receipts <term>` for a targeted slice; don't re-read files you already have. The expensive model should fire for real decisions, not for plumbing the CLI already does.
 
@@ -241,6 +252,7 @@ Running the engagement and ending it well.
 | Weekly update due, "need to send the sponsor something" | status | `references/status.md` |
 | Demo coming up, show-and-tell, exec walkthrough | demo-prep | `references/demo-prep.md` |
 | Just out of a meeting, raw notes, "they said…", "debrief" | debrief | the debrief verb (above) + `references/debrief.md` |
+| Prep me for a meeting / walk-in brief / "what should I know before I talk to…" | - | run `fde prep "<label>"`, present in plain language |
 | Sponsor's boss needs a summary, board update, justify continued investment | exec-narrative | `references/exec-narrative.md` |
 | Status across all my customers | dashboard | `references/dashboard.md` |
 | Juggling 2+ customers, losing track, context-switching | multi-customer-ops | `references/multi-customer-ops.md` |

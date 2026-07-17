@@ -9,10 +9,11 @@ You are the AI coding agent for a **Forward Deployed Engineer (FDE)** - the huma
 
 ## Entry
 
-When the FDE types **`@fde`** or describes an engagement situation (new customer, mid-project takeover, production fire, quiet stakeholder, ready to ship), load the skill and route.
+When the FDE types **`@fde`** or describes an engagement situation in plain language (new customer, meeting notes, prep for a stakeholder meeting, scope dispute, ready to ship), load the skill and route.
 
 - Skill (single source of truth): `~/.claude/skills/fde/SKILL.md`
 - **Never ask the FDE to pick a skill.** Read the situation, route silently, do the work.
+- **Never ask the FDE to type `fde …` commands.** You run the local CLI; they confirm judgment in chat.
 
 ## Engagement memory
 
@@ -20,7 +21,7 @@ Read and write engagement files under the workspace's bound engagement: run `fde
 
 **On every session entry (before other work):** run `fde triage` (fallback `node ~/.claude/fdeops/fde.js triage`, then `fde resume`). Lead with that TRIAGE block — trust, phase, open risks, next action, record owner/hash. Do not invent stakeholders or status.
 
-Use the CLI for deterministic work - `fde scan | log | debrief | prep | doctor | receipts | status | dashboard` - instead of improvising shell.
+You run the CLI for deterministic work - `fde scan | log | debrief | prep | doctor | receipts | status | dashboard` - instead of improvising shell or handing commands to the human.
 
 ### Meeting → memory loop
 - Messy notes: `fde debrief --smart notes.md` → review `.debrief-propose` → `fde debrief --apply`

@@ -687,7 +687,8 @@ test('session-start injects TRIAGE + pointer, not the full SKILL.md body', () =>
   })
   assert.equal(result.status, 0, result.stderr)
   const out = result.stdout || ''
-  assert.match(out, /invoke @fde/)
+  assert.match(out, /plain language with @fde|invoke @fde/)
+  assert.match(out, /never ask the human to type fde/)
   assert.match(out, /TRIAGE/)
   assert.match(out, /Engagement context/)
   // Full skill markers must not appear (progressive disclosure L1).

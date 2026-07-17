@@ -1,36 +1,51 @@
 # debrief - capture the meeting before it evaporates
 
-**Enter when:** the FDE just left a meeting/call and dumps raw notes, a transcript, or "they said…". The highest-frequency moment in FDE life (3–5×/day). Capture within the hour - memory decays fast.
+**Enter when:** the FDE just left a meeting/call and dumps raw notes, a transcript, or "they said…". Highest-frequency moment in FDE life. Capture within the hour.
 
-**Read first:** `context.md`, `stakeholders.md` (to update signals against what's known).
+**Read first:** `context.md`, `stakeholders.md` (signals against what's known).
+
+**Who runs the CLI:** you (the agent). Never tell the FDE to type `fde debrief …`.
 
 ## Method (you do this work)
 
-Take the raw dump exactly as given. Extract into five buckets - **only what was actually said**; rule 4 applies with full force here (no invented names, no embellished quotes):
+### Preferred path - smart debrief (messy notes)
 
-1. **Decisions** - what was agreed, by whom, in their words where possible.
-2. **Action items** - owner + due date. Unowned actions get `owner: unknown - ask`.
-3. **Stakeholder signals** - tone shifts, hesitations, who went quiet, who pushed back, verbatim quotes that matter. Map each to green/amber/red movement *with the evidence*.
-4. **Risks** - new ones surfaced, old ones confirmed or retired.
-5. **Open questions** - what the FDE must chase before the next session.
+1. Save the FDE's notes to a temp `.md` file in the workspace (or pipe stdin).
+2. Run `fde debrief --smart <notes.md>` (or `npx fdeops debrief --smart …`).
+3. Show the **proposed** routing in plain language (what would become decisions, risks, contacts, etc.).
+4. On FDE confirm → run `fde debrief --apply`.
+5. On reject → stop; ask what to change; do not apply.
 
-Ambiguity in the dump → ask **one** clarifying question, then write. Never stall the capture on completeness.
+No invented names or quotes. If the propose looks wrong, fix with judgment then re-propose or use the fallback path.
 
-## Artifact (this IS the memory - write immediately)
+### Fallback - you structure, then route
 
-- Decisions → `decisions.md` via `fde log decision "<text> (meeting: <who>, <date>)"` or direct append, dated and attributed.
-- Signal changes → `stakeholders.md`: update the signal column with evidence + date. A quote moves a signal; a vibe does not.
-- Risks → `risks.md`, dated.
-- Action items + open questions → `context.md` under "Next actions".
-- Sacred/sensitive things mentioned (data, systems, politics) → `trust-profile.md` if new.
+If `--smart` is unavailable or the notes are already cleanly prefixed:
+
+1. Extract into buckets - **only what was actually said**:
+   - **Decisions** - agreed, by whom, in their words where possible
+   - **Action items** - owner + due; unowned → `owner: unknown - ask`
+   - **Stakeholder signals** - tone shifts with evidence → green/amber/red
+   - **Risks** - new / confirmed / retired
+   - **Open questions** - what to chase next
+2. Format lines as `decision:` / `risk:` / `delivery:` / `contact:` (contacts may end with `[signal:green|amber|red]`).
+3. Show that structured version to the FDE for confirmation.
+4. Pipe to `fde debrief` (or write a file and run it).
+
+One clarifying question max if the dump is ambiguous - then write. Never stall capture on completeness.
+
+## Artifact
+
+- Smart apply / debrief CLI writes the dated routes into the right `.fde/` files.
+- If you must write directly: decisions → `decisions.md`; signals → `stakeholders.md` Signal history; risks → `risks.md`; next actions → `context.md`. Prefer the CLI.
 
 ## Checkpoint
 
-Read back the 2–3 most consequential captures in one breath - "Logged: descope agreed with Dana; ops lead went amber (quote attached); CISO ticket now blocking" - so the FDE can correct on the spot. Then stop. No summary theatre.
+Read back the 2-3 most consequential captures in one breath - so the FDE can correct on the spot. Then stop. No summary theatre.
 
 ## Principles
 
-- Capture within the hour or lose the nuance forever.
-- The verbatim quote outranks the paraphrase. The hesitation outranks the quote.
-- Signals move on evidence, never on inference.
-- A meeting that produced no decisions and no actions - say so; that's a finding about the meeting.
+- Capture within the hour or lose the nuance.
+- Verbatim quote outranks paraphrase; hesitation outranks quote.
+- Signals move on evidence, never on vibe alone.
+- A meeting with no decisions and no actions - say so; that is a finding.
