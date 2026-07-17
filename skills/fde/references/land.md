@@ -18,6 +18,21 @@ Then check - probe ONLY if it prevents a bad start:
 
 State your read, let the FDE correct, then land.
 
+## Brief interrogation (only when the brief is thin)
+
+Use this when the ask is conventional or underspecified — missing who decides, why now, what success looks like, or the binding constraint. **Do not** run it when the FDE already gave a clear brief, is mid-flow, or asked for speed over verification.
+
+Format — one question at a time, with a guess the FDE can correct:
+
+```
+READ: <one sentence — what you think they actually need>
+CONFIDENCE: ~NN% — missing: <what still blocks a safe start>
+Q: <one focused question>
+GUESS: <your best answer, so they can push back fast>
+```
+
+Wait for the reaction before the next question. Stop when confidence is high enough to write `success.md` without inventing names, or when the FDE says move on. Every answer that is still unknown stays `unknown - ask:` in the artifact — never fill the gap with a plausible stakeholder.
+
 ## Method - part 1: interrogate the brief (you do this work)
 
 Read the brief the FDE gives you. What is **not** in it matters as much as what is. Produce the gap list yourself:

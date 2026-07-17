@@ -47,6 +47,19 @@ Score each dimension green/amber/red. This is the gate, not a suggestion:
 
 Write the readiness score to `delivery.md` before deploying. The score is the evidence if anything goes wrong.
 
+## Pre-blast challenge (before the deploy button)
+
+For any non-trivial go-live (shared infra, regulated data, irreversible migration, or first prod touch), run this once before canary — not as theater, as a stop-the-line check:
+
+```
+CLAIM: <what you are about to ship, in one sentence>
+WHY IT MATTERS: <blast radius / who feels pain if wrong>
+CHALLENGE: <the strongest argument this is not ready — grounded in delivery.md / risks.md / trust-profile.md>
+VERDICT: proceed | fix-first | sponsor conversation
+```
+
+Rules: no invented stakeholders; if evidence is missing, the verdict is **fix-first** or **sponsor conversation**, not "probably fine." Log the CLAIM + VERDICT as a dated line in `delivery.md`. Skip for mechanical one-line config with an already-tested rollback.
+
 ## Method - pre-flight (you verify each, confirmed not assumed)
 
 - All tests pass - state the command and result.
