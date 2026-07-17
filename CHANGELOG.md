@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.9.3 — 2026-07-17
+
+Thin packaging for clarity — no new skills, no behavior change to the CLI core.
+
+### Changed
+- **README** leads with the **week loop**; land→close method wall moved below the fold.
+- **Quickstart** elevates `npx skills add suboss87/fdeops` (+ `resume --init`); install.md matches.
+- **`@fde` Forward momentum** — one `Next:` line after **land / debrief / ship** only (not a menu).
+
 ## 3.9.2 — 2026-07-17
 
 Field judgment hardenings blended into existing methods — no new skills, no imported skill names.
