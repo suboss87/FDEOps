@@ -1,13 +1,12 @@
 # Changelog
 
+## 3.9.4 — 2026-07-17
+
+Revert packaging-only 3.9.3 (week-loop README / Next: line / skills-add elevate). Restore 3.9.2 docs and skill wording.
+
 ## 3.9.3 — 2026-07-17
 
-Thin packaging for clarity — no new skills, no behavior change to the CLI core.
-
-### Changed
-- **README** leads with the **week loop**; land→close method wall moved below the fold.
-- **Quickstart** elevates `npx skills add suboss87/fdeops` (+ `resume --init`); install.md matches.
-- **`@fde` Forward momentum** — one `Next:` line after **land / debrief / ship** only (not a menu).
+Yanked from product surface — packaging clarity experiment; superseded by 3.9.4.
 
 ## 3.9.2 — 2026-07-17
 

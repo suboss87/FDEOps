@@ -1,156 +1,219 @@
-# fdeops
+# FDEOps
 
 **Your AI coding agent forgets your client every morning. fdeops remembers.**
 
-Local-first engagement fieldbook for Forward Deployed Engineers — memory under `.fde/` + one `@fde` router. Not an OS. Not a coworker.
+[![npm version](https://img.shields.io/npm/v/fdeops)](https://www.npmjs.com/package/fdeops)
+[![CI](https://github.com/suboss87/fdeops/actions/workflows/validate.yml/badge.svg)](https://github.com/suboss87/fdeops/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
+
+The **second brain for Forward Deployed Engineers** - engineers embedded at a client, from first meeting to final handoff. Works the same for consultants, agency developers, solutions architects, and fractional CTOs.
+
+```
+  land      discover      plan      build      ship      close
+    |           |           |         |          |         |
+    +-----------+-----------+---------+----------+---------+
+          the fieldbook (.fde/) - one per engagement
+             written as a side effect of the work
+```
+
+Describe your situation - `@fde` routes to the right method and writes the matching `.fde/` artifact. Phase methods (land → close) live in the skill; the CLI owns scan, memory, and receipts. You still confirm judgment — the fieldbook does not maintain itself without you.
 
 ---
 
-## How it works
+## The problem
 
-### The week
+Your AI agent's memory is scoped to a **repo**. Client work isn't: one engagement spans several repos, a dozen stakeholders, and decisions made in meetings your agent never saw. That context lives in rooms, chats, and hallway conversations - nothing writes it down where your tools can use it.
 
-| When | What you do |
-|------|-------------|
-| **Monday** | Open agent → TRIAGE loads (trust, phase, next) |
-| **After a meeting** | `fde debrief --smart notes.txt` → review → `--apply` |
-| **Before a walk-in** | `fde prep "Denise sync"` |
-| **Scope fight** | `fde receipts descope` (+ memory git hash) |
-| **Friday** | `fde status` → sponsor update from the real record |
+fdeops adds the missing layer: memory scoped to the **client** - plain markdown at `~/fde-engagements/<client>/.fde/`, written as a side effect of doing the work. Local only, zero dependencies, no network, no telemetry.
 
-Same engagement folder every time. Git versions `.fde/`. Your AI coding agent reads it on every session.
+A notes app stores what you type. fdeops loads the right client into your AI agent's context automatically and turns meetings into dated receipts you can defend - the difference is what happens without you opening it.
 
-<details>
-<summary><strong>All methods (land → close)</strong> — below the fold</summary>
+## Without fdeops vs with fdeops
 
-| Method | When |
-|--------|------|
-| `land` | First day — bind people, success, risks |
-| `discover` | Map systems before you change them |
-| `prep` | Start of week — week's focus from memory |
-| `status` | Mid-engagement health check |
-| `triage` | Something broke — decide in 60s |
-| `debrief` | End of week — compound into memory |
-| `garden` | Memory hygiene — archive stale / promote truth |
-| `doctor` | Is `.fde/` healthy? |
-| `ship` | Before the blast — challenge, then go |
-| `red-team` | Adversarial pass before ship |
-| `close` | Engagement ends — archive + handoff |
-
-Full method map: [`docs/skills.md`](docs/skills.md)
-
-</details>
+| Moment | Without fdeops | With fdeops |
+|---|---|---|
+| **Monday morning** | Re-paste last week's context, re-explain the stakeholders | A hook loads the engagement at session start - the agent opens knowing the deadline and the open thread |
+| **After a meeting** | Notes rot in a scratch file | `fde debrief` routes decisions, risks, deliveries, and contacts into the record, dated |
+| **Scope dispute** | "Small" additions absorbed silently; no record when the sponsor asks | `fde receipts <term>` answers "when did we agree to that?" with dates |
+| **Quiet stakeholder** | Noticed three weeks too late | `fde log contact --signal amber` the day it happens; `fde status` surfaces it |
+| **Multiple clients** | Details blur across engagements | One folder per client; bind the workspace so writes cannot land on a name-alike checkout |
 
 ---
 
 ## Quickstart
 
-```bash
-npx skills add suboss87/fdeops          # @fde skill (any agent that supports skills)
-# or Claude: /plugin marketplace add suboss87/fdeops
-npx fdeops resume --init haulline       # bind this workspace → ~/fde-engagements/haulline
+**1. Install** (Claude Code)
+
+```text
+/plugin marketplace add suboss87/fdeops
+/plugin install fdeops@fdeops
 ```
 
-Then work as usual — `@fde` routes; the CLI owns scan, memory, receipts.
-
-**CLI-only path** (npm global):
+**2. Bind your client workspace** - run once, inside the workspace:
 
 ```bash
-npm install -g fdeops
-fdeops install --global
-mkdir -p ~/fde-engagements && cd ~/fde-engagements
-fdeops init acme
-cd acme && git init && git add . && git commit -m "init engagement"
+npx fdeops resume --init garvey
 ```
 
-| Flag | When |
-|------|------|
-| `--global` | Install once for your user |
-| `--here` | This engagement only |
-| *(default)* | Project + user, Claude Code |
+(`npx` needs nothing pre-installed. Want the bare `fde` command the rest of this README uses? `npm i -g fdeops` - the plugin install alone does not put `fde` on your PATH.)
+
+fdeops' `--init` creates the engagement memory at `~/fde-engagements/garvey/.fde/` (plain markdown, private to your machine) and binds this workspace to it. The hooks read that binding - context auto-loads at session start, auto-captures at session end. That is the whole setup.
+
+**3. Work**
+
+```text
+@fde I just got the brief. New client, payments platform, they want it live before their Q3 audit.
+```
+
+`@fde` is the one skill fdeops installs. Describe what's happening; it routes to the right field method and writes matching `.fde/` artifacts — you still confirm judgment. Full workflow: [docs/USAGE.md](docs/USAGE.md).
+
+Not ready to install? `npx fdeops scan` runs on any repo you can read - day-1 recon (pure `git` + file reads, no config, no account) that maps hotspots, test gaps, and reverted attempts, and ends with the ASK ON DAY 1 questions the brief never mentions. The scan is heuristic by design - treat its output as leads to verify on day one, not findings.
 
 <details>
-<summary>Cursor · uninstall · upgrades · path override</summary>
+<summary><strong>Other install paths</strong> - Cursor, Codex, Copilot, Gemini CLI, local LLMs, air-gapped</summary>
 
-```bash
-fdeops install --cursor --global   # Cursor project rules
-fdeops uninstall                   # remove installed copies
-fdeops upgrade                     # pull latest from npm
-```
-
-Multiple engagements: `export FDEOPS_ENGAGEMENT=~/fde-engagements/acme`
-
-Full install notes: [`docs/install.md`](docs/install.md)
+- **Cursor / Codex / Copilot / Gemini CLI:** `npx fdeops adapters .` drops a thin pointer to the same `@fde` skill - [adapters/](adapters/README.md)
+- **Local LLMs (Ollama, LM Studio, llama.cpp):** load `skills/fde/SKILL.md` as the system prompt - [guide](adapters/LOCAL-LLM.md)
+- **Skills CLI:** `npx skills add suboss87/fdeops`
+- **Manual / air-gapped:** `git clone https://github.com/suboss87/fdeops.git && cd fdeops && node bin/install.js`
+- **Requires:** [Node.js](https://nodejs.org) >= 18 for the CLI and adapters; the Claude Code plugin install does not need Node separately.
+- **Advanced:** the `FDEOPS_ENGAGEMENT` env var overrides the workspace registry - only for unusual setups. Full matrix: [docs/install.md](docs/install.md)
 
 </details>
 
 ---
 
-## Engagement memory
+## The week
 
-Everything lives under `.fde/` in the engagement folder:
+This is the actual habit — the high-frequency loop, not the full skill matrix:
 
-| Path | What |
-|------|------|
-| `.fde/people.md` | Who matters, trust, notes |
-| `.fde/log.md` | Running notes (append-only) |
-| `.fde/context.md` | Stack, constraints, systems |
-| `.fde/signals.md` | Verified facts + open questions |
-| `.fde/decisions.md` | Choices and why |
-| `.fde/risks.md` | Risks and owners |
-| `.fde/meta.json` | Phase, checksums, lock |
-
-Writes are **bound** (engagement required), **locked** (one writer), **atomic**, and **refused** when they look like secrets. Corrupt or incomplete state fails closed — never "green" by accident.
-
-Commit `.fde/` like code. That's the whole compounding loop.
+- **Monday morning** - open your agent, context loads, you're not re-explaining anything
+- **After a meeting** - `fde debrief` turns raw notes into dated decisions, risks, and signals
+- **Mid-scope-fight** - `fde receipts <term>` answers "when did we agree to that?"
+- **Friday** - `fde status` gives you the sponsor update from the week's actual record
 
 ---
 
-## Without fdeops vs with fdeops
+## How it works
 
-| Without | With |
-|---------|------|
-| Context dies when the chat ends | `@fde prep` resurfaces last week's risks |
-| "We're fine" until the blast | Trust + signals force the hard conversation |
-| Notes scatter across Notion/Slack | One local fieldbook, git-versioned |
-| Agent invents stakeholders | Bind-required writes — no engagement, no write |
+Two hooks and one router, on top of the fieldbook:
+
+- **Session start** - a hook loads where you left off into your AI coding agent's context
+- **Session end** - a hook captures what happened back into the fieldbook
+- **After meetings** - `fde debrief notes.md` routes lines prefixed `decision:` / `risk:` / `delivery:` / `contact:` to the matching file, dated; everything else lands as a dated block in `context.md`
+- **On top of the memory** - the `@fde` skill routes six phase verbs:
+
+| Verb | When |
+|------|------|
+| **land** | First days at a new client - interrogate the brief, map stakeholders, define success |
+| **discover** | The brief feels wrong - find the real problem, with evidence from the repo |
+| **plan** | Scope agreed - sequence it backwards from success, in PR-sized slices |
+| **build** | Ready to write code - declare blast radius, log deliveries as you ship |
+| **ship** | Going to production - pre-flight, canary, tested rollback |
+| **close** | Engagement ending - handoff doc, retrospective, receipts that survive you |
+
+Overlays for regulated domains (AI, fintech, healthcare, government) activate on signal. fdeops complements your agent's native repo memory: CLAUDE.md holds how the *code* works; the fieldbook holds how the *engagement* works. Full matrix: [docs/skills.md](docs/skills.md).
+
+Works with **Claude Code** - **Cursor** - **Copilot** - **Gemini CLI** - **Ollama** - **LM Studio** - any model that reads a markdown file.
+
+---
+
+## Engagement memory (`.fde/`)
+
+The **fieldbook** - one folder per client, plain markdown you can read, grep, and take with you:
+
+| File | Holds |
+|------|-------|
+| `context.md` | Where you are - loaded first every session |
+| `brief.md` / `success.md` | What they asked for; what "done" means and who signs it off |
+| `reality.md` / `terrain.md` | The real problem; the codebase map |
+| `stakeholders.md` | Champions, resistance, `[signal:green\|amber\|red]` trust tokens |
+| `trust-profile.md` | Sacred data, AI policy, approval chain |
+| `decisions.md` / `risks.md` / `delivery.md` | Choices with dates; live risk register; what shipped and its rollback |
+
+Every entry is dated and sourced, so you can defend it in front of skeptical stakeholders. Schema: [docs/schema.md](docs/schema.md).
+
+---
+
+## The CLI
+
+Deterministic, offline, zero tokens - the skill adds judgment on top:
+
+```bash
+fde scan                          # day-1 recon + ASK ON DAY 1 questions (works via npx)
+fde resume                        # TRIAGE + load this workspace's engagement
+fde resume --init <client>        # THE setup step: create + bind + git-version .fde/
+fde triage                        # TRIAGE only (session hooks / Cursor entry)
+fde debrief notes.md              # route prefixed meeting notes (also reads stdin)
+fde debrief --smart notes.md      # propose routing from messy notes → --apply to confirm
+fde prep "Denise sync"            # grounded walk-in brief from existing memory
+fde doctor                        # lint: stale signals, unset phase, gaps
+fde log decision "descope agreed with Kowalczyk"
+fde log contact "Denise gone quiet" --signal amber
+fde receipts <term>               # dated search; no hit = a gap in the record, not proof of absence
+fde status                        # current engagement triage (add --all for every client)
+fde dashboard                     # current engagement fieldbook (add --all for every client)
+```
+
+Optional: `export FDEOPS_ENGAGEMENTS_ROOT=~/path/to/engagements` to isolate init/status/dashboard from the default `~/fde-engagements`.
+
+Each `.fde/` is a local git repo (no remote, no telemetry) — dated entries carry an author tag; every write commits so receipts are tamper-evident. Worst-of `[signal:...]` per stakeholder drives trust; signals older than 21 days show as stale.
+
+<p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
+
+`fde dashboard` (FieldBook) renders the **current** engagement by default. Pass `--all` for every client sorted by trust:
+
+<p align="center"><img width="1336" height="624" alt="Screenshot 2026-07-08 at 12 45 07" src="https://github.com/user-attachments/assets/5683614c-7730-4a3a-860d-185053a377eb" /></p>
 
 ---
 
 ## Who this is for
 
-FDEs, solutions engineers, and anyone dropped into a customer codebase who has to earn trust, ship under ambiguity, and not lose the thread between Mondays.
+| You are... | What fdeops does for you |
+|----------|-------------------|
+| **Forward Deployed Engineer** | The role this was built for - the full lifecycle, first meeting to final handoff |
+| **Consultant or contractor at a client site** | Remembers the engagement so you stop re-explaining it |
+| **Solutions architect / engineer** | Methods for the politics as well as the architecture |
+| **Agency developer running 3-5 clients** | One `.fde/` per client - details stop blurring |
+| **Fractional CTO doing client work** | The fieldbook is your second brain - and your audit trail for billable work |
 
-Not for: generic chatbots, multi-tenant SaaS dashboards, or "AI coworker" shells.
+---
+
+## Your data stays yours
+
+- **Local only.** Pure `git` + file reads - no network calls, no telemetry, no account. Works air-gapped.
+- **Plain markdown.** No database, no lock-in.
+- **No new data path.** The AI sees client code only when *you* point your agent at it; `<private>`-tagged data never enters the model's context.
+- **Nothing enters the record unreviewed.** The model drafts, you confirm (`fde debrief --dry-run` shows the routing first); the hooks record only git facts. Your fieldbook stays yours to defend.
+- **Know your sync surface.** `~/fde-engagements` lives in your home directory - your backup and cloud-sync setup now covers client notes. `fde resume --init` warns if the folder sits in a synced path. Read [PRIVACY.md](PRIVACY.md) before your first NDA'd engagement.
+
+Details: [PRIVACY.md](PRIVACY.md) · [SECURITY.md](SECURITY.md)
 
 ---
 
 ## Principles
 
-1. **Local-first** — memory on your disk, not a vendor cloud
-2. **Compounding** — debrief is the product; chat is disposable
-3. **Refuse bad writes** — secrets, symlinks, unbound paths
-4. **Honest status** — corrupt ≠ green; worst stakeholder trust wins
-5. **Thin packaging** — one skill (`@fde`), many methods — not a skill tree
+- **The artifact is the memory** - producing work and recording it are one action
+- **Methods, not autonomy** - each skill tells you what to check; the judgment, the trust, and the consequences stay yours
+- **Trust before production** - earn the right to touch their systems
+- **Brief is a hypothesis** - discover before building the wrong thing
+- **Evidence on every claim** - these files get defended in front of skeptical clients
+- **Thin slices** - ship learning, not theatre
+- **One customer, one folder** - context never bleeds
 
 ---
 
-## Docs
-
-| Doc | |
-|-----|--|
-| [Install](docs/install.md) | Global, Cursor, upgrades |
-| [Usage](docs/USAGE.md) | Methods in depth |
-| [Skills](docs/skills.md) | `@fde` method reference |
-| [CHANGELOG](CHANGELOG.md) | What changed |
+## Updating
 
 ```bash
-npm test
-node bin/check.js
+cd fdeops && git pull && node bin/install.js
 ```
 
 ---
 
-## License
+## Contributing
 
-MIT
+Built and maintained by **[Subash Natarajan](https://www.linkedin.com/in/subashn/)**. Share your feedback via [Issues](https://github.com/suboss87/fdeops/issues) - see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+[FDE Methodology](FDE-METHODOLOGY.md) - [ATTRIBUTION.md](ATTRIBUTION.md) - [SECURITY.md](SECURITY.md) - [PRIVACY.md](PRIVACY.md) - [Repo layout](docs/REPO_LAYOUT.md) - [Skills matrix](docs/skills.md) - MIT
