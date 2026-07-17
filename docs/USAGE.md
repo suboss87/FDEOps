@@ -70,6 +70,50 @@ That writes a `[signal:amber]` token into `stakeholders.md`. The **latest dated 
 
 ---
 
+## Local CLI (setup, air-gap, scripts)
+
+**You do not need these for daily work.** Chat with `@fde`; the agent runs them. Use the terminal for one-time setup, air-gapped machines, or automation.
+
+**Humans - once / occasional:**
+
+```bash
+npx fdeops resume --init <client>   # one-time: create + bind this workspace
+npx fdeops resume                   # check "where we are"
+npx fdeops scan                     # try day-1 recon with no install
+npx fdeops dashboard                # optional local HTML view of the fieldbook
+```
+
+**What you say → what the agent runs** (you never have to type the right-hand side):
+
+| You say | Agent runs |
+|---------|------------|
+| Debrief these notes | `fde debrief --smart …` → you confirm → `--apply` |
+| Prep me for the sponsor meeting | `fde prep "…"` |
+| When did we agree to drop that? | `fde receipts …` |
+| Draft the sponsor update | `fde status` (+ judgment in chat) |
+| Log that the sponsor went quiet | `fde log contact "…" --signal amber` |
+
+**Full command list** (power users / scripts):
+
+```bash
+fde triage                        # short status (also injected by session hooks)
+fde debrief notes.md              # if notes already use decision: / risk: / … prefixes
+fde debrief --smart notes.md      # propose from messy notes; --apply after confirm
+fde doctor                        # check the fieldbook for gaps
+fde prep "sponsor sync"           # walk-in brief from existing memory
+fde log decision "…"
+fde log contact "…" --signal amber
+fde receipts "descope"            # dated agreements (ON RECORD)
+fde dashboard --all               # every client, sorted by trust
+fde status [--all]                # trust-first triage
+```
+
+Optional: `export FDEOPS_ENGAGEMENTS_ROOT=~/path/to/engagements` to isolate from `~/fde-engagements`.
+
+Each `.fde/` is a local git repo (no remote, no telemetry). Writes stage only the files for that command - hand-edits to other records stay dirty until you review them.
+
+---
+
 ## Where files live
 
 ```text
