@@ -129,15 +129,11 @@ Every entry is dated and sourced, so you can defend it in front of skeptical sta
 
 ---
 
-## Optional local CLI
+## Fieldbook UI
 
-Day to day, talk to `@fde`. The local CLI is for setup, air-gap, and scripts - full list in [docs/USAGE.md](docs/USAGE.md).
+Open the engagement in a browser - trust, phase, next action, and the full record in one local page. Ask `@fde` for the dashboard, or run `npx fdeops dashboard` (current engagement by default; `--all` for the portfolio).
 
-<p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
-
-Optional FieldBook view (`fde dashboard`) - current engagement by default:
-
-<p align="center"><img width="1336" height="624" alt="fde dashboard FieldBook" src="https://github.com/user-attachments/assets/5683614c-7730-4a3a-860d-185053a377eb" /></p>
+<p align="center"><img width="1336" height="624" alt="fdeops Fieldbook in the browser" src="https://github.com/user-attachments/assets/5683614c-7730-4a3a-860d-185053a377eb" /></p>
 
 ---
 
