@@ -1,10 +1,79 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<script>try{var t=localStorage.getItem("fde-fieldbook-theme");if(t==="dark"||(!t&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-fde-theme","dark");}catch(e){}</script>
-<title>FDE Fieldbook</title><style>
-:root{--bg:#f7f7f6;--panel:#eceae7;--rowhover:#e4e2de;--ink:#14140f;--ink-soft:#4a4942;--ink-faint:#7c7a71;--line:#dedcd6;--accent:#12885c;--accent-bg:#dcf1e6;--green:#12885c;--amber:#a56a19;--red:#b23e2b;--shadow:0 12px 48px rgba(0,0,0,.18)}
-html[data-fde-theme="dark"]{--bg:#0a0a09;--panel:#151513;--rowhover:#1c1c19;--ink:#f2f1ec;--ink-soft:#b0ada2;--ink-faint:#726f64;--line:#232320;--accent:#3ddc97;--accent-bg:#132420;--green:#3ddc97;--amber:#f0b860;--red:#ff8f83;--shadow:0 12px 48px rgba(0,0,0,.5)}
-@font-face {
+"use strict"
+
+// Pure, local HTML renderer for the FDE fieldbook. Data extraction stays in fde.js.
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
+// Never leak <private> notes or template hint comments into the rendered page.
+// Closed pairs are redacted; an unclosed <private> redacts to end-of-text so a
+// forgotten closing tag can never leak the rest of the file.
+
+function inlineMd(s) {
+  return escapeHtml(s)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+}
+
+// Generic markdown -> HTML for the three .fde files that are reference
+// documents, not logs (success.md, terrain.md, trust-profile.md): they don't
+// fit the structured stakeholder/risk/log widgets, but they're real content
+// (trust-profile.md especially - sacred data and AI policy) and must stay
+// visible in the fieldbook, not silently dropped. Headings, tables, bullet
+// lists, and paragraphs only - matches what these files actually contain.
+function mdBlockHtml(md, parseMdTable) {
+  const lines = md.split('\n')
+  const out = []; let i = 0
+  while (i < lines.length) {
+    const t = lines[i].trim()
+    if (!t) { i++; continue }
+    if (/^\|.*\|/.test(t)) {
+      const tbl = []
+      while (i < lines.length && /^\s*\|.*\|/.test(lines[i])) { tbl.push(lines[i]); i++ }
+      const parsed = parseMdTable(tbl.join('\n'))
+      if (parsed) {
+        out.push('<table class="fb-table"><thead><tr>' + parsed.headers.map(h => '<th>' + inlineMd(h) + '</th>').join('') + '</tr></thead><tbody>' +
+          parsed.rows.map(r => '<tr>' + r.map(c => '<td>' + inlineMd(c) + '</td>').join('') + '</tr>').join('') + '</tbody></table>')
+      }
+      continue
+    }
+    const h = t.match(/^(#{1,6})\s+(.*)$/)
+    if (h) { out.push('<div class="fb-sec">' + inlineMd(h[2]) + '</div>'); i++; continue }
+    if (/^[-*]\s+/.test(t)) {
+      const items = []
+      while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) { items.push('<li>' + inlineMd(lines[i].trim().replace(/^[-*]\s+/, '')) + '</li>'); i++ }
+      out.push('<ul class="fb-plain-list">' + items.join('') + '</ul>'); continue
+    }
+    const para = []
+    while (i < lines.length && lines[i].trim() && !/^\s*\|.*\|/.test(lines[i]) && !/^#{1,6}\s/.test(lines[i].trim()) && !/^[-*]\s+/.test(lines[i].trim())) {
+      para.push(lines[i].trim()); i++
+    }
+    out.push('<p class="fb-plain-p">' + inlineMd(para.join(' ')) + '</p>')
+  }
+  return out.join('\n')
+}
+
+// True if a file has real content beyond headings, empty table cells, and
+// blank bullets - same heuristic the old dashboard used to skip empty files.
+function hasRealContent(md) {
+  const txt = md
+    .replace(/^#{1,6}\s.*$/gm, '')
+    .replace(/^\s*\|[\s:|-]+\|\s*$/gm, '')
+    .replace(/^\s*\|[\s|]*\|\s*$/gm, '')
+    .replace(/\*\*[^*]+:\*\*\s*$/gm, '')
+    .replace(/[-*]\s*$/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return txt.length > 0
+}
+
+// Geist (400-700 variable weight) + Geist Mono (400-600 variable weight),
+// latin subset only, base64-embedded woff2 - zero network calls, still opens
+// fully offline. Spliced in verbatim by the build step below; never fetched.
+const FONT_FACE_CSS = `@font-face {
   font-family: 'Geist';
   font-style: normal;
   font-weight: 400 700;
@@ -19,7 +88,28 @@ html[data-fde-theme="dark"]{--bg:#0a0a09;--panel:#151513;--rowhover:#1c1c19;--in
   font-display: swap;
   src: url(data:font/woff2;base64,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) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}`
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+function formatToday(d) { return `${WEEKDAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}` }
+function formatLogDate(iso) {
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return m ? `${MONTHS[parseInt(m[2], 10) - 1]} ${parseInt(m[3], 10)}` : iso
 }
+function trustWord(t) { return t === 'green' ? 'steady' : t === 'amber' ? 'watch' : 'at risk' }
+function dotClassFor(trust) { return trust === 'RED' ? 'red' : trust }
+
+// Two-pane fieldbook: left rail (search + today + per-client nav), right main
+// panel with a Today queue view and a per-client detail view, plus a command
+// palette overlay. Light + dark are both full, real token sets (not one
+// derived from the other) - translated 1:1 from the design's THEMES object
+// into the file's existing :root / html[data-fde-theme="dark"] mechanism.
+function dashStyles() {
+  return `
+:root{--bg:#f7f7f6;--panel:#eceae7;--rowhover:#e4e2de;--ink:#14140f;--ink-soft:#4a4942;--ink-faint:#7c7a71;--line:#dedcd6;--accent:#12885c;--accent-bg:#dcf1e6;--green:#12885c;--amber:#a56a19;--red:#b23e2b;--shadow:0 12px 48px rgba(0,0,0,.18)}
+html[data-fde-theme="dark"]{--bg:#0a0a09;--panel:#151513;--rowhover:#1c1c19;--ink:#f2f1ec;--ink-soft:#b0ada2;--ink-faint:#726f64;--line:#232320;--accent:#3ddc97;--accent-bg:#132420;--green:#3ddc97;--amber:#f0b860;--red:#ff8f83;--shadow:0 12px 48px rgba(0,0,0,.5)}
+${FONT_FACE_CSS}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0;height:100%}
 body{font-family:'Geist',system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;transition:background .15s,color .15s}
@@ -110,7 +200,7 @@ strong{font-weight:600}
 .fb-more:first-child{border-top:none;padding-top:0}
 .fb-more-sum{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px}
 .fb-more-sum::-webkit-details-marker{display:none}
-.fb-more-sum::before{content:'\2023';color:var(--ink-faint);transition:transform .12s}
+.fb-more-sum::before{content:'\\2023';color:var(--ink-faint);transition:transform .12s}
 .fb-more[open] .fb-more-sum::before{transform:rotate(90deg)}
 .fb-more-body{margin-top:10px}
 .fb-plain-p{font-size:14px;line-height:1.55;color:var(--ink-soft);margin:0 0 10px}
@@ -150,16 +240,383 @@ strong{font-weight:600}
 .fb-palette-hint{margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-faint)}
 @media(max-width:760px){.fb-rail{flex:0 0 220px}.fb-main-inner{padding:20px}}
 @media(max-width:640px){.fb-body{flex-direction:column}.fb-rail{flex:0 0 auto;max-height:40vh;border-right:none;border-bottom:1px solid var(--line)}.fb-main-inner{padding:16px}}
-</style></head><body>
+`
+}
+
+// Vanilla DOM only - no framework. Read-only: view selection (today vs a
+// client) is a plain show/hide over pre-rendered panels, not a re-render.
+// Search filters the rail (hide + match-snippet, same mechanic the old
+// dashboard used); keyboard nav (j/k/arrows, /, Escape, cmd/ctrl+K) and the
+// command palette are wired the same way the theme toggle already was here -
+// addEventListener, guarded null checks, no inline handlers.
+function dashScript() {
+  return [
+    "(function(){",
+    "'use strict';",
+    "var SEL_KEY='fde-fieldbook-sel';",
+    "function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}",
+    "function all(sel){return Array.prototype.slice.call(document.querySelectorAll(sel));}",
+    "",
+    "var views=all('.fb-view');",
+    "var navItems=all('.fb-nav');",
+    "var searchInput=document.getElementById('fb-search');",
+    "",
+    "function selectView(id){",
+    "  if(!document.getElementById('view-'+id))return;",
+    "  views.forEach(function(v){v.hidden=(v.id!=='view-'+id);});",
+    "  navItems.forEach(function(n){n.classList.toggle('active',n.getAttribute('data-target')===id);});",
+    "  try{localStorage.setItem(SEL_KEY,id);}catch(e){}",
+    "}",
+    "navItems.forEach(function(n){n.addEventListener('click',function(){selectView(n.getAttribute('data-target'));});});",
+    "all('[data-nav]').forEach(function(n){n.addEventListener('click',function(){selectView(n.getAttribute('data-nav'));});});",
+    "",
+    "var startSel='today';",
+    "try{var s=localStorage.getItem(SEL_KEY);if(s&&document.getElementById('view-'+s))startSel=s;}catch(e){}",
+    "selectView(startSel);",
+    "",
+    "// search: filters the rail, shows a match snippet in place of the default reason line",
+    "// NOTE: snippetFor() below returns a string built ONLY from esc()-escaped",
+    "// fragments plus hardcoded '<mark>' literals - never raw untrusted markup -",
+    "// so assigning it via innerHTML cannot inject a tag from engagement content.",
+    "function snippetFor(raw,term){",
+    "  var i=raw.indexOf(term);",
+    "  if(i<0)return '';",
+    "  var start=Math.max(0,i-24),end=Math.min(raw.length,i+term.length+40);",
+    "  var pre=esc(raw.slice(start,i)),hit=esc(raw.slice(i,i+term.length)),post=esc(raw.slice(i+term.length,end));",
+    "  return (start>0?'\\u2026':'')+pre+'<mark>'+hit+'</mark>'+post+(end<raw.length?'\\u2026':'');",
+    "}",
+    "if(searchInput){searchInput.addEventListener('input',function(){",
+    "  var term=searchInput.value.trim().toLowerCase();",
+    "  navItems.forEach(function(n){",
+    "    if(n.getAttribute('data-target')==='today')return;",
+    "    var raw=(n.getAttribute('data-search')||'').toLowerCase();",
+    "    var hit=!term||raw.indexOf(term)>-1;",
+    "    n.classList.toggle('hide',!hit);",
+    "    var reason=n.querySelector('.fb-nav-reason');",
+    "    if(!reason)return;",
+    "    if(term&&hit){var snip=snippetFor(raw,term);reason.innerHTML=snip;reason.classList.toggle('hide',!snip);}",
+    "    else{reason.innerHTML=n.getAttribute('data-default-reason')||'';reason.classList.toggle('hide',!reason.innerHTML);}",
+    "  });",
+    "});}",
+    "",
+    "// keyboard: j/k/arrows move rail selection, / focuses search, Esc blurs/closes",
+    "function visibleIds(){return navItems.filter(function(n){return !n.classList.contains('hide');}).map(function(n){return n.getAttribute('data-target');});}",
+    "function currentId(){var v=document.querySelector('.fb-view:not([hidden])');return v?v.id.replace('view-',''):'today';}",
+    "document.addEventListener('keydown',function(ev){",
+    "  if((ev.metaKey||ev.ctrlKey)&&(ev.key==='k'||ev.key==='K')){ev.preventDefault();openPalette();return;}",
+    "  if(paletteIsOpen()){if(ev.key==='Escape'){ev.preventDefault();closePalette();}return;}",
+    "  var t=ev.target,typing=t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable);",
+    "  if(typing){if(ev.key==='Escape')t.blur();return;}",
+    "  if(ev.key==='/'){ev.preventDefault();if(searchInput)searchInput.focus();return;}",
+    "  var down=ev.key==='ArrowDown'||ev.key==='j',up=ev.key==='ArrowUp'||ev.key==='k';",
+    "  if(down||up){",
+    "    ev.preventDefault();",
+    "    var ids=visibleIds();",
+    "    var idx=ids.indexOf(currentId());",
+    "    var next=ids[Math.min(ids.length-1,Math.max(0,idx+(down?1:-1)))];",
+    "    if(next)selectView(next);",
+    "  }",
+    "});",
+    "",
+    "// command palette: search-filterable nav (today + each client + theme toggle)",
+    "var paletteBackdrop=document.getElementById('fb-palette-backdrop');",
+    "var paletteInput=document.getElementById('fb-palette-input');",
+    "var paletteInner=document.querySelector('.fb-palette');",
+    "var paletteItems=all('.fb-palette-item');",
+    "var pActive=0;",
+    "function paletteIsOpen(){return !!(paletteBackdrop&&paletteBackdrop.classList.contains('open'));}",
+    "function visiblePaletteItems(){return paletteItems.filter(function(it){return !it.classList.contains('hide');});}",
+    "function highlightPalette(){",
+    "  var visible=visiblePaletteItems();",
+    "  paletteItems.forEach(function(it){it.classList.remove('active');});",
+    "  if(visible[pActive]){visible[pActive].classList.add('active');visible[pActive].scrollIntoView({block:'nearest'});}",
+    "}",
+    "function filterPalette(q){",
+    "  q=q.toLowerCase();",
+    "  paletteItems.forEach(function(it){",
+    "    var label=(it.getAttribute('data-label')||'').toLowerCase();",
+    "    var kind=(it.getAttribute('data-kind')||'').toLowerCase();",
+    "    it.classList.toggle('hide',!(!q||label.indexOf(q)>-1||kind.indexOf(q)>-1));",
+    "  });",
+    "  pActive=0;highlightPalette();",
+    "}",
+    "function openPalette(){",
+    "  if(!paletteBackdrop)return;",
+    "  paletteBackdrop.classList.add('open');",
+    "  if(paletteInput){paletteInput.value='';paletteInput.focus();}",
+    "  filterPalette('');",
+    "}",
+    "function closePalette(){if(paletteBackdrop)paletteBackdrop.classList.remove('open');}",
+    "function runActive(){",
+    "  var it=visiblePaletteItems()[pActive];",
+    "  if(!it)return;",
+    "  var target=it.getAttribute('data-target');",
+    "  if(target==='__theme__')toggleTheme();",
+    "  else if(target)selectView(target);",
+    "  closePalette();",
+    "}",
+    "if(paletteBackdrop)paletteBackdrop.addEventListener('click',function(ev){if(ev.target===paletteBackdrop)closePalette();});",
+    "if(paletteInner)paletteInner.addEventListener('click',function(ev){ev.stopPropagation();});",
+    "var paletteBtn=document.getElementById('fb-palette-btn');",
+    "if(paletteBtn)paletteBtn.addEventListener('click',openPalette);",
+    "paletteItems.forEach(function(it){",
+    "  it.addEventListener('click',function(){pActive=visiblePaletteItems().indexOf(it);runActive();});",
+    "  it.addEventListener('mouseenter',function(){var v=visiblePaletteItems();var i=v.indexOf(it);if(i>-1){pActive=i;highlightPalette();}});",
+    "});",
+    "if(paletteInput){",
+    "  paletteInput.addEventListener('input',function(){filterPalette(paletteInput.value);});",
+    "  paletteInput.addEventListener('keydown',function(ev){",
+    "    if(ev.key==='Escape'){closePalette();return;}",
+    "    if(ev.key==='ArrowDown'){ev.preventDefault();pActive=Math.min(visiblePaletteItems().length-1,pActive+1);highlightPalette();return;}",
+    "    if(ev.key==='ArrowUp'){ev.preventDefault();pActive=Math.max(0,pActive-1);highlightPalette();return;}",
+    "    if(ev.key==='Enter'){ev.preventDefault();runActive();}",
+    "  });",
+    "}",
+    "",
+    "// theme toggle - local only, no network; pre-paint script in <head> avoids a flash",
+    "var themeBtn=document.getElementById('fde-theme-btn');",
+    "function currentTheme(){return document.documentElement.getAttribute('data-fde-theme')==='dark'?'dark':'light';}",
+    "function setThemeLabel(){if(themeBtn)themeBtn.textContent=(currentTheme()==='dark'?'light':'dark');}",
+    "function toggleTheme(){",
+    "  var next=currentTheme()==='dark'?'light':'dark';",
+    "  try{localStorage.setItem('fde-fieldbook-theme',next);}catch(e){}",
+    "  document.documentElement.setAttribute('data-fde-theme',next);",
+    "  setThemeLabel();",
+    "}",
+    "setThemeLabel();",
+    "if(themeBtn)themeBtn.addEventListener('click',toggleTheme);",
+    "})();",
+  ].join('\n')
+}
+
+// ---- HTML builders (one per fieldbook widget) - kept small and named so the
+// structured extractors above and the markup below stay easy to trace. ----
+
+function railItemHtml(e) {
+  const dotClass = dotClassFor(e.signals.trust)
+  const touchedClass = e.quiet ? 't-amber' : 't-faint'
+  const preview = e.next.length > 58 ? e.next.slice(0, 56) + '…' : e.next
+  const defaultReason = e.signals.trust !== 'green' && preview ? escapeHtml(preview) : ''
+  return `<button class="fb-nav" data-target="eng-${e.slug}" data-search="${e.searchBlob}" data-default-reason="${defaultReason}">
+<div class="fb-nav-row"><span class="dot dot-sm ${dotClass}"></span><span class="fb-nav-name">${inlineMd(e.name)}</span></div>
+<div class="fb-nav-meta">${escapeHtml(e.phaseLabel)} &middot; <span class="${touchedClass}">${escapeHtml(e.signals.updated)}</span></div>
+<div class="fb-nav-reason${defaultReason ? '' : ' hide'}">${defaultReason}</div>
+</button>`
+}
+
+function queueRowHtml(e) {
+  const dotClass = dotClassFor(e.signals.trust)
+  const noAction = !e.hasNext
+  const actionText = noAction ? 'no next action set - open and add one' : e.next
+  const touchedClass = e.quiet ? 't-amber' : 't-faint'
+  return `<div class="fb-row fb-queue-row" data-nav="eng-${e.slug}">
+<span class="dot dot-md ${dotClass}"></span>
+<span class="fb-queue-slug">${inlineMd(e.name)}</span>
+<span class="fb-queue-action${noAction ? ' t-amber' : ''}">${inlineMd(actionText)}</span>
+<span class="fb-queue-touched ${touchedClass}">${escapeHtml(e.signals.updated)}</span>
+</div>`
+}
+
+function flagRowHtml(e, text, colorClass) {
+  return `<div class="fb-row fb-flag-row" data-nav="eng-${e.slug}">
+<span class="fb-flag-slug">${inlineMd(e.name)}</span>
+<span class="fb-flag-text t-${colorClass}">${escapeHtml(text)}</span>
+</div>`
+}
+
+function todayViewHtml({ today, total, attentionCount, highRiskTotal, todayQueue, flagsHtml, hasEngagements }) {
+  if (!hasEngagements) {
+    return `<div id="view-today" class="fb-view">
+<div class="fb-eyebrow">portfolio</div>
+<h1 class="fb-h1">Today</h1>
+<p class="empty">No engagements yet. Start one with <code>fde resume --init &lt;client-name&gt;</code>, then re-run <code>fde dashboard</code>.</p>
+</div>`
+  }
+  return `<div id="view-today" class="fb-view">
+<div class="fb-eyebrow">portfolio</div>
+<h1 class="fb-h1">Today</h1>
+<div class="fb-meta-line">${escapeHtml(today)} &middot; ${total} engagement${total === 1 ? '' : 's'} &middot; ${attentionCount} need you &middot; ${highRiskTotal} high risk${highRiskTotal === 1 ? '' : 's'} open</div>
+<div class="fb-block">
+<div class="fb-sec">Queue — next action per client, worst first</div>
+${todayQueue}
+</div>
+${flagsHtml ? `<div class="fb-block">
+<div class="fb-sec">Flags</div>
+${flagsHtml}
+</div>` : ''}
+</div>`
+}
+
+function clientViewHtml(e) {
+  const dotClass = dotClassFor(e.signals.trust)
+  const sectorLine = [
+    e.overlay ? escapeHtml(e.overlay) : '',
+    escapeHtml(e.phaseLabel),
+    e.days != null ? `day ${e.days}` : '',
+    `touched ${escapeHtml(e.signals.updated)}`,
+  ].filter(Boolean).join(' &middot; ')
+
+  const nowBlock = `<div class="fb-block">
+<div class="fb-sec">Now</div>
+<div class="fb-now-action${e.hasNext ? '' : ' t-amber'}">${e.hasNext ? inlineMd(e.next) : 'next action not set'}</div>
+${e.lastSession ? `<div class="fb-now-session">${inlineMd(e.lastSession)}</div>` : ''}
+</div>`
+
+  // Brief vs reality is the whole point of "discover" - what they said they
+  // needed vs what's actually true. Squeezed onto one truncated line, that
+  // contrast disappears. Each gets its own line, its own room to finish a
+  // thought, not a race to fit before an ellipsis.
+  const whyBlock = (e.brief || e.reality) ? `<div class="fb-block">
+<div class="fb-sec">Why</div>
+${e.brief ? `<p class="fb-why"><span class="t-faint">What they asked for:</span> ${inlineMd(e.brief)}</p>` : ''}
+${e.reality ? `<p class="fb-why fb-why-reality"><span class="fb-accent-label">What's actually true:</span> ${inlineMd(e.reality)}</p>` : ''}
+</div>` : ''
+
+  // Vitals: a fixed field-facing gut-check panel, not a Movement block that
+  // only exists when text mining finds numbers. Every row here is already
+  // computed elsewhere in this file for other purposes (status/dashboard
+  // triage, receipts, signals) - never a new fabricated field, just the
+  // existing facts surfaced where an FDE's eye lands first. Sits beside
+  // Now/Why so that column's natural reading width doesn't leave the top of
+  // the page empty on a wide screen, and carries enough real rows to earn
+  // roughly the same height instead of floating short beside a tall column.
+  // Plain English, not fdeops shorthand - a junior FDE reading this for the
+  // first time gets the same clear meaning as someone who wrote the CLI.
+  // "signal" (the --signal flag's own word) becomes "trust"; a bare day
+  // count becomes "started: 3 days ago" in the same relative-time phrasing
+  // as everything else here, so there's one pattern to learn, not several.
+  const dotGlyph = sig => sig === 'green' ? '&#9679;' : sig === 'red' ? '&#9675;' : '&#9632;' // filled circle / hollow ring / filled square - same shapes as the People list below
+  const signalColor = sig => sig === 'green' ? '#12885c' : sig === 'red' ? '#b23e2b' : '#a56a19'
+  const teamStatus = e.stakeholders.length
+    ? ['green', 'amber', 'red'].map(sig => e.stakeholders.filter(p => p.signal === sig).length)
+      .map((n, i) => n ? `<span style="color:${signalColor(['green', 'amber', 'red'][i])}">${dotGlyph(['green', 'amber', 'red'][i])} ${n}</span>` : null)
+      .filter(Boolean).join(' &nbsp; ')
+    : ''
+  const vitalsRows = [
+    ['trust', trustWord(e.signals.trust), dotClass],
+    e.signals.signalAge != null ? ['trust confirmed', e.signals.signalAge === 0 ? 'today' : `${e.signals.signalAge} days ago${e.signals.stale ? ' - recheck' : ''}`, e.signals.stale ? 'red' : ''] : null,
+    ['phase', e.phaseLabel, ''],
+    e.days != null ? ['started', e.days === 0 ? 'today' : `${e.days} days ago`, ''] : null,
+    ['last updated', e.signals.updated, e.quiet ? 'amber' : ''],
+    e.log.length ? ['last note', formatLogDate(e.log[0].date), ''] : null,
+    e.risks.length ? ['open risks', `${e.risks.length}${e.highRisks ? ` (${e.highRisks} urgent)` : ''}`, e.highRisks ? 'red' : ''] : null,
+    e.stakeholders.length ? ['people', `${e.stakeholders.length}`, ''] : null,
+  ].filter(Boolean)
+  const vitalsBlock = `<div class="fb-vitals">
+${vitalsRows.map(([label, val, tone]) => `<div class="fb-vital-row"><span class="fb-vital-label">${escapeHtml(label)}</span><span class="fb-vital-val${tone ? ' t-' + tone : ''}">${escapeHtml(val)}</span></div>`).join('\n')}
+${teamStatus ? `<div class="fb-vital-row"><span class="fb-vital-label">team status</span><span class="fb-vital-val">${teamStatus}</span></div>` : ''}
+${e.stats.length ? `<div class="fb-vital-div"></div>${e.stats.map(s => `<div class="fb-vital-row"><span class="fb-vital-label">${inlineMd(s.label)}</span><span class="fb-vital-val">${inlineMd(s.from)} <span class="fb-arrow">&rarr;</span> <span class="fb-stat-to">${inlineMd(s.to)}</span></span></div>`).join('\n')}` : ''}
+</div>`
+
+  const peopleBlock = e.stakeholders.length ? `<div class="fb-block">
+<div class="fb-sec">People</div>
+<div class="fb-list">
+${e.stakeholders.map(p => `<div class="fb-row fb-person">
+<span class="dot dot-sm ${p.signal}" title="${trustWord(p.signal)}"></span>
+<span class="fb-person-name">${inlineMd(p.name)}</span>
+<span class="fb-person-role">${inlineMd(p.role)}</span>
+<span class="fb-person-note">${inlineMd(p.note)}</span>
+</div>`).join('\n')}
+</div>
+</div>` : ''
+
+  const riskBlock = e.risks.length ? `<div class="fb-block">
+<div class="fb-sec-row"><div class="fb-sec">Risk</div><span class="fb-count">${e.risks.length} open</span></div>
+<div class="fb-list">
+${e.risks.map(r => `<div class="fb-row fb-risk">
+<span class="fb-risk-sev t-${r.severity === 'high' ? 'red' : 'amber'}">${escapeHtml(r.severity)}</span>
+<span class="fb-risk-text">${inlineMd(r.text)}</span>
+</div>`).join('\n')}
+</div>
+</div>` : ''
+
+  const logBlock = e.log.length ? `<div class="fb-block">
+<div class="fb-sec">Log</div>
+<div class="fb-list">
+${e.log.map(g => `<div class="fb-row fb-log">
+<span class="fb-log-date">${escapeHtml(formatLogDate(g.date))}</span>
+<span class="fb-log-kind t-${g.kind === 'receipt' ? 'green' : g.kind === 'decision' ? 'accent' : 'faint'}">${escapeHtml(g.kind)}</span>
+<span class="fb-log-text">${inlineMd(g.text)}</span>
+</div>`).join('\n')}
+</div>
+</div>` : ''
+
+  // reference docs (success/terrain/trust-profile) - collapsed by default,
+  // never hidden entirely: trust-profile.md carries the data boundary
+  const moreBlock = e.moreSections.length ? `<div class="fb-block">
+${e.moreSections.map(s => `<details class="fb-more"><summary class="fb-sec fb-more-sum">${escapeHtml(s.title)}</summary><div class="fb-more-body">${s.html}</div></details>`).join('\n')}
+</div>` : ''
+
+  // People + Risk pair naturally (who's involved / what's at stake) and read
+  // well side by side on a wide screen - a single 760px column left half the
+  // window empty. Stats stays full width (it's already a wrapping strip of
+  // small tiles that benefits from horizontal room); Log stays full width
+  // (a chronological list reads better long than squeezed into a column).
+  const pairedBlock = (peopleBlock || riskBlock) ? `<div class="fb-grid-wrap">${peopleBlock}${riskBlock}</div>` : ''
+
+  return `<div id="view-eng-${e.slug}" class="fb-view" hidden>
+<div class="fb-eyebrow">.fde/${escapeHtml(e.slug)}</div>
+<div class="fb-title-row">
+<h1 class="fb-h1">${inlineMd(e.name)}</h1>
+<span class="fb-trust"><span class="dot dot-lg ${dotClass}"></span><span class="t-${dotClass}">${trustWord(e.signals.trust)}</span></span>
+</div>
+<div class="fb-meta-line">${sectorLine}</div>
+<div class="fb-top-grid">
+<div>${nowBlock}${whyBlock}</div>
+${vitalsBlock}
+</div>
+${pairedBlock}${logBlock}${moreBlock}
+</div>`
+}
+
+function paletteItemsHtml(ordered) {
+  const items = [
+    { kind: 'view', label: 'today', hint: 'portfolio queue', target: 'today' },
+    ...ordered.map(e => ({ kind: 'open', label: e.slug, hint: trustWord(e.signals.trust), target: 'eng-' + e.slug })),
+    { kind: 'action', label: 'toggle theme', hint: 'light / dark', target: '__theme__' },
+  ]
+  return items.map(it => `<div class="fb-palette-item" data-target="${escapeHtml(it.target)}" data-label="${escapeHtml(it.label)}" data-kind="${escapeHtml(it.kind)}">
+<span class="fb-palette-kind">${escapeHtml(it.kind)}</span>
+<span class="fb-palette-label">${escapeHtml(it.label)}</span>
+<span class="fb-palette-hint">${escapeHtml(it.hint)}</span>
+</div>`).join('\n')
+}
+
+function buildFieldbookHtml({ engagements, today }) {
+  // rail + Today queue share one order: trust-first (red, amber, green)
+  const tierRank = { RED: 0, amber: 1, green: 2 }
+  const ordered = engagements.slice().sort((a, b) => tierRank[a.signals.trust] - tierRank[b.signals.trust])
+  const attentionCount = engagements.filter(e => e.signals.trust !== 'green').length
+  const highRiskTotal = engagements.reduce((n, e) => n + e.highRisks, 0)
+
+  const railItems = ordered.map(railItemHtml).join('\n')
+  const todayQueue = ordered.map(queueRowHtml).join('\n') || '<p class="empty">No engagements yet.</p>'
+  const flagRows = []
+  ordered.forEach(e => {
+    if (e.quiet) flagRows.push(flagRowHtml(e, `quiet - last touched ${e.signals.updated}`, 'amber'))
+    if (e.highRisks) flagRows.push(flagRowHtml(e, `${e.highRisks} high risk${e.highRisks > 1 ? 's' : ''} open`, 'red'))
+  })
+
+  const todayView = todayViewHtml({
+    today, total: engagements.length, attentionCount, highRiskTotal,
+    todayQueue, flagsHtml: flagRows.join('\n'), hasEngagements: engagements.length > 0,
+  })
+  const clientViews = ordered.map(clientViewHtml).join('\n')
+  const paletteItems = paletteItemsHtml(ordered)
+
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>try{var t=localStorage.getItem("fde-fieldbook-theme");if(t==="dark"||(!t&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-fde-theme","dark");}catch(e){}</script>
+<title>FDE Fieldbook</title><style>${dashStyles()}</style></head><body>
 <div class="fb-app">
 <header class="fb-header">
 <div class="fb-brand">
 <span class="fb-wordmark">FDEOPS</span>
 <span class="fb-tagline">fieldbook</span>
-<span class="fb-need">2/3 need you</span>
+${engagements.length ? `<span class="fb-need">${attentionCount}/${engagements.length} need you</span>` : ''}
 </div>
 <div class="fb-spacer"></div>
-<span class="fb-today">Wed, Jul 8</span>
+<span class="fb-today">${escapeHtml(today)}</span>
 <button id="fb-palette-btn" class="fb-btn" type="button" title="Command palette (Ctrl/Cmd+K)">&#8984;K</button>
 <button id="fde-theme-btn" class="fb-btn" type="button">dark</button>
 </header>
@@ -168,424 +625,15 @@ strong{font-weight:600}
 <div class="fb-rail-search"><input id="fb-search" class="fb-search" placeholder="search clients, notes, risks…" spellcheck="false"></div>
 <div class="fb-rail-list fb-scroll">
 <button class="fb-nav" data-target="today">
-<div class="fb-nav-row"><span class="fb-nav-today">today</span><span class="fb-nav-count">2 need you</span></div>
+<div class="fb-nav-row"><span class="fb-nav-today">today</span>${engagements.length ? `<span class="fb-nav-count">${attentionCount} need you</span>` : ''}</div>
 </button>
-<button class="fb-nav" data-target="eng-rennick-health" data-search="rennick-health renata 1:1, target 2026-07-08 - sam books it. agenda is her 2025 design, not ours. obtain the deck beforehand if she will share it. week 1, day 4. brief interrogated, intake shadowed, day-1 deliverable shipped. trust red: renata fischer (staff architect, passed over on the 2025 rebuild, her team runs prod) declined two working sessions and learned about the engagement… triage reading time is minutes; the 11 days hide in (a) incomplete referrals bouncing back to referring pcps and (b) a scheduling queue only two coordinators can work. the ai-triage brief optimizes the step that is alre… referral intake is drowning - 11 days average from fax to scheduled appointment. we want an ai triage assistant that reads incoming referrals and routes them.&quot; (sam whitfield, coo, kickoff 2026-06-30) renata declined the second working session; told sam &quot;we already have a design for this&quot; - engagement was scoped without her, her team runs prod, and she found out from the calendar invite pause the architecture track until renata is in the room renata declined the architecture working session, &quot;conflicting priority&quot; - no reschedule offered no phi in any ai context until the policy is signed sam cleared his calendar for the full kickoff, brought the board deck numbers renata signal red: engagement scoped without the architect whose team runs prod phi boundary: faxed referral pdfs must never enter ai context - no signed policy yet epic integration access: sandbox request pending, prod path undefined &quot;11 days&quot; metric unsourced - the board number may not survive the timestamp pull success not agreed: sam&#39;s 5-day target vs dr. mehta&#39;s clinical-judgment veto sam whitfield coo (sponsor) owns the 11-day number at board level. wants a week-2 visible win. dr. anand mehta medical director clinical veto. &quot;no metric that pressures clinical judgment&quot; (2026-07-01). renata fischer staff architect proposed the same rebuild in 2025; not funded; not consulted on this engagement. her team operates prod. tammy rios intake coordinator let us shadow intake 2026-07-01. knows where the 11 days actually go. success &amp; scope terrain trust profile" data-default-reason="Renata 1:1, target 2026-07-08 - Sam books it. Agenda is …">
-<div class="fb-nav-row"><span class="dot dot-sm red"></span><span class="fb-nav-name">rennick-health</span></div>
-<div class="fb-nav-meta">Embed &amp; Trust &middot; <span class="t-faint">today</span></div>
-<div class="fb-nav-reason">Renata 1:1, target 2026-07-08 - Sam books it. Agenda is …</div>
-</button>
-<button class="fb-nav" data-target="eng-kesterman-freight" data-search="kesterman-freight book 15 min with denise monday 2026-07-06: scope accumulation conversation (3 adds in 13 days, receipts in decisions.md) + confirm thursday demo. if no reply by tuesday noon, ask randy for a floor-level read. week 4. build slices 1-2 shipped (sheet shadow-read + parity report, 98.8% parity). slice 3 (write-back) in progress, target 2026-07-08. trust amber: denise unresponsive to demo invites since 2026-07-01; third scope add arrived same day, p… the ops team&#39;s spreadsheet is the real system of record. `dispatch-board.xlsx` (shared drive, randy&#39;s team) is where loads are actually assigned, re-routed, and annotated. the postgres `loads` table lags it by 2-26 hour… dispatch has no visibility. build us an ops dashboard - live board of every load, every truck, every delay.&quot; (denise kowalczyk, vp ops, kickoff 2026-06-08) randy + karen sync: randy says denise is &quot;heads-down on the nashville depot audit&quot; (his read, unverified) scope change #3 - role-based views for the nashville depot denise stopped replying to demo invites; third scope add arrived the same day via email sheet parse failures - importer handles the macro column; parity 98.8% by 2026-07-02 denise skipped thursday demo, no delegate sent, no reschedule scope change #2 - csv export for finance scope change #1 - carrier eta feed re-scope: sheet ingest before dashboard denise agreed to re-scope against reality.md in one meeting, no pushback randy opened the sheet on-screen unprompted - floor trusts us with the real workflow sponsor cooling: denise unresponsive since 2026-07-01, demo 2026-07-09 at stake scope accumulation: 3 additions in 13 days, timeline unchanged sheet macro column (vlookup chain only randy fully understands) drives carrier assignment dual read path from the abandoned 2023 ops-api still live - writes can race 2019 &quot;temporary&quot; nashville validation skip (dispatchboardservice.java:214) is load-bearing denise kowalczyk vp ops (sponsor) bought the reality.md reframe 2026-06-15. has skipped both demos since 2026-06-26. randy teague dispatch team lead owns the sheet. won us the floor 2026-06-12 by showing how it actually works. karen mroz staff engineer, platform ran the abandoned 2023 ops-api rewrite. reviews our prs; her early warning on the dual read path saved a week. finance controller (name unknown - ask) consumer of nightly export source of scope add #2. export format is load-bearing. success &amp; scope terrain trust profile" data-default-reason="Book 15 min with Denise Monday 2026-07-06: scope accumul…">
-<div class="fb-nav-row"><span class="dot dot-sm amber"></span><span class="fb-nav-name">kesterman-freight</span></div>
-<div class="fb-nav-meta">Build &amp; Guard &middot; <span class="t-faint">today</span></div>
-<div class="fb-nav-reason">Book 15 min with Denise Monday 2026-07-06: scope accumul…</div>
-</button>
-<button class="fb-nav" data-target="eng-garvey-payments" data-search="garvey-payments tell `@fde` &quot;ready to deploy&quot; after security sign-off - it walks you through the ship pre-flight checklist. update handoff.md if engagement ends next week. day 10. ingest retry on staging. finance trial agreed. prod canary pending their security ticket. eu payment failures in the api are a symptom. root workflow: finance reprocesses failed eu rows manually in excel each night because ingest has no idempotent retry. payments api returns 500s for eu merchants. slice scope (day 10) problem framing (day 5) cto (invite)  cares about exec readout friday finance controller  owns spreadsheet process - **decision risk** platform lead  offered repo access day 2 prior vendor (left)  ask if partial migration exists success &amp; scope terrain" data-default-reason="">
-<div class="fb-nav-row"><span class="dot dot-sm green"></span><span class="fb-nav-name">garvey-payments</span></div>
-<div class="fb-nav-meta">Build &amp; Guard &middot; <span class="t-faint">today</span></div>
-<div class="fb-nav-reason hide"></div>
-</button>
+${railItems}
 </div>
 </aside>
 <main class="fb-main fb-scroll">
 <div class="fb-main-inner">
-<div id="view-today" class="fb-view">
-<div class="fb-eyebrow">portfolio</div>
-<h1 class="fb-h1">Today</h1>
-<div class="fb-meta-line">Wed, Jul 8 &middot; 3 engagements &middot; 2 need you &middot; 2 high risks open</div>
-<div class="fb-block">
-<div class="fb-sec">Queue — next action per client, worst first</div>
-<div class="fb-row fb-queue-row" data-nav="eng-rennick-health">
-<span class="dot dot-md red"></span>
-<span class="fb-queue-slug">rennick-health</span>
-<span class="fb-queue-action">Renata 1:1, target 2026-07-08 - Sam books it. Agenda is HER 2025 design, not ours. Obtain the deck beforehand if she will share it.</span>
-<span class="fb-queue-touched t-faint">today</span>
-</div>
-<div class="fb-row fb-queue-row" data-nav="eng-kesterman-freight">
-<span class="dot dot-md amber"></span>
-<span class="fb-queue-slug">kesterman-freight</span>
-<span class="fb-queue-action">Book 15 min with Denise Monday 2026-07-06: scope accumulation conversation (3 adds in 13 days, receipts in decisions.md) + confirm Thursday demo. If no reply by Tuesday noon, ask Randy for a floor-level read.</span>
-<span class="fb-queue-touched t-faint">today</span>
-</div>
-<div class="fb-row fb-queue-row" data-nav="eng-garvey-payments">
-<span class="dot dot-md green"></span>
-<span class="fb-queue-slug">garvey-payments</span>
-<span class="fb-queue-action">Tell <code>@fde</code> &quot;ready to deploy&quot; after security sign-off - it walks you through the ship pre-flight checklist. Update handoff.md if engagement ends next week.</span>
-<span class="fb-queue-touched t-faint">today</span>
-</div>
-</div>
-<div class="fb-block">
-<div class="fb-sec">Flags</div>
-<div class="fb-row fb-flag-row" data-nav="eng-kesterman-freight">
-<span class="fb-flag-slug">kesterman-freight</span>
-<span class="fb-flag-text t-red">2 high risks open</span>
-</div>
-</div>
-</div>
-<div id="view-eng-rennick-health" class="fb-view" hidden>
-<div class="fb-eyebrow">.fde/rennick-health</div>
-<div class="fb-title-row">
-<h1 class="fb-h1">rennick-health</h1>
-<span class="fb-trust"><span class="dot dot-lg red"></span><span class="t-red">at risk</span></span>
-</div>
-<div class="fb-meta-line">Embed &amp; Trust &middot; day 0 &middot; touched today</div>
-<div class="fb-top-grid">
-<div><div class="fb-block">
-<div class="fb-sec">Now</div>
-<div class="fb-now-action">Renata 1:1, target 2026-07-08 - Sam books it. Agenda is HER 2025 design, not ours. Obtain the deck beforehand if she will share it.</div>
-<div class="fb-now-session">Week 1, day 4. Brief interrogated, intake shadowed, day-1 deliverable shipped. Trust RED: Renata Fischer (staff architect, passed over on the 2025 rebuild, her team runs prod) declined two working sessions and learned about the engagement…</div>
-</div><div class="fb-block">
-<div class="fb-sec">Why</div>
-<p class="fb-why"><span class="t-faint">What they asked for:</span> Referral intake is drowning - 11 days average from fax to scheduled appointment. We want an AI triage assistant that reads incoming referrals and routes them.&quot; (Sam Whitfield, COO, kickoff 2026-06-30)</p>
-<p class="fb-why fb-why-reality"><span class="fb-accent-label">What's actually true:</span> triage reading time is minutes; the 11 days hide in (a) incomplete referrals bouncing back to referring PCPs and (b) a scheduling queue only two coordinators can work. The AI-triage brief optimizes the step that is alre…</p>
-</div></div>
-<div class="fb-vitals">
-<div class="fb-vital-row"><span class="fb-vital-label">trust</span><span class="fb-vital-val t-red">at risk</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">trust confirmed</span><span class="fb-vital-val">5 days ago</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">phase</span><span class="fb-vital-val">Embed &amp; Trust</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">started</span><span class="fb-vital-val">today</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">last updated</span><span class="fb-vital-val">today</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">last note</span><span class="fb-vital-val">Jul 3</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">open risks</span><span class="fb-vital-val">5</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">people</span><span class="fb-vital-val">4</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">team status</span><span class="fb-vital-val"><span style="color:#12885c">&#9679; 1</span> &nbsp; <span style="color:#a56a19">&#9632; 2</span> &nbsp; <span style="color:#b23e2b">&#9675; 1</span></span></div>
-
-</div>
-</div>
-<div class="fb-grid-wrap"><div class="fb-block">
-<div class="fb-sec">People</div>
-<div class="fb-list">
-<div class="fb-row fb-person">
-<span class="dot dot-sm green" title="steady"></span>
-<span class="fb-person-name">Sam Whitfield</span>
-<span class="fb-person-role">COO (sponsor)</span>
-<span class="fb-person-note">Owns the 11-day number at board level. Wants a week-2 visible win.</span>
-</div>
-<div class="fb-row fb-person">
-<span class="dot dot-sm amber" title="watch"></span>
-<span class="fb-person-name">Dr. Anand Mehta</span>
-<span class="fb-person-role">Medical Director</span>
-<span class="fb-person-note">Clinical veto. &quot;No metric that pressures clinical judgment&quot; (2026-07-01).</span>
-</div>
-<div class="fb-row fb-person">
-<span class="dot dot-sm red" title="at risk"></span>
-<span class="fb-person-name">Renata Fischer</span>
-<span class="fb-person-role">Staff architect</span>
-<span class="fb-person-note">Proposed the same rebuild in 2025; not funded; not consulted on this engagement. Her team operates prod.</span>
-</div>
-<div class="fb-row fb-person">
-<span class="dot dot-sm amber" title="watch"></span>
-<span class="fb-person-name">Tammy Rios</span>
-<span class="fb-person-role">Intake coordinator</span>
-<span class="fb-person-note">Let us shadow intake 2026-07-01. Knows where the 11 days actually go.</span>
-</div>
-</div>
-</div><div class="fb-block">
-<div class="fb-sec-row"><div class="fb-sec">Risk</div><span class="fb-count">5 open</span></div>
-<div class="fb-list">
-<div class="fb-row fb-risk">
-<span class="fb-risk-sev t-amber">med</span>
-<span class="fb-risk-text">Renata signal red: engagement scoped without the architect whose team runs prod</span>
-</div>
-<div class="fb-row fb-risk">
-<span class="fb-risk-sev t-amber">med</span>
-<span class="fb-risk-text">PHI boundary: faxed referral PDFs must never enter AI context - no signed policy yet</span>
-</div>
-<div class="fb-row fb-risk">
-<span class="fb-risk-sev t-amber">med</span>
-<span class="fb-risk-text">Epic integration access: sandbox request pending, prod path undefined</span>
-</div>
-<div class="fb-row fb-risk">
-<span class="fb-risk-sev t-amber">med</span>
-<span class="fb-risk-text">&quot;11 days&quot; metric unsourced - the board number may not survive the timestamp pull</span>
-</div>
-<div class="fb-row fb-risk">
-<span class="fb-risk-sev t-amber">med</span>
-<span class="fb-risk-text">Success not agreed: Sam&#39;s 5-day target vs Dr. Mehta&#39;s clinical-judgment veto</span>
-</div>
-</div>
-</div></div><div class="fb-block">
-<div class="fb-sec">Log</div>
-<div class="fb-list">
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jul 3</span>
-<span class="fb-log-kind t-faint">note</span>
-<span class="fb-log-text">Renata declined the second working session; told Sam &quot;we already have a design for this&quot; - engagement was scoped without her, her team runs prod, and she found out from the calendar invite</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jul 2</span>
-<span class="fb-log-kind t-accent">decision</span>
-<span class="fb-log-text">Pause the architecture track until Renata is in the room</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jul 1</span>
-<span class="fb-log-kind t-faint">note</span>
-<span class="fb-log-text">Renata declined the architecture working session, &quot;conflicting priority&quot; - no reschedule offered</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jun 30</span>
-<span class="fb-log-kind t-accent">decision</span>
-<span class="fb-log-text">No PHI in any AI context until the policy is signed</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jun 30</span>
-<span class="fb-log-kind t-faint">note</span>
-<span class="fb-log-text">Sam cleared his calendar for the full kickoff, brought the board deck numbers</span>
-</div>
-</div>
-</div><div class="fb-block">
-<details class="fb-more"><summary class="fb-sec fb-more-sum">Success &amp; scope</summary><div class="fb-more-body"><div class="fb-sec">Success definition</div>
-<p class="fb-plain-p"><strong>Done when:</strong> NOT YET AGREED. Sam&#39;s version (2026-06-30): &quot;referral-to-appointment under 5 days for the cardiology pilot.&quot; Dr. Mehta has not accepted a number - &quot;no metric that pressures clinical judgment&quot; (2026-07-01, verbatim). <strong>Explicitly out of scope:</strong> nothing is written down as out of scope yet - flagged as a brief gap 2026-06-30. <strong>Stakeholder who signs off:</strong> Sam funds it; Dr. Mehta can veto it; Renata&#39;s team operates whatever ships. All three, or it does not count. Target: agreed success.md by 2026-07-10.</p></div></details>
-<details class="fb-more"><summary class="fb-sec fb-more-sum">Terrain</summary><div class="fb-more-body"><div class="fb-sec">Terrain (codebase map)</div>
-<p class="fb-plain-p"><strong>Access:</strong> read access to the integration repo granted 2026-07-02. Epic sandbox pending - Renata&#39;s team approves (see risks.md). No <code>fde scan</code> run yet; waiting on access to the repo that matters.</p>
-<p class="fb-plain-p"><strong>Stack (stated, unverified):</strong> Epic (EHR) + Mirth Connect interface engine + a 2018 .NET referral portal maintained by Renata&#39;s team. Fax ingest: eFax → PDF → manual entry.</p>
-<p class="fb-plain-p"><strong>Hotspots (handle with care):</strong> unknown - ask Renata. Her 2025 deck reportedly maps them.</p>
-<p class="fb-plain-p"><strong>Test gaps:</strong> unknown.</p></div></details>
-<details class="fb-more"><summary class="fb-sec fb-more-sum">Trust profile</summary><div class="fb-more-body"><div class="fb-sec">Trust profile</div>
-<p class="fb-plain-p"><strong>AI code policy:</strong> unwritten. Sam requested a draft from compliance 2026-06-30. Until signed: AI may see the integration repo code (access granted 2026-07-02), never referral content, never Epic data. <strong>Approval chain:</strong> pilot scope - Sam; anything clinical-facing - Dr. Mehta veto; anything touching prod integrations - Renata&#39;s team. <strong>Data that must never enter AI context:</strong> referral PDFs (PHI), Epic exports, patient schedules, anything carrying an MRN. Synthetic referrals only for demos (decision 2026-06-30).</p>
-<p class="fb-plain-p">(private - redacted from dashboard)</p></div></details>
-</div>
-</div>
-<div id="view-eng-kesterman-freight" class="fb-view" hidden>
-<div class="fb-eyebrow">.fde/kesterman-freight</div>
-<div class="fb-title-row">
-<h1 class="fb-h1">kesterman-freight</h1>
-<span class="fb-trust"><span class="dot dot-lg amber"></span><span class="t-amber">watch</span></span>
-</div>
-<div class="fb-meta-line">Build &amp; Guard &middot; day 0 &middot; touched today</div>
-<div class="fb-top-grid">
-<div><div class="fb-block">
-<div class="fb-sec">Now</div>
-<div class="fb-now-action">Book 15 min with Denise Monday 2026-07-06: scope accumulation conversation (3 adds in 13 days, receipts in decisions.md) + confirm Thursday demo. If no reply by Tuesday noon, ask Randy for a floor-level read.</div>
-<div class="fb-now-session">Week 4. Build slices 1-2 shipped (sheet shadow-read + parity report, 98.8% parity). Slice 3 (write-back) in progress, target 2026-07-08. Trust amber: Denise unresponsive to demo invites since 2026-07-01; third scope add arrived same day, p…</div>
-</div><div class="fb-block">
-<div class="fb-sec">Why</div>
-<p class="fb-why"><span class="t-faint">What they asked for:</span> Dispatch has no visibility. Build us an ops dashboard - live board of every load, every truck, every delay.&quot; (Denise Kowalczyk, VP Ops, kickoff 2026-06-08)</p>
-<p class="fb-why fb-why-reality"><span class="fb-accent-label">What's actually true:</span> the ops team&#39;s spreadsheet is the real system of record. <code>dispatch-board.xlsx</code> (shared drive, Randy&#39;s team) is where loads are actually assigned, re-routed, and annotated. The Postgres <code>loads</code> table lags it by 2-26 hour…</p>
-</div></div>
-<div class="fb-vitals">
-<div class="fb-vital-row"><span class="fb-vital-label">trust</span><span class="fb-vital-val t-amber">watch</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">trust confirmed</span><span class="fb-vital-val">6 days ago</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">phase</span><span class="fb-vital-val">Build &amp; Guard</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">started</span><span class="fb-vital-val">today</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">last updated</span><span class="fb-vital-val">today</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">last note</span><span class="fb-vital-val">Jul 2</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">open risks</span><span class="fb-vital-val t-red">5 (2 urgent)</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">people</span><span class="fb-vital-val">4</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">team status</span><span class="fb-vital-val"><span style="color:#a56a19">&#9632; 4</span></span></div>
-<div class="fb-vital-div"></div><div class="fb-vital-row"><span class="fb-vital-label">sheet vs DB</span><span class="fb-vital-val">94.1% <span class="fb-arrow">&rarr;</span> <span class="fb-stat-to">98.8%</span></span></div>
-</div>
-</div>
-<div class="fb-grid-wrap"><div class="fb-block">
-<div class="fb-sec">People</div>
-<div class="fb-list">
-<div class="fb-row fb-person">
-<span class="dot dot-sm amber" title="watch"></span>
-<span class="fb-person-name">Denise Kowalczyk</span>
-<span class="fb-person-role">VP Ops (sponsor)</span>
-<span class="fb-person-note">Bought the reality.md reframe 2026-06-15. Has skipped both demos since 2026-06-26.</span>
-</div>
-<div class="fb-row fb-person">
-<span class="dot dot-sm amber" title="watch"></span>
-<span class="fb-person-name">Randy Teague</span>
-<span class="fb-person-role">Dispatch team lead</span>
-<span class="fb-person-note">Owns the sheet. Won us the floor 2026-06-12 by showing how it actually works.</span>
-</div>
-<div class="fb-row fb-person">
-<span class="dot dot-sm amber" title="watch"></span>
-<span class="fb-person-name">Karen Mroz</span>
-<span class="fb-person-role">Staff engineer, platform</span>
-<span class="fb-person-note">Ran the abandoned 2023 ops-api rewrite. Reviews our PRs; her early warning on the dual read path saved a week.</span>
-</div>
-<div class="fb-row fb-person">
-<span class="dot dot-sm amber" title="watch"></span>
-<span class="fb-person-name">Finance controller (name unknown - ask)</span>
-<span class="fb-person-role">Consumer of nightly export</span>
-<span class="fb-person-note">Source of scope add #2. Export format is load-bearing.</span>
-</div>
-</div>
-</div><div class="fb-block">
-<div class="fb-sec-row"><div class="fb-sec">Risk</div><span class="fb-count">5 open</span></div>
-<div class="fb-list">
-<div class="fb-row fb-risk">
-<span class="fb-risk-sev t-red">high</span>
-<span class="fb-risk-text">Sponsor cooling: Denise unresponsive since 2026-07-01, demo 2026-07-09 at stake</span>
-</div>
-<div class="fb-row fb-risk">
-<span class="fb-risk-sev t-amber">med</span>
-<span class="fb-risk-text">Scope accumulation: 3 additions in 13 days, timeline unchanged</span>
-</div>
-<div class="fb-row fb-risk">
-<span class="fb-risk-sev t-amber">med</span>
-<span class="fb-risk-text">Sheet macro column (VLOOKUP chain only Randy fully understands) drives carrier assignment</span>
-</div>
-<div class="fb-row fb-risk">
-<span class="fb-risk-sev t-red">high</span>
-<span class="fb-risk-text">Dual read path from the abandoned 2023 ops-api still live - writes can race</span>
-</div>
-<div class="fb-row fb-risk">
-<span class="fb-risk-sev t-amber">med</span>
-<span class="fb-risk-text">2019 &quot;temporary&quot; Nashville validation skip (DispatchBoardService.java:214) is load-bearing</span>
-</div>
-</div>
-</div></div><div class="fb-block">
-<div class="fb-sec">Log</div>
-<div class="fb-list">
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jul 2</span>
-<span class="fb-log-kind t-faint">note</span>
-<span class="fb-log-text">Randy + Karen sync: Randy says Denise is &quot;heads-down on the Nashville depot audit&quot; (his read, unverified)</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jul 1</span>
-<span class="fb-log-kind t-accent">decision</span>
-<span class="fb-log-text">Scope change #3 - role-based views for the Nashville depot</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jul 1</span>
-<span class="fb-log-kind t-faint">note</span>
-<span class="fb-log-text">Denise stopped replying to demo invites; third scope add arrived the same day via email</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jun 26</span>
-<span class="fb-log-kind t-green">receipt</span>
-<span class="fb-log-text">Sheet parse failures - importer handles the macro column; parity 98.8% by 2026-07-02</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jun 26</span>
-<span class="fb-log-kind t-faint">note</span>
-<span class="fb-log-text">Denise skipped Thursday demo, no delegate sent, no reschedule</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jun 25</span>
-<span class="fb-log-kind t-accent">decision</span>
-<span class="fb-log-text">Scope change #2 - CSV export for finance</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jun 18</span>
-<span class="fb-log-kind t-accent">decision</span>
-<span class="fb-log-text">Scope change #1 - carrier ETA feed</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jun 15</span>
-<span class="fb-log-kind t-accent">decision</span>
-<span class="fb-log-text">Re-scope: sheet ingest before dashboard</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jun 15</span>
-<span class="fb-log-kind t-faint">note</span>
-<span class="fb-log-text">Denise agreed to re-scope against reality.md in one meeting, no pushback</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">Jun 12</span>
-<span class="fb-log-kind t-faint">note</span>
-<span class="fb-log-text">Randy opened the sheet on-screen unprompted - floor trusts us with the real workflow</span>
-</div>
-</div>
-</div><div class="fb-block">
-<details class="fb-more"><summary class="fb-sec fb-more-sum">Success &amp; scope</summary><div class="fb-more-body"><div class="fb-sec">Success definition</div>
-<p class="fb-plain-p"><strong>Done when (revised 2026-06-15, agreed with Denise):</strong></p>
-<ul class="fb-plain-list"><li>Dispatch board data in the system matches the ops sheet within 5 minutes, verified over 5 consecutive working days</li><li>Dashboard renders live board state; Randy&#39;s team runs one full shift on it without opening the sheet</li><li>Nightly finance export unchanged (their format, their schedule)</li></ul>
-<p class="fb-plain-p"><strong>Explicitly out of scope:</strong></p>
-<ul class="fb-plain-list"><li>Route optimization / auto-assignment</li><li>Replacing the TMS or the billing integration</li><li>Anything added after 2026-06-15 without a matching entry in decisions.md and a timeline conversation</li></ul>
-<p class="fb-plain-p"><strong>Stakeholder who signs off:</strong> Denise Kowalczyk. Floor acceptance: Randy Teague (his shift, his call).</p></div></details>
-<details class="fb-more"><summary class="fb-sec fb-more-sum">Terrain</summary><div class="fb-more-body"><div class="fb-sec">Terrain (codebase map)</div>
-<p class="fb-plain-p"><strong>Repo:</strong> <code>kesterman-dispatch</code> - Java 8 monolith (Maven) + node scripts. First commit 2014. Full day-1 recon: <code>../../scan-output.txt</code> (fde scan, 2026-06-10).</p>
-<p class="fb-plain-p"><strong>Stack:</strong> .java:180 .js:56 .json:41 .yml:33 files. Postgres 11. Deploys: Jenkins, roughly weekly.</p>
-<p class="fb-plain-p"><strong>Hotspots (handle with care):</strong></p>
-<ul class="fb-plain-list"><li><code>DispatchBoardService.java</code> - 47 commits/90d, no test neighbor. Everything routes through it.</li><li><code>RouteAssigner.java</code> - 31 commits/90d, no tests. Contains the hardcoded 2021 carrier-priority hack.</li><li><code>scripts/nightly_export.js</code> - finance depends on its exact output; no tests; FTP password hardcoded (flagged to K. Mroz 2026-06-11, ticket open).</li></ul>
-<p class="fb-plain-p"><strong>Test gaps:</strong> 4 test files across 236 code files at scan time (2026-06-10). Characterisation tests added since: <code>nightly_export.js</code> (2026-06-20), board write path (2026-06-24) - written before touching either.</p>
-<p class="fb-plain-p"><strong>Landmines:</strong></p>
-<ul class="fb-plain-list"><li>Dual read path left by the abandoned 2023 ops-api migration - both still live, reverts in git history.</li><li><code>DispatchBoardService.java:214</code> - 2019 &quot;temporary&quot; Nashville validation skip. Load-bearing; out of scope.</li><li>Sheet macro column: VLOOKUP chain only Randy fully understands. Mapped 2026-06-24.</li></ul></div></details>
-<details class="fb-more"><summary class="fb-sec fb-more-sum">Trust profile</summary><div class="fb-more-body"><div class="fb-sec">Trust profile</div>
-<p class="fb-plain-p"><strong>AI code policy:</strong> AI-assisted code permitted with human review (Karen reviews all PRs). Confirmed with Denise 2026-06-09. No customer PII in the dispatch domain; carrier rate data is commercially sensitive - keep out of prompts. <strong>Approval chain:</strong> code → Karen review → staging. Production deploys need Denise&#39;s ok for the duration of the engagement. <strong>Data that must never enter AI context:</strong> carrier rate cards, FastLane contract terms, <code>config/carriers.yml</code> (rates live next to the API key).</p>
-<p class="fb-plain-p">(private - redacted from dashboard)</p></div></details>
-</div>
-</div>
-<div id="view-eng-garvey-payments" class="fb-view" hidden>
-<div class="fb-eyebrow">.fde/garvey-payments</div>
-<div class="fb-title-row">
-<h1 class="fb-h1">garvey-payments</h1>
-<span class="fb-trust"><span class="dot dot-lg green"></span><span class="t-green">steady</span></span>
-</div>
-<div class="fb-meta-line">Build &amp; Guard &middot; day 0 &middot; touched today</div>
-<div class="fb-top-grid">
-<div><div class="fb-block">
-<div class="fb-sec">Now</div>
-<div class="fb-now-action">Tell <code>@fde</code> &quot;ready to deploy&quot; after security sign-off - it walks you through the ship pre-flight checklist. Update handoff.md if engagement ends next week.</div>
-<div class="fb-now-session">Day 10. Ingest retry on staging. Finance trial agreed. Prod canary pending their security ticket.</div>
-</div><div class="fb-block">
-<div class="fb-sec">Why</div>
-<p class="fb-why"><span class="t-faint">What they asked for:</span> Payments API returns 500s for EU merchants.</p>
-<p class="fb-why fb-why-reality"><span class="fb-accent-label">What's actually true:</span> EU payment failures in the API are a symptom. Root workflow: finance reprocesses failed EU rows manually in Excel each night because ingest has no idempotent retry.</p>
-</div></div>
-<div class="fb-vitals">
-<div class="fb-vital-row"><span class="fb-vital-label">trust</span><span class="fb-vital-val t-green">steady</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">phase</span><span class="fb-vital-val">Build &amp; Guard</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">started</span><span class="fb-vital-val">today</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">last updated</span><span class="fb-vital-val">today</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">last note</span><span class="fb-vital-val">May 28</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">people</span><span class="fb-vital-val">4</span></div>
-<div class="fb-vital-row"><span class="fb-vital-label">team status</span><span class="fb-vital-val"><span style="color:#12885c">&#9679; 1</span> &nbsp; <span style="color:#a56a19">&#9632; 3</span></span></div>
-
-</div>
-</div>
-<div class="fb-grid-wrap"><div class="fb-block">
-<div class="fb-sec">People</div>
-<div class="fb-list">
-<div class="fb-row fb-person">
-<span class="dot dot-sm green" title="steady"></span>
-<span class="fb-person-name">CTO (invite)</span>
-<span class="fb-person-role"></span>
-<span class="fb-person-note">Cares about exec readout Friday</span>
-</div>
-<div class="fb-row fb-person">
-<span class="dot dot-sm amber" title="watch"></span>
-<span class="fb-person-name">Finance controller</span>
-<span class="fb-person-role"></span>
-<span class="fb-person-note">Owns spreadsheet process - <strong>decision risk</strong></span>
-</div>
-<div class="fb-row fb-person">
-<span class="dot dot-sm amber" title="watch"></span>
-<span class="fb-person-name">Platform lead</span>
-<span class="fb-person-role"></span>
-<span class="fb-person-note">Offered repo access Day 2</span>
-</div>
-<div class="fb-row fb-person">
-<span class="dot dot-sm amber" title="watch"></span>
-<span class="fb-person-name">Prior vendor (left)</span>
-<span class="fb-person-role"></span>
-<span class="fb-person-note">Ask if partial migration exists</span>
-</div>
-</div>
-</div></div><div class="fb-block">
-<div class="fb-sec">Log</div>
-<div class="fb-list">
-<div class="fb-row fb-log">
-<span class="fb-log-date">May 28</span>
-<span class="fb-log-kind t-accent">decision</span>
-<span class="fb-log-text">Slice scope (Day 10)</span>
-</div>
-<div class="fb-row fb-log">
-<span class="fb-log-date">May 26</span>
-<span class="fb-log-kind t-accent">decision</span>
-<span class="fb-log-text">Problem framing (Day 5)</span>
-</div>
-</div>
-</div><div class="fb-block">
-<details class="fb-more"><summary class="fb-sec fb-more-sum">Success &amp; scope</summary><div class="fb-more-body"><div class="fb-sec">Definition of done</div>
-<p class="fb-plain-p"><strong>In scope (revised Day 5):</strong></p>
-<ul class="fb-plain-list"><li>Nightly EU ingest with idempotent retry</li><li>Finance can retire manual Excel reprocess for EU path</li><li>Audit log of failed rows</li></ul>
-<p class="fb-plain-p"><strong>Out of scope (this phase):</strong></p>
-<ul class="fb-plain-list"><li>Full API modernization</li><li>Non-EU payment rails</li></ul>
-<p class="fb-plain-p"><strong>Visible win by:</strong> Friday demo to CTO - working ingest on staging, not slide deck.</p></div></details>
-<details class="fb-more"><summary class="fb-sec fb-more-sum">Terrain</summary><div class="fb-more-body"><div class="fb-sec">Terrain (codebase)</div>
-<p class="fb-plain-p"><strong>Repo:</strong> <code>payments-eu</code> module (legacy Java), ~40k LOC touched area.</p>
-<p class="fb-plain-p"><strong>Hotspots:</strong> <code>IngestJob.java</code>, <code>EuRetryQueue</code> - no tests; last change 2019 (revert in history).</p>
-<p class="fb-plain-p"><strong>Test gap:</strong> characterisation tests required before behavior change - none exist.</p>
-<p class="fb-plain-p"><strong>Data flow:</strong> API → queue → batch job → finance export (broken path for EU).</p></div></details>
-</div>
-</div>
+${todayView}
+${clientViews}
 <div class="fb-hints">
 <span><span class="t-soft">&uarr;&darr; / j k</span> client</span>
 <span><span class="t-soft">/</span> search</span>
@@ -598,167 +646,21 @@ strong{font-weight:600}
 <div id="fb-palette-backdrop" class="fb-palette-backdrop">
 <div class="fb-palette">
 <input id="fb-palette-input" class="fb-palette-input" placeholder="jump to client or action…" spellcheck="false">
-<div class="fb-palette-list fb-scroll"><div class="fb-palette-item" data-target="today" data-label="today" data-kind="view">
-<span class="fb-palette-kind">view</span>
-<span class="fb-palette-label">today</span>
-<span class="fb-palette-hint">portfolio queue</span>
-</div>
-<div class="fb-palette-item" data-target="eng-rennick-health" data-label="rennick-health" data-kind="open">
-<span class="fb-palette-kind">open</span>
-<span class="fb-palette-label">rennick-health</span>
-<span class="fb-palette-hint">at risk</span>
-</div>
-<div class="fb-palette-item" data-target="eng-kesterman-freight" data-label="kesterman-freight" data-kind="open">
-<span class="fb-palette-kind">open</span>
-<span class="fb-palette-label">kesterman-freight</span>
-<span class="fb-palette-hint">watch</span>
-</div>
-<div class="fb-palette-item" data-target="eng-garvey-payments" data-label="garvey-payments" data-kind="open">
-<span class="fb-palette-kind">open</span>
-<span class="fb-palette-label">garvey-payments</span>
-<span class="fb-palette-hint">steady</span>
-</div>
-<div class="fb-palette-item" data-target="__theme__" data-label="toggle theme" data-kind="action">
-<span class="fb-palette-kind">action</span>
-<span class="fb-palette-label">toggle theme</span>
-<span class="fb-palette-hint">light / dark</span>
-</div></div>
+<div class="fb-palette-list fb-scroll">${paletteItems}</div>
 </div>
 </div>
 </div>
-<script>(function(){
-'use strict';
-var SEL_KEY='fde-fieldbook-sel';
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function all(sel){return Array.prototype.slice.call(document.querySelectorAll(sel));}
-
-var views=all('.fb-view');
-var navItems=all('.fb-nav');
-var searchInput=document.getElementById('fb-search');
-
-function selectView(id){
-  if(!document.getElementById('view-'+id))return;
-  views.forEach(function(v){v.hidden=(v.id!=='view-'+id);});
-  navItems.forEach(function(n){n.classList.toggle('active',n.getAttribute('data-target')===id);});
-  try{localStorage.setItem(SEL_KEY,id);}catch(e){}
-}
-navItems.forEach(function(n){n.addEventListener('click',function(){selectView(n.getAttribute('data-target'));});});
-all('[data-nav]').forEach(function(n){n.addEventListener('click',function(){selectView(n.getAttribute('data-nav'));});});
-
-var startSel='today';
-try{var s=localStorage.getItem(SEL_KEY);if(s&&document.getElementById('view-'+s))startSel=s;}catch(e){}
-selectView(startSel);
-
-// search: filters the rail, shows a match snippet in place of the default reason line
-// NOTE: snippetFor() below returns a string built ONLY from esc()-escaped
-// fragments plus hardcoded '<mark>' literals - never raw untrusted markup -
-// so assigning it via innerHTML cannot inject a tag from engagement content.
-function snippetFor(raw,term){
-  var i=raw.indexOf(term);
-  if(i<0)return '';
-  var start=Math.max(0,i-24),end=Math.min(raw.length,i+term.length+40);
-  var pre=esc(raw.slice(start,i)),hit=esc(raw.slice(i,i+term.length)),post=esc(raw.slice(i+term.length,end));
-  return (start>0?'\u2026':'')+pre+'<mark>'+hit+'</mark>'+post+(end<raw.length?'\u2026':'');
-}
-if(searchInput){searchInput.addEventListener('input',function(){
-  var term=searchInput.value.trim().toLowerCase();
-  navItems.forEach(function(n){
-    if(n.getAttribute('data-target')==='today')return;
-    var raw=(n.getAttribute('data-search')||'').toLowerCase();
-    var hit=!term||raw.indexOf(term)>-1;
-    n.classList.toggle('hide',!hit);
-    var reason=n.querySelector('.fb-nav-reason');
-    if(!reason)return;
-    if(term&&hit){var snip=snippetFor(raw,term);reason.innerHTML=snip;reason.classList.toggle('hide',!snip);}
-    else{reason.innerHTML=n.getAttribute('data-default-reason')||'';reason.classList.toggle('hide',!reason.innerHTML);}
-  });
-});}
-
-// keyboard: j/k/arrows move rail selection, / focuses search, Esc blurs/closes
-function visibleIds(){return navItems.filter(function(n){return !n.classList.contains('hide');}).map(function(n){return n.getAttribute('data-target');});}
-function currentId(){var v=document.querySelector('.fb-view:not([hidden])');return v?v.id.replace('view-',''):'today';}
-document.addEventListener('keydown',function(ev){
-  if((ev.metaKey||ev.ctrlKey)&&(ev.key==='k'||ev.key==='K')){ev.preventDefault();openPalette();return;}
-  if(paletteIsOpen()){if(ev.key==='Escape'){ev.preventDefault();closePalette();}return;}
-  var t=ev.target,typing=t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable);
-  if(typing){if(ev.key==='Escape')t.blur();return;}
-  if(ev.key==='/'){ev.preventDefault();if(searchInput)searchInput.focus();return;}
-  var down=ev.key==='ArrowDown'||ev.key==='j',up=ev.key==='ArrowUp'||ev.key==='k';
-  if(down||up){
-    ev.preventDefault();
-    var ids=visibleIds();
-    var idx=ids.indexOf(currentId());
-    var next=ids[Math.min(ids.length-1,Math.max(0,idx+(down?1:-1)))];
-    if(next)selectView(next);
-  }
-});
-
-// command palette: search-filterable nav (today + each client + theme toggle)
-var paletteBackdrop=document.getElementById('fb-palette-backdrop');
-var paletteInput=document.getElementById('fb-palette-input');
-var paletteInner=document.querySelector('.fb-palette');
-var paletteItems=all('.fb-palette-item');
-var pActive=0;
-function paletteIsOpen(){return !!(paletteBackdrop&&paletteBackdrop.classList.contains('open'));}
-function visiblePaletteItems(){return paletteItems.filter(function(it){return !it.classList.contains('hide');});}
-function highlightPalette(){
-  var visible=visiblePaletteItems();
-  paletteItems.forEach(function(it){it.classList.remove('active');});
-  if(visible[pActive]){visible[pActive].classList.add('active');visible[pActive].scrollIntoView({block:'nearest'});}
-}
-function filterPalette(q){
-  q=q.toLowerCase();
-  paletteItems.forEach(function(it){
-    var label=(it.getAttribute('data-label')||'').toLowerCase();
-    var kind=(it.getAttribute('data-kind')||'').toLowerCase();
-    it.classList.toggle('hide',!(!q||label.indexOf(q)>-1||kind.indexOf(q)>-1));
-  });
-  pActive=0;highlightPalette();
-}
-function openPalette(){
-  if(!paletteBackdrop)return;
-  paletteBackdrop.classList.add('open');
-  if(paletteInput){paletteInput.value='';paletteInput.focus();}
-  filterPalette('');
-}
-function closePalette(){if(paletteBackdrop)paletteBackdrop.classList.remove('open');}
-function runActive(){
-  var it=visiblePaletteItems()[pActive];
-  if(!it)return;
-  var target=it.getAttribute('data-target');
-  if(target==='__theme__')toggleTheme();
-  else if(target)selectView(target);
-  closePalette();
-}
-if(paletteBackdrop)paletteBackdrop.addEventListener('click',function(ev){if(ev.target===paletteBackdrop)closePalette();});
-if(paletteInner)paletteInner.addEventListener('click',function(ev){ev.stopPropagation();});
-var paletteBtn=document.getElementById('fb-palette-btn');
-if(paletteBtn)paletteBtn.addEventListener('click',openPalette);
-paletteItems.forEach(function(it){
-  it.addEventListener('click',function(){pActive=visiblePaletteItems().indexOf(it);runActive();});
-  it.addEventListener('mouseenter',function(){var v=visiblePaletteItems();var i=v.indexOf(it);if(i>-1){pActive=i;highlightPalette();}});
-});
-if(paletteInput){
-  paletteInput.addEventListener('input',function(){filterPalette(paletteInput.value);});
-  paletteInput.addEventListener('keydown',function(ev){
-    if(ev.key==='Escape'){closePalette();return;}
-    if(ev.key==='ArrowDown'){ev.preventDefault();pActive=Math.min(visiblePaletteItems().length-1,pActive+1);highlightPalette();return;}
-    if(ev.key==='ArrowUp'){ev.preventDefault();pActive=Math.max(0,pActive-1);highlightPalette();return;}
-    if(ev.key==='Enter'){ev.preventDefault();runActive();}
-  });
+<script>${dashScript()}</script>
+</body></html>`
 }
 
-// theme toggle - local only, no network; pre-paint script in <head> avoids a flash
-var themeBtn=document.getElementById('fde-theme-btn');
-function currentTheme(){return document.documentElement.getAttribute('data-fde-theme')==='dark'?'dark':'light';}
-function setThemeLabel(){if(themeBtn)themeBtn.textContent=(currentTheme()==='dark'?'light':'dark');}
-function toggleTheme(){
-  var next=currentTheme()==='dark'?'light':'dark';
-  try{localStorage.setItem('fde-fieldbook-theme',next);}catch(e){}
-  document.documentElement.setAttribute('data-fde-theme',next);
-  setThemeLabel();
+module.exports = {
+  buildFieldbookHtml,
+  escapeHtml,
+  inlineMd,
+  mdBlockHtml,
+  hasRealContent,
+  formatToday,
+  dashStyles,
+  dashScript,
 }
-setThemeLabel();
-if(themeBtn)themeBtn.addEventListener('click',toggleTheme);
-})();</script>
-</body></html>

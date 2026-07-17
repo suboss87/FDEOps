@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.9.7 — 2026-07-17
+
+Defensible memory: stop laundering manual edits into the next write's commit.
+
+### Fixed
+- **Tamper laundering** - `commitMemory` stages only the files for that write (`opts.files`). Hand-edits to past records stay dirty, are warned on write, and surface in `triage` / `status` / `resume`. Init remains a full-tree commit.
+- **Memory warn on green** - unreadable / corrupt stakeholders still print when trust resolves green from the signal ledger.
+- **Receipts header** - `ON RECORD (dated - defensible):` (was `AGREED`, which mislabeled DECLINED entries).
+
+### Changed
+- **`bin/fde.js` split** - `bin/lib/memory.js` (scoped git commits), `bin/lib/trust.js` (signals / triage), `bin/lib/render.js` (dashboard). CLI entry stays command routing.
+- **`examples/fieldbook.html`** - untracked (generated; regenerate with `fde dashboard`).
+
 ## 3.9.6 — 2026-07-17
 
 Adoption contract in code: human speaks natural language; agent runs the CLI.
