@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-The **second brain for Forward Deployed Engineers** - engineers embedded at a client, from first meeting to final handoff. Works the same for consultants, agency developers, solutions architects, and fractional CTOs.
+CLI + one `@fde` skill + hooks over a local `.fde/` fieldbook - one folder per client. The **second brain for Forward Deployed Engineers** - engineers embedded at a client, from first meeting to final handoff. Works the same for consultants, agency developers, solutions architects, and fractional CTOs.
 
 ```
   land      discover      plan      build      ship      close
@@ -17,27 +17,23 @@ The **second brain for Forward Deployed Engineers** - engineers embedded at a cl
              written as a side effect of the work
 ```
 
-Describe your situation - `@fde` routes to the right method and writes the matching `.fde/` artifact. Phase methods (land → close) live in the skill; the CLI owns scan, memory, and receipts. You still confirm judgment — the fieldbook does not maintain itself without you.
+Describe your situation - `@fde` routes to the right method and writes the matching `.fde/` artifact. Phase methods (land → close) live in the skill; the CLI owns scan, memory, and receipts. You still confirm judgment - the fieldbook does not maintain itself without you.
 
 ---
 
-## The problem
+## The week
 
-Your AI coding agent's memory is scoped to a **repo**. Client work isn't: one engagement spans several repos, a dozen stakeholders, and decisions made in meetings your agent never saw. That context lives in rooms, chats, and hallway conversations - nothing writes it down where your tools can use it.
+What you actually run, most days - the habit that compounds the fieldbook:
 
-fdeops adds the missing layer: memory scoped to the **client** - plain markdown at `~/fde-engagements/<client>/.fde/`, written as a side effect of doing the work. Local only, zero dependencies, no network, no telemetry.
+| When | What you do | Why it matters |
+|------|-------------|----------------|
+| **Monday** | Open your AI coding agent → TRIAGE loads (trust, phase, next) | You start where last week left off - no re-paste |
+| **After a meeting** | `fde debrief --smart notes.txt` → review → `--apply` | Messy notes become dated decisions, risks, contacts |
+| **Before a walk-in** | `fde prep "Denise sync"` | Walk in with memory, not a blank chat |
+| **Scope fight** | `fde receipts descope` (+ memory git hash) | Answer "when did we agree?" from the record |
+| **Friday** | `fde status` → sponsor update from the real record | Status from evidence, not memory theater |
 
-A notes app stores what you type. fdeops loads the right client into your AI agent's context automatically and turns meetings into dated receipts you can defend - the difference is what happens without you opening it.
-
-## Without fdeops vs with fdeops
-
-| Moment | Without fdeops | With fdeops |
-|---|---|---|
-| **Monday morning** | Re-paste last week's context, re-explain the stakeholders | A hook loads the engagement at session start - the agent opens knowing the deadline and the open thread |
-| **After a meeting** | Notes rot in a scratch file | `fde debrief` routes decisions, risks, deliveries, and contacts into the record, dated |
-| **Scope dispute** | "Small" additions absorbed silently; no record when the sponsor asks | `fde receipts <term>` answers "when did we agree to that?" with dates |
-| **Quiet stakeholder** | Noticed three weeks too late | `fde log contact --signal amber` the day it happens; `fde status` surfaces it |
-| **Multiple clients** | Details blur across engagements | One folder per client; bind the workspace so writes cannot land on a name-alike checkout |
+Same engagement folder every time (`~/fde-engagements/<client>/.fde/`). Git versions it. Your AI coding agent reads it on every session.
 
 ---
 
@@ -66,7 +62,7 @@ fdeops' `--init` creates the engagement memory at `~/fde-engagements/garvey/.fde
 @fde I just got the brief. New client, payments platform, they want it live before their Q3 audit.
 ```
 
-`@fde` is the one skill fdeops installs. Describe what's happening; it routes to the right field method and writes matching `.fde/` artifacts — you still confirm judgment. Full workflow: [docs/USAGE.md](docs/USAGE.md).
+`@fde` is the one skill fdeops installs. Describe what's happening; it routes to the right field method and writes matching `.fde/` artifacts - you still confirm judgment. Full workflow: [docs/USAGE.md](docs/USAGE.md).
 
 Not ready to install? `npx fdeops scan` runs on any repo you can read - day-1 recon (pure `git` + file reads, no config, no account) that maps hotspots, test gaps, and reverted attempts, and ends with the ASK ON DAY 1 questions the brief never mentions. The scan is heuristic by design - treat its output as leads to verify on day one, not findings.
 
@@ -81,17 +77,6 @@ Not ready to install? `npx fdeops scan` runs on any repo you can read - day-1 re
 - **Advanced:** the `FDEOPS_ENGAGEMENT` env var overrides the workspace registry - only for unusual setups. Full matrix: [docs/install.md](docs/install.md)
 
 </details>
-
----
-
-## The week
-
-This is the actual habit — the high-frequency loop, not the full skill matrix:
-
-- **Monday morning** - open your agent, context loads, you're not re-explaining anything
-- **After a meeting** - `fde debrief` turns raw notes into dated decisions, risks, and signals
-- **Mid-scope-fight** - `fde receipts <term>` answers "when did we agree to that?"
-- **Friday** - `fde status` gives you the sponsor update from the week's actual record
 
 ---
 
