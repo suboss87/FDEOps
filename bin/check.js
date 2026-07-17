@@ -214,8 +214,21 @@ if (/\$\(cat\s+"\$BOOTSTRAP"\)|cat\s+"\$BOOTSTRAP"|cat\s+[^\n]*SKILL\.md/.test(h
 if (hookCode.includes('BOOTSTRAP=')) {
   fail('session-start must not resolve BOOTSTRAP skill path for inject')
 }
-if (!hook.includes('invoke @fde')) {
-  fail('session-start must include a lean @fde pointer (not full skill)')
+if (!/plain language with @fde|invoke @fde/.test(hook)) {
+  fail('session-start must include a lean @fde / plain-language pointer (not full skill)')
+}
+const skillBody = read('skills/fde/SKILL.md')
+if (!skillBody.includes('Human surface vs agent plumbing')) {
+  fail('SKILL.md must define human NL surface vs agent CLI plumbing')
+}
+if (!/never tell the FDE to type|Never tell the FDE to type|never ask the human to type fde/i.test(skillBody)) {
+  fail('SKILL.md must forbid asking the human to type fde commands')
+}
+if (!skillBody.includes('fde prep')) {
+  fail('SKILL.md must route walk-in prep to fde prep')
+}
+if (!skillBody.includes('debrief --smart')) {
+  fail('SKILL.md must prefer fde debrief --smart for messy notes')
 }
 if (!/\btriage\b/.test(hook)) {
   fail('session-start must still inject TRIAGE')
