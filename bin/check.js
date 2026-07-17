@@ -266,15 +266,25 @@ ok('hooks registry-aware')
 if (!fs.existsSync(path.join(root, 'bin', 'fde.js'))) {
   fail('bin/fde.js missing (the deterministic core)')
 } else {
-  const cli = read('bin/fde.js')
-  for (const sub of ['cmdScan', 'cmdResume', 'cmdLog', 'cmdDebrief', 'cmdReceipts', 'cmdCapture', 'cmdStatus']) {
-    if (!cli.includes(sub)) fail(`fde.js missing ${sub}`)
+  const cliFiles = [
+    'bin/fde.js',
+    ...fs.readdirSync(path.join(root, 'bin', 'lib'))
+      .filter(name => name.endsWith('.js'))
+      .map(name => path.join('bin', 'lib', name)),
+  ]
+  const cliSource = cliFiles.map(read).join('\n')
+  for (const sub of ['cmdScan', 'cmdResume', 'cmdLog', 'cmdDebrief', 'cmdReceipts', 'cmdCapture', 'cmdStatus', 'cmdDashboard']) {
+    if (!cliSource.includes(sub)) fail(`CLI sources missing ${sub}`)
   }
   if (!JSON.parse(read('package.json')).bin.fde) fail('package.json must expose the fde bin')
   if (!read('bin/install.js').includes('fde.js')) fail('install.js must deploy fde.js')
+  if (!read('bin/install.js').includes('LIB_SRC')) fail('install.js must deploy bin/lib/')
   if (!read('skills/fde/SKILL.md').includes('fde resume')) fail('SKILL.md must use the CLI for memory ops')
-  if (!cli.includes('[signal:')) fail('fde.js must support structured [signal:x] trust tokens')
-  if (!cli.includes('ASK ON DAY 1')) fail('fde.js scan must emit ASK ON DAY 1 questions')
+  if (!cliSource.includes('[signal:')) fail('CLI sources must support structured [signal:x] trust tokens')
+  if (!cliSource.includes('ASK ON DAY 1')) fail('CLI sources must emit ASK ON DAY 1 questions')
+  for (const renderSymbol of ['buildFieldbookHtml', 'dashStyles', 'dashScript', 'FONT_FACE_CSS']) {
+    if (!cliSource.includes(renderSymbol)) fail(`CLI sources missing dashboard renderer symbol ${renderSymbol}`)
+  }
   if (!read('bin/install.js').includes('FDE_SUBCOMMANDS')) fail('install.js must pass fde subcommands through (npx fdeops scan)')
   ok('fde CLI present and wired')
 }

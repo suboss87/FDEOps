@@ -12,8 +12,9 @@
 | [monday-morning.md](./monday-morning.md) | Illustrative transcript of a session open: memory auto-loads, the agent leads with state + the one thing worth attention. Every fact traces to a kesterman `.fde/` file. |
 | [scan-fastify-pinned.txt](./scan-fastify-pinned.txt) | **Reproducible, real:** unedited `fde scan` of [fastify/fastify](https://github.com/fastify/fastify) at a pinned commit - clone it, check out the SHA in the file header, run `npx fdeops scan`, and diff it yourself. |
 | [scan-output.txt](./scan-output.txt) | Full `fde scan` output against the fictional `kesterman-dispatch` legacy repo - hotspots with no test neighbors, "temporary" archaeology, a redacted secret, the abandoned rewrite visible in git history. |
-| [fieldbook.html](./fieldbook.html) | The portfolio dashboard rendered by `fde dashboard` from these two engagements. Tool-generated, not handwritten - download and open locally. |
 | [garvey-payments/](./garvey-payments/) | Annotated day-by-day walkthrough (day 1 → day 10) with the prompts that produce each file. |
+
+Generated locally (gitignored): `fde dashboard` against these engagements writes `fieldbook.html` - do not commit it.
 
 ## Signal tokens
 
