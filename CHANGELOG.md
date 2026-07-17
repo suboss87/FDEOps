@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.9.5 — 2026-07-17
+
+Token discipline: SessionStart matches progressive-disclosure L1.
+
+### Changed
+- **`hooks/session-start`** no longer `cat`s the full `SKILL.md` (~24KB) into every session. Injects a one-line `@fde` pointer + TRIAGE + bounded `context.md` only. Skill body loads when `@fde` triggers.
+- check.js asserts the lean inject; CLI test covers the hook output.
+
 ## 3.9.4 — 2026-07-17
 
 Revert packaging-only 3.9.3 (week-loop README / Next: line / skills-add elevate). Restore 3.9.2 docs and skill wording.

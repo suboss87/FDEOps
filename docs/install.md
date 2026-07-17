@@ -108,7 +108,7 @@ Existing `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` files are never clobbered - an 
 
 | Hook | When | What it does |
 |------|------|--------------|
-| `fdeops-session-start` | session start | resolves the engagement via the workspace registry and loads a bounded view of `context.md` (current state + recent activity) |
+| `fdeops-session-start` | session start | resolves the engagement via the workspace registry; injects TRIAGE + a bounded view of `context.md` + a one-line `@fde` pointer (not the full skill body) |
 | `fdeops-session-stop` | session end | appends a deterministic "where we left off" (branch, changes, updated artifacts) to `context.md` |
 | `fdeops-pre-compact` | before compaction | preserves engagement state across long sessions |
 

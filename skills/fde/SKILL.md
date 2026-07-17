@@ -70,7 +70,7 @@ When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FD
 
 CLI missing → use the manual fallback commands inside each reference.
 
-**Token model - where the cost goes.** Deterministic work is the CLI's job and costs **zero model tokens**: memory writes, recon, receipts, status, dashboard, and the bounded `fde resume`. Spend tokens only on judgment - reading the situation, routing, running the phase method, writing the artifact. Three rules keep a full day of FDE work cheap: load the router first and pull **one** reference only when you route to it; never dump a whole `.fde/` file into context - read the bounded resume, or `fde receipts <term>` for a targeted slice; don't re-read files you already have. The expensive model should fire for real decisions, not for plumbing the CLI already does.
+**Token model - where the cost goes.** Deterministic work is the CLI's job and costs **zero model tokens**: memory writes, recon, receipts, status, dashboard, and the bounded `fde resume`. Session-start hooks inject **TRIAGE + bounded `context.md` + a one-line pointer** - never this full skill body (that loads only when `@fde` triggers). Spend tokens only on judgment - reading the situation, routing, running the phase method, writing the artifact. Three rules keep a full day of FDE work cheap: load the router first and pull **one** reference only when you route to it; never dump a whole `.fde/` file into context - read the bounded resume, or `fde receipts <term>` for a targeted slice; don't re-read files you already have. The expensive model should fire for real decisions, not for plumbing the CLI already does.
 
 ## Proactive intelligence (run on every session start)
 

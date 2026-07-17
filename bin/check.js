@@ -205,6 +205,22 @@ const hook = read('hooks/session-start')
 if (!hook.includes('FDEOPS_ENGAGEMENT')) {
   fail('session-start hook must read FDEOPS_ENGAGEMENT env var')
 } else ok('hook FDEOPS_ENGAGEMENT')
+// Token discipline: SessionStart must not dump the full skill (L1 progressive disclosure).
+// Strip comments before scanning for a real `cat …SKILL.md` / BOOTSTRAP inject.
+const hookCode = hook.replace(/^[ \t]*#.*$/gm, '')
+if (/\$\(cat\s+"\$BOOTSTRAP"\)|cat\s+"\$BOOTSTRAP"|cat\s+[^\n]*SKILL\.md/.test(hookCode)) {
+  fail('session-start must not cat SKILL.md - inject TRIAGE + bounded context + pointer only')
+}
+if (hookCode.includes('BOOTSTRAP=')) {
+  fail('session-start must not resolve BOOTSTRAP skill path for inject')
+}
+if (!hook.includes('invoke @fde')) {
+  fail('session-start must include a lean @fde pointer (not full skill)')
+}
+if (!/\btriage\b/.test(hook)) {
+  fail('session-start must still inject TRIAGE')
+}
+ok('session-start lean inject (no SKILL dump)')
 
 // v3: write-side memory backstop
 if (!fs.existsSync(path.join(root, 'hooks', 'session-stop'))) {
