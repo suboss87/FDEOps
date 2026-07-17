@@ -15,6 +15,8 @@ One skill (`@fde`) routes across six domains. You never pick a method by name - 
 
 Each skill is a **method, not advice**: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.
 
+**Field judgment (blended into methods, not separate skills):** land/discover use **brief interrogation** when the brief is thin; `@fde` enforces **anti-invention gates**; ship/red-team run a **pre-blast challenge** before irreversible moves.
+
 ## 5 overlays (activate automatically on signal)
 
 Overlays layer domain judgment onto whatever skill is running - the agent activates them when your engagement involves the signal, without being told:

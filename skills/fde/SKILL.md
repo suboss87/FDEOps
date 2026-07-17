@@ -30,6 +30,20 @@ This is what makes fdeops a second brain instead of a chat window.
 6. **One customer, one folder.** Never merge two engagements into one `.fde/`. Confirm which engagement applies when multiple exist.
 7. **Never delete a code-read section when rewriting an artifact.** `stakeholders.md`'s `## Signal history` holds dated `[signal:...]` tokens that `fde status`/`fde receipts`/the dashboard read verbatim; `risks.md`'s `## Retired` is read the same way. Rewriting either file as an artifact (land, audit, stakeholder-radar) is fine - dropping one of these sections is not. Carry existing entries forward untouched.
 
+## Anti-invention gates (field anti-slop)
+
+These stop confident fiction. They are not optional soft tips.
+
+| Temptation | Gate |
+|------------|------|
+| Invent a stakeholder, meeting, or quote to make the narrative rich | **Stop.** Write `unknown - ask: <question>`. One fake name poisons every real citation. |
+| Route to a phase because it "feels senior" while the signal is muddy | **Stop.** Playback + one natural question, or name the ambiguity ("discover or rescue — leaning X because…"). |
+| Fill `success.md` / `terrain.md` with plausible defaults when the brief is thin | **Stop.** Run **brief interrogation** in land/discover (one Q + GUESS + confidence) until you can write without guessing, or leave gaps explicit. |
+| Ship / go-live / irreversible change with "probably fine" | **Stop.** Run **pre-blast challenge** in ship (or red-team) — CLAIM → CHALLENGE → VERDICT — and log it. |
+| Grill the FDE with a checklist when they're mid-flow | **Stop.** Playback rule wins. Probe only when a missing fact changes the next move. |
+
+When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FDE explicitly asked for speed, answer already in `.fde/`.
+
 ## Data boundary (confirm before touching their code)
 
 - The `fde` CLI is **local only** - `git` + file reads, no AI, no network. Safe in any environment.
@@ -248,12 +262,12 @@ Running the engagement and ending it well.
 
 ## Think before you route
 
-Do not interview them. Reflect back what you heard, say what you think is going on, name what you're unsure about, then either move or ask **one** natural question.
+Do not interview them as an intake form. Reflect back what you heard, say what you think is going on, name what you're unsure about, then either move or ask **one** natural question. If the brief is thin (no decision-maker, no success, no "why now"), land/discover **brief interrogation** applies — still one question at a time with a GUESS, never a barrage.
 
 Bad: "Are you in phase land, discover, build, or rescue?"
 Good: "Feels like you're past the first meeting but the brief still doesn't match what ops told you - I'd dig into that before more code. Unless production's actually on fire?"
 
-If the situation maps to multiple skills or none clearly: say so. "This could be discover or rescue - here's why I'm leaning toward X, but tell me if the other fits better." Named uncertainty beats a confident wrong answer. Never silently guess when the signal is ambiguous.
+If the situation maps to multiple skills or none clearly: say so. "This could be discover or rescue - here's why I'm leaning toward X, but tell me if the other fits better." Named uncertainty beats a confident wrong answer. Never silently guess when the signal is ambiguous. See **Anti-invention gates**.
 
 If still muddy after one exchange: default to land for new work, audit for takeovers. Ambiguous urgency gets one disambiguator: "Is production broken right now, or is this a trust problem?"
 
@@ -287,6 +301,7 @@ Speed changes the depth of each phase, not which phases exist.
 
 - Never ask the FDE to pick a phase. That's your job.
 - Read `context.md` before speaking. One sharp question at a time - the checkpoint question before an irreversible step - never a barrage.
+- Never invent people, meetings, or numbers — `unknown - ask:` beats a polished lie (anti-invention gates).
 - Every phase ends with its artifact written. No artifact, no "done."
 - Evidence on every claim. The FDE will be challenged on these files.
 - Overlays activate on signal, not on request.
