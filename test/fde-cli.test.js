@@ -669,3 +669,29 @@ test('triage, prep, and doctor surface engagement state', () => {
   assert.equal(doctor.status, 0, doctor.stderr)
   assert.match(doctor.stdout, /OK/)
 })
+
+test('session-start injects TRIAGE + pointer, not the full SKILL.md body', () => {
+  const sandbox = makeSandbox('session-start-lean')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'LeanHook']).status, 0)
+  const hook = path.join(root, 'hooks', 'session-start')
+  const result = spawnSync('bash', [hook], {
+    cwd: sandbox.workspace,
+    env: {
+      ...process.env,
+      HOME: sandbox.home,
+      USERPROFILE: sandbox.home,
+      PWD: sandbox.workspace,
+      PATH: `${path.dirname(process.execPath)}:${process.env.PATH || ''}`,
+    },
+    encoding: 'utf8',
+  })
+  assert.equal(result.status, 0, result.stderr)
+  const out = result.stdout || ''
+  assert.match(out, /invoke @fde/)
+  assert.match(out, /TRIAGE/)
+  assert.match(out, /Engagement context/)
+  // Full skill markers must not appear (progressive disclosure L1).
+  assert.doesNotMatch(out, /## Purpose/)
+  assert.doesNotMatch(out, /## Routing - 6 domains/)
+  assert.doesNotMatch(out, /## Anti-invention gates/)
+})

@@ -1,18 +1,10 @@
 #!/bin/bash
-# fdeops SessionStart - load @fde + engagement context from FDE laptop path.
+# fdeops SessionStart - inject TRIAGE + bounded engagement context (not the full skill).
+# Token discipline (L1 progressive disclosure): Claude/Cursor already discover @fde via
+# skill metadata. Dumping skills/fde/SKILL.md here paid ~6-8k tokens every session even
+# when the FDE was not doing field work. Load the skill body only when @fde triggers.
 
 CONTEXT_FILE=""
-BOOTSTRAP=""
-
-for candidate in \
-  "${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/fde/SKILL.md}" \
-  "$(dirname "$0")/../skills/fde/SKILL.md" \
-  "$HOME/.claude/skills/fde/SKILL.md"; do
-  if [ -n "$candidate" ] && [ -f "$candidate" ]; then
-    BOOTSTRAP="$candidate"
-    break
-  fi
-done
 
 resolve_engagement_dir() {
   local raw="$1"
@@ -143,9 +135,8 @@ bounded_context() {
 
 CONTENT=""
 
-if [ -n "$BOOTSTRAP" ]; then
-  CONTENT="$CONTENT$(cat "$BOOTSTRAP")\n\n"
-fi
+# Lean pointer only - never cat SKILL.md. Methods load on @fde / skill trigger.
+CONTENT="${CONTENT}fdeops: engagement fieldbook active. For field methods, invoke @fde (loads skills/fde/SKILL.md + one references/*.md). Plumbing is zero-token CLI: fde triage | resume | debrief | prep | receipts | status.\n\n"
 
 # Same TRIAGE block as `fde resume` / `fde triage` - Monday morning must not
 # depend on the model remembering to run a CLI command. Prefer the installed

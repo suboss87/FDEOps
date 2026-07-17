@@ -1,7 +1,7 @@
 # Monday morning
 
 > Illustrative transcript - fictional engagement ([kesterman-freight](./kesterman-freight/.fde/)), fictional people.
-> Nothing below was re-pasted by the FDE. The session-start hook ran `fde resume`; the agent read the bounded context and opened the session itself.
+> Nothing below was re-pasted by the FDE. The session-start hook injected TRIAGE + bounded context (not the full skill); the agent opened from that and loaded `@fde` only when routed.
 
 ---
 
