@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.9.2 — 2026-07-17
+
+Field judgment hardenings blended into existing methods — no new skills, no imported skill names.
+
+### Added
+- **Brief interrogation** in `land` / `discover` — one Q + GUESS + confidence when the brief is thin; never invent stakeholders to fill gaps.
+- **Anti-invention gates** in `@fde` — when not to invent, over-route, grill, or ship on vibes.
+- **Pre-blast challenge** in `ship` / `red-team` — CLAIM → CHALLENGE → VERDICT before irreversible client moves.
+
 ## 3.9.1 — 2026-07-14
 
 Field-sim closeout: prep and smart debrief match how FDEs actually write memory (logs, not only tables).

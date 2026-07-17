@@ -18,6 +18,21 @@ Then check - probe ONLY if it prevents wasted discovery:
 
 State your read, let the FDE correct, then discover.
 
+## Brief interrogation (when the hypothesis is still mush)
+
+Use when the "problem" is unfalsifiable, success is undefined, or you cannot name the decision discovery informs. Skip when `reality.md` / `terrain.md` already pin a testable claim and the FDE is ready to dig.
+
+Same format as land — one Q + GUESS, no checklist:
+
+```
+READ: <the real problem you think exists, in one sentence>
+CONFIDENCE: ~NN% — missing: <what would falsify or confirm it>
+Q: <one question that changes where you dig>
+GUESS: <your answer, so they can correct it>
+```
+
+Stop when you can write the decision sentence under **Frame the decision first**. If a name, quote, or metric is still missing, write `unknown - ask:` — never invent ops folklore to make the map look complete.
+
 ## Frame the decision first
 
 Before any scanning, write one sentence at the top of your working notes:
