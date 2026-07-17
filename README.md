@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-One `@fde` skill over a local client notebook (the **fieldbook** under `.fde/`) - one folder per client. The **second brain for Forward Deployed Engineers** - engineers embedded at a client, from first meeting to final handoff. Works the same for consultants, agency developers, solutions architects, and fractional CTOs.
+One `@fde` skill over a local client notebook (the **fieldbook** under `.fde/`) - one folder per client. The **system of record for embeds** - Forward Deployed Engineers and anyone living on a client site from first meeting to handoff. Feels like a second brain; behaves like a defensible record (dated, sourced, yours). Works the same for consultants, agency developers, solutions architects, and fractional CTOs.
 
 ```
   land      discover      plan      build      ship      close
@@ -114,7 +114,7 @@ Overlays for regulated domains (AI, fintech, healthcare, government) activate on
 
 ## Engagement memory (`.fde/`)
 
-The **fieldbook** - one folder per client, plain markdown you can read, grep, and take with you:
+The **fieldbook** is the system of record for the embed - one folder per client, plain markdown you can read, grep, and take with you:
 
 | File | Holds |
 |------|-------|
@@ -131,7 +131,7 @@ Every entry is dated and sourced, so you can defend it in front of skeptical sta
 
 ## Fieldbook UI
 
-Open the engagement in a browser - trust, phase, next action, and the full record in one local page. Ask `@fde` for the dashboard, or run `npx fdeops dashboard` (current engagement by default; `--all` for the portfolio).
+Open the system of record in a browser - trust, phase, next action, and the full record in one local page. Ask `@fde` for the dashboard, or run `npx fdeops dashboard` (current engagement by default; `--all` for the portfolio).
 
 <p align="center"><img width="1336" height="624" alt="fdeops Fieldbook in the browser" src="https://github.com/user-attachments/assets/5683614c-7730-4a3a-860d-185053a377eb" /></p>
 
@@ -145,7 +145,7 @@ Open the engagement in a browser - trust, phase, next action, and the full recor
 | **Consultant or contractor at a client site** | Remembers the engagement so you stop re-explaining it |
 | **Solutions architect / engineer** | Methods for the politics as well as the architecture |
 | **Agency developer running 3-5 clients** | One `.fde/` per client - details stop blurring |
-| **Fractional CTO doing client work** | The fieldbook is your second brain - and your audit trail for billable work |
+| **Fractional CTO doing client work** | The fieldbook is your system of record for the embed - and your audit trail for billable work |
 
 ---
 
