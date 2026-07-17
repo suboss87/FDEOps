@@ -1,6 +1,6 @@
 {
   "name": "fdeops",
-  "version": "3.9.2",
+  "version": "3.9.3",
   "description": "Field kit for engineers embedded in client work - a real CLI (recon, memory, portfolio), one @fde skill with field judgment on top, and hooks that make it automatic. Claude Code plugin and any agent that loads skills.",
   "bin": {
     "fdeops": "bin/install.js",

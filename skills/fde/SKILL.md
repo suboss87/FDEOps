@@ -146,27 +146,19 @@ The FDE can nod (zero friction) or correct ("billing-service too"). This replace
 
 **Never:** fire multiple questions at once, probe where the answer doesn't change the work, repeat what's already in the artifacts, or slow down a confident FDE to prove you're being thorough. One well-placed observation beats five careful questions.
 
-## Forward momentum (after writing memory)
+## Forward momentum — `Next:` after land / debrief / ship only
 
-After updating `.fde/` artifacts, suggest the ONE next move that accelerates the engagement - but only when the next step isn't already obvious to the FDE.
+After **land**, **debrief** (once applied), or **ship** (proceed verdict), end with **one** directed line that starts with `Next:`. Not a menu. Not after every minor log/signal edit.
 
-**Do this when:**
-- The FDE just finished a phase and the natural next step saves them thinking time
-- There's a dependency that unblocks faster if acted on now (access request, stakeholder conversation, spec generation)
-- The engagement is at a decision point (plan needs approval, risk needs escalation)
+**Format:** `Next: <one concrete move>` — grounded in what you just wrote to `.fde/`.
 
-**Don't do this when:**
-- The FDE is clearly in flow and already knows what's next
-- You just finished a minor update (logging a risk, updating a signal)
-- The next step is obvious from context (mid-build, next task in sequence)
+| Just finished | Example |
+|---------------|---------|
+| **land** (brief + success written) | `Next: run fde scan on the repo, or draft the access ask if you don't have clone yet.` |
+| **debrief --apply** | `Next: fde prep "Denise sync" before Thursday, or fde status if you're writing the sponsor note.` |
+| **ship** (pre-blast proceed) | `Next: set the pulse in delivery.md, or fde log contact if Denise hasn't seen the canary.` |
 
-**The format:** One line, directed, based on engagement state. Not a menu.
-
-> "Updated. Terrain is mapped - ready to plan the slices, or does Denise need to see this first?"
-
-> "Shipped and logged. Task 4 touches the billing module where that open risk sits. Worth addressing that before starting?"
-
-> "Brief written. You don't have repo access yet - want me to draft the request or are you handling that?"
+**Skip `Next:` when:** the FDE is already in flow, you only logged a risk/signal, or the next step is obvious from the sequence they're mid-way through.
 
 ## Routing - 6 domains
 
