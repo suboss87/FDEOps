@@ -111,7 +111,7 @@ for (const section of [
   'Quickstart',
   'Engagement memory',
   'Who this is for',
-  'The week',
+  'Without fdeops vs with fdeops',
   'Principles',
 ]) {
   if (!readme.includes(section)) fail(`README missing section: ${section}`)
