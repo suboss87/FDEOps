@@ -787,3 +787,78 @@ test('session-start injects TRIAGE + pointer, not the full SKILL.md body', () =>
   assert.doesNotMatch(out, /## Routing - 6 domains/)
   assert.doesNotMatch(out, /## Anti-invention gates/)
 })
+
+test('memory init stays quiet when git has no global identity', () => {
+  const sandbox = makeSandbox('no-git-id')
+  const env = {
+    HOME: sandbox.home,
+    USERPROFILE: sandbox.home,
+    GIT_CONFIG_GLOBAL: path.join(sandbox.home, 'empty-gitconfig'),
+    GIT_CONFIG_SYSTEM: '/dev/null',
+    GIT_CONFIG_NOSYSTEM: '1',
+  }
+  fs.writeFileSync(path.join(sandbox.home, 'empty-gitconfig'), '')
+  // Simulate corporate default: require config (env alone is not enough)
+  const init = runFde(sandbox, ['resume', '--init', 'quietco'], {
+    env: {
+      ...env,
+      // Force local git to prefer config - still must not leak "Please tell me who you are"
+    },
+  })
+  assert.equal(init.status, 0, init.stderr + init.stdout)
+  assert.doesNotMatch(init.stderr + init.stdout, /Please tell me who you are/i)
+  assert.doesNotMatch(init.stderr + init.stdout, /Author identity unknown/i)
+  const eng = engagementPath(sandbox, 'quietco')
+  assert.ok(fs.existsSync(path.join(eng, '.git')))
+  const head = gitInEng(eng, ['rev-parse', '--short', 'HEAD'])
+  assert.equal(head.status, 0, 'init must produce a memory commit even without global git identity')
+})
+
+test('redact removes a buried secret line that undo cannot reach', () => {
+  const sandbox = makeSandbox('redact-buried')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'redactco']).status, 0)
+  const eng = engagementPath(sandbox, 'redactco')
+  const secret = 'AKIAIOSFODNN7EXAMPLE'
+  assert.equal(runFde(sandbox, ['log', 'decision', `leaked ${secret} into chat`, '--force']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'ship the retry slice']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'contact', 'eng lead Mo cooperative', '--signal', 'green']).status, 0)
+
+  const undo = runFde(sandbox, ['log', '--undo'])
+  assert.equal(undo.status, 0, undo.stderr)
+  const afterUndo = fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8')
+  assert.match(afterUndo, new RegExp(secret), 'undo only removes last write - secret still buried')
+
+  const preview = runFde(sandbox, ['redact', secret])
+  assert.equal(preview.status, 0, preview.stderr)
+  assert.match(preview.stdout, /Preview only|--apply/)
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), new RegExp(secret))
+
+  const applied = runFde(sandbox, ['redact', secret, '--apply'])
+  assert.equal(applied.status, 0, applied.stderr)
+  assert.match(applied.stdout, /redacted/)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), new RegExp(secret))
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /ship the retry slice/)
+})
+
+test('doctor warns on close with open risks and duplicate risk echoes', () => {
+  const sandbox = makeSandbox('doctor-close')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'closeco']).status, 0)
+  const eng = engagementPath(sandbox, 'closeco')
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\nDone when: finance signs off on the pilot.\n')
+  const ctx = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  fs.writeFileSync(
+    path.join(eng, 'context.md'),
+    ctx.replace(/\*\*Phase:\*\*.*/, '**Phase:** close') + '\n## Next action\n- hand off the runbook\n'
+  )
+  fs.writeFileSync(
+    path.join(eng, 'risks.md'),
+    '# Risks\n' +
+      '- [2026-05-01] PLC vendor firmware drift on line 3\n' +
+      '- [2026-05-08] PLC vendor firmware drift on line 3 again\n' +
+      '- [2026-05-15] PLC vendor firmware drift still open\n'
+  )
+  const doctor = runFde(sandbox, ['doctor'])
+  assert.notEqual(doctor.status, 0)
+  assert.match(doctor.stdout, /open risk/i)
+  assert.match(doctor.stdout, /duplicate open-risk/i)
+})

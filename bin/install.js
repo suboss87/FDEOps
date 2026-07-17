@@ -224,7 +224,10 @@ function cmdInstall() {
 
 // `npx fdeops scan` must recon, not install - any fde subcommand passes straight
 // through to the CLI (fde.js reads process.argv itself, so require() is enough).
-const FDE_SUBCOMMANDS = ['scan', 'resume', 'log', 'debrief', 'receipts', 'capture', 'status', 'dashboard']
+const FDE_SUBCOMMANDS = [
+  'scan', 'resume', 'triage', 'log', 'debrief', 'prep', 'doctor', 'redact',
+  'garden', 'owner', 'receipts', 'capture', 'status', 'dashboard', 'help',
+]
 
 const arg = process.argv[2]
 if (arg === 'init') {

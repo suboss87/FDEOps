@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.9.8 — 2026-07-17
+
+Launch funnel hardenings from the v3.9.7 field run.
+
+### Fixed
+- **First-run git identity noise** - memory commits pass `-c user.name` / `-c user.email` (and set local repo identity) so clean laptops with `user.useConfigOnly` never print "Please tell me who you are."
+
+### Added
+- **`fde redact <term> [--apply]`** - preview/remove buried lines (secrets noticed hours later). Undo stays last-write-only; redact commits the scrub to the ledger.
+- **`fde doctor`** - warns when phase is `ship`/`close` with open risks, and when open risks look like duplicate echoes.
+
 ## 3.9.7 — 2026-07-17
 
 Defensible memory: stop laundering manual edits into the next write's commit.

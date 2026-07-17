@@ -211,7 +211,7 @@ function refuseSecret(kind, hit) {
   console.error(
     `refused: ${kind} looks like a ${hit}.\n` +
     `Do not log credentials into engagement memory. Redact first, or pass --force if this is intentional.\n` +
-    `If you already wrote one: fde log --undo`
+    `If you already wrote one: fde log --undo (last write) or fde redact <term> --apply (buried)`
   )
 }
 
@@ -1374,6 +1374,49 @@ function cmdOwner(args) {
   else console.log('memory HEAD: (unversioned - git init on next write)')
 }
 
+function riskFingerprint(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/\[\d{4}-\d{2}-\d{2}\]/g, '')
+    .replace(/\[@[^\]]+\]/g, '')
+    .replace(/^\s*[-*|]\s*/, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 5)
+    .join(' ')
+}
+
+function findDuplicateOpenRisks(eng) {
+  // Scan raw open risks (not extractRisks - that dedupes exact text).
+  const md = readClean(eng, 'risks.md')
+  const body = md.split(/^#{1,6}\s+Retired\b/im)[0] || md
+  const items = []
+  const table = parseMdTable(body)
+  if (table) {
+    const riskIdx = colIndex(table.headers, /^risk$/i)
+    if (riskIdx !== -1) {
+      for (const cs of table.rows) {
+        const t = (cs[riskIdx] || '').trim()
+        if (t) items.push(t)
+      }
+    }
+  }
+  for (const raw of body.split('\n')) {
+    const t = raw.trim()
+    const m = t.match(/^-\s*\[\d{4}-\d{2}-\d{2}\]\s*(?:\[@[^\]]+\]\s*)?(.*)$/)
+    if (m && m[1].trim()) items.push(m[1].trim())
+  }
+  const byKey = new Map()
+  for (const text of items) {
+    const key = riskFingerprint(text)
+    if (key.length < 12) continue
+    if (!byKey.has(key)) byKey.set(key, [])
+    byKey.get(key).push(text)
+  }
+  return [...byKey.values()].filter(g => g.length >= 2)
+}
+
 function cmdDoctor() {
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
@@ -1393,6 +1436,18 @@ function cmdDoctor() {
   if (!sectionBody(readClean(eng, 'context.md'), 'Next action')) {
     issues.push('no ## Next action in context.md - Monday morning has nothing to drive')
   }
+  if ((s.phase === 'close' || s.phase === 'ship') && s.openRisks > 0) {
+    issues.push(
+      `phase is ${s.phase} with ${s.openRisks} open risk(s) - retire, hand off, or move still-live ones before calling the embed done`
+    )
+  }
+  const dupes = findDuplicateOpenRisks(eng)
+  if (dupes.length) {
+    const sample = (dupes[0][0] || '').replace(/\s+/g, ' ').trim().slice(0, 60)
+    issues.push(
+      `${dupes.length} duplicate open-risk cluster(s) (e.g. "${sample}${sample.length >= 60 ? '…' : ''}") - consolidate or retire echoes in risks.md`
+    )
+  }
   console.log(`FDE DOCTOR - ${engagementSlugFromPath(eng)}`)
   console.log(resumeTriage(eng))
   if (!issues.length) {
@@ -1402,6 +1457,73 @@ function cmdDoctor() {
   console.log(`\n${issues.length} issue(s):`)
   issues.forEach((i, n) => console.log(`  ${n + 1}. ${i}`))
   process.exit(1)
+}
+
+// Remove buried lines that contain a search term (secrets noticed hours later).
+// Preview by default; --apply commits the scrub to the memory ledger.
+const REDACT_FILES = [
+  'decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'context.md',
+  'brief.md', 'reality.md', 'assumptions.md', SIGNAL_LEDGER,
+]
+
+function cmdRedact(args) {
+  const apply = args.includes('--apply')
+  const term = args.filter(a => a !== '--apply').join(' ').trim()
+  if (!term || term.length < 4) {
+    console.error('usage: fde redact <term> [--apply]\n  preview lines containing <term>; --apply removes them and commits the ledger')
+    process.exit(1)
+  }
+  const eng = resolveEngagement({ forWrite: apply })
+  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+  const needle = term.toLowerCase()
+  const hits = []
+  for (const file of REDACT_FILES) {
+    const abs = path.join(eng, file)
+    if (!fs.existsSync(abs)) continue
+    const md = readEng(eng, file)
+    const lines = md.split('\n')
+    lines.forEach((line, i) => {
+      if (line.toLowerCase().includes(needle)) hits.push({ file, lineNo: i + 1, line })
+    })
+  }
+  if (!hits.length) {
+    console.log(`redact: no lines contain ${JSON.stringify(term)}`)
+    return
+  }
+  console.log(`REDACT - ${hits.length} matching line(s) for ${JSON.stringify(term)}`)
+  hits.slice(0, 20).forEach(h => {
+    const preview = h.line.length > 100 ? h.line.slice(0, 97) + '…' : h.line
+    console.log(`  ${h.file}:${h.lineNo}  ${preview}`)
+  })
+  if (hits.length > 20) console.log(`  … +${hits.length - 20} more`)
+  if (!apply) {
+    console.log('\nPreview only. Remove and commit:  fde redact <term> --apply')
+    console.log('Note: git history still holds prior commits - rotate the real secret.')
+    return
+  }
+  ensureMemoryGit(eng)
+  const touched = []
+  const byFile = new Map()
+  for (const h of hits) {
+    if (!byFile.has(h.file)) byFile.set(h.file, new Set())
+    byFile.get(h.file).add(h.lineNo)
+  }
+  for (const [file, lineNos] of byFile) {
+    const abs = path.join(eng, file)
+    const before = readEng(eng, file)
+    const kept = before.split('\n').filter((_, i) => !lineNos.has(i + 1))
+    const after = kept.join('\n')
+    if (after === before) continue
+    withFileLock(abs, () => { atomicWriteFile(abs, after.endsWith('\n') || after === '' ? after : after + '\n') })
+    touched.push(file)
+  }
+  if (!touched.length) {
+    console.log('nothing changed')
+    return
+  }
+  const hash = commitMemory(eng, `redact ${term.slice(0, 40)}`, { files: touched })
+  console.log(`redacted ${hits.length} line(s) in ${touched.join(', ')}${hash ? ` @${hash}` : ''}`)
+  console.log('rotate the real credential if this was a secret - history may still contain it')
 }
 
 function cmdPrep(args) {
@@ -1694,6 +1816,7 @@ function printUsage() {
   fde debrief --smart      propose routing from messy notes → review → fde debrief --apply
   fde prep [label]         grounded walk-in brief from existing .fde/ only
   fde doctor               lint engagement memory (stale signals, gaps)
+  fde redact <term>        preview/remove lines containing a buried term (pass --apply to commit)
   fde garden [--apply]     propose safe consolidations (contract: no new facts; git-reversible)
   fde owner [set email]    who keeps this engagement record
   fde receipts <term>      "what did we agree?" with dates
@@ -1714,6 +1837,7 @@ switch (cmd) {
   case 'debrief': cmdDebrief(args); break
   case 'prep': cmdPrep(args); break
   case 'doctor': cmdDoctor(); break
+  case 'redact': cmdRedact(args); break
   case 'garden': cmdGarden(args); break
   case 'owner': cmdOwner(args); break
   case 'receipts': cmdReceipts(args); break
