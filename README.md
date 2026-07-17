@@ -33,7 +33,7 @@ Day to day you only need `@fde` and normal English. No command cheat sheet.
 | **Someone disputes scope** | `@fde` when did we agree to drop that feature? | Dated answers from the record (or a clear gap if nothing was logged) |
 | **End of week** | `@fde` draft the sponsor update from the record | Status grounded in what actually happened |
 
-Same client folder every time (`~/fde-engagements/<client>/.fde/`). Your AI coding agent reads it on every session. Optional terminal tools live under [Under the hood](#under-the-hood-optional).
+Same client folder every time (`~/fde-engagements/<client>/.fde/`). Your AI coding agent reads it on every session.
 
 ---
 
@@ -88,7 +88,7 @@ npx fdeops resume                 # prints a short "where we are" for this clien
 
 - **You** describe the situation with `@fde` (or plain language once the skill is loaded)
 - **Session start / end** - small hooks load where you left off and capture what changed (no re-paste)
-- **Under the hood** - a local CLI does memory writes, search, and status with no model tokens; you do not need to learn it for daily use
+- **Local CLI** - memory writes, search, and status with no model tokens; the agent runs it. You do not need to learn it for daily use ([docs/USAGE.md](docs/USAGE.md))
 
 fdeops complements repo memory: CLAUDE.md holds how the *code* works; the fieldbook holds how the *client engagement* works.
 
@@ -129,46 +129,9 @@ Every entry is dated and sourced, so you can defend it in front of skeptical sta
 
 ---
 
-## Under the hood (optional)
+## Optional local CLI
 
-**You do not need to learn these for daily work.** Chat with `@fde`; the agent runs the local tools. The list below is for setup, air-gap, or if you prefer the terminal.
-
-**Humans only need (once / occasional):**
-
-```bash
-npx fdeops resume --init <client>   # one-time: create + bind this workspace
-npx fdeops resume                   # check "where we are"
-npx fdeops scan                     # try day-1 recon with no install
-npx fdeops dashboard                # optional local HTML view of the fieldbook
-```
-
-**What you say → what the agent runs** (you never have to type the right-hand side):
-
-| You say | Agent runs |
-|---------|------------|
-| Debrief these notes | `fde debrief --smart …` → you confirm → `--apply` |
-| Prep me for the sponsor meeting | `fde prep "…"` |
-| When did we agree to drop that? | `fde receipts …` |
-| Draft the sponsor update | `fde status` (+ judgment in chat) |
-| Log that the sponsor went quiet | `fde log contact "…" --signal amber` |
-
-<details>
-<summary><strong>Full command list</strong> (power users / scripts)</summary>
-
-```bash
-fde triage                        # short status (also injected by session hooks)
-fde debrief notes.md              # if notes already use decision: / risk: / … prefixes
-fde doctor                        # check the fieldbook for gaps
-fde log decision "…"
-fde log contact "…" --signal amber
-fde dashboard --all               # every client, sorted by trust
-```
-
-Optional: `export FDEOPS_ENGAGEMENTS_ROOT=~/path/to/engagements` to isolate from `~/fde-engagements`.
-
-Each `.fde/` is a local git repo (no remote, no telemetry). More detail: [docs/USAGE.md](docs/USAGE.md).
-
-</details>
+Day to day, talk to `@fde`. The local CLI is for setup, air-gap, and scripts - full list in [docs/USAGE.md](docs/USAGE.md).
 
 <p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
 
