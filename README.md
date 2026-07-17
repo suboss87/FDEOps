@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-CLI + one `@fde` skill + hooks over a local `.fde/` fieldbook - one folder per client. The **second brain for Forward Deployed Engineers** - engineers embedded at a client, from first meeting to final handoff. Works the same for consultants, agency developers, solutions architects, and fractional CTOs.
+One `@fde` skill over a local client notebook (the **fieldbook** under `.fde/`) - one folder per client. The **second brain for Forward Deployed Engineers** - engineers embedded at a client, from first meeting to final handoff. Works the same for consultants, agency developers, solutions architects, and fractional CTOs.
 
 ```
   land      discover      plan      build      ship      close
@@ -17,25 +17,23 @@ CLI + one `@fde` skill + hooks over a local `.fde/` fieldbook - one folder per c
              written as a side effect of the work
 ```
 
-**Glossary:** **fieldbook** = the `.fde/` folder · **TRIAGE** = trust + phase + next from memory · **receipts** = dated search of what you logged · **hooks** = auto load/capture at session start/end.
-
-Describe your situation - `@fde` routes to the right method and writes the matching `.fde/` artifact. Phase methods (land → close) live in the skill; the CLI owns scan, memory, and receipts. You still confirm judgment - the fieldbook does not maintain itself without you.
+**You talk in plain language with `@fde`.** The agent (and an optional CLI) handles the boring memory work. You still confirm anything that goes into the record.
 
 ---
 
 ## The week
 
-What you actually run most days - the habit that compounds the fieldbook:
+Day to day you only need `@fde` and normal English. No command cheat sheet.
 
-| When | What you do | Why it matters |
-|------|-------------|----------------|
-| **Monday** | Open your AI coding agent → TRIAGE loads (trust, phase, next) | Start where last week left off - no re-paste |
-| **After a meeting** | `fde debrief --smart notes.txt` → review → `--apply` | Messy notes become dated decisions, risks, contacts |
-| **Before a walk-in** | `fde prep "Denise sync"` | Walk in with memory, not a blank chat |
-| **Scope fight** | `fde receipts descope` (+ memory git hash) | Answer "when did we agree?" from the record |
-| **Friday** | `fde status` → sponsor update from the real record | Status from evidence, not memory theater |
+| When | What you say | What you get |
+|------|--------------|--------------|
+| **Start of week** | Open your AI coding agent (nothing to paste) | It already knows where you left off - trust, phase, what's next |
+| **After a meeting** | `@fde` debrief these notes *(paste or attach them)* | Proposed updates to the record - you review, then confirm |
+| **Before a stakeholder meeting** | `@fde` prep me for tomorrow's meeting with the sponsor | A short brief from what you already logged - not a blank chat |
+| **Someone disputes scope** | `@fde` when did we agree to drop that feature? | Dated answers from the record (or a clear gap if nothing was logged) |
+| **End of week** | `@fde` draft the sponsor update from the record | Status grounded in what actually happened |
 
-Same engagement folder every time (`~/fde-engagements/<client>/.fde/`). Git versions it. Your AI coding agent reads it on every session.
+Same client folder every time (`~/fde-engagements/<client>/.fde/`). Your AI coding agent reads it on every session. Optional CLI commands for scripts and power users live under [The CLI](#the-cli).
 
 ---
 
@@ -52,25 +50,25 @@ npx skills add suboss87/fdeops          # Cursor, Codex, and skills-compatible a
 /plugin install fdeops@fdeops
 ```
 
-**2. Bind** - once, inside the client workspace:
+**2. Bind once** - inside the client workspace (setup only; not a daily habit):
 
 ```bash
 npx fdeops resume --init garvey   # creates ~/fde-engagements/garvey engagement + binds workspace
 ```
 
-**Verify:**
+**Check it worked:**
 
 ```bash
-npx fdeops resume                 # should print TRIAGE (trust, phase, next) for garvey
+npx fdeops resume                 # prints a short "where we are" for this client
 ```
 
-**3. Work**
+**3. Work** - talk normally:
 
 ```text
 @fde I just got the brief. New client, payments platform, they want it live before their Q3 audit.
 ```
 
-`@fde` routes and writes `.fde/` artifacts - you confirm judgment. Use `npx fdeops …` until you want a short command: `npm i -g fdeops` (optional). Full workflow: [docs/USAGE.md](docs/USAGE.md).
+`@fde` routes and updates the fieldbook - you confirm judgment. Full workflow: [docs/USAGE.md](docs/USAGE.md).
 
 <details>
 <summary><strong>Other install paths</strong> · scan · env</summary>
@@ -88,14 +86,11 @@ npx fdeops resume                 # should print TRIAGE (trust, phase, next) for
 
 ## How it works
 
-Three pieces on top of the fieldbook:
+- **You** describe the situation with `@fde` (or plain language once the skill is loaded)
+- **Session start / end** - small hooks load where you left off and capture what changed (no re-paste)
+- **Under the hood** - a local CLI does memory writes, search, and status with no model tokens; you do not need to learn it for daily use
 
-- **Session start** - a hook loads where you left off into your AI coding agent's context
-- **Session end** - a hook captures what happened back into the fieldbook
-- **`@fde`** - routes your situation to a field method; you confirm before memory sticks
-- **CLI** - deterministic, offline (`scan`, `debrief`, `prep`, `receipts`, `status`)
-
-fdeops complements repo memory: CLAUDE.md holds how the *code* works; the fieldbook holds how the *engagement* works.
+fdeops complements repo memory: CLAUDE.md holds how the *code* works; the fieldbook holds how the *client engagement* works.
 
 Works with **Claude Code** · **Cursor** · **Copilot** · **Gemini CLI** · **Ollama** · **LM Studio** - any model that reads markdown.
 
@@ -136,23 +131,23 @@ Every entry is dated and sourced, so you can defend it in front of skeptical sta
 
 ## The CLI
 
-Commands that match **The week** (skill adds judgment on top):
+Optional. Daily work is `@fde` + natural language; the agent calls these for you. Use them directly for scripts, air-gap, or when you prefer the terminal.
 
 ```bash
-fde resume                        # TRIAGE + load this workspace's engagement
-fde resume --init <client>        # create + bind + git-version .fde/
-fde debrief --smart notes.md      # propose routing → --apply to confirm
-fde prep "Denise sync"            # walk-in brief from existing memory
-fde receipts <term>               # dated search (gap ≠ proof of absence)
-fde status                        # sponsor-ready triage (--all for portfolio)
-fde scan                          # day-1 recon + ASK ON DAY 1 (works via npx)
+fde resume                        # short "where we are" for this workspace
+fde resume --init <client>        # one-time setup: create + bind fieldbook
+fde debrief --smart notes.md      # propose routing from messy notes → --apply to confirm
+fde prep "meeting with the sponsor"  # brief from existing memory
+fde receipts <term>               # dated search (no hit = gap in the record)
+fde status                        # engagement summary (--all for every client)
+fde scan                          # day-1 recon (works via npx, no install)
 ```
 
 <details>
 <summary><strong>More commands</strong></summary>
 
 ```bash
-fde triage                        # TRIAGE only (hooks / Cursor entry)
+fde triage                        # short status block (what hooks inject on entry)
 fde debrief notes.md              # prefix router: decision: / risk: / delivery: / contact:
 fde doctor                        # lint: stale signals, unset phase, gaps
 fde log decision "…"
