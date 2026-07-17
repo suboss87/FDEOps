@@ -10,25 +10,16 @@ fdeops installs on **your laptop** - where **your AI coding agent** runs. Not on
 
 ## Quickstart (the whole setup)
 
-**Any agent that supports skills** ([skills.sh](https://skills.sh)):
-
-```bash
-npx skills add suboss87/fdeops                 # installs @fde (+ references)
-npx fdeops resume --init <client-name>         # bind this workspace
-```
-
-**Claude Code plugin** (hooks + marketplace):
-
 ```text
-/plugin marketplace add suboss87/fdeops
+/plugin marketplace add suboss87/fdeops        # 1. install (Claude Code)
 /plugin install fdeops@fdeops
 ```
 
 ```bash
-npx fdeops resume --init <client-name>         # run once, inside the client's workspace
+npx fdeops resume --init <client-name>         # 2. run once, inside the client's workspace
 ```
 
-The skill/plugin install alone does **not** put a bare `fde` command on your shell PATH. `npx fdeops <command>` always works with nothing pre-installed; run `npm i -g fdeops` once if you want the short `fde` form used in the rest of these docs.
+The plugin install alone does **not** put a bare `fde` command on your shell PATH. `npx fdeops <command>` always works with nothing pre-installed; run `npm i -g fdeops` once if you want the short `fde` form used in the rest of these docs.
 
 Done. `fde resume --init` creates `~/fde-engagements/<client-name>/.fde/` and **binds this workspace to it in the workspace registry**. The session hooks read that binding, so memory auto-loads at session start and auto-captures at session end - nothing else to configure, no environment variables.
 
