@@ -52,6 +52,20 @@ function engagementPath(sandbox, slug) {
   return path.join(sandbox.home, 'fde-engagements', slug, '.fde')
 }
 
+function gitInEng(eng, args) {
+  return spawnSync('git', ['-C', eng, ...args], { encoding: 'utf8' })
+}
+
+function ensureEngagementGitClean(eng) {
+  const status = gitInEng(eng, ['status', '--porcelain'])
+  assert.equal(status.status, 0, status.stderr)
+  if (status.stdout.trim()) {
+    gitInEng(eng, ['add', '-A'])
+    const commit = gitInEng(eng, ['-c', 'user.email=fdeops-test@example.com', '-c', 'user.name=fdeops test', 'commit', '-m', 'test cleanup'])
+    assert.equal(commit.status, 0, commit.stderr)
+  }
+}
+
 test('resume --init creates templates, binds the workspace, and resume resolves from registry', () => {
   const sandbox = makeSandbox('resume')
   const init = runFde(sandbox, ['resume', '--init', 'Garvey Payments'])
@@ -291,7 +305,7 @@ test('receipts separates dated agreements from unverified claims', () => {
   fs.writeFileSync(path.join(eng, 'brief.md'), '# Brief\nvendor promised TLS before the audit\n')
 
   const agreed = runFde(sandbox, ['receipts', 'descope'])
-  assert.match(agreed.stdout, /AGREED/, 'a dated decision must show under AGREED')
+  assert.match(agreed.stdout, /ON RECORD/, 'a dated decision must show under ON RECORD')
 
   const claim = runFde(sandbox, ['receipts', 'TLS'])
   assert.match(claim.stdout, /CLAIMS & working notes/, 'a brief line must be labelled a claim')
@@ -668,6 +682,83 @@ test('triage, prep, and doctor surface engagement state', () => {
   const doctor = runFde(sandbox, ['doctor'])
   assert.equal(doctor.status, 0, doctor.stderr)
   assert.match(doctor.stdout, /OK/)
+})
+
+test('manual dirty file is not laundered into the next fde write commit', () => {
+  const sandbox = makeSandbox('dirty-launder')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'launderco']).status, 0)
+  const eng = engagementPath(sandbox, 'launderco')
+  ensureEngagementGitClean(eng)
+
+  const manualLine = '- MANUAL_DIRTY_RISK_LINE added outside fde'
+  fs.appendFileSync(path.join(eng, 'risks.md'), `\n${manualLine}\n`)
+
+  const log = runFde(sandbox, ['log', 'decision', 'scoped write only'])
+  assert.equal(log.status, 0, log.stderr)
+  assert.match(log.stderr, /uncommitted manual edits/i, 'write must warn about unrelated dirty files')
+
+  const headFiles = gitInEng(eng, ['show', '--name-only', '--pretty=format:', 'HEAD'])
+  assert.equal(headFiles.status, 0, headFiles.stderr)
+  const committed = headFiles.stdout.split('\n').map(s => s.trim()).filter(Boolean)
+  assert.ok(committed.includes('decisions.md'), 'latest commit must include the fde-written file')
+  assert.equal(committed.includes('risks.md'), false, 'manual risks.md edit must not be laundered into the write commit')
+
+  const porcelain = gitInEng(eng, ['status', '--porcelain'])
+  assert.equal(porcelain.status, 0, porcelain.stderr)
+  assert.match(porcelain.stdout, /risks\.md/, 'risks.md must still be dirty after the scoped write')
+  assert.match(fs.readFileSync(path.join(eng, 'risks.md'), 'utf8'), /MANUAL_DIRTY_RISK_LINE/)
+})
+
+test('triage and status surface dirty memory from manual edits', () => {
+  const sandbox = makeSandbox('dirty-surface')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'dirtysurf']).status, 0)
+  const eng = engagementPath(sandbox, 'dirtysurf')
+  ensureEngagementGitClean(eng)
+  fs.appendFileSync(path.join(eng, 'context.md'), '\n- manual context tweak outside fde\n')
+
+  for (const cmd of [['triage'], ['status'], ['resume']]) {
+    const r = runFde(sandbox, cmd)
+    assert.equal(r.status, 0, `${cmd[0]} failed: ${r.stderr}`)
+    assert.match(r.stdout, /memory dirty|uncommitted manual/i, `${cmd[0]} must surface dirty memory`)
+  }
+})
+
+test('memory unreadable is still shown when trust resolves green from the signal ledger', () => {
+  const sandbox = makeSandbox('unreadable-green')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'ledgergreen']).status, 0)
+  const eng = engagementPath(sandbox, 'ledgergreen')
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Sponsor confirmed go-live', '--signal', 'green']).status, 0)
+  assert.equal(fs.existsSync(path.join(eng, '.signal-ledger')), true)
+
+  fs.writeFileSync(path.join(eng, 'stakeholders.md'), Buffer.from([0x23, 0x20, 0x53, 0x00, 0x01, 0x02]))
+
+  for (const cmd of [['status'], ['triage'], ['resume']]) {
+    const r = runFde(sandbox, cmd)
+    assert.equal(r.status, 0, `${cmd[0]} failed: ${r.stderr}`)
+    if (cmd[0] === 'status') {
+      assert.match(r.stdout, /\[green\s*\]\s*ledgergreen/i, 'status must show green trust from ledger')
+    } else {
+      assert.match(r.stdout, /TRIAGE\s+\[green\s*\]/i, `${cmd[0]} must still show green trust from ledger`)
+    }
+    assert.match(r.stdout, /memory unreadable/i, `${cmd[0]} must surface unreadable memory alongside green trust`)
+  }
+})
+
+test('receipts puts dated declined decisions under ON RECORD, not claims', () => {
+  const sandbox = makeSandbox('receipts-declined')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'declineco']).status, 0)
+  const eng = engagementPath(sandbox, 'declineco')
+  fs.writeFileSync(path.join(eng, 'decisions.md'), '# Decisions\n- [2026-07-11] sponsor declined the rollback drill\n')
+  fs.writeFileSync(path.join(eng, 'brief.md'), '# Brief\nvendor declined to share the audit packet\n')
+
+  const receipts = runFde(sandbox, ['receipts', 'declined'])
+  assert.equal(receipts.status, 0, receipts.stderr)
+  const onRecord = receipts.stdout.split('CLAIMS & working notes')[0]
+  const claims = receipts.stdout.split('CLAIMS & working notes')[1] || ''
+  assert.match(onRecord, /ON RECORD/, 'dated decision text must appear under ON RECORD')
+  assert.match(onRecord, /decisions\.md.*declined the rollback drill/i)
+  assert.match(claims, /brief\.md.*declined to share the audit packet/i)
+  assert.doesNotMatch(onRecord, /brief\.md/, 'brief must not appear under ON RECORD')
 })
 
 test('session-start injects TRIAGE + pointer, not the full SKILL.md body', () => {

@@ -4,7 +4,10 @@
 
 # Generated dashboard (deterministic render - regenerate with `fde dashboard`)
 fieldbook.html
+**/fieldbook.html
+fieldbook-current.html
 fde-dashboard.html
+examples/fieldbook.html
 
 # Node
 node_modules/

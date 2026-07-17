@@ -9,6 +9,7 @@ const HOOKS_SRC = path.join(__dirname, '..', 'hooks')
 const CLAUDE_MD_SRC = path.join(__dirname, '..', 'CLAUDE.md.template')
 const FDE_TEMPLATES_SRC = path.join(__dirname, '..', 'templates', '.fde')
 const ADAPTERS_SRC = path.join(__dirname, '..', 'adapters')
+const LIB_SRC = path.join(__dirname, 'lib')
 
 const GLOBAL_SKILLS_DIR = path.join(os.homedir(), '.claude', 'skills')
 const GLOBAL_HOOKS_DIR = path.join(os.homedir(), '.claude', 'hooks')
@@ -97,6 +98,7 @@ function installSkills() {
   const cliHome = path.join(os.homedir(), '.claude', 'fdeops')
   fs.mkdirSync(cliHome, { recursive: true })
   fs.copyFileSync(path.join(__dirname, 'fde.js'), path.join(cliHome, 'fde.js'))
+  copyDir(LIB_SRC, path.join(cliHome, 'lib'))
   try { fs.chmodSync(path.join(cliHome, 'fde.js'), '755') } catch (_) {}
   copyDir(FDE_TEMPLATES_SRC, path.join(cliHome, 'templates', '.fde'))
 
