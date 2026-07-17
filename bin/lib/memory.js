@@ -83,7 +83,14 @@ function createMemoryApi(deps) {
         GIT_COMMITTER_NAME: owner.name,
         GIT_COMMITTER_EMAIL: owner.email,
       }
-      execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', String(message || 'memory write').slice(0, 72)], {
+      // -c user.* beats user.useConfigOnly=true (common on clean laptops) so git
+      // never prints "Please tell me who you are" on first init / memory writes.
+      execFileSync('git', [
+        '-c', 'commit.gpgsign=false',
+        '-c', `user.name=${owner.name}`,
+        '-c', `user.email=${owner.email}`,
+        'commit', '-m', String(message || 'memory write').slice(0, 72),
+      ], {
         cwd: eng, stdio: 'ignore', timeout: 15000, env,
       })
       return execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
@@ -94,10 +101,22 @@ function createMemoryApi(deps) {
     }
   }
 
+  function configureMemoryGitIdentity(eng, owner) {
+    if (!owner || !owner.name || !owner.email) return
+    try {
+      execFileSync('git', ['config', 'user.name', owner.name], {
+        cwd: eng, stdio: 'ignore', timeout: 5000,
+      })
+      execFileSync('git', ['config', 'user.email', owner.email], {
+        cwd: eng, stdio: 'ignore', timeout: 5000,
+      })
+    } catch (_) {}
+  }
+
   function ensureMemoryGit(eng) {
     if (!eng || !fs.existsSync(eng)) return false
     if (fs.existsSync(path.join(eng, '.git'))) {
-      writeOwnerIfMissing(eng)
+      configureMemoryGitIdentity(eng, writeOwnerIfMissing(eng))
       return true
     }
     if (!gitBinOk()) {
@@ -114,7 +133,8 @@ function createMemoryApi(deps) {
         path.join(eng, '.gitignore'),
         ['*.lock', '*.tmp', '.last-write', '.debrief-propose', ''].join('\n')
       )
-      writeOwnerIfMissing(eng)
+      const owner = writeOwnerIfMissing(eng)
+      configureMemoryGitIdentity(eng, owner)
       commitMemory(eng, 'init engagement memory')
       return true
     } catch (_) {
