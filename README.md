@@ -143,7 +143,7 @@ fde dashboard                     # current engagement fieldbook (add --all for 
 
 Optional: `export FDEOPS_ENGAGEMENTS_ROOT=~/path/to/engagements` to isolate init/status/dashboard from the default `~/fde-engagements`.
 
-Each `.fde/` is a local git repo (no remote, no telemetry) — dated entries carry an author tag; every write commits so receipts are tamper-evident. Worst-of `[signal:...]` per stakeholder drives trust; signals older than 21 days show as stale.
+Each `.fde/` is a local git repo (no remote, no telemetry) - dated entries carry an author tag; every write commits so receipts are tamper-evident. Worst-of `[signal:...]` per stakeholder drives trust; signals older than 21 days show as stale.
 
 <p align="center"><img src="media/terminal-demo.svg" alt="fde CLI - status, scan, dashboard" width="720"/></p>
 
