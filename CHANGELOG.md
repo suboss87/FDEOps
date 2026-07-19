@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.9.9 — 2026-07-19
+
+Proactive fieldbook hygiene at high-value moments only.
+
+### Added
+- **TRIAGE `hygiene:` line** - session-start / `fde triage` / `fde resume` surface doctor issues when the fieldbook has real work and gaps. Silent when clean or brand-new (day-1 templates).
+- **Phase → ship/close warn** - stderr if open risks still live.
+- **`@fde clean up the fieldbook`** - skill routes to `fde doctor`; nothing auto-rewrites.
+
+### Changed
+- **Doctor** skips day-1 empty-template nagging (phase unset / empty success / empty next action with no dated work).
+
 ## 3.9.8 — 2026-07-17
 
 Launch funnel hardenings from the v3.9.7 field run.

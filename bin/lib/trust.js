@@ -70,7 +70,16 @@ function createTrustApi(deps) {
       const t = raw.trim()
       if (!t || t.startsWith('<!--') || /^#{1,6}\s/.test(t)) continue
       if (/risk\s*\|\s*status|mitigation/i.test(t) || /^\|?[\s|:-]+$/.test(t)) continue
-      if (/^[-*]/.test(t) || (/^\|/.test(t) && t.length > 12)) n++
+      // Bullet risk with substance (skip empty "- " stubs).
+      if (/^[-*]/.test(t)) {
+        if (t.replace(/^[-*]\s+/, '').trim()) n++
+        continue
+      }
+      // Table row: first cell must have risk text (day-1 "| | open | |" placeholders don't count).
+      if (/^\|/.test(t) && t.length > 12) {
+        const riskCell = t.split('|').map(c => c.trim())[1] || ''
+        if (riskCell) n++
+      }
     }
     return n
   }
