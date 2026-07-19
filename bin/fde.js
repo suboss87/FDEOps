@@ -541,6 +541,7 @@ const {
   nextActionLine,
   computeSignals,
   resumeTriage,
+  countOpenRisks,
 } = createTrustApi({
   fs, path, readClean, readEng, parseMdTable, sectionBody, SIGNAL_LEDGER, memoryDirtyManual,
 })
@@ -921,8 +922,8 @@ function cmdResume(args) {
     console.log(`NO ENGAGEMENT for this workspace.\nexisting: ${list}\ncreate + bind one:  fde resume --init <client-name>`)
     process.exit(2)
   }
-  // Monday-morning command: triage first (trust / phase / risks / next), then memory.
-  console.log(resumeTriage(eng))
+  // Monday-morning: triage + proactive hygiene (silent when clean), then memory.
+  printTriageBlock(eng)
   console.log(`\nENGAGEMENT: ${eng}\n`)
   // readClean, not fs.readFileSync: this output is what an agent loads as
   // context, so it goes through the same <private> redaction as the dashboard.
@@ -1046,7 +1047,18 @@ function setContextPhase(eng, phase) {
     md = md.replace(/\*\*Last updated:\*\*\s*.*/i, `**Last updated:** ${today}`)
   }
   withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
-  return commitMemory(eng, `phase ${phase}`, { files: ['context.md'] })
+  const hash = commitMemory(eng, `phase ${phase}`, { files: ['context.md'] })
+  // Proactive warn at the moment it matters - don't wait for Monday hygiene.
+  if (phase === 'ship' || phase === 'close') {
+    const open = countOpenRisks(eng)
+    if (open > 0) {
+      process.stderr.write(
+        `⚠ phase → ${phase} with ${open} open risk(s) still live - retire, hand off, or keep them intentional\n` +
+        '  say "@fde clean up the fieldbook" to walk the list (or: fde doctor)\n'
+      )
+    }
+  }
+  return hash
 }
 
 
@@ -1341,7 +1353,8 @@ function cmdTriage() {
     console.error('no engagement - run: fde resume --init <name>')
     process.exit(2)
   }
-  console.log(resumeTriage(eng))
+  // Session-start hooks call this - hygiene is proactive here (silent when clean).
+  printTriageBlock(eng)
   const owner = readOwner(eng) || writeOwnerIfMissing(eng)
   const head = memoryHead(eng)
   if (owner || head) {
@@ -1417,18 +1430,29 @@ function findDuplicateOpenRisks(eng) {
   return [...byKey.values()].filter(g => g.length >= 2)
 }
 
-function cmdDoctor() {
-  const eng = resolveEngagement()
-  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+// Deterministic fieldbook hygiene - shared by doctor + session TRIAGE.
+// Silent when clean OR brand-new (no dated work yet). Never auto-rewrites.
+// High-value moments: week-start (via triage), ship/close, after real work accrues.
+function collectDoctorIssues(eng) {
   const issues = []
   const s = computeSignals(eng)
-  if (s.phase === '?') {
-    const hasWork = /\[\d{4}-\d{2}-\d{2}\]/.test(readEng(eng, 'decisions.md') + readEng(eng, 'delivery.md'))
-    if (hasWork) issues.push('phase is unset but dated work exists - run: fde log phase <land|discover|plan|build|ship|close>')
-    else issues.push('phase is unset - set when you know where you are: fde log phase land')
+  const datedBlob = [
+    readEng(eng, 'decisions.md'), readEng(eng, 'delivery.md'),
+    readEng(eng, 'risks.md'), readEng(eng, 'stakeholders.md'),
+  ].join('\n')
+  const hasDatedWork = /\[\d{4}-\d{2}-\d{2}\]/.test(datedBlob)
+  // Day-1 empty templates are not hygiene failures - nagging there trains people to ignore doctor.
+  const fresh = !hasDatedWork && (s.phase === '?' || s.phase === 'unset') && !s.openRisks
+
+  if (s.memoryWarn) issues.push(s.memoryWarn)
+  if (fresh) return issues
+
+  if (s.phase === '?' || s.phase === 'unset') {
+    if (hasDatedWork) {
+      issues.push('phase is unset but dated work exists - run: fde log phase <land|discover|plan|build|ship|close>')
+    }
   }
   if (s.stale) issues.push(`trust signal is STALE (${s.signalAge}d) - reconfirm with fde log contact ... --signal`)
-  if (s.memoryWarn) issues.push(s.memoryWarn)
   if (!readOwner(eng)) issues.push('no .owner - run any write or: fde owner set you@firm.com')
   if (!fs.existsSync(path.join(eng, '.git'))) issues.push('memory not git-versioned - next write will init, or re-run resume --init')
   const success = readClean(eng, 'success.md')
@@ -1448,8 +1472,31 @@ function cmdDoctor() {
       `${dupes.length} duplicate open-risk cluster(s) (e.g. "${sample}${sample.length >= 60 ? '…' : ''}") - consolidate or retire echoes in risks.md`
     )
   }
-  console.log(`FDE DOCTOR - ${engagementSlugFromPath(eng)}`)
+  return issues
+}
+
+// Lean line for session-start TRIAGE - count + top issue + NL cue. Omitted when clean.
+function hygieneTriageLines(eng) {
+  const issues = collectDoctorIssues(eng)
+  if (!issues.length) return []
+  const top = issues[0].replace(/\s+/g, ' ').trim().slice(0, 72)
+  return [
+    `  hygiene: ${issues.length} issue(s) — ${top}${issues[0].length > 72 ? '…' : ''}`,
+    '    → say "@fde clean up the fieldbook" when ready (agent runs fde doctor; nothing auto-rewrites)',
+  ]
+}
+
+function printTriageBlock(eng) {
   console.log(resumeTriage(eng))
+  for (const line of hygieneTriageLines(eng)) console.log(line)
+}
+
+function cmdDoctor() {
+  const eng = resolveEngagement()
+  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+  const issues = collectDoctorIssues(eng)
+  console.log(`FDE DOCTOR - ${engagementSlugFromPath(eng)}`)
+  printTriageBlock(eng)
   if (!issues.length) {
     console.log('\nOK - no structural issues (judgment still yours)')
     process.exit(0)

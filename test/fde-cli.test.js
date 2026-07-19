@@ -862,3 +862,48 @@ test('doctor warns on close with open risks and duplicate risk echoes', () => {
   assert.match(doctor.stdout, /open risk/i)
   assert.match(doctor.stdout, /duplicate open-risk/i)
 })
+
+test('triage hygiene: silent on fresh day-1; speaks after real work accrues gaps', () => {
+  const sandbox = makeSandbox('hygiene-triage')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'hygco']).status, 0)
+  // Brand-new templates must NOT nag - wallpaper trains people to ignore hygiene.
+  const fresh = runFde(sandbox, ['triage'])
+  assert.equal(fresh.status, 0, fresh.stderr)
+  assert.doesNotMatch(fresh.stdout, /hygiene:/i, 'day-1 empty fieldbook stays silent')
+
+  // Real work without next action / success → high-value week-start hygiene.
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'discover']).status, 0)
+  const eng = engagementPath(sandbox, 'hygco')
+  fs.writeFileSync(
+    path.join(eng, 'context.md'),
+    '# Engagement context\n**Phase:** discover\n\n## Next action\n\n## Notes\n'
+  )
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\n')
+  const dirty = runFde(sandbox, ['triage'])
+  assert.equal(dirty.status, 0, dirty.stderr)
+  assert.match(dirty.stdout, /hygiene:/i)
+  assert.match(dirty.stdout, /@fde clean up the fieldbook/i)
+
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\nDone when: pilot signed off.\n')
+  fs.writeFileSync(
+    path.join(eng, 'context.md'),
+    '# Engagement context\n**Phase:** discover\n\n## Next action\n- confirm Denise channel\n'
+  )
+  fs.writeFileSync(path.join(eng, 'risks.md'), '# Risks\n')
+  const doctorOk = runFde(sandbox, ['doctor'])
+  assert.equal(doctorOk.status, 0, doctorOk.stdout + doctorOk.stderr)
+  const clean = runFde(sandbox, ['triage'])
+  assert.equal(clean.status, 0, clean.stderr)
+  assert.doesNotMatch(clean.stdout, /hygiene:/i, 'hygiene must be silent when doctor is OK')
+})
+
+test('phase ship/close warns when open risks remain', () => {
+  const sandbox = makeSandbox('phase-risk-warn')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'phasewarn']).status, 0)
+  const eng = engagementPath(sandbox, 'phasewarn')
+  fs.writeFileSync(path.join(eng, 'risks.md'), '# Risks\n- [2026-07-01] cutover window still unsigned\n')
+  const phase = runFde(sandbox, ['log', 'phase', 'close'])
+  assert.equal(phase.status, 0, phase.stderr)
+  assert.match(phase.stderr, /open risk/i)
+})
