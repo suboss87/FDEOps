@@ -76,6 +76,7 @@ When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FD
 | "Draft the sponsor update" / how are we doing | `fde status` then follow `references/status.md` for the narrative |
 | "Log that they went quiet" / trust signal | `fde log contact "…" --signal amber\|green\|red` (after FDE confirms the read) |
 | Want the HTML fieldbook | `fde dashboard` |
+| "Clean up the fieldbook" / hygiene / memory feels messy | `fde doctor` - walk issues in plain language; propose fixes; never auto-rewrite without confirm. Contradictions need judgment (brief vs reality) - doctor is structural; you handle meaning. |
 
 **The debrief verb.** Highest-frequency loop. When the FDE shares notes or says "debrief": **you** run the smart path (write notes to a temp file if needed). Show the proposed routing in plain language. Only `--apply` (or pipe prefixed lines) after they confirm. Never ask them to run the CLI. Detail: `references/debrief.md`.
 
@@ -85,23 +86,24 @@ CLI missing → use the manual fallbacks inside each reference (still you write 
 
 ## Proactive intelligence (run on every session start)
 
-After loading `context.md` via `fde resume`, run a quick integrity scan and open with a brief state playback - like a senior colleague who reviewed the file before the meeting started.
+Session-start already injects **TRIAGE** (deterministic, zero model tokens). When the fieldbook is dirty, TRIAGE includes a `hygiene:` line - that is the proactive doctor. Silent when clean.
+
+After you see TRIAGE + bounded `context.md`, open with a brief state playback - like a senior colleague who reviewed the file before the meeting started.
 
 **Always open with a 2-3 line state summary:**
 
 > "Last session you shipped the payment retry slice. Plan is 3/5 tasks done. Denise saw the demo Tuesday - signal is green. One thing worth noting: [finding, or 'nothing flagged - where do you want to pick up?']"
 
-**What to scan (in order, surface only what matters):**
+**What to surface (in order, at most ONE finding):**
 
-1. **Artifact staleness.** Any file the current work depends on that's 10+ days stale? Especially stakeholders.md (signals decay fast) and risks.md (unactioned risks compound).
-2. **Plan-success alignment.** Tasks in decisions.md that don't trace to any outcome in success.md - they may have absorbed in as scope creep.
-3. **Open risks overdue.** Critical or high risk open 7+ days with no mitigation.
-4. **Contradictions between files.** Reality.md vs. brief.md. Delivery.md vs. success.md.
+1. **If TRIAGE has `hygiene:`** - that is the finding. Offer: "Fieldbook has N hygiene issues - want me to walk them?" On yes: run `fde doctor`, explain in plain language, propose fixes; never auto-rewrite.
+2. Else optionally note: artifact staleness, open risks overdue, or brief↔reality tension - only if it changes today's move.
+3. If nothing flagged: one line, ask where to pick up.
 
 **Rules:**
-- Surface at most ONE finding alongside the state summary. Don't barrage.
-- If nothing's flagged, say so in one line and ask where they want to pick up.
-- Frame as observation: "I'm noticing stakeholders.md is 12 days old" - not accusation.
+- Don't re-run a second invented audit when hygiene already spoke.
+- Don't barrage. Don't accuse. Don't rewrite memory without confirm.
+- Full contradiction cleanup ("audit the sources before trusting the index") is an `@fde` conversation - doctor is the structural gate; you supply judgment.
 - If the concern is minor and won't change the next 3 moves - skip it.
 
 This is what makes fdeops a peer, not a notebook. The peer reviewed the file before you sat down.

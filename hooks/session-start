@@ -138,8 +138,9 @@ CONTENT=""
 # Lean pointer only - never cat SKILL.md. Methods load on @fde / skill trigger.
 CONTENT="${CONTENT}fdeops: engagement fieldbook active. Human speaks plain language with @fde - you (the agent) run the local fde CLI for memory plumbing; never ask the human to type fde commands. Load skills/fde/SKILL.md when @fde triggers.\n\n"
 
-# Same TRIAGE block as `fde resume` / `fde triage` - Monday morning must not
-# depend on the model remembering to run a CLI command. Prefer the installed
+# Same TRIAGE block as `fde resume` / `fde triage` (includes proactive hygiene
+# when the fieldbook has doctor issues; silent when clean). Monday morning must
+# not depend on the model remembering to run a CLI command. Prefer the installed
 # fde binary; fall back to the plugin/repo copy of bin/fde.js.
 resolve_fde() {
   if command -v fde >/dev/null 2>&1; then
