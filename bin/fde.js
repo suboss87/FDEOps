@@ -281,6 +281,20 @@ function withFileLock(targetPath, fn, opts = {}) {
       fd = fs.openSync(lockPath, 'wx')
     } catch (e) {
       if (e.code === 'EEXIST') {
+        let lockStat
+        try {
+          lockStat = fs.statSync(lockPath)
+        } catch (statErr) {
+          if (statErr.code === 'ENOENT') continue
+        }
+        if (lockStat && Date.now() - lockStat.mtimeMs > 30_000) {
+          try {
+            fs.unlinkSync(lockPath)
+            continue
+          } catch (unlinkErr) {
+            if (unlinkErr.code === 'ENOENT') continue
+          }
+        }
         if (Date.now() > deadline) {
           const msg = `could not lock ${path.basename(targetPath)} - another writer is active; retry`
           if (opts.soft) throw Object.assign(new Error(msg), { code: 'ELOCKED' })
@@ -1830,8 +1844,7 @@ function cmdDashboard(args) {
 
   try {
     fs.mkdirSync(path.dirname(outPath), { recursive: true })
-    refuseSymlinkWrite(outPath)
-    fs.writeFileSync(outPath, html)
+    atomicWriteFile(outPath, html)
   } catch (e) {
     failFs(e, 'write fieldbook', outPath)
   }

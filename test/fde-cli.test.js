@@ -107,6 +107,40 @@ test('log writes dated entries and enforces contact-only signal tokens', () => {
   assert.match(fs.readFileSync(path.join(eng, 'stakeholders.md'), 'utf8'), /\[signal:green\] Denise saw demo/)
 })
 
+test('log decision reclaims an abandoned lock and writes exactly once', () => {
+  const sandbox = makeSandbox('abandoned-lock')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Abandoned Lock']).status, 0)
+  const target = path.join(engagementPath(sandbox, 'abandoned-lock'), 'decisions.md')
+  const lock = target + '.lock'
+  const marker = 'reclaim abandoned decision lock'
+  fs.writeFileSync(lock, 'abandoned\n')
+  const stale = new Date(Date.now() - 31_000)
+  fs.utimesSync(lock, stale, stale)
+
+  const log = runFde(sandbox, ['log', 'decision', marker])
+
+  assert.equal(log.status, 0, log.stderr)
+  const matches = fs.readFileSync(target, 'utf8').match(new RegExp(marker, 'g')) || []
+  assert.equal(matches.length, 1)
+  assert.equal(fs.existsSync(lock), false)
+})
+
+test('log decision does not reclaim a fresh lock or modify its target', () => {
+  const sandbox = makeSandbox('fresh-lock')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Fresh Lock']).status, 0)
+  const target = path.join(engagementPath(sandbox, 'fresh-lock'), 'decisions.md')
+  const lock = target + '.lock'
+  const before = fs.readFileSync(target, 'utf8')
+  fs.writeFileSync(lock, 'active\n')
+
+  const log = runFde(sandbox, ['log', 'decision', 'must not be written'])
+
+  assert.notEqual(log.status, 0)
+  assert.match(log.stderr, /another writer is active; retry/)
+  assert.equal(fs.readFileSync(target, 'utf8'), before)
+  assert.equal(fs.existsSync(lock), true)
+})
+
 test('debrief --dry-run routes markdown-style notes without writing files', () => {
   const sandbox = makeSandbox('debrief')
   assert.equal(runFde(sandbox, ['resume', '--init', 'Client']).status, 0)
