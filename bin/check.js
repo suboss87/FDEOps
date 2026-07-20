@@ -202,16 +202,16 @@ if (fs.existsSync(pmf) && !read('docs/internal/PMF_360_REVIEW.md').includes('INT
 } else if (fs.existsSync(pmf)) ok('internal PMF banner')
 
 const hook = read('hooks/session-start')
+const hookCode = hook.replace(/^[ \t]*#.*$/gm, '')
 if (!hook.includes('FDEOPS_ENGAGEMENT')) {
   fail('session-start hook must read FDEOPS_ENGAGEMENT env var')
 } else ok('hook FDEOPS_ENGAGEMENT')
-if (!hook.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" fde triage') ||
-    !hook.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CMD" triage')) {
+if (!hookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" fde triage') ||
+    !hookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CMD" triage')) {
   fail('session-start must run triage with its resolved engagement')
 }
 // Token discipline: SessionStart must not dump the full skill (L1 progressive disclosure).
 // Strip comments before scanning for a real `cat …SKILL.md` / BOOTSTRAP inject.
-const hookCode = hook.replace(/^[ \t]*#.*$/gm, '')
 if (/\$\(cat\s+"\$BOOTSTRAP"\)|cat\s+"\$BOOTSTRAP"|cat\s+[^\n]*SKILL\.md/.test(hookCode)) {
   fail('session-start must not cat SKILL.md - inject TRIAGE + bounded context + pointer only')
 }
@@ -244,19 +244,24 @@ if (!fs.existsSync(path.join(root, 'hooks', 'session-stop'))) {
   fail('hooks/session-stop missing (write-side memory backstop)')
 } else {
   const stopHook = read('hooks/session-stop')
+  const stopHookCode = stopHook.replace(/^[ \t]*#.*$/gm, '')
   if (!stopHook.includes('FDEOPS_ENGAGEMENT')) fail('session-stop must resolve FDEOPS_ENGAGEMENT')
-  if (!stopHook.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" capture')) {
+  if (!stopHookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" capture')) {
     fail('session-stop must delegate capture with its resolved engagement')
   }
   ok('session-stop write side')
 }
 const compactHook = read('hooks/pre-compact')
-if (!compactHook.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" preserve')) {
+const compactHookCode = compactHook.replace(/^[ \t]*#.*$/gm, '')
+if (!compactHookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" preserve')) {
   fail('pre-compact must delegate preserve with its resolved engagement')
 }
 for (const h of ['session-stop', 'pre-compact']) {
   const body = read('hooks/' + h).replace(/^[ \t]*#.*$/gm, '')
-  if (/>>\s*"\$CONTEXT_FILE"|cat\s*>>\s*"\$CONTEXT_FILE"/.test(body)) {
+  const contextTarget = /(?:"?\$(?:\{)?CONTEXT_FILE(?:\})?"?|"?\$(?:\{)?ENG_DIR(?:\})?\/context\.md"?)/.source
+  const redirectsToContext = new RegExp(`>{1,2}\\s*${contextTarget}`)
+  const teesToContext = new RegExp(`\\btee\\b[^\\n]*${contextTarget}`)
+  if (redirectsToContext.test(body) || teesToContext.test(body)) {
     fail(`hooks/${h} must not append context.md directly`)
   }
 }

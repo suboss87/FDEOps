@@ -1336,7 +1336,12 @@ function cmdCapture() {
   }).join(' ')
   if (!changed && !updated) process.exit(0) // idle session - keep memory clean
   const d = new Date()
-  const stamp = `${d.toISOString().slice(0, 10)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  const localDate = [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0'),
+  ].join('-')
+  const stamp = `${localDate} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
   let block = `\n<!-- fdeops auto-capture -->\n## Session end - ${stamp}\n`
   if (branch) block += `- workspace: \`${branch}\` @ ${lastCommit || 'no commits yet'}\n`
   if (changed) block += `- uncommitted: ${changed}\n`
@@ -1354,10 +1359,9 @@ function cmdPreserve() {
     if (!eng || !fs.existsSync(path.join(eng, 'context.md'))) return
     const marker = '[fdeops context preserved'
     const today = new Date().toISOString().slice(0, 10)
-    const context = readEng(eng, 'context.md')
-    if (context.split('\n').some(line => line.includes(marker) && line.includes(today))) return
-
-    const recentDecisions = readClean(eng, 'decisions.md').split('\n').slice(-20).join('\n')
+    const decisionLines = readClean(eng, 'decisions.md').split('\n')
+    if (decisionLines[decisionLines.length - 1] === '') decisionLines.pop()
+    const recentDecisions = decisionLines.slice(-20).join('\n')
     const openRisks = readClean(eng, 'risks.md').split('\n')
       .filter(line => /open|active|unresolved/i.test(line))
       .slice(0, 8)
@@ -1366,7 +1370,15 @@ function cmdPreserve() {
     const block = `\n---\n${marker} at ${timestamp}]\nRecent decisions (tail):\n${recentDecisions}\n\nOpen risks:\n${openRisks}\n---\n`
 
     ensureMemoryGit(eng)
-    lockedAppendFile(path.join(eng, 'context.md'), block, { soft: true })
+    const contextPath = path.join(eng, 'context.md')
+    const blocked = refuseSymlinkWrite(contextPath, { soft: true })
+    if (blocked) throw Object.assign(new Error(blocked), { code: 'ESYMLINK' })
+    withFileLock(contextPath, () => {
+      const context = readEng(eng, 'context.md')
+      const preservedToday = context.split('\n')
+        .some(line => line.includes(marker) && line.includes(today))
+      if (!preservedToday) fs.appendFileSync(contextPath, block)
+    }, { soft: true })
     commitMemory(eng, 'context preserve', { files: ['context.md'] })
   } catch (_) {}
 }

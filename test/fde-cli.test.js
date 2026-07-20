@@ -3,7 +3,7 @@ const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
 const test = require('node:test')
-const { spawnSync } = require('node:child_process')
+const { spawn, spawnSync } = require('node:child_process')
 
 const root = path.join(__dirname, '..')
 const fde = path.join(root, 'bin', 'fde.js')
@@ -49,7 +49,7 @@ function runFde(sandbox, args, opts = {}) {
 }
 
 function runHook(sandbox, name, opts = {}) {
-  const result = spawnSync('bash', [path.join(root, 'hooks', name)], {
+  const result = spawnSync('bash', [opts.hook || path.join(root, 'hooks', name)], {
     cwd: opts.cwd || sandbox.workspace,
     env: {
       ...process.env,
@@ -948,6 +948,30 @@ test('session-stop delegates capture to the hook-resolved engagement and commits
   assert.equal(fs.readFileSync(path.join(engB, 'context.md'), 'utf8'), contextB)
 })
 
+test('capture uses one local calendar for both date and time', () => {
+  const sandbox = makeSandbox('capture-local-calendar')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Local Clock']).status, 0)
+  const eng = engagementPath(sandbox, 'local-clock')
+  const utcHour = new Date().getUTCHours()
+  const timeZone = utcHour >= 10 ? 'Pacific/Kiritimati' : 'Etc/GMT+12'
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date()).map(part => [part.type, part.value]))
+  const localDate = `${parts.year}-${parts.month}-${parts.day}`
+  assert.notEqual(localDate, new Date().toISOString().slice(0, 10), 'test timezone must cross the UTC date boundary')
+
+  const capture = runFde(sandbox, ['capture'], {
+    env: { FDEOPS_ENGAGEMENT: eng, TZ: timeZone },
+  })
+
+  assert.equal(capture.status, 0, capture.stderr)
+  const context = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  assert.match(context, new RegExp(`## Session end - ${localDate} \\d{2}:\\d{2}`))
+})
+
 test('pre-compact delegates preserve with private stripping, UTC-day dedupe, and memory commit', () => {
   const sandbox = makeSandbox('pre-compact-delegation')
   const projectA = path.join(sandbox.dir, 'project-a')
@@ -1004,6 +1028,134 @@ test('pre-compact delegates preserve with private stripping, UTC-day dedupe, and
   assert.equal(gitInEng(engA, ['log', '-1', '--format=%s']).stdout.trim(), 'context preserve')
   assert.equal(gitInEng(engA, ['show', '--format=', '--name-only', 'HEAD']).stdout.trim(), 'context.md')
   assert.equal(gitInEng(engB, ['rev-parse', 'HEAD']).stdout.trim(), headB, 'global engagement B must not be written')
+})
+
+test('preserve deduplicates atomically while concurrent writers wait on the context lock', async () => {
+  const sandbox = makeSandbox('preserve-atomic-dedupe')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Atomic Preserve']).status, 0)
+  const eng = engagementPath(sandbox, 'atomic-preserve')
+  const contextPath = path.join(eng, 'context.md')
+  const lockPath = contextPath + '.lock'
+  fs.writeFileSync(lockPath, 'test barrier\n')
+
+  const children = Array.from({ length: 6 }, () => new Promise(resolve => {
+    const child = spawn(process.execPath, [fde, 'preserve'], {
+      cwd: sandbox.workspace,
+      env: {
+        ...process.env,
+        HOME: sandbox.home,
+        USERPROFILE: sandbox.home,
+        FDEOPS_ENGAGEMENT: eng,
+        FDEOS_ENGAGEMENT: '',
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    let stderr = ''
+    child.stderr.on('data', chunk => { stderr += chunk })
+    child.on('close', status => resolve({ status, stderr }))
+  }))
+  await new Promise(resolve => setTimeout(resolve, 750))
+  fs.unlinkSync(lockPath)
+  const results = await Promise.all(children)
+
+  for (const result of results) assert.equal(result.status, 0, result.stderr)
+  const context = fs.readFileSync(contextPath, 'utf8')
+  assert.equal((context.match(/\[fdeops context preserved/g) || []).length, 1)
+})
+
+test('preserve commits an existing daily marker left dirty by an earlier failed commit', () => {
+  const sandbox = makeSandbox('preserve-commit-recovery')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Preserve Recovery']).status, 0)
+  const eng = engagementPath(sandbox, 'preserve-recovery')
+  const today = new Date().toISOString().slice(0, 10)
+  fs.appendFileSync(path.join(eng, 'context.md'),
+    `\n---\n[fdeops context preserved at ${today}T00:00:00Z]\nRecent decisions (tail):\n\nOpen risks:\n\n---\n`)
+  const before = gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim()
+
+  const preserve = runFde(sandbox, ['preserve'], { env: { FDEOPS_ENGAGEMENT: eng } })
+
+  assert.equal(preserve.status, 0, preserve.stderr)
+  assert.notEqual(gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim(), before)
+  assert.equal(gitInEng(eng, ['status', '--porcelain']).stdout, '')
+  const context = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  assert.equal((context.match(/\[fdeops context preserved/g) || []).length, 1)
+})
+
+test('preserve refuses a symlinked context file without touching its target', () => {
+  const sandbox = makeSandbox('preserve-context-symlink')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Preserve Symlink']).status, 0)
+  const eng = engagementPath(sandbox, 'preserve-symlink')
+  const contextPath = path.join(eng, 'context.md')
+  const outside = path.join(sandbox.dir, 'outside-context.md')
+  fs.writeFileSync(outside, 'outside must stay unchanged\n')
+  fs.unlinkSync(contextPath)
+  fs.symlinkSync(outside, contextPath)
+
+  const preserve = runFde(sandbox, ['preserve'], { env: { FDEOPS_ENGAGEMENT: eng } })
+
+  assert.equal(preserve.status, 0, preserve.stderr)
+  assert.equal(fs.readFileSync(outside, 'utf8'), 'outside must stay unchanged\n')
+  assert.equal(fs.lstatSync(contextPath).isSymbolicLink(), true)
+})
+
+test('preserve keeps twenty decision lines when readClean input has one terminal newline', () => {
+  const sandbox = makeSandbox('preserve-tail-lines')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Preserve Tail']).status, 0)
+  const eng = engagementPath(sandbox, 'preserve-tail')
+  fs.writeFileSync(path.join(eng, 'decisions.md'),
+    Array.from({ length: 21 }, (_, i) => `- intended decision ${String(i + 1).padStart(2, '0')}`).join('\n') + '\n')
+
+  const preserve = runFde(sandbox, ['preserve'], { env: { FDEOPS_ENGAGEMENT: eng } })
+
+  assert.equal(preserve.status, 0, preserve.stderr)
+  const context = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  const decisions = context.split('Recent decisions (tail):\n')[1].split('\n\nOpen risks:')[0].split('\n')
+  assert.equal(decisions.length, 20)
+  assert.equal(decisions[0], '- intended decision 02')
+  assert.equal(decisions[19], '- intended decision 21')
+  assert.doesNotMatch(decisions.join('\n'), /intended decision 01/)
+})
+
+test('mutation hooks exit zero without writing when Node or the CLI is unavailable', () => {
+  const sandbox = makeSandbox('hooks-best-effort-missing-runtime')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Best Effort']).status, 0)
+  const eng = engagementPath(sandbox, 'best-effort')
+  const contextPath = path.join(eng, 'context.md')
+  const before = fs.readFileSync(contextPath, 'utf8')
+  const noNodePath = path.join(sandbox.dir, 'path-without-node')
+  fs.mkdirSync(noNodePath)
+  const shellTools = spawnSync('/bin/sh', ['-c', 'command -v bash; command -v cat; command -v sed'], { encoding: 'utf8' })
+  assert.equal(shellTools.status, 0, shellTools.stderr)
+  for (const tool of shellTools.stdout.trim().split('\n')) {
+    fs.symlinkSync(tool, path.join(noNodePath, path.basename(tool)))
+  }
+
+  for (const name of ['session-stop', 'pre-compact']) {
+    const withoutNode = runHook(sandbox, name, {
+      env: {
+        FDEOPS_ENGAGEMENT: eng,
+        CLAUDE_PLUGIN_ROOT: '',
+        PATH: noNodePath,
+      },
+    })
+    assert.equal(withoutNode.status, 0, withoutNode.stderr)
+  }
+
+  const isolatedHooks = path.join(sandbox.dir, 'isolated-hooks')
+  fs.mkdirSync(isolatedHooks)
+  for (const name of ['session-stop', 'pre-compact']) {
+    const isolatedHook = path.join(isolatedHooks, name)
+    fs.copyFileSync(path.join(root, 'hooks', name), isolatedHook)
+    fs.chmodSync(isolatedHook, 0o755)
+    const withoutCli = runHook(sandbox, name, {
+      hook: isolatedHook,
+      env: { FDEOPS_ENGAGEMENT: eng, CLAUDE_PLUGIN_ROOT: '' },
+    })
+    assert.equal(withoutCli.status, 0, withoutCli.stderr)
+  }
+
+  assert.equal(fs.readFileSync(contextPath, 'utf8'), before,
+    'best-effort hooks must not bypass the CLI safety layer')
 })
 
 test('session-start triage uses the same project-pointer engagement as rendered context', () => {
