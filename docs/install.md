@@ -81,10 +81,12 @@ No cloud required. Load `SKILL.md` as your model's system prompt. Full guide: [`
 
 ## Other AI tools (Cursor, Codex, Gemini CLI, Copilot)
 
-One skill file powers every tool. Drop the right adapter into your engagement workspace:
+**Switching tools:** the fieldbook stays at `~/fde-engagements/<client>/.fde/`. Install `@fde` on the new tool, open a bound workspace (`fde resume --init <client>` once if needed), then `@fde` / `fde resume`. Same client record. Session start/stop hooks are Claude Code–first; other tools get the same brain and CLI, usually on demand.
+
+One skill file powers every tool. Drop the right adapter into the **client workspace** (the repo you open in the tool - not only the engagement folder):
 
 ```bash
-node bin/install.js adapters ~/fde-engagements/<client-name>
+node bin/install.js adapters /path/to/client-workspace
 # or: npx fdeops@latest adapters <dir>   (fdeops v3.2.0+ on npm)
 ```
 
