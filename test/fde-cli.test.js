@@ -456,6 +456,29 @@ test('CLI signal ledger keeps trust RED after Signal history is wiped', () => {
   assert.match(status.stdout, /\[RED\s*\]\s*ledgerco/, 'trust must read RED from .signal-ledger after wipe')
 })
 
+test('prep and dashboard redact private signal-ledger history', () => {
+  const sandbox = makeSandbox('private-ledger')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'privateledger']).status, 0)
+  const eng = engagementPath(sandbox, 'privateledger')
+  const canary = 'PRIVATE_LEDGER_CANARY_7Q9X'
+  fs.writeFileSync(path.join(eng, '.signal-ledger'), [
+    '<private>',
+    `- [2026-07-20] [signal:red] ${canary} blocked rollout`,
+    '</private>',
+    '',
+  ].join('\n'))
+
+  const prep = runFde(sandbox, ['prep', 'Sponsor sync'])
+  assert.equal(prep.status, 0, prep.stderr)
+  assert.doesNotMatch(prep.stdout, new RegExp(canary), 'prep leaked private signal-ledger history')
+
+  const out = path.join(sandbox.dir, 'private-ledger.html')
+  const dashboard = runFde(sandbox, ['dashboard', '--out', out])
+  assert.equal(dashboard.status, 0, dashboard.stderr)
+  assert.doesNotMatch(fs.readFileSync(out, 'utf8'), new RegExp(canary),
+    'dashboard leaked private signal-ledger history')
+})
+
 test('dashboard scoped render and scan smoke', () => {
   const sandbox = makeSandbox('dash-scan')
   assert.equal(runFde(sandbox, ['resume', '--init', 'dashco']).status, 0)
@@ -490,6 +513,20 @@ test('log refuses secret-like text and --undo removes the last entry', () => {
   const undo = runFde(sandbox, ['log', '--undo'])
   assert.equal(undo.status, 0, undo.stderr)
   assert.doesNotMatch(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /ship the retry slice/)
+})
+
+test('debrief skips a secret-shaped next action without --force', () => {
+  const sandbox = makeSandbox('secret-next')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'nextsafe']).status, 0)
+  const eng = engagementPath(sandbox, 'nextsafe')
+  const secret = 'AKIAIOSFODNN7EXAMPLE'
+
+  const debrief = runFde(sandbox, ['debrief'], { input: `next: rotate ${secret} after demo` })
+
+  assert.equal(debrief.status, 0, debrief.stderr)
+  assert.match(debrief.stderr, /skipped next line - looks like an? AWS access key/i)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), new RegExp(secret))
+  assert.match(debrief.stdout, /debrief empty - nothing routed/)
 })
 
 test('corrupted stakeholders.md does not default to green', () => {

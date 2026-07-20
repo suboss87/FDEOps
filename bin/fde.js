@@ -559,7 +559,7 @@ function parseSignalHistoryEntries(eng) {
   // Format-agnostic on token position: CLI writes "[date] [signal:x] text";
   // debrief may put the token at the end. Author tags [@x] are stripped for matching.
   const md = readClean(eng, 'stakeholders.md')
-  const histText = sectionBody(md, 'Signal history') + '\n' + readEng(eng, SIGNAL_LEDGER)
+  const histText = sectionBody(md, 'Signal history') + '\n' + readClean(eng, SIGNAL_LEDGER)
   const history = []
   histText.split('\n').forEach(l => {
     const dm = l.trim().match(/^-\s*\[(\d{4}-\d{2}-\d{2})\]\s*(.*)$/i)
@@ -1181,6 +1181,11 @@ function routeDebriefInput(eng, input, { dry, force }) {
     if (m) {
       const type = m[1].toLowerCase()
       let body = m[2]
+      const hit = findSecretHit(body)
+      if (hit && !force) {
+        console.error(`skipped ${type} line - looks like a ${hit}. Redact it, or re-run with --force.`)
+        continue
+      }
       if (type === 'next') {
         if (dry) console.log(`→ context.md ## Next action  - ${body}`)
         else nextAction = body
@@ -1189,11 +1194,6 @@ function routeDebriefInput(eng, input, { dry, force }) {
       }
       const sigInline = (body.match(/\[signal:(red|amber|green)\]/i) || [])[1]
       if (sigInline) body = body.replace(/\[signal:(red|amber|green)\]/i, '').trim()
-      const hit = findSecretHit(body)
-      if (hit && !force) {
-        console.error(`skipped ${type} line - looks like a ${hit}. Redact it, or re-run with --force.`)
-        continue
-      }
       const entry = datedEntry(eng, date, body, type === 'contact' && sigInline ? sigInline.toLowerCase() : '')
       if (dry) console.log(`→ ${LOG_FILES[type]}  ${entry}`)
       else appendLogEntry(eng, type, entry, { skipCommit: true })
