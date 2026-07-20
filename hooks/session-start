@@ -68,6 +68,7 @@ fi
 
 # 5) Optional in-repo .fde (customer-approved only)
 if [ -z "$CONTEXT_FILE" ] && [ -f ".fde/context.md" ]; then
+  ENG_DIR=".fde"
   CONTEXT_FILE=".fde/context.md"
 fi
 
@@ -164,9 +165,9 @@ if [ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ]; then
   FDE_CMD=$(resolve_fde || true)
   if [ -n "$FDE_CMD" ]; then
     if [ "$FDE_CMD" = "fde" ]; then
-      TRIAGE=$(fde triage 2>/dev/null || true)
+      TRIAGE=$(FDEOPS_ENGAGEMENT="$ENG_DIR" fde triage 2>/dev/null || true)
     else
-      TRIAGE=$(node "$FDE_CMD" triage 2>/dev/null || true)
+      TRIAGE=$(FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CMD" triage 2>/dev/null || true)
     fi
     if [ -n "$TRIAGE" ]; then
       CONTENT="$CONTENT---\n$TRIAGE\n\n"

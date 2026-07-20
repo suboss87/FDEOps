@@ -22,6 +22,7 @@
  *   fde owner [set …]       who keeps this engagement record
  *   fde receipts <term>     "what did we agree?" - search memory with dates
  *   fde capture             session-end snapshot → context.md (hooks use this)
+ *   fde preserve            pre-compaction context snapshot (hook-internal; hooks use this)
  *   fde status [--all]      current engagement (default) or full portfolio (--all)
  *   fde dashboard [--all]   current engagement fieldbook (default) or all (--all)
  */
@@ -559,7 +560,7 @@ function parseSignalHistoryEntries(eng) {
   // Format-agnostic on token position: CLI writes "[date] [signal:x] text";
   // debrief may put the token at the end. Author tags [@x] are stripped for matching.
   const md = readClean(eng, 'stakeholders.md')
-  const histText = sectionBody(md, 'Signal history') + '\n' + readEng(eng, SIGNAL_LEDGER)
+  const histText = sectionBody(md, 'Signal history') + '\n' + readClean(eng, SIGNAL_LEDGER)
   const history = []
   histText.split('\n').forEach(l => {
     const dm = l.trim().match(/^-\s*\[(\d{4}-\d{2}-\d{2})\]\s*(.*)$/i)
@@ -1181,6 +1182,11 @@ function routeDebriefInput(eng, input, { dry, force }) {
     if (m) {
       const type = m[1].toLowerCase()
       let body = m[2]
+      const hit = findSecretHit(body)
+      if (hit && !force) {
+        console.error(`skipped ${type} line - looks like a ${hit}. Redact it, or re-run with --force.`)
+        continue
+      }
       if (type === 'next') {
         if (dry) console.log(`→ context.md ## Next action  - ${body}`)
         else nextAction = body
@@ -1189,11 +1195,6 @@ function routeDebriefInput(eng, input, { dry, force }) {
       }
       const sigInline = (body.match(/\[signal:(red|amber|green)\]/i) || [])[1]
       if (sigInline) body = body.replace(/\[signal:(red|amber|green)\]/i, '').trim()
-      const hit = findSecretHit(body)
-      if (hit && !force) {
-        console.error(`skipped ${type} line - looks like a ${hit}. Redact it, or re-run with --force.`)
-        continue
-      }
       const entry = datedEntry(eng, date, body, type === 'contact' && sigInline ? sigInline.toLowerCase() : '')
       if (dry) console.log(`→ ${LOG_FILES[type]}  ${entry}`)
       else appendLogEntry(eng, type, entry, { skipCommit: true })
@@ -1335,7 +1336,12 @@ function cmdCapture() {
   }).join(' ')
   if (!changed && !updated) process.exit(0) // idle session - keep memory clean
   const d = new Date()
-  const stamp = `${d.toISOString().slice(0, 10)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  const localDate = [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0'),
+  ].join('-')
+  const stamp = `${localDate} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
   let block = `\n<!-- fdeops auto-capture -->\n## Session end - ${stamp}\n`
   if (branch) block += `- workspace: \`${branch}\` @ ${lastCommit || 'no commits yet'}\n`
   if (changed) block += `- uncommitted: ${changed}\n`
@@ -1344,6 +1350,36 @@ function cmdCapture() {
     ensureMemoryGit(eng)
     lockedAppendFile(path.join(eng, 'context.md'), block, { soft: true })
     commitMemory(eng, 'session capture', { files: ['context.md'] })
+  } catch (_) {}
+}
+
+function cmdPreserve() {
+  try {
+    const eng = resolveEngagement({ forWrite: true })
+    if (!eng || !fs.existsSync(path.join(eng, 'context.md'))) return
+    const marker = '[fdeops context preserved'
+    const today = new Date().toISOString().slice(0, 10)
+    const decisionLines = readClean(eng, 'decisions.md').split('\n')
+    if (decisionLines[decisionLines.length - 1] === '') decisionLines.pop()
+    const recentDecisions = decisionLines.slice(-20).join('\n')
+    const openRisks = readClean(eng, 'risks.md').split('\n')
+      .filter(line => /open|active|unresolved/i.test(line))
+      .slice(0, 8)
+      .join('\n')
+    const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
+    const block = `\n---\n${marker} at ${timestamp}]\nRecent decisions (tail):\n${recentDecisions}\n\nOpen risks:\n${openRisks}\n---\n`
+
+    ensureMemoryGit(eng)
+    const contextPath = path.join(eng, 'context.md')
+    const blocked = refuseSymlinkWrite(contextPath, { soft: true })
+    if (blocked) throw Object.assign(new Error(blocked), { code: 'ESYMLINK' })
+    withFileLock(contextPath, () => {
+      const context = readEng(eng, 'context.md')
+      const preservedToday = context.split('\n')
+        .some(line => line.includes(marker) && line.includes(today))
+      if (!preservedToday) fs.appendFileSync(contextPath, block)
+    }, { soft: true })
+    commitMemory(eng, 'context preserve', { files: ['context.md'] })
   } catch (_) {}
 }
 
@@ -1830,8 +1866,7 @@ function cmdDashboard(args) {
 
   try {
     fs.mkdirSync(path.dirname(outPath), { recursive: true })
-    refuseSymlinkWrite(outPath)
-    fs.writeFileSync(outPath, html)
+    atomicWriteFile(outPath, html)
   } catch (e) {
     failFs(e, 'write fieldbook', outPath)
   }
@@ -1868,6 +1903,7 @@ function printUsage() {
   fde owner [set email]    who keeps this engagement record
   fde receipts <term>      "what did we agree?" with dates
   fde capture              session-end memory snapshot (hooks use this)
+  fde preserve             pre-compaction context snapshot (hook-internal; hooks use this)
   fde status [--all]       current engagement status (pass --all for full portfolio)
   fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
   env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)
@@ -1889,6 +1925,7 @@ switch (cmd) {
   case 'owner': cmdOwner(args); break
   case 'receipts': cmdReceipts(args); break
   case 'capture': cmdCapture(); break
+  case 'preserve': cmdPreserve(); break
   case 'status': cmdStatus(args); break
   case 'dashboard': cmdDashboard(args); break
   case 'help':
