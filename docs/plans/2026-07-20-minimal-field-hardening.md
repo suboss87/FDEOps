@@ -66,55 +66,47 @@ Commit only `bin/fde.js` and `test/fde-cli.test.js` as Subash Natarajan.
 
 ---
 
-### Task 2: Recover abandoned locks and preserve complete dashboards
+### Task 2: Preserve conservative locks and complete dashboards
 
 **Files:**
 - Modify: `bin/fde.js:273-320`
 - Modify: `bin/fde.js:1831-1837`
 - Test: `test/fde-cli.test.js`
 
-**Step 1: Write the failing abandoned-lock test**
+**Step 1: Cover existing stale and fresh locks**
 
-Create an old `decisions.md.lock`, run `fde log decision`, and assert the write succeeds and removes the lock.
+Create old and fresh `decisions.md.lock` files, run `fde log decision`, and assert both writes time out with the existing retry message. In each case, the target and lock must remain unchanged for manual/operator recovery.
 
-**Step 2: Verify RED**
+**Step 2: Retain conservative lock acquisition**
 
-Run: `node --test --test-name-pattern="abandoned lock" test/fde-cli.test.js`
+Do not infer lock ownership from modification time or unlink an existing lock. Automatic stale-lock recovery was removed after a Critical TOCTOU review: an age check followed by unlink can delete a lock another writer acquired or still owns between those operations.
 
-Expected: FAIL after the current five-second lock timeout.
+An ownership-token protocol could make recovery verifiable, but is outside this minimal hardening.
 
-**Step 3: Implement conservative stale-lock recovery**
-
-When lock acquisition sees `EEXIST`, inspect the lock mtime. If older than 30 seconds, unlink it once and retry. Preserve existing behavior for fresh locks and all other errors.
-
-**Step 4: Verify stale and active lock behavior**
-
-Add/retain a fresh-lock test that expects failure with the existing retry message. Run both focused tests and confirm PASS.
-
-**Step 5: Write the failing atomic-dashboard test**
+**Step 3: Write the failing atomic-dashboard test**
 
 Use source-level structural validation in `bin/check.js` only if process-level failure injection is impractical; otherwise inject a rename failure and assert the old fieldbook remains byte-for-byte unchanged.
 
-**Step 6: Verify RED**
+**Step 4: Verify RED**
 
 Expected: FAIL because dashboard currently uses direct `writeFileSync`.
 
-**Step 7: Reuse `atomicWriteFile()`**
+**Step 5: Reuse `atomicWriteFile()`**
 
 Replace the direct dashboard write with `atomicWriteFile(outPath, html)`. Keep the existing output, symlink refusal, and error formatting.
 
-**Step 8: Verify focused and full tests**
+**Step 6: Verify focused and full tests**
 
 Run:
 
 ```bash
-node --test --test-name-pattern="abandoned lock|fresh lock|dashboard" test/fde-cli.test.js
+node --test --test-name-pattern="stale lock|fresh lock|dashboard" test/fde-cli.test.js
 npm run check
 ```
 
 Expected: all checks pass without warnings.
 
-**Step 9: Commit**
+**Step 7: Commit**
 
 Commit the lock and dashboard hardening as Subash Natarajan.
 
@@ -136,7 +128,7 @@ Commit the lock and dashboard hardening as Subash Natarajan.
 In isolated HOME/workspace sandboxes:
 
 - prove session-stop writes through `fde capture` and commits memory;
-- prove pre-compact preserves the same redacted block once per UTC day;
+- prove pre-compact preserves the same redacted block once per UTC day, with the dedupe check and append performed atomically under one lock;
 - prove triage and context use the hook-resolved engagement when project and global pointers differ.
 
 **Step 2: Verify RED**
@@ -188,7 +180,11 @@ Pass `FDEOPS_ENGAGEMENT="$ENG_DIR"` to the existing CLI triage invocation so con
 
 Change `bin/check.js` invariants to require CLI delegation and reject raw `>> "$CONTEXT_FILE"`/`cat >> "$CONTEXT_FILE"` mutation paths.
 
-**Step 8: Verify focused and full checks**
+**Step 8: Cover consistent local capture timestamps**
+
+Run capture in a timezone where the local and UTC dates differ. Assert the session heading uses a date and time from the same local clock snapshot.
+
+**Step 9: Verify focused and full checks**
 
 Run:
 
@@ -200,7 +196,7 @@ npm run check
 
 Expected: all checks pass without warnings.
 
-**Step 9: Commit**
+**Step 10: Commit**
 
 Commit the hook consolidation as Subash Natarajan.
 

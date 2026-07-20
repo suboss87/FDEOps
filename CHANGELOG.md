@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Private signal-ledger content is redacted before prep and dashboard extraction.
+- Secret detection now applies to `next:` debrief entries.
+- Dashboard output replaces the existing fieldbook atomically.
+- Hooks delegate capture and preserve through the explicitly resolved engagement.
+- Preserve keeps daily deduplication atomic and commits only local memory changes.
+- Session capture derives its date and time from one consistent local timestamp.
+- Focused regressions cover privacy, locking, atomic replacement, hook delegation, deduplication, and timestamps.
+
 ## 3.9.10 — 2026-07-20
 
 Skill routing clarity + switch-tools docs + cheap skill eval pack.

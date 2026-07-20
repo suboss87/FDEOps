@@ -13,7 +13,7 @@ This hardening release will:
 3. Redact `.signal-ledger` before any dashboard or prep extraction.
 4. Apply existing secret detection to `next:` debrief entries.
 5. Replace the fieldbook atomically.
-6. Recover conservatively from abandoned lock files.
+6. Keep existing lock files intact for conservative operator recovery.
 7. Add process-level regression tests for each behavior.
 
 ## Compatibility contract
@@ -43,14 +43,13 @@ hook resolves engagement
 
 The hook remains responsible for compatibility resolution. Once resolved, it passes the exact path into the CLI. The CLI becomes the only writer, eliminating unlocked Bash appends without removing legacy pointer behavior.
 
-`fde preserve` reproduces the current pre-compaction block and daily deduplication. It uses redacted reads and a locked append, then records the change in the existing local memory Git repository. It exits successfully on missing engagement or write failure because compaction hooks cannot be allowed to block.
+`fde preserve` reproduces the current pre-compaction block and daily deduplication. It uses redacted reads and performs the check-and-append under one lock, then records the change in the existing local memory Git repository. It exits successfully on missing engagement or write failure because compaction hooks cannot be allowed to block.
 
-Lock recovery uses the lock file's modification time. A lock older than 30 seconds is treated as abandoned and removed once before normal acquisition retries continue. Normal Markdown writes complete far below this threshold.
+Lock acquisition does not infer ownership from file age. Any existing lock is retained; the writer waits up to five seconds and then asks the operator to retry. Automatic stale-lock recovery was removed after a Critical TOCTOU review: checking a lock's age and then unlinking it can delete a lock that another writer acquired or still owns between those operations. Safe automatic recovery would require an ownership token that is verified before deletion, which is outside this minimal hardening.
 
 ## Failure behavior
 
-- Active lock: wait up to five seconds, then return the existing retry message.
-- Abandoned lock: remove it and continue; no user memory is modified during recovery.
+- Existing lock, regardless of age: wait up to five seconds, preserve the lock and target, then return the existing retry message. Manual/operator recovery is required when a lock is known to be abandoned.
 - Hook cannot locate Node or the CLI: exit successfully without writing, preserving current best-effort behavior.
 - Hook CLI write fails: exit successfully; existing memory remains untouched or contains only a complete append.
 - Dashboard replacement fails: retain the previous complete fieldbook and report a concise filesystem error.
@@ -63,10 +62,11 @@ Process-level `node:test` cases will prove:
 
 - private canaries in `.signal-ledger` never appear in prep or dashboard output;
 - secret-like `next:` lines are skipped and do not enter `context.md`;
-- an abandoned lock is reclaimed while a fresh lock still blocks;
+- stale and fresh lock files both remain in place and block writes without modifying their targets;
 - dashboard replacement uses the atomic write path;
 - session-stop invokes `capture` against the resolved engagement;
 - pre-compact invokes `preserve`, retains redaction, and deduplicates daily;
+- session capture uses one consistent local date and time;
 - session-start triage uses the same resolved engagement as its context.
 
 Every behavioral change follows red-green TDD. The full `npm run check` gate must remain clean.
@@ -85,3 +85,4 @@ Ship as a patch release only after testing upgrades from a v3.9.10 sandbox. No m
 - Encryption or management of genuinely sensitive values
 - Broad resolver rewrite or removal of legacy pointers
 - Changes to trust scoring or dashboard information architecture
+- Ownership-token lock protocol or automatic stale-lock recovery
