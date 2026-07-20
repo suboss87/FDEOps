@@ -141,6 +141,32 @@ test('log decision does not reclaim a fresh lock or modify its target', () => {
   assert.equal(fs.existsSync(lock), true)
 })
 
+test('stale lock unlink errors use the existing lock error handling', () => {
+  const sandbox = makeSandbox('stale-lock-unlink-error')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Stale Lock Error']).status, 0)
+  const eng = engagementPath(sandbox, 'stale-lock-error')
+  const target = path.join(eng, 'decisions.md')
+  const lock = target + '.lock'
+  const before = fs.readFileSync(target, 'utf8')
+  fs.writeFileSync(lock, 'abandoned\n')
+  const stale = new Date(Date.now() - 31_000)
+  fs.utimesSync(lock, stale, stale)
+  fs.chmodSync(eng, 0o555)
+
+  let log
+  try {
+    log = runFde(sandbox, ['log', 'decision', 'must not be written'])
+  } finally {
+    fs.chmodSync(eng, 0o755)
+  }
+
+  assert.notEqual(log.status, 0)
+  assert.match(log.stderr, /permission denied|read-only|locked down/i)
+  assert.doesNotMatch(log.stderr, /another writer is active; retry/)
+  assert.equal(fs.readFileSync(target, 'utf8'), before)
+  assert.equal(fs.existsSync(lock), true)
+})
+
 test('debrief --dry-run routes markdown-style notes without writing files', () => {
   const sandbox = makeSandbox('debrief')
   assert.equal(runFde(sandbox, ['resume', '--init', 'Client']).status, 0)

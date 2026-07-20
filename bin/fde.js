@@ -286,6 +286,8 @@ function withFileLock(targetPath, fn, opts = {}) {
           lockStat = fs.statSync(lockPath)
         } catch (statErr) {
           if (statErr.code === 'ENOENT') continue
+          if (opts.soft) throw statErr
+          failFs(statErr, 'lock', targetPath)
         }
         if (lockStat && Date.now() - lockStat.mtimeMs > 30_000) {
           try {
@@ -293,6 +295,8 @@ function withFileLock(targetPath, fn, opts = {}) {
             continue
           } catch (unlinkErr) {
             if (unlinkErr.code === 'ENOENT') continue
+            if (opts.soft) throw unlinkErr
+            failFs(unlinkErr, 'lock', targetPath)
           }
         }
         if (Date.now() > deadline) {
