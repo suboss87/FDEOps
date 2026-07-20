@@ -1,6 +1,6 @@
 {
   "name": "fdeops",
-  "version": "3.9.9",
+  "version": "3.9.10",
   "description": "Field kit for engineers embedded in client work - a real CLI (recon, memory, portfolio), one @fde skill with field judgment on top, and hooks that make it automatic. Claude Code plugin and any agent that loads skills.",
   "bin": {
     "fdeops": "bin/install.js",
@@ -9,6 +9,7 @@
   "scripts": {
     "check": "node bin/check.js && npm test",
     "test": "node --test test/*.test.js",
+    "test:skill-routing": "node evals/skill-routing/check.js && node evals/skill-routing/live-smoke.js",
     "prepublishOnly": "node bin/check.js && npm test"
   },
   "files": [

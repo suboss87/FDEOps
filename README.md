@@ -92,7 +92,17 @@ npx fdeops resume                 # prints a short "where we are" for this clien
 
 fdeops complements repo memory: CLAUDE.md holds how the *code* works; the fieldbook holds how the *client engagement* works.
 
-Works with **Claude Code** · **Cursor** · **Copilot** · **Gemini CLI** · **Ollama** · **LM Studio** - any model that reads markdown.
+### Switch coding agents anytime
+
+The fieldbook lives on disk at `~/fde-engagements/<client>/.fde/` - not inside Claude, Cursor, or any other tool. Change AI coding agents and the **same client record** is still there.
+
+On the new tool:
+
+1. Install `@fde` for that tool (plugin, `npx skills add suboss87/fdeops`, or `npx fdeops adapters .` - see [adapters/](adapters/README.md))
+2. Open a workspace already bound with `npx fdeops resume --init <client>` (or bind once if this checkout is new)
+3. Talk with `@fde` or run `npx fdeops resume`
+
+Same fieldbook. **Claude Code** gets the fullest ride (session start/stop hooks). Elsewhere the memory and CLI are the same; context usually loads when you ask `@fde` / `resume`, not automatically. Details: [docs/install.md](docs/install.md).
 
 <details>
 <summary><strong>Phase verbs</strong> (land → close)</summary>
