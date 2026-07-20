@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.9.10 — 2026-07-20
+
+Skill routing clarity + switch-tools docs + cheap skill eval pack.
+
+### Added
+- **Switch coding agents** - README / install / adapters state plainly: fieldbook stays on disk; install `@fde` + bind; Claude hooks are fullest; elsewhere load on demand.
+- **`evals/skill-routing/`** - contract check + live CLI smoke for happy `@fde` verbs (`npm run test:skill-routing`).
+
+### Changed
+- **Skill description** - when to use + explicit *do not use for ordinary code edits, tests, refactors, or git commits*.
+- **`fde redact`** documented in the skill CLI routing table.
+- **Trust signal** - if the human already named the color, that is the confirm.
+
 ## 3.9.9 — 2026-07-19
 
 Proactive fieldbook hygiene at high-value moments only.

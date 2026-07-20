@@ -1,6 +1,6 @@
 ---
 name: fde
-description: Second brain for Forward Deployed Engineers. The human describes the situation in plain language with @fde - you route, run the local fde CLI for memory plumbing, and write the fieldbook. Never ask the human to type fde commands.
+description: Engagement fieldbook for Forward Deployed Engineers. Use when the human says @fde or asks about client memory, debrief, prep, receipts, trust, hygiene, or sponsor status — route and run the local fde CLI; never ask them to type fde commands. Do not use for ordinary code edits, unit tests, refactors, or git commits.
 ---
 
 # @fde
@@ -74,9 +74,10 @@ When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FD
 | "Prep me for the meeting with …" / walk-in brief | `fde prep "<short label>"` - present the brief in plain language; do not invent facts missing from `.fde/` |
 | "When did we agree…?" / scope dispute | `fde receipts <term>` - answer with dates; no hit = gap, not proof |
 | "Draft the sponsor update" / how are we doing | `fde status` then follow `references/status.md` for the narrative |
-| "Log that they went quiet" / trust signal | `fde log contact "…" --signal amber\|green\|red` (after FDE confirms the read) |
+| "Log that they went quiet" / trust signal | `fde log contact "…" --signal amber\|green\|red`. If they already named the color ("log that as amber"), that is the confirm — write it. If they only described the situation, playback the color once, then write. |
 | Want the HTML fieldbook | `fde dashboard` |
 | "Clean up the fieldbook" / hygiene / memory feels messy | `fde doctor` - walk issues in plain language; propose fixes; never auto-rewrite without confirm. Contradictions need judgment (brief vs reality) - doctor is structural; you handle meaning. |
+| "Scrub this secret / redact that token" (buried line, not just last write) | `fde redact <term>` preview, then `fde redact <term> --apply` after confirm. Undo is last-write only; redact is for buried lines. Remind them to rotate the real credential. |
 
 **The debrief verb.** Highest-frequency loop. When the FDE shares notes or says "debrief": **you** run the smart path (write notes to a temp file if needed). Show the proposed routing in plain language. Only `--apply` (or pipe prefixed lines) after they confirm. Never ask them to run the CLI. Detail: `references/debrief.md`.
 

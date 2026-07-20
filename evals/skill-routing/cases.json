@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "purpose": "Cheap @fde routing pack (Philip-style): happy vs negative. CLI unit tests stay the product bar; this grades the skill contract.",
+  "cases": [
+    {
+      "id": "happy-debrief",
+      "kind": "happy",
+      "prompt": "@fde debrief these notes from today's standup with Denise",
+      "expect": {
+        "cli": ["debrief"],
+        "must_not_tell_human_to_run_cli": true,
+        "confirm_before_apply": true
+      }
+    },
+    {
+      "id": "happy-prep",
+      "kind": "happy",
+      "prompt": "@fde prep me for tomorrow's meeting with the sponsor",
+      "expect": { "cli": ["prep"] }
+    },
+    {
+      "id": "happy-receipts",
+      "kind": "happy",
+      "prompt": "@fde when did we agree to drop the reporting slice?",
+      "expect": { "cli": ["receipts"] }
+    },
+    {
+      "id": "happy-doctor",
+      "kind": "happy",
+      "prompt": "@fde clean up the fieldbook",
+      "expect": {
+        "cli": ["doctor"],
+        "must_not_auto_rewrite": true
+      }
+    },
+    {
+      "id": "happy-scan",
+      "kind": "happy",
+      "prompt": "@fde day-1 look at this repo - what's hot?",
+      "expect": { "cli": ["scan"] }
+    },
+    {
+      "id": "happy-status",
+      "kind": "happy",
+      "prompt": "@fde draft the sponsor update from the record",
+      "expect": { "cli": ["status"], "reference_hint": "status" }
+    },
+    {
+      "id": "happy-signal",
+      "kind": "happy",
+      "prompt": "@fde Denise went quiet after the board prep - log that as amber",
+      "expect": { "cli": ["log"], "cli_flags": ["--signal"] }
+    },
+    {
+      "id": "happy-dashboard",
+      "kind": "happy",
+      "prompt": "@fde open the fieldbook dashboard",
+      "expect": { "cli": ["dashboard"] }
+    },
+    {
+      "id": "happy-resume",
+      "kind": "happy",
+      "prompt": "@fde where did we leave off?",
+      "expect": { "cli": ["resume"] }
+    },
+    {
+      "id": "happy-redact-adjacent",
+      "kind": "happy",
+      "prompt": "@fde I accidentally logged a secret earlier - scrub the token sk-live from memory",
+      "expect": { "cli": ["redact"] }
+    },
+    {
+      "id": "neg-typescript-bug",
+      "kind": "negative",
+      "prompt": "Fix the TypeScript error in src/payments.ts line 42",
+      "expect": {
+        "must_not_cli": ["debrief", "doctor", "scan", "log", "receipts"],
+        "must_not_load_reference": ["land.md", "discover.md", "ship.md"]
+      }
+    },
+    {
+      "id": "neg-unit-test",
+      "kind": "negative",
+      "prompt": "Write a unit test for calculateRetryBackoff",
+      "expect": {
+        "must_not_cli": ["debrief", "doctor", "resume", "dashboard"],
+        "must_not_load_reference": ["land.md", "close.md"]
+      }
+    },
+    {
+      "id": "neg-refactor",
+      "kind": "negative",
+      "prompt": "Refactor this React component to use hooks",
+      "expect": {
+        "must_not_cli": ["debrief", "doctor", "scan"],
+        "must_not_load_reference": ["land.md", "discover.md", "plan.md"]
+      }
+    },
+    {
+      "id": "neg-git-commit",
+      "kind": "negative",
+      "prompt": "Commit my staged changes with a good message",
+      "expect": {
+        "must_not_cli": ["debrief", "doctor", "log", "capture"],
+        "must_not_load_reference": ["ship.md", "close.md"]
+      }
+    },
+    {
+      "id": "neg-explain-code",
+      "kind": "negative",
+      "prompt": "Explain what this function does",
+      "expect": {
+        "must_not_cli": ["debrief", "doctor", "scan", "receipts", "prep"],
+        "must_not_load_reference": ["land.md", "exec-narrative.md"]
+      }
+    },
+    {
+      "id": "mixed-code-and-stakeholder",
+      "kind": "negative",
+      "prompt": "Fix the flaky payroll job and update Denise that we slipped",
+      "expect": {
+        "must_not_cli": ["debrief", "doctor", "land", "discover"],
+        "note": "Code first; memory/log only after confirm — not an immediate fde dump"
+      }
+    }
+  ]
+}
