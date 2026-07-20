@@ -258,7 +258,7 @@ test('dashboard rename failure preserves the existing fieldbook', () => {
 
   const dashboard = runFde(sandbox, ['dashboard', '--out', out], {
     env: {
-      NODE_OPTIONS: `--require=${injector}`,
+      NODE_OPTIONS: `--require=${JSON.stringify(injector)}`,
       FDEOPS_TEST_RENAME_DEST: out,
     },
   })
