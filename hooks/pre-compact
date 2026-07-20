@@ -36,6 +36,25 @@ registry_engagement_dir() {
   return 1
 }
 
+# Prefer PATH `fde`, then plugin/repo copies - same order as session-start.
+resolve_fde() {
+  if command -v fde >/dev/null 2>&1; then
+    printf '%s\n' "fde"
+    return 0
+  fi
+  for candidate in \
+    "${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/bin/fde.js}" \
+    "$(dirname "$0")/../bin/fde.js" \
+    "$HOME/.claude/fdeops/fde.js" \
+    "$HOME/.claude/plugins/fdeops/bin/fde.js"; do
+    if [ -n "$candidate" ] && [ -f "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
 ENG_DIR=$(resolve_engagement_dir "${FDEOPS_ENGAGEMENT:-${FDEOS_ENGAGEMENT:-}}")
 
 if [ -z "$ENG_DIR" ]; then
@@ -58,16 +77,13 @@ fi
 
 [ -z "$ENG_DIR" ] && exit 0
 
-if command -v node >/dev/null 2>&1; then
-  for FDE_CLI in \
-    "${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/bin/fde.js}" \
-    "$(dirname "$0")/../bin/fde.js" \
-    "$HOME/.claude/fdeops/fde.js"; do
-    if [ -n "$FDE_CLI" ] && [ -f "$FDE_CLI" ]; then
-      FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" preserve >/dev/null 2>&1 || true
-      break
-    fi
-  done
+FDE_CMD=$(resolve_fde || true)
+if [ -n "$FDE_CMD" ]; then
+  if [ "$FDE_CMD" = "fde" ]; then
+    FDEOPS_ENGAGEMENT="$ENG_DIR" fde preserve >/dev/null 2>&1 || true
+  else
+    FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CMD" preserve >/dev/null 2>&1 || true
+  fi
 fi
 
 exit 0

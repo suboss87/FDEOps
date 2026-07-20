@@ -1,15 +1,20 @@
 # Changelog
 
-## Unreleased
+## 3.9.11 — 2026-07-20
+
+Minimal field hardening for integrity and privacy without schema or workflow changes.
 
 ### Fixed
 - Private signal-ledger content is redacted before prep and dashboard extraction.
 - Secret detection now applies to `next:` debrief entries.
 - Dashboard output replaces the existing fieldbook atomically.
 - Hooks delegate capture and preserve through the explicitly resolved engagement.
+- Mutation hooks prefer PATH `fde`, then plugin copies — same discovery order as session-start.
 - Preserve keeps daily deduplication atomic and commits only local memory changes.
 - Session capture derives its date and time from one consistent local timestamp.
-- Focused regressions cover privacy, locking, atomic replacement, hook delegation, deduplication, and timestamps.
+
+### Added
+- Focused regressions for privacy, locking, atomic replacement, hook delegation (including PATH fallback), upgrade-shaped fixtures, deduplication, and timestamps.
 
 ## 3.9.10 — 2026-07-20
 

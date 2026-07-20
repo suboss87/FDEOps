@@ -86,6 +86,14 @@ function ensureEngagementGitClean(eng) {
   }
 }
 
+function tryUnlink(p) {
+  try { fs.unlinkSync(p) } catch (_) {}
+}
+
+function rmTreeIfPresent(p) {
+  try { fs.rmSync(p, { recursive: true, force: true }) } catch (_) {}
+}
+
 test('resume --init creates templates, binds the workspace, and resume resolves from registry', () => {
   const sandbox = makeSandbox('resume')
   const init = runFde(sandbox, ['resume', '--init', 'Garvey Payments'])
@@ -1156,6 +1164,77 @@ test('mutation hooks exit zero without writing when Node or the CLI is unavailab
 
   assert.equal(fs.readFileSync(contextPath, 'utf8'), before,
     'best-effort hooks must not bypass the CLI safety layer')
+})
+
+test('mutation hooks fall back to PATH fde when plugin copies are missing', () => {
+  const sandbox = makeSandbox('hooks-path-fde')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Path Fde']).status, 0)
+  const eng = engagementPath(sandbox, 'path-fde')
+  ensureEngagementGitClean(eng)
+  const beforeHead = gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim()
+
+  const binDir = path.join(sandbox.dir, 'path-bin')
+  fs.mkdirSync(binDir)
+  const fdeShim = path.join(binDir, 'fde')
+  fs.writeFileSync(fdeShim, `#!/bin/sh\nexec "${process.execPath}" "${fde}" "$@"\n`)
+  fs.chmodSync(fdeShim, 0o755)
+
+  const isolatedHooks = path.join(sandbox.dir, 'path-hooks')
+  fs.mkdirSync(isolatedHooks)
+  for (const name of ['session-stop', 'pre-compact']) {
+    const isolatedHook = path.join(isolatedHooks, name)
+    fs.copyFileSync(path.join(root, 'hooks', name), isolatedHook)
+    fs.chmodSync(isolatedHook, 0o755)
+  }
+
+  const pathEnv = {
+    FDEOPS_ENGAGEMENT: eng,
+    CLAUDE_PLUGIN_ROOT: '',
+    PATH: `${binDir}:${path.dirname(process.execPath)}:/usr/bin:/bin`,
+  }
+
+  const stop = runHook(sandbox, 'session-stop', {
+    hook: path.join(isolatedHooks, 'session-stop'),
+    env: pathEnv,
+  })
+  assert.equal(stop.status, 0, stop.stderr)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /## Session end -/)
+  assert.notEqual(gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim(), beforeHead,
+    'PATH fde must still capture through session-stop')
+
+  const afterCapture = gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim()
+  const compact = runHook(sandbox, 'pre-compact', {
+    hook: path.join(isolatedHooks, 'pre-compact'),
+    env: pathEnv,
+  })
+  assert.equal(compact.status, 0, compact.stderr)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /\[fdeops context preserved/)
+  assert.notEqual(gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim(), afterCapture,
+    'PATH fde must still preserve through pre-compact')
+})
+
+test('v3.9.10-shaped engagement still works through core CLI verbs', () => {
+  const sandbox = makeSandbox('upgrade-fixture')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Upgrade Fixture']).status, 0)
+  const eng = engagementPath(sandbox, 'upgrade-fixture')
+  for (const hidden of ['.git', '.owner', '.signal-ledger', '.last-write']) {
+    const p = path.join(eng, hidden)
+    if (hidden === '.git') rmTreeIfPresent(p)
+    else tryUnlink(p)
+  }
+
+  assert.equal(runFde(sandbox, ['resume']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'keep launch date']).status, 0)
+  assert.equal(runFde(sandbox, ['debrief'], { input: 'contact: Denise saw demo [signal:green]\nnext: send recap\n' }).status, 0)
+  assert.equal(runFde(sandbox, ['prep', 'Sponsor sync']).status, 0)
+  const doctor = runFde(sandbox, ['doctor'])
+  assert.ok(doctor.status === 0 || doctor.status === 1, doctor.stderr)
+  assert.equal(runFde(sandbox, ['status']).status, 0)
+  const dash = runFde(sandbox, ['dashboard', '--out', path.join(sandbox.dir, 'upgrade.html')])
+  assert.equal(dash.status, 0, dash.stderr)
+  assert.equal(runFde(sandbox, ['capture'], { env: { FDEOPS_ENGAGEMENT: eng } }).status, 0)
+  assert.equal(runFde(sandbox, ['preserve'], { env: { FDEOPS_ENGAGEMENT: eng } }).status, 0)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /Session end|fdeops context preserved/)
 })
 
 test('session-start triage uses the same project-pointer engagement as rendered context', () => {

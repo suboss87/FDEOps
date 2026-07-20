@@ -22,7 +22,7 @@
  *   fde owner [set …]       who keeps this engagement record
  *   fde receipts <term>     "what did we agree?" - search memory with dates
  *   fde capture             session-end snapshot → context.md (hooks use this)
- *   fde preserve            pre-compaction context snapshot (hooks use this)
+ *   fde preserve            pre-compaction context snapshot (hook-internal; hooks use this)
  *   fde status [--all]      current engagement (default) or full portfolio (--all)
  *   fde dashboard [--all]   current engagement fieldbook (default) or all (--all)
  */
@@ -1903,7 +1903,7 @@ function printUsage() {
   fde owner [set email]    who keeps this engagement record
   fde receipts <term>      "what did we agree?" with dates
   fde capture              session-end memory snapshot (hooks use this)
-  fde preserve             pre-compaction context snapshot (hooks use this)
+  fde preserve             pre-compaction context snapshot (hook-internal; hooks use this)
   fde status [--all]       current engagement status (pass --all for full portfolio)
   fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
   env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)

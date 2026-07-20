@@ -43,6 +43,35 @@ registry_engagement_dir() {
   return 1
 }
 
+# Prefer PATH `fde`, then plugin/repo copies - same order as session-start.
+resolve_fde() {
+  if command -v fde >/dev/null 2>&1; then
+    printf '%s\n' "fde"
+    return 0
+  fi
+  for candidate in \
+    "${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/bin/fde.js}" \
+    "$(dirname "$0")/../bin/fde.js" \
+    "$HOME/.claude/fdeops/fde.js" \
+    "$HOME/.claude/plugins/fdeops/bin/fde.js"; do
+    if [ -n "$candidate" ] && [ -f "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+run_fde() {
+  local cmd="$1"
+  shift
+  if [ "$cmd" = "fde" ]; then
+    FDEOPS_ENGAGEMENT="$ENG_DIR" fde "$@" >/dev/null 2>&1 || true
+  else
+    FDEOPS_ENGAGEMENT="$ENG_DIR" node "$cmd" "$@" >/dev/null 2>&1 || true
+  fi
+}
+
 ENG_DIR=""
 
 # 1) Environment variable (any agent)
@@ -72,20 +101,10 @@ fi
 
 [ -z "$ENG_DIR" ] && exit 0
 
-# Refresh the local fieldbook.html so the portfolio view is current next time
-# it's opened. Deterministic render of .fde/ - zero tokens, best-effort, never
-# allowed to break the session.
-if command -v node >/dev/null 2>&1; then
-  for FDE_CLI in \
-    "${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/bin/fde.js}" \
-    "$(dirname "$0")/../bin/fde.js" \
-    "$HOME/.claude/fdeops/fde.js"; do
-    if [ -n "$FDE_CLI" ] && [ -f "$FDE_CLI" ]; then
-      FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" capture >/dev/null 2>&1 || true
-      FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" dashboard >/dev/null 2>&1 || true
-      break
-    fi
-  done
+FDE_CMD=$(resolve_fde || true)
+if [ -n "$FDE_CMD" ]; then
+  run_fde "$FDE_CMD" capture
+  run_fde "$FDE_CMD" dashboard
 fi
 
 exit 0

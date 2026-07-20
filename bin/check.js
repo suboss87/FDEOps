@@ -246,14 +246,21 @@ if (!fs.existsSync(path.join(root, 'hooks', 'session-stop'))) {
   const stopHook = read('hooks/session-stop')
   const stopHookCode = stopHook.replace(/^[ \t]*#.*$/gm, '')
   if (!stopHook.includes('FDEOPS_ENGAGEMENT')) fail('session-stop must resolve FDEOPS_ENGAGEMENT')
-  if (!stopHookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" capture')) {
+  if (!stopHookCode.includes('resolve_fde') || !stopHookCode.includes('command -v fde')) {
+    fail('session-stop must resolve PATH fde before plugin copies')
+  }
+  if (!/FDEOPS_ENGAGEMENT="\$ENG_DIR" (?:fde|node "\$FDE_CMD") capture/.test(stopHookCode)
+    && !stopHookCode.includes('run_fde "$FDE_CMD" capture')) {
     fail('session-stop must delegate capture with its resolved engagement')
   }
   ok('session-stop write side')
 }
 const compactHook = read('hooks/pre-compact')
 const compactHookCode = compactHook.replace(/^[ \t]*#.*$/gm, '')
-if (!compactHookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" preserve')) {
+if (!compactHookCode.includes('resolve_fde') || !compactHookCode.includes('command -v fde')) {
+  fail('pre-compact must resolve PATH fde before plugin copies')
+}
+if (!/FDEOPS_ENGAGEMENT="\$ENG_DIR" (?:fde|node "\$FDE_CMD") preserve/.test(compactHookCode)) {
   fail('pre-compact must delegate preserve with its resolved engagement')
 }
 for (const h of ['session-stop', 'pre-compact']) {
