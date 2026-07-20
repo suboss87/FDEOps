@@ -48,6 +48,26 @@ function runFde(sandbox, args, opts = {}) {
   }
 }
 
+function runHook(sandbox, name, opts = {}) {
+  const result = spawnSync('bash', [path.join(root, 'hooks', name)], {
+    cwd: opts.cwd || sandbox.workspace,
+    env: {
+      ...process.env,
+      HOME: sandbox.home,
+      USERPROFILE: sandbox.home,
+      PWD: opts.cwd || sandbox.workspace,
+      PATH: `${path.dirname(process.execPath)}:/usr/bin:/bin`,
+      CLAUDE_PLUGIN_ROOT: root,
+      FDEOPS_ENGAGEMENT: '',
+      FDEOS_ENGAGEMENT: '',
+      ...(opts.env || {}),
+    },
+    input: opts.input,
+    encoding: 'utf8',
+  })
+  return { status: result.status, stdout: result.stdout || '', stderr: result.stderr || '' }
+}
+
 function engagementPath(sandbox, slug) {
   return path.join(sandbox.home, 'fde-engagements', slug, '.fde')
 }
@@ -893,6 +913,124 @@ test('session-start injects TRIAGE + pointer, not the full SKILL.md body', () =>
   assert.doesNotMatch(out, /## Purpose/)
   assert.doesNotMatch(out, /## Routing - 6 domains/)
   assert.doesNotMatch(out, /## Anti-invention gates/)
+})
+
+test('session-stop delegates capture to the hook-resolved engagement and commits context only', () => {
+  const sandbox = makeSandbox('session-stop-delegation')
+  const projectA = path.join(sandbox.dir, 'project-a')
+  const projectB = path.join(sandbox.dir, 'project-b')
+  const hookWorkspace = path.join(sandbox.dir, 'hook workspace')
+  fs.mkdirSync(projectA)
+  fs.mkdirSync(projectB)
+  fs.mkdirSync(hookWorkspace)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Hook A'], { cwd: projectA }).status, 0)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Hook B'], { cwd: projectB }).status, 0)
+  const engA = engagementPath(sandbox, 'hook-a')
+  const engB = engagementPath(sandbox, 'hook-b')
+  fs.writeFileSync(path.join(hookWorkspace, 'CLAUDE.md'), `FDEOPS_ENGAGEMENT=${engA}\n`)
+  fs.mkdirSync(path.join(sandbox.home, '.claude'), { recursive: true })
+  fs.writeFileSync(path.join(sandbox.home, '.claude', 'FDEOPS-CLAUDE.md'), `FDEOPS_ENGAGEMENT=${engB}\n`)
+  ensureEngagementGitClean(engA)
+  ensureEngagementGitClean(engB)
+  const headA = gitInEng(engA, ['rev-parse', 'HEAD']).stdout.trim()
+  const headB = gitInEng(engB, ['rev-parse', 'HEAD']).stdout.trim()
+  const contextB = fs.readFileSync(path.join(engB, 'context.md'), 'utf8')
+
+  const result = runHook(sandbox, 'session-stop', { cwd: hookWorkspace })
+
+  assert.equal(result.status, 0, result.stderr)
+  const contextA = fs.readFileSync(path.join(engA, 'context.md'), 'utf8')
+  assert.match(contextA, /\n<!-- fdeops auto-capture -->\n## Session end - \d{4}-\d{2}-\d{2} \d{2}:\d{2}\n/)
+  assert.notEqual(gitInEng(engA, ['rev-parse', 'HEAD']).stdout.trim(), headA, 'capture must commit engagement A')
+  assert.equal(gitInEng(engA, ['log', '-1', '--format=%s']).stdout.trim(), 'session capture')
+  assert.equal(gitInEng(engA, ['show', '--format=', '--name-only', 'HEAD']).stdout.trim(), 'context.md')
+  assert.equal(gitInEng(engB, ['rev-parse', 'HEAD']).stdout.trim(), headB, 'global engagement B must not be written')
+  assert.equal(fs.readFileSync(path.join(engB, 'context.md'), 'utf8'), contextB)
+})
+
+test('pre-compact delegates preserve with private stripping, UTC-day dedupe, and memory commit', () => {
+  const sandbox = makeSandbox('pre-compact-delegation')
+  const projectA = path.join(sandbox.dir, 'project-a')
+  const projectB = path.join(sandbox.dir, 'project-b')
+  const hookWorkspace = path.join(sandbox.dir, 'compact workspace')
+  fs.mkdirSync(projectA)
+  fs.mkdirSync(projectB)
+  fs.mkdirSync(hookWorkspace)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Compact A'], { cwd: projectA }).status, 0)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Compact B'], { cwd: projectB }).status, 0)
+  const engA = engagementPath(sandbox, 'compact-a')
+  const engB = engagementPath(sandbox, 'compact-b')
+  fs.writeFileSync(path.join(hookWorkspace, 'CLAUDE.md'), `FDEOPS_ENGAGEMENT="${engA}"\n`)
+  fs.mkdirSync(path.join(sandbox.home, '.claude'), { recursive: true })
+  fs.writeFileSync(path.join(sandbox.home, '.claude', 'FDEOPS-CLAUDE.md'), `FDEOPS_ENGAGEMENT=${engB}\n`)
+  fs.writeFileSync(path.join(engA, 'decisions.md'), [
+    '# Decisions',
+    ...Array.from({ length: 22 }, (_, i) => `- decision ${i + 1}`),
+    '<private>',
+    'PRIVATE_DECISION_CANARY',
+    '</private>',
+    '- final public decision',
+    '',
+  ].join('\n'))
+  fs.writeFileSync(path.join(engA, 'risks.md'), [
+    '# Risks',
+    '<private>',
+    '- open PRIVATE_RISK_CANARY',
+    '</private>',
+    ...Array.from({ length: 10 }, (_, i) => `- active public risk ${i + 1}`),
+    '',
+  ].join('\n'))
+  ensureEngagementGitClean(engA)
+  ensureEngagementGitClean(engB)
+  const headA = gitInEng(engA, ['rev-parse', 'HEAD']).stdout.trim()
+  const headB = gitInEng(engB, ['rev-parse', 'HEAD']).stdout.trim()
+
+  const first = runHook(sandbox, 'pre-compact', { cwd: hookWorkspace })
+  const second = runHook(sandbox, 'pre-compact', { cwd: hookWorkspace })
+
+  assert.equal(first.status, 0, first.stderr)
+  assert.equal(second.status, 0, second.stderr)
+  const context = fs.readFileSync(path.join(engA, 'context.md'), 'utf8')
+  const today = new Date().toISOString().slice(0, 10)
+  assert.match(context, new RegExp(
+    `\\n---\\n\\[fdeops context preserved at ${today}T\\d{2}:\\d{2}:\\d{2}Z\\]\\n` +
+    'Recent decisions \\(tail\\):\\n[\\s\\S]*\\n\\nOpen risks:\\n[\\s\\S]*\\n---\\n$'
+  ))
+  assert.equal((context.match(/\[fdeops context preserved/g) || []).length, 1)
+  assert.doesNotMatch(context, /PRIVATE_DECISION_CANARY|PRIVATE_RISK_CANARY/)
+  assert.match(context, /final public decision/)
+  assert.equal((context.match(/active public risk/g) || []).length, 8)
+  assert.notEqual(gitInEng(engA, ['rev-parse', 'HEAD']).stdout.trim(), headA, 'preserve must commit engagement A')
+  assert.equal(gitInEng(engA, ['log', '-1', '--format=%s']).stdout.trim(), 'context preserve')
+  assert.equal(gitInEng(engA, ['show', '--format=', '--name-only', 'HEAD']).stdout.trim(), 'context.md')
+  assert.equal(gitInEng(engB, ['rev-parse', 'HEAD']).stdout.trim(), headB, 'global engagement B must not be written')
+})
+
+test('session-start triage uses the same project-pointer engagement as rendered context', () => {
+  const sandbox = makeSandbox('session-start-one-engagement')
+  const projectA = path.join(sandbox.dir, 'project-a')
+  const projectB = path.join(sandbox.dir, 'project-b')
+  const hookWorkspace = path.join(sandbox.dir, 'start workspace')
+  fs.mkdirSync(projectA)
+  fs.mkdirSync(projectB)
+  fs.mkdirSync(hookWorkspace)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Start A'], { cwd: projectA }).status, 0)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Start B'], { cwd: projectB }).status, 0)
+  const engA = engagementPath(sandbox, 'start-a')
+  const engB = engagementPath(sandbox, 'start-b')
+  fs.writeFileSync(path.join(engA, 'context.md'), '# Engagement context\n**Phase:** land\n\n## Next action\n- A_ONLY_NEXT_ACTION\n')
+  fs.writeFileSync(path.join(engB, 'context.md'), '# Engagement context\n**Phase:** ship\n\n## Next action\n- B_ONLY_NEXT_ACTION\n')
+  fs.writeFileSync(path.join(hookWorkspace, 'CLAUDE.md'), `FDEOPS_ENGAGEMENT=${engA}\n`)
+  fs.mkdirSync(path.join(sandbox.home, '.claude'), { recursive: true })
+  fs.writeFileSync(path.join(sandbox.home, '.claude', 'FDEOPS-CLAUDE.md'), `FDEOPS_ENGAGEMENT=${engB}\n`)
+
+  const result = runHook(sandbox, 'session-start', { cwd: hookWorkspace })
+
+  assert.equal(result.status, 0, result.stderr)
+  assert.match(result.stdout, /TRIAGE\s+\[[^\]]+\]\s+phase:land/)
+  assert.match(result.stdout, /A_ONLY_NEXT_ACTION/)
+  assert.doesNotMatch(result.stdout, /TRIAGE\s+\[[^\]]+\]\s+phase:ship/)
+  assert.doesNotMatch(result.stdout, /B_ONLY_NEXT_ACTION/)
 })
 
 test('memory init stays quiet when git has no global identity', () => {

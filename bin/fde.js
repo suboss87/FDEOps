@@ -22,6 +22,7 @@
  *   fde owner [set …]       who keeps this engagement record
  *   fde receipts <term>     "what did we agree?" - search memory with dates
  *   fde capture             session-end snapshot → context.md (hooks use this)
+ *   fde preserve            pre-compaction context snapshot (hooks use this)
  *   fde status [--all]      current engagement (default) or full portfolio (--all)
  *   fde dashboard [--all]   current engagement fieldbook (default) or all (--all)
  */
@@ -1347,6 +1348,29 @@ function cmdCapture() {
   } catch (_) {}
 }
 
+function cmdPreserve() {
+  try {
+    const eng = resolveEngagement({ forWrite: true })
+    if (!eng || !fs.existsSync(path.join(eng, 'context.md'))) return
+    const marker = '[fdeops context preserved'
+    const today = new Date().toISOString().slice(0, 10)
+    const context = readEng(eng, 'context.md')
+    if (context.split('\n').some(line => line.includes(marker) && line.includes(today))) return
+
+    const recentDecisions = readClean(eng, 'decisions.md').split('\n').slice(-20).join('\n')
+    const openRisks = readClean(eng, 'risks.md').split('\n')
+      .filter(line => /open|active|unresolved/i.test(line))
+      .slice(0, 8)
+      .join('\n')
+    const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
+    const block = `\n---\n${marker} at ${timestamp}]\nRecent decisions (tail):\n${recentDecisions}\n\nOpen risks:\n${openRisks}\n---\n`
+
+    ensureMemoryGit(eng)
+    lockedAppendFile(path.join(eng, 'context.md'), block, { soft: true })
+    commitMemory(eng, 'context preserve', { files: ['context.md'] })
+  } catch (_) {}
+}
+
 function cmdTriage() {
   const eng = resolveEngagement()
   if (!eng) {
@@ -1867,6 +1891,7 @@ function printUsage() {
   fde owner [set email]    who keeps this engagement record
   fde receipts <term>      "what did we agree?" with dates
   fde capture              session-end memory snapshot (hooks use this)
+  fde preserve             pre-compaction context snapshot (hooks use this)
   fde status [--all]       current engagement status (pass --all for full portfolio)
   fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
   env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)
@@ -1888,6 +1913,7 @@ switch (cmd) {
   case 'owner': cmdOwner(args); break
   case 'receipts': cmdReceipts(args); break
   case 'capture': cmdCapture(); break
+  case 'preserve': cmdPreserve(); break
   case 'status': cmdStatus(args); break
   case 'dashboard': cmdDashboard(args); break
   case 'help':

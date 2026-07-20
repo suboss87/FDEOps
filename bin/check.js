@@ -205,6 +205,10 @@ const hook = read('hooks/session-start')
 if (!hook.includes('FDEOPS_ENGAGEMENT')) {
   fail('session-start hook must read FDEOPS_ENGAGEMENT env var')
 } else ok('hook FDEOPS_ENGAGEMENT')
+if (!hook.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" fde triage') ||
+    !hook.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CMD" triage')) {
+  fail('session-start must run triage with its resolved engagement')
+}
 // Token discipline: SessionStart must not dump the full skill (L1 progressive disclosure).
 // Strip comments before scanning for a real `cat …SKILL.md` / BOOTSTRAP inject.
 const hookCode = hook.replace(/^[ \t]*#.*$/gm, '')
@@ -241,9 +245,22 @@ if (!fs.existsSync(path.join(root, 'hooks', 'session-stop'))) {
 } else {
   const stopHook = read('hooks/session-stop')
   if (!stopHook.includes('FDEOPS_ENGAGEMENT')) fail('session-stop must resolve FDEOPS_ENGAGEMENT')
-  if (!stopHook.includes('context.md')) fail('session-stop must append to context.md')
+  if (!stopHook.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" capture')) {
+    fail('session-stop must delegate capture with its resolved engagement')
+  }
   ok('session-stop write side')
 }
+const compactHook = read('hooks/pre-compact')
+if (!compactHook.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" preserve')) {
+  fail('pre-compact must delegate preserve with its resolved engagement')
+}
+for (const h of ['session-stop', 'pre-compact']) {
+  const body = read('hooks/' + h).replace(/^[ \t]*#.*$/gm, '')
+  if (/>>\s*"\$CONTEXT_FILE"|cat\s*>>\s*"\$CONTEXT_FILE"/.test(body)) {
+    fail(`hooks/${h} must not append context.md directly`)
+  }
+}
+ok('mutation hooks delegate CLI writes')
 for (const h of ['session-start', 'session-stop', 'pre-compact']) {
   const mode = fs.statSync(path.join(root, 'hooks', h)).mode
   if (!(mode & 0o111)) fail(`hooks/${h} lost its executable bit`)

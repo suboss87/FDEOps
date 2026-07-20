@@ -2,11 +2,10 @@
 # fdeops SessionEnd - write-side memory backstop.
 #
 # The skill's memory contract says the agent appends a meaningful
-# "where we left off" to context.md before the session ends. This hook
-# guarantees a deterministic floor when it doesn't: date, workspace state,
-# and which engagement artifacts moved. Next session-start loads it back.
+# "where we left off" to context.md before the session ends. This hook delegates
+# the deterministic floor to the CLI, then refreshes the local dashboard.
 #
-# Deliberately dumb: no model calls, no network, append-only, exits silently.
+# No model calls, no network, exits silently.
 
 cat >/dev/null 2>&1 || true  # drain hook stdin; payload unused
 
@@ -72,31 +71,6 @@ if [ -z "$ENG_DIR" ] && [ -d ".fde" ]; then
 fi
 
 [ -z "$ENG_DIR" ] && exit 0
-CONTEXT_FILE="$ENG_DIR/context.md"
-
-TODAY=$(date +%F)
-NOW=$(date +%H:%M)
-
-# Workspace state (only if the cwd is a git repo)
-BRANCH=$(git -C "$PWD" branch --show-current 2>/dev/null)
-LAST_COMMIT=$(git -C "$PWD" log -1 --format="%h %s" 2>/dev/null | head -c 100)
-CHANGED=$(git -C "$PWD" status --porcelain 2>/dev/null | head -8 | sed 's/^...//' | tr '\n' ' ')
-
-# Engagement artifacts updated in the last 12h (the deliverable=memory trail)
-UPDATED=$(find "$ENG_DIR" -maxdepth 1 -name "*.md" ! -name "context.md" -mmin -720 2>/dev/null \
-  | while read -r f; do basename "$f"; done | tr '\n' ' ')
-
-# Idle session (no edits, no artifact updates) → leave the memory clean.
-# LAST_COMMIT alone is not "movement": it exists in any repo with history.
-[ -z "$CHANGED" ] && [ -z "$UPDATED" ] && exit 0
-
-{
-  printf '\n<!-- fdeops auto-capture -->\n'
-  printf '## Session end - %s %s\n' "$TODAY" "$NOW"
-  [ -n "$BRANCH" ] && printf -- '- workspace: `%s` @ %s\n' "$BRANCH" "${LAST_COMMIT:-no commits yet}"
-  [ -n "$CHANGED" ] && printf -- '- uncommitted: %s\n' "$CHANGED"
-  [ -n "$UPDATED" ] && printf -- '- engagement files updated: %s\n' "$UPDATED"
-} 2>/dev/null >> "$CONTEXT_FILE" || true
 
 # Refresh the local fieldbook.html so the portfolio view is current next time
 # it's opened. Deterministic render of .fde/ - zero tokens, best-effort, never
@@ -107,7 +81,8 @@ if command -v node >/dev/null 2>&1; then
     "$(dirname "$0")/../bin/fde.js" \
     "$HOME/.claude/fdeops/fde.js"; do
     if [ -n "$FDE_CLI" ] && [ -f "$FDE_CLI" ]; then
-      node "$FDE_CLI" dashboard >/dev/null 2>&1 || true
+      FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" capture >/dev/null 2>&1 || true
+      FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CLI" dashboard >/dev/null 2>&1 || true
       break
     fi
   done
