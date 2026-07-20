@@ -202,12 +202,16 @@ if (fs.existsSync(pmf) && !read('docs/internal/PMF_360_REVIEW.md').includes('INT
 } else if (fs.existsSync(pmf)) ok('internal PMF banner')
 
 const hook = read('hooks/session-start')
+const hookCode = hook.replace(/^[ \t]*#.*$/gm, '')
 if (!hook.includes('FDEOPS_ENGAGEMENT')) {
   fail('session-start hook must read FDEOPS_ENGAGEMENT env var')
 } else ok('hook FDEOPS_ENGAGEMENT')
+if (!hookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" fde triage') ||
+    !hookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CMD" triage')) {
+  fail('session-start must run triage with its resolved engagement')
+}
 // Token discipline: SessionStart must not dump the full skill (L1 progressive disclosure).
 // Strip comments before scanning for a real `cat …SKILL.md` / BOOTSTRAP inject.
-const hookCode = hook.replace(/^[ \t]*#.*$/gm, '')
 if (/\$\(cat\s+"\$BOOTSTRAP"\)|cat\s+"\$BOOTSTRAP"|cat\s+[^\n]*SKILL\.md/.test(hookCode)) {
   fail('session-start must not cat SKILL.md - inject TRIAGE + bounded context + pointer only')
 }
@@ -240,10 +244,35 @@ if (!fs.existsSync(path.join(root, 'hooks', 'session-stop'))) {
   fail('hooks/session-stop missing (write-side memory backstop)')
 } else {
   const stopHook = read('hooks/session-stop')
+  const stopHookCode = stopHook.replace(/^[ \t]*#.*$/gm, '')
   if (!stopHook.includes('FDEOPS_ENGAGEMENT')) fail('session-stop must resolve FDEOPS_ENGAGEMENT')
-  if (!stopHook.includes('context.md')) fail('session-stop must append to context.md')
+  if (!stopHookCode.includes('resolve_fde') || !stopHookCode.includes('command -v fde')) {
+    fail('session-stop must resolve PATH fde before plugin copies')
+  }
+  if (!/FDEOPS_ENGAGEMENT="\$ENG_DIR" (?:fde|node "\$FDE_CMD") capture/.test(stopHookCode)
+    && !stopHookCode.includes('run_fde "$FDE_CMD" capture')) {
+    fail('session-stop must delegate capture with its resolved engagement')
+  }
   ok('session-stop write side')
 }
+const compactHook = read('hooks/pre-compact')
+const compactHookCode = compactHook.replace(/^[ \t]*#.*$/gm, '')
+if (!compactHookCode.includes('resolve_fde') || !compactHookCode.includes('command -v fde')) {
+  fail('pre-compact must resolve PATH fde before plugin copies')
+}
+if (!/FDEOPS_ENGAGEMENT="\$ENG_DIR" (?:fde|node "\$FDE_CMD") preserve/.test(compactHookCode)) {
+  fail('pre-compact must delegate preserve with its resolved engagement')
+}
+for (const h of ['session-stop', 'pre-compact']) {
+  const body = read('hooks/' + h).replace(/^[ \t]*#.*$/gm, '')
+  const contextTarget = /(?:"?\$(?:\{)?CONTEXT_FILE(?:\})?"?|"?\$(?:\{)?ENG_DIR(?:\})?\/context\.md"?)/.source
+  const redirectsToContext = new RegExp(`>{1,2}\\s*${contextTarget}`)
+  const teesToContext = new RegExp(`\\btee\\b[^\\n]*${contextTarget}`)
+  if (redirectsToContext.test(body) || teesToContext.test(body)) {
+    fail(`hooks/${h} must not append context.md directly`)
+  }
+}
+ok('mutation hooks delegate CLI writes')
 for (const h of ['session-start', 'session-stop', 'pre-compact']) {
   const mode = fs.statSync(path.join(root, 'hooks', h)).mode
   if (!(mode & 0o111)) fail(`hooks/${h} lost its executable bit`)
