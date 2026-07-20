@@ -3,7 +3,7 @@ const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
 const test = require('node:test')
-const { spawnSync } = require('node:child_process')
+const { spawn, spawnSync } = require('node:child_process')
 
 const root = path.join(__dirname, '..')
 const fde = path.join(root, 'bin', 'fde.js')
@@ -48,6 +48,26 @@ function runFde(sandbox, args, opts = {}) {
   }
 }
 
+function runHook(sandbox, name, opts = {}) {
+  const result = spawnSync('bash', [opts.hook || path.join(root, 'hooks', name)], {
+    cwd: opts.cwd || sandbox.workspace,
+    env: {
+      ...process.env,
+      HOME: sandbox.home,
+      USERPROFILE: sandbox.home,
+      PWD: opts.cwd || sandbox.workspace,
+      PATH: `${path.dirname(process.execPath)}:/usr/bin:/bin`,
+      CLAUDE_PLUGIN_ROOT: root,
+      FDEOPS_ENGAGEMENT: '',
+      FDEOS_ENGAGEMENT: '',
+      ...(opts.env || {}),
+    },
+    input: opts.input,
+    encoding: 'utf8',
+  })
+  return { status: result.status, stdout: result.stdout || '', stderr: result.stderr || '' }
+}
+
 function engagementPath(sandbox, slug) {
   return path.join(sandbox.home, 'fde-engagements', slug, '.fde')
 }
@@ -64,6 +84,14 @@ function ensureEngagementGitClean(eng) {
     const commit = gitInEng(eng, ['-c', 'user.email=fdeops-test@example.com', '-c', 'user.name=fdeops test', 'commit', '-m', 'test cleanup'])
     assert.equal(commit.status, 0, commit.stderr)
   }
+}
+
+function tryUnlink(p) {
+  try { fs.unlinkSync(p) } catch (_) {}
+}
+
+function rmTreeIfPresent(p) {
+  try { fs.rmSync(p, { recursive: true, force: true }) } catch (_) {}
 }
 
 test('resume --init creates templates, binds the workspace, and resume resolves from registry', () => {
@@ -105,6 +133,40 @@ test('log writes dated entries and enforces contact-only signal tokens', () => {
   const eng = engagementPath(sandbox, 'acme')
   assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /- \[\d{4}-\d{2}-\d{2}\](?: \[@[\w.-]+\])? ship retry slice/)
   assert.match(fs.readFileSync(path.join(eng, 'stakeholders.md'), 'utf8'), /\[signal:green\] Denise saw demo/)
+})
+
+test('log decision does not reclaim an existing stale lock', () => {
+  const sandbox = makeSandbox('stale-lock')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Stale Lock']).status, 0)
+  const target = path.join(engagementPath(sandbox, 'stale-lock'), 'decisions.md')
+  const lock = target + '.lock'
+  const before = fs.readFileSync(target, 'utf8')
+  fs.writeFileSync(lock, 'abandoned\n')
+  const stale = new Date(Date.now() - 31_000)
+  fs.utimesSync(lock, stale, stale)
+
+  const log = runFde(sandbox, ['log', 'decision', 'must not be written'])
+
+  assert.notEqual(log.status, 0)
+  assert.match(log.stderr, /another writer is active; retry/)
+  assert.equal(fs.readFileSync(target, 'utf8'), before)
+  assert.equal(fs.existsSync(lock), true)
+})
+
+test('log decision does not reclaim a fresh lock or modify its target', () => {
+  const sandbox = makeSandbox('fresh-lock')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Fresh Lock']).status, 0)
+  const target = path.join(engagementPath(sandbox, 'fresh-lock'), 'decisions.md')
+  const lock = target + '.lock'
+  const before = fs.readFileSync(target, 'utf8')
+  fs.writeFileSync(lock, 'active\n')
+
+  const log = runFde(sandbox, ['log', 'decision', 'must not be written'])
+
+  assert.notEqual(log.status, 0)
+  assert.match(log.stderr, /another writer is active; retry/)
+  assert.equal(fs.readFileSync(target, 'utf8'), before)
+  assert.equal(fs.existsSync(lock), true)
 })
 
 test('debrief --dry-run routes markdown-style notes without writing files', () => {
@@ -197,6 +259,42 @@ test('dashboard renders local HTML and redacts private blocks', () => {
   assert.match(html, /Visible policy/)
   assert.match(html, /private - redacted/)
   assert.doesNotMatch(html, /4111-1111-1111-1111/)
+})
+
+test('dashboard rename failure preserves the existing fieldbook', () => {
+  const sandbox = makeSandbox('dashboard-atomic-failure')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Atomic Dashboard']).status, 0)
+  const out = path.join(sandbox.dir, 'fieldbook.html')
+  const before = Buffer.from('existing fieldbook bytes\n')
+  fs.writeFileSync(out, before)
+  const injector = path.join(sandbox.dir, 'fail-dashboard-rename.cjs')
+  fs.writeFileSync(injector, [
+    "const fs = require('node:fs')",
+    "const path = require('node:path')",
+    'const originalRenameSync = fs.renameSync',
+    'fs.renameSync = function (source, destination) {',
+    '  const target = process.env.FDEOPS_TEST_RENAME_DEST',
+    '  if (target && path.resolve(String(destination)) === path.resolve(target)) {',
+    "    const error = new Error('injected dashboard rename failure')",
+    "    error.code = 'EIO'",
+    '    throw error',
+    '  }',
+    '  return originalRenameSync.apply(this, arguments)',
+    '}',
+    '',
+  ].join('\n'))
+
+  const dashboard = runFde(sandbox, ['dashboard', '--out', out], {
+    env: {
+      NODE_OPTIONS: `--require=${JSON.stringify(injector)}`,
+      FDEOPS_TEST_RENAME_DEST: out,
+    },
+  })
+
+  assert.notEqual(dashboard.status, 0)
+  assert.match(dashboard.stderr, /cannot write fieldbook\.html \(EIO\)/)
+  assert.doesNotMatch(dashboard.stderr, /\n\s+at /)
+  assert.deepEqual(fs.readFileSync(out), before)
 })
 
 // --- privacy regression suite: every read path that can reach the model or a
@@ -456,6 +554,29 @@ test('CLI signal ledger keeps trust RED after Signal history is wiped', () => {
   assert.match(status.stdout, /\[RED\s*\]\s*ledgerco/, 'trust must read RED from .signal-ledger after wipe')
 })
 
+test('prep and dashboard redact private signal-ledger history', () => {
+  const sandbox = makeSandbox('private-ledger')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'privateledger']).status, 0)
+  const eng = engagementPath(sandbox, 'privateledger')
+  const canary = 'PRIVATE_LEDGER_CANARY_7Q9X'
+  fs.writeFileSync(path.join(eng, '.signal-ledger'), [
+    '<private>',
+    `- [2026-07-20] [signal:red] ${canary} blocked rollout`,
+    '</private>',
+    '',
+  ].join('\n'))
+
+  const prep = runFde(sandbox, ['prep', 'Sponsor sync'])
+  assert.equal(prep.status, 0, prep.stderr)
+  assert.doesNotMatch(prep.stdout, new RegExp(canary), 'prep leaked private signal-ledger history')
+
+  const out = path.join(sandbox.dir, 'private-ledger.html')
+  const dashboard = runFde(sandbox, ['dashboard', '--out', out])
+  assert.equal(dashboard.status, 0, dashboard.stderr)
+  assert.doesNotMatch(fs.readFileSync(out, 'utf8'), new RegExp(canary),
+    'dashboard leaked private signal-ledger history')
+})
+
 test('dashboard scoped render and scan smoke', () => {
   const sandbox = makeSandbox('dash-scan')
   assert.equal(runFde(sandbox, ['resume', '--init', 'dashco']).status, 0)
@@ -490,6 +611,20 @@ test('log refuses secret-like text and --undo removes the last entry', () => {
   const undo = runFde(sandbox, ['log', '--undo'])
   assert.equal(undo.status, 0, undo.stderr)
   assert.doesNotMatch(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /ship the retry slice/)
+})
+
+test('debrief skips a secret-shaped next action without --force', () => {
+  const sandbox = makeSandbox('secret-next')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'nextsafe']).status, 0)
+  const eng = engagementPath(sandbox, 'nextsafe')
+  const secret = 'AKIAIOSFODNN7EXAMPLE'
+
+  const debrief = runFde(sandbox, ['debrief'], { input: `next: rotate ${secret} after demo` })
+
+  assert.equal(debrief.status, 0, debrief.stderr)
+  assert.match(debrief.stderr, /skipped next line - looks like an? AWS access key/i)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), new RegExp(secret))
+  assert.match(debrief.stdout, /debrief empty - nothing routed/)
 })
 
 test('corrupted stakeholders.md does not default to green', () => {
@@ -786,6 +921,347 @@ test('session-start injects TRIAGE + pointer, not the full SKILL.md body', () =>
   assert.doesNotMatch(out, /## Purpose/)
   assert.doesNotMatch(out, /## Routing - 6 domains/)
   assert.doesNotMatch(out, /## Anti-invention gates/)
+})
+
+test('session-stop delegates capture to the hook-resolved engagement and commits context only', () => {
+  const sandbox = makeSandbox('session-stop-delegation')
+  const projectA = path.join(sandbox.dir, 'project-a')
+  const projectB = path.join(sandbox.dir, 'project-b')
+  const hookWorkspace = path.join(sandbox.dir, 'hook workspace')
+  fs.mkdirSync(projectA)
+  fs.mkdirSync(projectB)
+  fs.mkdirSync(hookWorkspace)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Hook A'], { cwd: projectA }).status, 0)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Hook B'], { cwd: projectB }).status, 0)
+  const engA = engagementPath(sandbox, 'hook-a')
+  const engB = engagementPath(sandbox, 'hook-b')
+  fs.writeFileSync(path.join(hookWorkspace, 'CLAUDE.md'), `FDEOPS_ENGAGEMENT=${engA}\n`)
+  fs.mkdirSync(path.join(sandbox.home, '.claude'), { recursive: true })
+  fs.writeFileSync(path.join(sandbox.home, '.claude', 'FDEOPS-CLAUDE.md'), `FDEOPS_ENGAGEMENT=${engB}\n`)
+  ensureEngagementGitClean(engA)
+  ensureEngagementGitClean(engB)
+  const headA = gitInEng(engA, ['rev-parse', 'HEAD']).stdout.trim()
+  const headB = gitInEng(engB, ['rev-parse', 'HEAD']).stdout.trim()
+  const contextB = fs.readFileSync(path.join(engB, 'context.md'), 'utf8')
+
+  const result = runHook(sandbox, 'session-stop', { cwd: hookWorkspace })
+
+  assert.equal(result.status, 0, result.stderr)
+  const contextA = fs.readFileSync(path.join(engA, 'context.md'), 'utf8')
+  assert.match(contextA, /\n<!-- fdeops auto-capture -->\n## Session end - \d{4}-\d{2}-\d{2} \d{2}:\d{2}\n/)
+  assert.notEqual(gitInEng(engA, ['rev-parse', 'HEAD']).stdout.trim(), headA, 'capture must commit engagement A')
+  assert.equal(gitInEng(engA, ['log', '-1', '--format=%s']).stdout.trim(), 'session capture')
+  assert.equal(gitInEng(engA, ['show', '--format=', '--name-only', 'HEAD']).stdout.trim(), 'context.md')
+  assert.equal(gitInEng(engB, ['rev-parse', 'HEAD']).stdout.trim(), headB, 'global engagement B must not be written')
+  assert.equal(fs.readFileSync(path.join(engB, 'context.md'), 'utf8'), contextB)
+})
+
+test('capture uses one local calendar for both date and time', () => {
+  const sandbox = makeSandbox('capture-local-calendar')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Local Clock']).status, 0)
+  const eng = engagementPath(sandbox, 'local-clock')
+  const utcHour = new Date().getUTCHours()
+  const timeZone = utcHour >= 10 ? 'Pacific/Kiritimati' : 'Etc/GMT+12'
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date()).map(part => [part.type, part.value]))
+  const localDate = `${parts.year}-${parts.month}-${parts.day}`
+  assert.notEqual(localDate, new Date().toISOString().slice(0, 10), 'test timezone must cross the UTC date boundary')
+
+  const capture = runFde(sandbox, ['capture'], {
+    env: { FDEOPS_ENGAGEMENT: eng, TZ: timeZone },
+  })
+
+  assert.equal(capture.status, 0, capture.stderr)
+  const context = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  assert.match(context, new RegExp(`## Session end - ${localDate} \\d{2}:\\d{2}`))
+})
+
+test('pre-compact delegates preserve with private stripping, UTC-day dedupe, and memory commit', () => {
+  const sandbox = makeSandbox('pre-compact-delegation')
+  const projectA = path.join(sandbox.dir, 'project-a')
+  const projectB = path.join(sandbox.dir, 'project-b')
+  const hookWorkspace = path.join(sandbox.dir, 'compact workspace')
+  fs.mkdirSync(projectA)
+  fs.mkdirSync(projectB)
+  fs.mkdirSync(hookWorkspace)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Compact A'], { cwd: projectA }).status, 0)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Compact B'], { cwd: projectB }).status, 0)
+  const engA = engagementPath(sandbox, 'compact-a')
+  const engB = engagementPath(sandbox, 'compact-b')
+  fs.writeFileSync(path.join(hookWorkspace, 'CLAUDE.md'), `FDEOPS_ENGAGEMENT="${engA}"\n`)
+  fs.mkdirSync(path.join(sandbox.home, '.claude'), { recursive: true })
+  fs.writeFileSync(path.join(sandbox.home, '.claude', 'FDEOPS-CLAUDE.md'), `FDEOPS_ENGAGEMENT=${engB}\n`)
+  fs.writeFileSync(path.join(engA, 'decisions.md'), [
+    '# Decisions',
+    ...Array.from({ length: 22 }, (_, i) => `- decision ${i + 1}`),
+    '<private>',
+    'PRIVATE_DECISION_CANARY',
+    '</private>',
+    '- final public decision',
+    '',
+  ].join('\n'))
+  fs.writeFileSync(path.join(engA, 'risks.md'), [
+    '# Risks',
+    '<private>',
+    '- open PRIVATE_RISK_CANARY',
+    '</private>',
+    ...Array.from({ length: 10 }, (_, i) => `- active public risk ${i + 1}`),
+    '',
+  ].join('\n'))
+  ensureEngagementGitClean(engA)
+  ensureEngagementGitClean(engB)
+  const headA = gitInEng(engA, ['rev-parse', 'HEAD']).stdout.trim()
+  const headB = gitInEng(engB, ['rev-parse', 'HEAD']).stdout.trim()
+
+  const first = runHook(sandbox, 'pre-compact', { cwd: hookWorkspace })
+  const second = runHook(sandbox, 'pre-compact', { cwd: hookWorkspace })
+
+  assert.equal(first.status, 0, first.stderr)
+  assert.equal(second.status, 0, second.stderr)
+  const context = fs.readFileSync(path.join(engA, 'context.md'), 'utf8')
+  const today = new Date().toISOString().slice(0, 10)
+  assert.match(context, new RegExp(
+    `\\n---\\n\\[fdeops context preserved at ${today}T\\d{2}:\\d{2}:\\d{2}Z\\]\\n` +
+    'Recent decisions \\(tail\\):\\n[\\s\\S]*\\n\\nOpen risks:\\n[\\s\\S]*\\n---\\n$'
+  ))
+  assert.equal((context.match(/\[fdeops context preserved/g) || []).length, 1)
+  assert.doesNotMatch(context, /PRIVATE_DECISION_CANARY|PRIVATE_RISK_CANARY/)
+  assert.match(context, /final public decision/)
+  assert.equal((context.match(/active public risk/g) || []).length, 8)
+  assert.notEqual(gitInEng(engA, ['rev-parse', 'HEAD']).stdout.trim(), headA, 'preserve must commit engagement A')
+  assert.equal(gitInEng(engA, ['log', '-1', '--format=%s']).stdout.trim(), 'context preserve')
+  assert.equal(gitInEng(engA, ['show', '--format=', '--name-only', 'HEAD']).stdout.trim(), 'context.md')
+  assert.equal(gitInEng(engB, ['rev-parse', 'HEAD']).stdout.trim(), headB, 'global engagement B must not be written')
+})
+
+test('preserve deduplicates atomically while concurrent writers wait on the context lock', async () => {
+  const sandbox = makeSandbox('preserve-atomic-dedupe')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Atomic Preserve']).status, 0)
+  const eng = engagementPath(sandbox, 'atomic-preserve')
+  const contextPath = path.join(eng, 'context.md')
+  const lockPath = contextPath + '.lock'
+  fs.writeFileSync(lockPath, 'test barrier\n')
+
+  const children = Array.from({ length: 6 }, () => new Promise(resolve => {
+    const child = spawn(process.execPath, [fde, 'preserve'], {
+      cwd: sandbox.workspace,
+      env: {
+        ...process.env,
+        HOME: sandbox.home,
+        USERPROFILE: sandbox.home,
+        FDEOPS_ENGAGEMENT: eng,
+        FDEOS_ENGAGEMENT: '',
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    let stderr = ''
+    child.stderr.on('data', chunk => { stderr += chunk })
+    child.on('close', status => resolve({ status, stderr }))
+  }))
+  await new Promise(resolve => setTimeout(resolve, 750))
+  fs.unlinkSync(lockPath)
+  const results = await Promise.all(children)
+
+  for (const result of results) assert.equal(result.status, 0, result.stderr)
+  const context = fs.readFileSync(contextPath, 'utf8')
+  assert.equal((context.match(/\[fdeops context preserved/g) || []).length, 1)
+})
+
+test('preserve commits an existing daily marker left dirty by an earlier failed commit', () => {
+  const sandbox = makeSandbox('preserve-commit-recovery')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Preserve Recovery']).status, 0)
+  const eng = engagementPath(sandbox, 'preserve-recovery')
+  const today = new Date().toISOString().slice(0, 10)
+  fs.appendFileSync(path.join(eng, 'context.md'),
+    `\n---\n[fdeops context preserved at ${today}T00:00:00Z]\nRecent decisions (tail):\n\nOpen risks:\n\n---\n`)
+  const before = gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim()
+
+  const preserve = runFde(sandbox, ['preserve'], { env: { FDEOPS_ENGAGEMENT: eng } })
+
+  assert.equal(preserve.status, 0, preserve.stderr)
+  assert.notEqual(gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim(), before)
+  assert.equal(gitInEng(eng, ['status', '--porcelain']).stdout, '')
+  const context = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  assert.equal((context.match(/\[fdeops context preserved/g) || []).length, 1)
+})
+
+test('preserve refuses a symlinked context file without touching its target', () => {
+  const sandbox = makeSandbox('preserve-context-symlink')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Preserve Symlink']).status, 0)
+  const eng = engagementPath(sandbox, 'preserve-symlink')
+  const contextPath = path.join(eng, 'context.md')
+  const outside = path.join(sandbox.dir, 'outside-context.md')
+  fs.writeFileSync(outside, 'outside must stay unchanged\n')
+  fs.unlinkSync(contextPath)
+  fs.symlinkSync(outside, contextPath)
+
+  const preserve = runFde(sandbox, ['preserve'], { env: { FDEOPS_ENGAGEMENT: eng } })
+
+  assert.equal(preserve.status, 0, preserve.stderr)
+  assert.equal(fs.readFileSync(outside, 'utf8'), 'outside must stay unchanged\n')
+  assert.equal(fs.lstatSync(contextPath).isSymbolicLink(), true)
+})
+
+test('preserve keeps twenty decision lines when readClean input has one terminal newline', () => {
+  const sandbox = makeSandbox('preserve-tail-lines')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Preserve Tail']).status, 0)
+  const eng = engagementPath(sandbox, 'preserve-tail')
+  fs.writeFileSync(path.join(eng, 'decisions.md'),
+    Array.from({ length: 21 }, (_, i) => `- intended decision ${String(i + 1).padStart(2, '0')}`).join('\n') + '\n')
+
+  const preserve = runFde(sandbox, ['preserve'], { env: { FDEOPS_ENGAGEMENT: eng } })
+
+  assert.equal(preserve.status, 0, preserve.stderr)
+  const context = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  const decisions = context.split('Recent decisions (tail):\n')[1].split('\n\nOpen risks:')[0].split('\n')
+  assert.equal(decisions.length, 20)
+  assert.equal(decisions[0], '- intended decision 02')
+  assert.equal(decisions[19], '- intended decision 21')
+  assert.doesNotMatch(decisions.join('\n'), /intended decision 01/)
+})
+
+test('mutation hooks exit zero without writing when Node or the CLI is unavailable', () => {
+  const sandbox = makeSandbox('hooks-best-effort-missing-runtime')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Best Effort']).status, 0)
+  const eng = engagementPath(sandbox, 'best-effort')
+  const contextPath = path.join(eng, 'context.md')
+  const before = fs.readFileSync(contextPath, 'utf8')
+  const noNodePath = path.join(sandbox.dir, 'path-without-node')
+  fs.mkdirSync(noNodePath)
+  const shellTools = spawnSync('/bin/sh', ['-c', 'command -v bash; command -v cat; command -v sed'], { encoding: 'utf8' })
+  assert.equal(shellTools.status, 0, shellTools.stderr)
+  for (const tool of shellTools.stdout.trim().split('\n')) {
+    fs.symlinkSync(tool, path.join(noNodePath, path.basename(tool)))
+  }
+
+  for (const name of ['session-stop', 'pre-compact']) {
+    const withoutNode = runHook(sandbox, name, {
+      env: {
+        FDEOPS_ENGAGEMENT: eng,
+        CLAUDE_PLUGIN_ROOT: '',
+        PATH: noNodePath,
+      },
+    })
+    assert.equal(withoutNode.status, 0, withoutNode.stderr)
+  }
+
+  const isolatedHooks = path.join(sandbox.dir, 'isolated-hooks')
+  fs.mkdirSync(isolatedHooks)
+  for (const name of ['session-stop', 'pre-compact']) {
+    const isolatedHook = path.join(isolatedHooks, name)
+    fs.copyFileSync(path.join(root, 'hooks', name), isolatedHook)
+    fs.chmodSync(isolatedHook, 0o755)
+    const withoutCli = runHook(sandbox, name, {
+      hook: isolatedHook,
+      env: { FDEOPS_ENGAGEMENT: eng, CLAUDE_PLUGIN_ROOT: '' },
+    })
+    assert.equal(withoutCli.status, 0, withoutCli.stderr)
+  }
+
+  assert.equal(fs.readFileSync(contextPath, 'utf8'), before,
+    'best-effort hooks must not bypass the CLI safety layer')
+})
+
+test('mutation hooks fall back to PATH fde when plugin copies are missing', () => {
+  const sandbox = makeSandbox('hooks-path-fde')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Path Fde']).status, 0)
+  const eng = engagementPath(sandbox, 'path-fde')
+  ensureEngagementGitClean(eng)
+  const beforeHead = gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim()
+
+  const binDir = path.join(sandbox.dir, 'path-bin')
+  fs.mkdirSync(binDir)
+  const fdeShim = path.join(binDir, 'fde')
+  fs.writeFileSync(fdeShim, `#!/bin/sh\nexec "${process.execPath}" "${fde}" "$@"\n`)
+  fs.chmodSync(fdeShim, 0o755)
+
+  const isolatedHooks = path.join(sandbox.dir, 'path-hooks')
+  fs.mkdirSync(isolatedHooks)
+  for (const name of ['session-stop', 'pre-compact']) {
+    const isolatedHook = path.join(isolatedHooks, name)
+    fs.copyFileSync(path.join(root, 'hooks', name), isolatedHook)
+    fs.chmodSync(isolatedHook, 0o755)
+  }
+
+  const pathEnv = {
+    FDEOPS_ENGAGEMENT: eng,
+    CLAUDE_PLUGIN_ROOT: '',
+    PATH: `${binDir}:${path.dirname(process.execPath)}:/usr/bin:/bin`,
+  }
+
+  const stop = runHook(sandbox, 'session-stop', {
+    hook: path.join(isolatedHooks, 'session-stop'),
+    env: pathEnv,
+  })
+  assert.equal(stop.status, 0, stop.stderr)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /## Session end -/)
+  assert.notEqual(gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim(), beforeHead,
+    'PATH fde must still capture through session-stop')
+
+  const afterCapture = gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim()
+  const compact = runHook(sandbox, 'pre-compact', {
+    hook: path.join(isolatedHooks, 'pre-compact'),
+    env: pathEnv,
+  })
+  assert.equal(compact.status, 0, compact.stderr)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /\[fdeops context preserved/)
+  assert.notEqual(gitInEng(eng, ['rev-parse', 'HEAD']).stdout.trim(), afterCapture,
+    'PATH fde must still preserve through pre-compact')
+})
+
+test('v3.9.10-shaped engagement still works through core CLI verbs', () => {
+  const sandbox = makeSandbox('upgrade-fixture')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Upgrade Fixture']).status, 0)
+  const eng = engagementPath(sandbox, 'upgrade-fixture')
+  for (const hidden of ['.git', '.owner', '.signal-ledger', '.last-write']) {
+    const p = path.join(eng, hidden)
+    if (hidden === '.git') rmTreeIfPresent(p)
+    else tryUnlink(p)
+  }
+
+  assert.equal(runFde(sandbox, ['resume']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'keep launch date']).status, 0)
+  assert.equal(runFde(sandbox, ['debrief'], { input: 'contact: Denise saw demo [signal:green]\nnext: send recap\n' }).status, 0)
+  assert.equal(runFde(sandbox, ['prep', 'Sponsor sync']).status, 0)
+  const doctor = runFde(sandbox, ['doctor'])
+  assert.ok(doctor.status === 0 || doctor.status === 1, doctor.stderr)
+  assert.equal(runFde(sandbox, ['status']).status, 0)
+  const dash = runFde(sandbox, ['dashboard', '--out', path.join(sandbox.dir, 'upgrade.html')])
+  assert.equal(dash.status, 0, dash.stderr)
+  assert.equal(runFde(sandbox, ['capture'], { env: { FDEOPS_ENGAGEMENT: eng } }).status, 0)
+  assert.equal(runFde(sandbox, ['preserve'], { env: { FDEOPS_ENGAGEMENT: eng } }).status, 0)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /Session end|fdeops context preserved/)
+})
+
+test('session-start triage uses the same project-pointer engagement as rendered context', () => {
+  const sandbox = makeSandbox('session-start-one-engagement')
+  const projectA = path.join(sandbox.dir, 'project-a')
+  const projectB = path.join(sandbox.dir, 'project-b')
+  const hookWorkspace = path.join(sandbox.dir, 'start workspace')
+  fs.mkdirSync(projectA)
+  fs.mkdirSync(projectB)
+  fs.mkdirSync(hookWorkspace)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Start A'], { cwd: projectA }).status, 0)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Start B'], { cwd: projectB }).status, 0)
+  const engA = engagementPath(sandbox, 'start-a')
+  const engB = engagementPath(sandbox, 'start-b')
+  fs.writeFileSync(path.join(engA, 'context.md'), '# Engagement context\n**Phase:** land\n\n## Next action\n- A_ONLY_NEXT_ACTION\n')
+  fs.writeFileSync(path.join(engB, 'context.md'), '# Engagement context\n**Phase:** ship\n\n## Next action\n- B_ONLY_NEXT_ACTION\n')
+  fs.writeFileSync(path.join(hookWorkspace, 'CLAUDE.md'), `FDEOPS_ENGAGEMENT=${engA}\n`)
+  fs.mkdirSync(path.join(sandbox.home, '.claude'), { recursive: true })
+  fs.writeFileSync(path.join(sandbox.home, '.claude', 'FDEOPS-CLAUDE.md'), `FDEOPS_ENGAGEMENT=${engB}\n`)
+
+  const result = runHook(sandbox, 'session-start', { cwd: hookWorkspace })
+
+  assert.equal(result.status, 0, result.stderr)
+  assert.match(result.stdout, /TRIAGE\s+\[[^\]]+\]\s+phase:land/)
+  assert.match(result.stdout, /A_ONLY_NEXT_ACTION/)
+  assert.doesNotMatch(result.stdout, /TRIAGE\s+\[[^\]]+\]\s+phase:ship/)
+  assert.doesNotMatch(result.stdout, /B_ONLY_NEXT_ACTION/)
 })
 
 test('memory init stays quiet when git has no global identity', () => {
