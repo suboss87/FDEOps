@@ -285,20 +285,6 @@ if (!fs.existsSync(path.join(root, 'bin', 'fde.js'))) {
   for (const renderSymbol of ['buildFieldbookHtml', 'dashStyles', 'dashScript', 'FONT_FACE_CSS']) {
     if (!cliSource.includes(renderSymbol)) fail(`CLI sources missing dashboard renderer symbol ${renderSymbol}`)
   }
-  const fdeSource = read('bin/fde.js')
-  const dashboardSource = fdeSource.slice(
-    fdeSource.indexOf('function cmdDashboard('),
-    fdeSource.indexOf('function printUsage('),
-  )
-  if (!dashboardSource.includes('atomicWriteFile(outPath, html)')) {
-    fail('dashboard must use the existing atomic write path')
-  } else if (dashboardSource.includes('fs.writeFileSync(outPath, html)')) {
-    fail('dashboard must not write the fieldbook directly')
-  } else if (dashboardSource.includes('refuseSymlinkWrite(outPath)')) {
-    fail('dashboard atomic write must not duplicate the symlink check')
-  } else {
-    ok('dashboard atomic write path')
-  }
   if (!read('bin/install.js').includes('FDE_SUBCOMMANDS')) fail('install.js must pass fde subcommands through (npx fdeops scan)')
   ok('fde CLI present and wired')
 }

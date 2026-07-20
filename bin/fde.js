@@ -281,24 +281,6 @@ function withFileLock(targetPath, fn, opts = {}) {
       fd = fs.openSync(lockPath, 'wx')
     } catch (e) {
       if (e.code === 'EEXIST') {
-        let lockStat
-        try {
-          lockStat = fs.statSync(lockPath)
-        } catch (statErr) {
-          if (statErr.code === 'ENOENT') continue
-          if (opts.soft) throw statErr
-          failFs(statErr, 'lock', targetPath)
-        }
-        if (lockStat && Date.now() - lockStat.mtimeMs > 30_000) {
-          try {
-            fs.unlinkSync(lockPath)
-            continue
-          } catch (unlinkErr) {
-            if (unlinkErr.code === 'ENOENT') continue
-            if (opts.soft) throw unlinkErr
-            failFs(unlinkErr, 'lock', targetPath)
-          }
-        }
         if (Date.now() > deadline) {
           const msg = `could not lock ${path.basename(targetPath)} - another writer is active; retry`
           if (opts.soft) throw Object.assign(new Error(msg), { code: 'ELOCKED' })

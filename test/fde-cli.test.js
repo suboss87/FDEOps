@@ -107,22 +107,22 @@ test('log writes dated entries and enforces contact-only signal tokens', () => {
   assert.match(fs.readFileSync(path.join(eng, 'stakeholders.md'), 'utf8'), /\[signal:green\] Denise saw demo/)
 })
 
-test('log decision reclaims an abandoned lock and writes exactly once', () => {
-  const sandbox = makeSandbox('abandoned-lock')
-  assert.equal(runFde(sandbox, ['resume', '--init', 'Abandoned Lock']).status, 0)
-  const target = path.join(engagementPath(sandbox, 'abandoned-lock'), 'decisions.md')
+test('log decision does not reclaim an existing stale lock', () => {
+  const sandbox = makeSandbox('stale-lock')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Stale Lock']).status, 0)
+  const target = path.join(engagementPath(sandbox, 'stale-lock'), 'decisions.md')
   const lock = target + '.lock'
-  const marker = 'reclaim abandoned decision lock'
+  const before = fs.readFileSync(target, 'utf8')
   fs.writeFileSync(lock, 'abandoned\n')
   const stale = new Date(Date.now() - 31_000)
   fs.utimesSync(lock, stale, stale)
 
-  const log = runFde(sandbox, ['log', 'decision', marker])
+  const log = runFde(sandbox, ['log', 'decision', 'must not be written'])
 
-  assert.equal(log.status, 0, log.stderr)
-  const matches = fs.readFileSync(target, 'utf8').match(new RegExp(marker, 'g')) || []
-  assert.equal(matches.length, 1)
-  assert.equal(fs.existsSync(lock), false)
+  assert.notEqual(log.status, 0)
+  assert.match(log.stderr, /another writer is active; retry/)
+  assert.equal(fs.readFileSync(target, 'utf8'), before)
+  assert.equal(fs.existsSync(lock), true)
 })
 
 test('log decision does not reclaim a fresh lock or modify its target', () => {
@@ -137,32 +137,6 @@ test('log decision does not reclaim a fresh lock or modify its target', () => {
 
   assert.notEqual(log.status, 0)
   assert.match(log.stderr, /another writer is active; retry/)
-  assert.equal(fs.readFileSync(target, 'utf8'), before)
-  assert.equal(fs.existsSync(lock), true)
-})
-
-test('stale lock unlink errors use the existing lock error handling', () => {
-  const sandbox = makeSandbox('stale-lock-unlink-error')
-  assert.equal(runFde(sandbox, ['resume', '--init', 'Stale Lock Error']).status, 0)
-  const eng = engagementPath(sandbox, 'stale-lock-error')
-  const target = path.join(eng, 'decisions.md')
-  const lock = target + '.lock'
-  const before = fs.readFileSync(target, 'utf8')
-  fs.writeFileSync(lock, 'abandoned\n')
-  const stale = new Date(Date.now() - 31_000)
-  fs.utimesSync(lock, stale, stale)
-  fs.chmodSync(eng, 0o555)
-
-  let log
-  try {
-    log = runFde(sandbox, ['log', 'decision', 'must not be written'])
-  } finally {
-    fs.chmodSync(eng, 0o755)
-  }
-
-  assert.notEqual(log.status, 0)
-  assert.match(log.stderr, /permission denied|read-only|locked down/i)
-  assert.doesNotMatch(log.stderr, /another writer is active; retry/)
   assert.equal(fs.readFileSync(target, 'utf8'), before)
   assert.equal(fs.existsSync(lock), true)
 })
@@ -257,6 +231,42 @@ test('dashboard renders local HTML and redacts private blocks', () => {
   assert.match(html, /Visible policy/)
   assert.match(html, /private - redacted/)
   assert.doesNotMatch(html, /4111-1111-1111-1111/)
+})
+
+test('dashboard rename failure preserves the existing fieldbook', () => {
+  const sandbox = makeSandbox('dashboard-atomic-failure')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Atomic Dashboard']).status, 0)
+  const out = path.join(sandbox.dir, 'fieldbook.html')
+  const before = Buffer.from('existing fieldbook bytes\n')
+  fs.writeFileSync(out, before)
+  const injector = path.join(sandbox.dir, 'fail-dashboard-rename.cjs')
+  fs.writeFileSync(injector, [
+    "const fs = require('node:fs')",
+    "const path = require('node:path')",
+    'const originalRenameSync = fs.renameSync',
+    'fs.renameSync = function (source, destination) {',
+    '  const target = process.env.FDEOPS_TEST_RENAME_DEST',
+    '  if (target && path.resolve(String(destination)) === path.resolve(target)) {',
+    "    const error = new Error('injected dashboard rename failure')",
+    "    error.code = 'EIO'",
+    '    throw error',
+    '  }',
+    '  return originalRenameSync.apply(this, arguments)',
+    '}',
+    '',
+  ].join('\n'))
+
+  const dashboard = runFde(sandbox, ['dashboard', '--out', out], {
+    env: {
+      NODE_OPTIONS: `--require=${injector}`,
+      FDEOPS_TEST_RENAME_DEST: out,
+    },
+  })
+
+  assert.notEqual(dashboard.status, 0)
+  assert.match(dashboard.stderr, /cannot write fieldbook\.html \(EIO\)/)
+  assert.doesNotMatch(dashboard.stderr, /\n\s+at /)
+  assert.deepEqual(fs.readFileSync(out), before)
 })
 
 // --- privacy regression suite: every read path that can reach the model or a
