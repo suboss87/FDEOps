@@ -195,4 +195,6 @@ cd fdeops && git pull && node bin/install.js
 
 Built and maintained by **[Subash Natarajan](https://www.linkedin.com/in/subashn/)**. Share your feedback via [Issues](https://github.com/suboss87/fdeops/issues) - see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-[FDE Methodology](FDE-METHODOLOGY.md) - [ATTRIBUTION.md](ATTRIBUTION.md) - [SECURITY.md](SECURITY.md) - [PRIVACY.md](PRIVACY.md) - [Repo layout](docs/REPO_LAYOUT.md) - [Skills matrix](docs/skills.md) - MIT
+Thanks to builders whose craft helped sharpen the thinking behind this kit, among them [Andrej Karpathy](https://karpathy.ai/)'s engineering guidelines and the [agentic engineering workflow](https://github.com/pawel-cell/micky-podcast-agentic-engineering) notes from David Ondrej / Michael Shimeles. FDEOps itself is handcrafted for field work; any resemblance is inspiration, not a fork.
+
+[FDE Methodology](FDE-METHODOLOGY.md) - [SECURITY.md](SECURITY.md) - [PRIVACY.md](PRIVACY.md) - [Repo layout](docs/REPO_LAYOUT.md) - [Skills matrix](docs/skills.md) - MIT

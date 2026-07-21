@@ -84,11 +84,12 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 | Overlay | Triggers on | What it adds |
 |---------|------------|-------------|
 | [ai](../skills/fde/references/ai.md) | AI, ML, LLM, model, embeddings, RAG, agents | Model selection, RAG architecture, agent safety, governance, drift monitoring, cost management |
-| [eval-pack](../skills/fde/references/eval-pack.md) | Golden set, eval suite, pass/fail before AI ship | Engagement eval pack (`evals.md`), failure modes, HITL, SHIP/NO-SHIP |
 | [artifacts](../skills/fde/references/artifacts.md) | deck, slides, report, governance, compliance | Executive decks, governance frameworks, ADRs, compliance packs, value reports |
 | [fintech](../skills/fde/references/fintech.md) | payments, PCI, banking, cardholder data | Idempotency, transaction integrity, fraud signals, silent-failure prevention |
 | [healthcare](../skills/fde/references/healthcare.md) | PHI, HIPAA, patient data | De-identification, minimum-necessary, audit trails |
 | [gov](../skills/fde/references/gov.md) | FedRAMP, ATO, CUI, classified | Authority boundaries, CUI marking, continuous monitoring |
+
+**AI companion (not a sixth overlay):** [eval-pack](../skills/fde/references/eval-pack.md) - golden set / pass-fail before AI ship (`evals.md`). Loaded with the **ai** overlay when models are in scope.
 
 ---
 

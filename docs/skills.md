@@ -29,6 +29,8 @@ Overlays layer domain judgment onto whatever skill is running - the agent activa
 | **healthcare** | PHI, HIPAA, EHR, patient data | De-identification, minimum-necessary, audit trails |
 | **gov** | FedRAMP, ATO, CUI, classified | Authority boundaries, CUI marking, continuous monitoring |
 
+**AI companion (not a sixth overlay):** `eval-pack` - engagement golden set / SHIP gate (`evals.md`). Loaded with the **ai** overlay when models are in scope.
+
 ## See also
 
 - [skills-reference.md](./skills-reference.md) - what each method does, phase by phase
