@@ -92,6 +92,7 @@ The real spec is what people **do** when the system fails - not what the slide d
 - **The hesitation.** When someone says "well, there's also this other thing we do…" - stop them, ask them to finish. The main story is what they're comfortable explaining; the hesitation is the real problem.
 - **"Which part of the codebase do you least want to touch?"** The answer is unanimous and it's the load-bearing wall. Check it against your churn scan - when the human answer and the churn data agree, that's your first map landmark.
 - **Shadow AI.** Someone pasting data into ChatGPT to cope = a real unmet need + an uncontrolled data risk. Note both.
+- **Exception-led operating map.** For each real break (not the slide-deck process): what fails, who notices first, what they do today, and which artifact is trusted in that moment. Prefer exceptions over happy-path swimlanes — the workaround is the operating system. Write rows under `terrain.md` → `## Operating map (exception-led)`. If the section is missing on an older engagement, add it; never regenerate the rest of terrain. When AI is in play, also fill `## Intelligence placement` (deterministic vs LLM judgement vs human approve).
 
 ## Method - part 3: workshop facilitation
 
@@ -165,6 +166,11 @@ Score every candidate use case before anything gets prototyped:
 **Data flow:** <entry → transform → store → exit>
 **Test landscape:** <covered / gaps / lies>
 **Unknowns:** <named explicitly - an honest gap beats a confident guess>
+
+## Operating map (exception-led)
+| Exception / break | Who notices first | What they do today | System of record then | Blast | Evidence |
+|-------------------|-------------------|--------------------|----------------------|-------|----------|
+| <break> | <role> | <workaround> | <sheet/DB/person> | CRITICAL / LOAD-BEARING / CONVENIENCE | <who/day> |
 ```
 
 Every line carries its evidence. `(churn: 47/90d)` `(ops lead, Day 5)` `(stated, unverified)`.
@@ -173,11 +179,12 @@ Every line carries its evidence. `(churn: 47/90d)` `(ops lead, Day 5)` `(stated,
 
 ## Checkpoint (before any build)
 
-Present to the FDE, four things, one paragraph each - no padding:
+Present to the FDE, five things, one paragraph each - no padding:
 1. The real problem, with the two strongest pieces of evidence.
 2. The top 3 risk areas of the codebase, one line of why each.
 3. What must not be touched without characterisation tests.
-4. The recommendation: confirm brief / descope / rescope - and the decision it puts in front of the sponsor.
+4. The exception-led operating map: the two breaks that matter most, who owns the workaround, and where shadow systems live.
+5. The recommendation: confirm brief / descope / rescope - and the decision it puts in front of the sponsor.
 
 If discovery revealed the problem is 3× the brief: the FDE tells the customer **before** telling themselves it's manageable. Lead with evidence, offer three paths (descope / rescope / pause-and-plan), confirm any reset in writing - update `success.md` and `brief.md` before continuing.
 

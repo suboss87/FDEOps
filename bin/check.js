@@ -63,6 +63,7 @@ const requiredReferences = [
   'debug.md', 'rescue.md', 'ship.md', 'sketch.md', 'close.md', 'dashboard.md',
   'debrief.md', 'status.md', 'demo-prep.md',
   'healthcare.md', 'fintech.md', 'gov.md',
+  'ai.md', 'eval-pack.md',
 ]
 for (const f of requiredReferences) {
   const p = path.join(root, 'skills', 'fde', 'references', f)

@@ -36,6 +36,19 @@ Never start with the most powerful model. Start with the cheapest that meets the
 
 Write model selection rationale to `decisions.md`. Include: models tested, test set size, scores, cost comparison.
 
+## Engagement eval pack (before AI ships)
+
+When any slice touches a model, embeddings, RAG, or an agent: create or update `.fde/evals.md` **before** ship. Full method: `references/eval-pack.md`. This is the engagement-local test set — not unit tests.
+
+**Minimum pack (do not grow until the minimum exists):**
+1. **Component + quality bar** — one sentence each; kill switch / fallback named.
+2. **Golden cases** — 5–20 representative inputs with expected outputs and a pass rule. Prefer real production-shaped data (sanitized).
+3. **Failure modes** — at least the silent ones: hallucination/ungrounded, retrieval miss (if RAG), drift, cost runaway.
+4. **Pass/fail** — dated run; Verdict **SHIP** or **NO-SHIP**; critical fails must be 0.
+5. **HITL gate** — which decisions need human review before action (align with `trust-profile.md`). Empty when policy requires review → NO-SHIP.
+
+**When to write:** plan seeds the pack; sketch/build grows goldens; ship requires Verdict SHIP and a receipt in `delivery.md` → `## Ship receipts`. Non-AI work skips this file entirely.
+
 ## RAG architecture (retrieval-augmented generation)
 
 When the AI needs to answer questions about the client's data:
@@ -78,12 +91,13 @@ When the AI takes actions (not just generates text):
 
 ## Writes
 
-`trust-profile.md` - AI policy, data classification, model hosting, human-in-the-loop requirements. `decisions.md` - model selection rationale, architecture choices. `risks.md` - bias findings, drift observations, cost projections. `delivery.md` - AI component inventory with kill switches documented.
+`trust-profile.md` - AI policy, data classification, model hosting, human-in-the-loop requirements. `evals.md` - golden cases, failure modes, SHIP/NO-SHIP, HITL. `decisions.md` - model selection rationale, architecture choices. `risks.md` - bias findings, drift observations, cost projections. `delivery.md` - AI component inventory with kill switches + eval receipt on ship.
 
 ## Principles
 
 - AI degrades silently. Monitor outputs, not just uptime.
 - Start with the cheapest model that meets the quality bar.
+- No golden set, no AI ship (`evals.md` Verdict SHIP).
 - Every AI component needs a kill switch and a fallback path.
 - Log reasoning, not just results. Debug AI from its decisions.
 - Drift is inevitable. Define the detection method before shipping.

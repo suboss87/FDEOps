@@ -270,6 +270,7 @@ Running the engagement and ending it well.
 | Signal | Overlay |
 |--------|---------|
 | AI, ML, LLM, model, embeddings, RAG, agents, fine-tuning, inference, drift | `references/ai.md` |
+| Golden set, eval suite, eval pack, pass/fail before AI ship, HITL gate for model | `references/eval-pack.md` (+ `ai.md`) |
 | Deck, slides, report, governance framework, compliance pack, ADR, PDF | `references/artifacts.md` |
 | Patient data, PHI, HIPAA, EHR, clinical | `references/healthcare.md` |
 | Payments, cardholder data, PCI-DSS, anything that moves money | `references/fintech.md` |
