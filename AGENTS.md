@@ -15,4 +15,4 @@ Route via **`@fde`** - read `skills/fde/SKILL.md` (the single source of truth), 
 
 ## Boundaries
 
-The `fde` CLI never reaches the network. Data marked `<private>` in `trust-profile.md` never enters a model prompt. fdeops installs on the FDE's own machine, never on customer infrastructure.
+The `fde` CLI never reaches the network. `<private>` blocks are redacted from CLI/dashboard/hook outputs; do not load raw private blocks into a model via file tools or paste. fdeops installs on the FDE's own machine, never on customer infrastructure.

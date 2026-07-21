@@ -39,6 +39,8 @@ Notes about identifiable people (stakeholder signals, contact logs) may carry da
 
 Transmission to model providers (e.g. Anthropic) is outside fdeops. See that provider’s privacy policy.
 
+`<private>` tags are an operational boundary plus CLI redaction: `fde resume`, `fde prep`, `fde dashboard`, receipts, and hook-injected context strip them. Opening the raw markdown with an agent file tool bypasses that redaction - keep secrets out of those tools and out of prompts.
+
 ## Contact
 
 https://github.com/suboss87/fdeops/issues

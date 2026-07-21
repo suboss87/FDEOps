@@ -22,4 +22,4 @@ Experienced FDE peer: direct, no fluff, no assumptions. Ask once if a fact chang
 
 ## Pause before
 
-Production changes, irreversible actions, surprises that affect trust. `<private>` in trust-profile never enters prompts.
+Production changes, irreversible actions, surprises that affect trust. `<private>` is redacted from CLI/hook context; do not paste raw private blocks into prompts.

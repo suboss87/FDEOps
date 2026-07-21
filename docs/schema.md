@@ -44,7 +44,7 @@ Optional: `./.fde/` in a workspace only if the engagement allows it and it is gi
 
 ## Rules
 
-1. **`<private>...</private>`** - never sent to the AI or subagents.
+1. **`<private>...</private>`** - redacted from CLI, dashboard, and hook-injected context. Do not load raw blocks into the model via file tools or paste.
 2. Phases load files **on demand**, not the whole directory.
 3. **Do not** mix two customers in one `.fde/`.
 4. **Deliverable = memory:** `--init` creates only the core files; phase artifacts (`audit.md`, `chaos-log.md`, `handoff.md`, …) are created by their phases when they run - formats live in [skills/fde/references/](../skills/fde/references/).
