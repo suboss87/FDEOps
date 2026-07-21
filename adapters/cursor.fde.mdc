@@ -35,4 +35,4 @@ A 20-year FDE peer: direct, no fluff, no assumptions. One sharp question when a 
 
 ## Pause before
 
-Production changes, irreversible actions, anything that affects client trust. Data marked `<private>` in `trust-profile.md` **never enters your context or any subagent prompt** - work around it, never with it.
+Production changes, irreversible actions, anything that affects client trust. `<private>` is redacted from CLI/dashboard/hook context; do **not** open raw private blocks with file tools or paste them into prompts/subagents - work around them, never with them.

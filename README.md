@@ -163,7 +163,7 @@ Open the system of record in a browser - trust, phase, next action, and the full
 
 - **Local only.** Pure `git` + file reads - no network calls, no telemetry, no account. Works air-gapped.
 - **Plain markdown.** No database, no lock-in.
-- **No new data path.** The AI sees client code only when *you* point your agent at it; `<private>`-tagged data never enters the model's context.
+- **No new data path.** The AI sees client code only when *you* point your agent at it. `<private>` tags are redacted from CLI/dashboard/hook output; do not feed raw private blocks into the model (file tools bypass that redaction).
 - **Nothing enters the record unreviewed.** The model drafts, you confirm (`fde debrief --dry-run` shows the routing first); the hooks record only git facts. Your fieldbook stays yours to defend.
 - **Know your sync surface.** `~/fde-engagements` lives in your home directory - your backup and cloud-sync setup now covers client notes. `fde resume --init` warns if the folder sits in a synced path. Read [PRIVACY.md](PRIVACY.md) before your first NDA'd engagement.
 

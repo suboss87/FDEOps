@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.9.12 — 2026-07-21
+
+Honest privacy wording for `<private>` tags.
+
+### Changed
+- Document `<private>` as CLI/dashboard/hook redaction plus an operational rule: do not open raw private blocks with file tools or paste them into prompts.
+- Remove overclaims that tags never enter model context by themselves.
+
 ## 3.9.11 — 2026-07-20
 
 Minimal field hardening for integrity and privacy without schema or workflow changes.
