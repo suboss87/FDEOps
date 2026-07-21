@@ -12,13 +12,29 @@ Thousands of lines or dozens of unrelated files → **stop**, recommend the spli
 
 ## Stage 1 - did we build what we agreed? (you do this work)
 
-Check the diff against `decisions.md` - what was *explicitly decided*, not what seems right:
-- Matches agreed scope?
+Check the diff against the **one-line intent** in `decisions.md` / acceptance criteria — what was *explicitly decided*, not what seems right:
+
+```bash
+git diff <base>...HEAD --stat
+```
+
+For each touched path (or logical hunk), assign one verdict:
+
+| Verdict | Meaning |
+|---------|---------|
+| **KEEP** | Required for the stated intent |
+| **JUSTIFY** | Adjacent but must ship now — write one sentence why, or SPLIT |
+| **SPLIT** | Real work for another PR / Next / kill list — do not merge with this slice |
+| **DROP** | Noise / drive-by — revert before Pass |
+
+Also check:
 - Any sacred system from `trust-profile.md` touched?
 - Any sensitive data newly in scope?
 - Rollback path defined before build still honoured?
 
-**Stage 1 fails → stop.** Quality review on out-of-scope code is wasted work. Record the specific mismatch in `decisions.md`.
+**Stage 1 fails → stop** if any SPLIT/DROP remains, or JUSTIFY lacks a written sentence. Quality review on out-of-scope code is wasted work. Record the mismatch (and the KEEP/JUSTIFY/SPLIT/DROP tally) in `decisions.md`.
+
+Stakeholder "also can you…" mid-build is `scope-defense` — different axis. This stage is **code vs claim**.
 
 ## Stage 2 - is it safe to live with?
 
@@ -48,6 +64,7 @@ Five dimensions, line-specific ("line 47 fails under concurrent writes - no lock
 ## Principles
 
 - Stage 1 before Stage 2. Wrong scope reviewed well is still wrong scope.
+- KEEP / JUSTIFY / SPLIT / DROP — every path gets a verdict; silent extras fail Stage 1.
 - Specific or silent - vague concerns waste everyone's time.
 - No rollback path = first finding.
 - A clean review proves this diff is safe as agreed - not that the feature was right.

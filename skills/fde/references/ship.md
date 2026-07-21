@@ -63,6 +63,28 @@ Score each dimension green/amber/red. This is the gate, not a suggestion:
 
 Write the readiness score (including value + receipts) to `delivery.md` before deploying. The score is the evidence if anything goes wrong.
 
+## Intent vs diff (before pre-blast)
+
+Ship the change you intended — not the drift that snuck in. Run this on the deploy branch against the **one-line intent** from `decisions.md` / `success.md` (the slice you said you were building).
+
+```bash
+git diff <base>...HEAD --stat
+git diff <base>...HEAD
+```
+
+Score every touched path (or logical hunk):
+
+| Path / change | Verdict | Rule |
+|---------------|---------|------|
+| | **KEEP** | Directly required for the stated intent |
+| | **JUSTIFY** | Adjacent but load-bearing — one sentence why it must ship *now*, or split |
+| | **SPLIT** | Real work, wrong PR — park in `decisions.md` kill/Next; do not deploy with this slice |
+| | **DROP** | Noise (format-only, drive-by rename, unrelated tidy) — revert before ship |
+
+**Any SPLIT or DROP still in the tree = fix-first.** JUSTIFY without a written sentence = treat as SPLIT. Log a one-line receipt in `delivery.md`: `intent vs diff: KEEP n · JUSTIFY n · SPLIT n · DROP n — <intent>`.
+
+This is **code drift**, not stakeholder "also can you…" (that is `scope-defense`). Same family as review Stage 1 — ship refuses green when the diff outgrew the claim.
+
 ## Pre-blast challenge (before the deploy button)
 
 For any non-trivial go-live (shared infra, regulated data, irreversible migration, or first prod touch), run this once before canary — not as theater, as a stop-the-line check:
@@ -162,7 +184,7 @@ Adoption isn't a handoff-stage problem - it starts during build. Software that l
 
 ## Checkpoint
 
-Before 100%: canary clean, business metric verified, pulse written into `delivery.md`. Also green: value bucket named, audit receipt dated, eval receipt **n/a or pass**. Missing any of those → not green. For enterprise-scale: scale-readiness gate passed before broad rollout.
+Before 100%: canary clean, business metric verified, pulse written into `delivery.md`. Also green: value bucket named, audit receipt dated, eval receipt **n/a or pass**, **intent vs diff clean** (no unresolved SPLIT/DROP). Missing any of those → not green. For enterprise-scale: scale-readiness gate passed before broad rollout.
 
 ## Principles
 
@@ -170,6 +192,7 @@ Before 100%: canary clean, business metric verified, pulse written into `deliver
 - Roll back on any canary anomaly; investigate safely.
 - Verify the business metric, not just the technical one.
 - No value bucket, no green ship. No pulse, no done.
+- Diff larger than the stated intent without KEEP/JUSTIFY receipts = fix-first.
 - AI path without eval receipt = fix-first; non-AI ships leave eval as n/a.
 - Scale readiness is organizational, not just technical. Check all 8 dimensions.
 - Adoption is measured from day one, not hoped for at launch.
