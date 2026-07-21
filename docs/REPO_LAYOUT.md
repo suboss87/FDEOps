@@ -2,14 +2,19 @@
 
 | Path | Purpose |
 |------|---------|
-| `skills/fde/` | **The one skill** - router (`SKILL.md`) + 35 skill methods and 5 overlays (`references/`) - installed to `~/.claude/skills/` |
-| `adapters/` | Thin per-tool pointers (Codex/`AGENTS.md`, Gemini, Cursor, Copilot) - `node bin/install.js adapters <dir>` |
-| `templates/.fde/` | Core memory templates for `fde resume --init` (phase artifacts are created by phases on demand) |
-| `examples/garvey-payments/` | Fictional walkthrough with sample `.fde/` files |
-| `bin/fde.js` | The `fde` CLI - scan, resume, debrief, log, receipts, capture, status, dashboard |
+| `skills/fde/` | **The one skill** - router (`SKILL.md`) + 35 methods, 5 overlays, and AI companion `eval-pack` under `references/` - installed to `~/.claude/skills/` |
+| `adapters/` | Thin per-tool pointers (Codex/`AGENTS.md`, Gemini, Cursor, Copilot, local LLMs) - `node bin/install.js adapters <dir>` |
+| `templates/.fde/` | Core memory templates for `fde resume --init` (phase artifacts are created by phases on demand; `evals.md` is optional) |
+| `examples/` | Fictional walkthroughs with sample `.fde/` files |
+| `bin/fde.js` | Deterministic CLI - scan, resume, triage, log, debrief, prep, doctor, garden, redact, receipts, capture, preserve, status, dashboard |
+| `bin/lib/` | Shared memory / trust / render helpers used by the CLI |
+| `bin/check.js` | Structural + install smoke gate (`npm run check`) |
 | `bin/install.js` | `node bin/install.js` (skills + hooks on disk) |
-| `hooks/` | `fdeops-session-start` (read), `fdeops-session-stop` (write), `fdeops-pre-compact` - registry-aware |
+| `hooks/` | session-start (read), session-stop (write), pre-compact - registry-aware |
+| `test/` | CLI regression suite |
+| `evals/` | Cheap skill-routing contract checks |
 | `.claude-plugin/` | Claude Code marketplace metadata |
 | `docs/` | install, USAGE, schema, OPERATIONS, REPO_LAYOUT, skills, skills-reference |
+| `media/` | Optional demo assets (not required for CLI/skill install) |
 
 **Install:** [install.md](./install.md) - Claude plugin + git clone is the reliable path.
