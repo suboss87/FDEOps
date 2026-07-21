@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.9.16 — 2026-07-21
+
+Intent vs diff gate — scope-creep detector fitted into ship/review (not a new skill).
+
+### Added
+- **Intent vs diff** on ship (before pre-blast): KEEP / JUSTIFY / SPLIT / DROP every path against the stated slice; SPLIT/DROP still in tree = fix-first; receipt in `delivery.md`.
+- **Review Stage 1** uses the same verdict table; JUSTIFY needs a written sentence or it fails.
+- Router phrases for “diff grew / scope creep in the PR” → review (+ ship if going live). Distinct from stakeholder `scope-defense`.
+
+### Changed
+- Build review gate names intent vs diff explicitly; skills-reference ship/review rows updated.
+
 ## 3.9.15 — 2026-07-21
 
 Input hygiene from the ugly edge-case round.

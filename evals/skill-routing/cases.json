@@ -64,6 +64,15 @@
       "expect": { "cli": ["resume"] }
     },
     {
+      "id": "happy-intent-vs-diff",
+      "kind": "happy",
+      "prompt": "@fde did this PR stay in scope — any scope creep in the diff?",
+      "expect": {
+        "reference_hint": "review",
+        "must_not_load_reference": ["land.md", "discover.md", "scope-defense.md"]
+      }
+    },
+    {
       "id": "happy-redact-adjacent",
       "kind": "happy",
       "prompt": "@fde I accidentally logged a secret earlier - scrub the token sk-live from memory",
