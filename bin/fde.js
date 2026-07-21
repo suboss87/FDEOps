@@ -107,9 +107,13 @@ function resolveEngagement(opts = {}) {
   // bind - env, registry, pointer, or in-repo .fde. Basename matching is
   // read-only convenience; writing on a folder-name guess contaminates clients.
   const forWrite = !!opts.forWrite
+  const accept = (p) => acceptEngagementPath(p, { forWrite })
   // 1) explicit env (back-compat: accept old FDEOS_ENGAGEMENT too)
   const env = (process.env.FDEOPS_ENGAGEMENT || process.env.FDEOS_ENGAGEMENT || '').replace(/^~/, HOME).trim()
-  if (env && fs.existsSync(env)) return env
+  if (env) {
+    const ok = accept(env)
+    if (ok) return ok
+  }
   // 2) workspace registry binding (written by resume --init). Match the cwd OR
   // any ancestor of it - FDEs run commands from src/, packages/api/, etc., not
   // just the repo root where they bound. Nearest (deepest) registered ancestor
@@ -122,8 +126,8 @@ function resolveEngagement(opts = {}) {
     .filter(r => cwd === r.workspace || cwd.startsWith(r.workspace + path.sep))
     .sort((a, b) => b.workspace.length - a.workspace.length)[0]
   if (reg) {
-    const p = path.join(ENGAGEMENTS_ROOT, reg.slug, '.fde')
-    if (fs.existsSync(p)) return p
+    const ok = accept(path.join(ENGAGEMENTS_ROOT, reg.slug, '.fde'))
+    if (ok) return ok
   }
   // 3) global pointer file (back-compat: try old FDEOS-CLAUDE.md too)
   for (const ptrName of ['FDEOPS-CLAUDE.md', 'FDEOS-CLAUDE.md']) {
@@ -131,8 +135,8 @@ function resolveEngagement(opts = {}) {
       const ptr = fs.readFileSync(path.join(HOME, '.claude', ptrName), 'utf8')
       const m = ptr.match(/^(?:FDEOPS|FDEOS)_ENGAGEMENT=(.+)$/m)
       if (m) {
-        const p = m[1].trim().replace(/^~/, HOME)
-        if (fs.existsSync(p)) return p
+        const ok = accept(m[1].trim().replace(/^~/, HOME))
+        if (ok) return ok
       }
     } catch (_) {}
   }
@@ -150,12 +154,35 @@ function resolveEngagement(opts = {}) {
       )
       return null
     }
-    process.stderr.write(`⚠ resolved engagement by directory name ("${slugGuess}"), not a saved binding (read-only). If this is the right client, run \`fde resume --init ${slugGuess}\` here to bind it before logging or debriefing.\n`)
-    return guess
+    const ok = accept(guess)
+    if (ok) {
+      process.stderr.write(`⚠ resolved engagement by directory name ("${slugGuess}"), not a saved binding (read-only). If this is the right client, run \`fde resume --init ${slugGuess}\` here to bind it before logging or debriefing.\n`)
+      return ok
+    }
   }
   // 5) in-repo .fde (engagement-approved only)
-  if (fs.existsSync(path.join(cwd, '.fde'))) return path.join(cwd, '.fde')
+  const inRepo = accept(path.join(cwd, '.fde'))
+  if (inRepo) return inRepo
   return null
+}
+
+// Engagement memory must be a directory. A file named .fde used to yield a
+// healthy-looking green TRIAGE then raw ENOTDIR on write - refuse loudly.
+function acceptEngagementPath(p, opts = {}) {
+  if (!p || !fs.existsSync(p)) return null
+  try {
+    const st = fs.statSync(p)
+    if (st.isDirectory()) return p
+    const msg =
+      `engagement path is not a directory (memory missing/broken): ${p}\n` +
+      '  repair: remove that file, then re-run: fde resume --init <name>'
+    console.error(msg)
+    if (opts.forWrite) process.exit(1)
+    return null
+  } catch (e) {
+    if (opts.forWrite) failFs(e, 'open', p)
+    return null
+  }
 }
 
 function templatesDir() {
@@ -172,11 +199,19 @@ function readEng(eng, f) {
 }
 
 // Redact private notes and template hints from every model-facing read.
+// Also strip terminal control chars so poisoned memory cannot smuggle ANSI
+// into triage/prep/status (C0/C1 except tab/LF/CR).
+function stripControlChars(s) {
+  return String(s || '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '')
+}
+
 function stripPrivate(md) {
-  return md
-    .replace(/<private>[\s\S]*?<\/private>/gi, '(private - redacted)')
-    .replace(/<private>[\s\S]*$/i, '(private - redacted)')
-    .replace(/<!--[\s\S]*?-->/g, '')
+  return stripControlChars(
+    String(md || '')
+      .replace(/<private>[\s\S]*?<\/private>/gi, '(private - redacted)')
+      .replace(/<private>[\s\S]*$/i, '(private - redacted)')
+      .replace(/<!--[\s\S]*?-->/g, '')
+  )
 }
 
 // Read + redact in one step - the default way dashboard code should ever touch
@@ -239,6 +274,9 @@ function formatFsError(err, action, target) {
   const code = err && err.code
   const where = path.basename(String(target || '')) || String(target || 'path')
   if (code === 'ENOSPC') return `cannot ${action} ${where} - disk full`
+  if (code === 'ENOTDIR') {
+    return `cannot ${action} ${where} - engagement path is not a directory (memory missing/broken); remove the file and re-run fde resume --init`
+  }
   if (code === 'EACCES' || code === 'EPERM' || code === 'EROFS') {
     return `cannot ${action} ${where} - permission denied (read-only or locked down)`
   }
@@ -392,7 +430,7 @@ function datedEntry(eng, date, text, signal) {
   const bits = [`- [${date}]`]
   if (who) bits.push(`[${who}]`)
   if (signal) bits.push(`[signal:${signal}]`)
-  bits.push(text)
+  bits.push(stripControlChars(text))
   return bits.join(' ')
 }
 
@@ -1136,7 +1174,7 @@ function smartProposeText(input) {
 
 function setNextAction(eng, text) {
   ensureMemoryGit(eng)
-  const bullet = `- ${String(text).replace(/^[-*]\s+/, '').trim()}`
+  const bullet = `- ${stripControlChars(String(text).replace(/^[-*]\s+/, '').trim())}`
   const p = path.join(eng, 'context.md')
   let md = readEng(eng, 'context.md')
   if (!md) md = '# Engagement context\n\n'
@@ -1146,6 +1184,24 @@ function setNextAction(eng, text) {
     md = md.replace(/\n*$/, `\n\n## Next action\n\n${bullet}\n`)
   }
   withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
+}
+
+function looksLikeBinaryNoise(text) {
+  const s = String(text || '')
+  if (!s) return false
+  if (s.includes('\0')) return true
+  const sample = s.slice(0, 8192)
+  let ctrl = 0
+  let replacement = 0
+  for (let i = 0; i < sample.length; i++) {
+    const c = sample.charCodeAt(i)
+    if (c === 0xfffd) replacement++
+    if (c === 9 || c === 10 || c === 13) continue
+    if (c < 32 || (c >= 0x7f && c <= 0x9f)) ctrl++
+  }
+  if (!sample.length) return false
+  // Mostly-control or high U+FFFD density = urandom / binary mistyped as text.
+  return (ctrl / sample.length) > 0.05 || (replacement / sample.length) > 0.1
 }
 
 function readDebriefInput(args) {
@@ -1160,19 +1216,25 @@ function readDebriefInput(args) {
     }
     let buf
     try { buf = fs.readFileSync(notesPath) } catch (_) { console.error(`cannot read ${args[0]}`); process.exit(1) }
-    if (buf.includes(0)) {
-      console.error(`debrief refused: ${args[0]} looks binary (null bytes). Paste text notes only.`)
+    if (buf.includes(0) || looksLikeBinaryNoise(buf.toString('utf8'))) {
+      console.error(`debrief refused: ${args[0]} looks binary or mostly non-printable. Paste text notes only.`)
       process.exit(1)
     }
     input = buf.toString('utf8')
   } else {
-    try { input = fs.readFileSync(0, 'utf8') } catch (_) {}
-    if (Buffer.byteLength(input, 'utf8') > DEBRIEF_MAX_BYTES) {
+    let buf
+    try { buf = fs.readFileSync(0) } catch (_) { buf = Buffer.alloc(0) }
+    if (Buffer.byteLength(buf) > DEBRIEF_MAX_BYTES) {
       console.error(`debrief refused: stdin is over ${DEBRIEF_MAX_BYTES} bytes. Split the notes.`)
       process.exit(1)
     }
+    if (buf.includes(0) || looksLikeBinaryNoise(buf.toString('utf8'))) {
+      console.error('debrief refused: stdin looks binary or mostly non-printable. Paste text notes only.')
+      process.exit(1)
+    }
+    input = buf.toString('utf8')
   }
-  return input
+  return stripControlChars(input)
 }
 
 function previewLine(text, max = 240) {
@@ -1250,7 +1312,7 @@ function cmdDebrief(args) {
 
   let input = ''
   if (apply && !smart && !args[0]) {
-    try { input = fs.readFileSync(path.join(eng, DEBRIEF_PROPOSE), 'utf8') } catch (_) {
+    try { input = stripControlChars(fs.readFileSync(path.join(eng, DEBRIEF_PROPOSE), 'utf8')) } catch (_) {
       console.error('nothing to apply - run: fde debrief --smart <notes.md>   then   fde debrief --apply')
       process.exit(1)
     }
