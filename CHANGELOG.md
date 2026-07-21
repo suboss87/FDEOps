@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.9.14 — 2026-07-21
+
+Field validation follow-ups: shout when the memory ledger dies silently; tighten receipts/debrief/garden.
+
+### Fixed
+- **Silent ledger death** — corrupt `.fde/.git` is a loud `fde doctor` issue (UNVERSIONED + repair hint); `fde garden` stops claiming reversibility and refuses `--apply` while broken.
+- **Receipts dirty caveat** — ON RECORD hits in hand-edited files are marked dirty.
+- **Smart debrief** — preview lines capped; `Decided:` routes to decisions.md.
+- **Garden risk dedupe** — proposes and applies consolidating identical open-risk echoes into `## Retired`.
+
 ## 3.9.13 — 2026-07-21
 
 Audit → eval → deploy loop hardened in method + doctor (no schema break).
