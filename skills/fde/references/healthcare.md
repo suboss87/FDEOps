@@ -10,7 +10,7 @@ A PHI breach can end an operating licence; an audit-trail gap can invalidate a c
 
 > "Walk me through what patient data this system touches, stores, transmits - and who has access."
 
-PHI is broader than names: IPs, device identifiers, sub-state geography, and dates (other than year) can all qualify in context. When in doubt, treat as PHI. Tag everything in `trust-profile.md` under `<private>` - **PHI never enters AI context in plaintext: not prompts, not test fixtures, not dev logs.**
+PHI is broader than names: IPs, device identifiers, sub-state geography, and dates (other than year) can all qualify in context. When in doubt, treat as PHI. Tag it in `trust-profile.md` under `<private>`. Operational rule: **no PHI in prompts, test fixtures, or logs** - CLI/dashboard redact the tags; agent file tools do not.
 
 ## AI policy before a single line
 
@@ -38,7 +38,7 @@ Clinical systems need emergency override (a clinician must reach a record even w
 
 ## Principles
 
-- PHI never enters AI context in plaintext.
+- No PHI in prompts, fixtures, or logs (tag `<private>`; do not read raw private blocks into the model).
 - Audit trails before features.
 - Unclear AI policy = prohibited until confirmed.
 - De-identification is a legal definition (18 identifiers).

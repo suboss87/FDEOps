@@ -16,7 +16,7 @@ Install and `fdeops init` on **your** environment only. Do not require clients o
 
 ## AI providers
 
-Skills guide **AI coding agent** behavior. What you send to an AI vendor is governed by **that vendor’s** policy. `<private>` content in `trust-profile.md` must never enter prompts - see [docs/schema.md](docs/schema.md).
+Skills guide **AI coding agent** behavior. What you send to an AI vendor is governed by **that vendor’s** policy. `<private>` content is redacted from CLI/dashboard/hook outputs; do not paste raw private blocks into prompts - see [docs/schema.md](docs/schema.md).
 
 ## Report issues
 
