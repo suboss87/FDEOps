@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.9.15 — 2026-07-21
+
+Input hygiene from the ugly edge-case round.
+
+### Fixed
+- **ANSI / control-char smuggling** — strip C0/C1 (except tab/LF/CR) on write and on readClean so triage/prep/status cannot paint fake trust colors.
+- **Binary debrief** — refuse mostly-nonprintable notes on file *and* stdin (null bytes or control/noise density).
+- **`.fde` as a file** — resolve refuses loudly (no fake green TRIAGE); ENOTDIR messages point at repair.
+
 ## 3.9.14 — 2026-07-21
 
 Field validation follow-ups: shout when the memory ledger dies silently; tighten receipts/debrief/garden.
