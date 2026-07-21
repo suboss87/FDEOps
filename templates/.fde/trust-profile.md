@@ -1,10 +1,10 @@
 # Trust profile
 
-<!-- Sacred data, AI policy, approvals. Use <private>...</private> for never-AI content. -->
+<!-- Sacred data, AI policy, approvals. Use <private>...</private> for content CLI/dashboard must redact; do not paste raw into prompts. -->
 
 **AI code policy:**
 **Approval chain:**
-**Data that must never enter AI context:**
+**Data kept out of model context (tag below; do not paste raw):**
 
 <private>
 <!-- Example: cardholder data scope, production credentials paths -->

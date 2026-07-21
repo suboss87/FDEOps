@@ -86,7 +86,7 @@ Before the end of day 1, ship one visible thing: a small bug fix, a cleanup the 
 ```
 If `stakeholders.md` already has a `## Signal history` section (it does from the template), **never delete or overwrite it** when you rewrite this file - it holds the dated `[signal:...]` tokens `fde log contact --signal` and `fde debrief` write, and `fde status`/`fde receipts`/the dashboard read only from that section. Edit the table above it freely; keep the section below intact.
 
-**`trust-profile.md`** - sacred data (`<private>` tagged), fears heard, AI policy, approval chain. Sensitive: never loaded for status reads, never into subagent prompts.
+**`trust-profile.md`** - sacred data (`<private>` tagged), fears heard, AI policy, approval chain. Sensitive: skip for status reads; use CLI/redacted surfaces; never paste raw `<private>` into prompts or subagents.
 
 **`assumptions.md`** - seed every unverified claim from the brief (and the day-1 hypothesis) as rows with blast radius CRITICAL / LOAD-BEARING / CONVENIENCE and status `OPEN`. Do not wait for assumption-audit - land makes the register exist. Example:
 
@@ -107,7 +107,7 @@ If remote: trust-building takes ~40% longer - push for a short video call before
 ## Principles
 
 - Never start technical work before `success.md` exists.
-- Sacred data never enters AI context. Ever.
+- Sacred data tagged `<private>` stays out of model context: use CLI/redacted reads; never paste raw private blocks.
 - The brief is a hypothesis; discover confirms it. Seed `assumptions.md` on day one.
 - The passed-over internal team is the best source of truth, not an obstacle.
 - If the customer cannot define success, that is the first problem to solve.
