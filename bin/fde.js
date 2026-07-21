@@ -401,6 +401,7 @@ const {
   memoryDirtyManual,
   commitMemory,
   memoryHead,
+  memoryGitHealthy,
 } = createMemoryApi({ fs, path, gitBinOk, writeOwnerIfMissing, atomicWriteFile })
 
 // Pull the body under a "## Heading" up to the next "##" (or EOF).
@@ -1095,6 +1096,10 @@ function smartProposeText(input) {
     let bare = line
       .replace(/^[-*+]\s+/, '')
       .replace(/^\*\*(decision|risk|delivery|contact|next):?\*\*:?\s*/i, '$1: ')
+    if (/^decided:\s+/i.test(bare)) {
+      out.push(`decision: ${bare.replace(/^decided:\s+/i, '')}`)
+      continue
+    }
     if (/^(decision|risk|delivery|contact|next):\s*/i.test(bare)) {
       let routed = bare.replace(/^(decision|risk|delivery|contact|next):\s*/i, (m, t) => `${t.toLowerCase()}: `)
       if (/^contact:/i.test(routed) && !/\[signal:(red|amber|green)\]/i.test(routed)) {
@@ -1110,7 +1115,7 @@ function smartProposeText(input) {
       out.push(`next: ${next}`)
       continue
     }
-    if (/\b(we (decided|agreed)|decision:|descope|agreed to|agreement was|freeze scope)\b/i.test(bare)) {
+    if (/\b(we (decided|agreed)|decided:|decision:|descope|agreed to|agreement was|freeze scope|freeze prompts)\b/i.test(bare)) {
       out.push(`decision: ${bare}`)
     } else if (/\b(open question|who signs|unclear who|unresolved)\b/i.test(bare)) {
       out.push(`risk: ${bare}`)
@@ -1170,6 +1175,12 @@ function readDebriefInput(args) {
   return input
 }
 
+function previewLine(text, max = 240) {
+  const t = String(text || '').replace(/\s+/g, ' ').trim()
+  if (t.length <= max) return t
+  return `${t.slice(0, max)}… (${t.length} chars)`
+}
+
 function routeDebriefInput(eng, input, { dry, force }) {
   const d = new Date()
   const date = d.toISOString().slice(0, 10)
@@ -1191,7 +1202,7 @@ function routeDebriefInput(eng, input, { dry, force }) {
         continue
       }
       if (type === 'next') {
-        if (dry) console.log(`→ context.md ## Next action  - ${body}`)
+        if (dry) console.log(`→ context.md ## Next action  - ${previewLine(body)}`)
         else nextAction = body
         counts.next++
         continue
@@ -1199,7 +1210,7 @@ function routeDebriefInput(eng, input, { dry, force }) {
       const sigInline = (body.match(/\[signal:(red|amber|green)\]/i) || [])[1]
       if (sigInline) body = body.replace(/\[signal:(red|amber|green)\]/i, '').trim()
       const entry = datedEntry(eng, date, body, type === 'contact' && sigInline ? sigInline.toLowerCase() : '')
-      if (dry) console.log(`→ ${LOG_FILES[type]}  ${entry}`)
+      if (dry) console.log(`→ ${LOG_FILES[type]}  ${previewLine(entry)}`)
       else appendLogEntry(eng, type, entry, { skipCommit: true })
       counts[type]++
     } else {
@@ -1213,7 +1224,7 @@ function routeDebriefInput(eng, input, { dry, force }) {
   if (nextAction && !dry) setNextAction(eng, nextAction)
   if (ctxLines.length) {
     const stamp = `${date} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-    if (dry) ctxLines.forEach(l => console.log(`→ context.md  - ${l}`))
+    if (dry) ctxLines.forEach(l => console.log(`→ context.md  - ${previewLine(l)}`))
     else lockedAppendFile(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${ctxLines.map(l => `- ${l}`).join('\n')}\n`)
   }
   return { counts, ctxLines, date, nextAction }
@@ -1308,9 +1319,22 @@ function cmdReceipts(args) {
   }
   const agreed = collect(AGREEMENTS)
   const claimed = collect(CLAIMS)
+  const dirty = memoryDirtyManual(eng)
+  const dirtySet = new Set(dirty)
+  const dirtyAgreedHits = [...new Set(
+    agreed.map(h => (h.match(/^\s*([^:]+):/) || [])[1]).filter(f => f && dirtySet.has(f))
+  )]
   if (agreed.length) {
     console.log('ON RECORD (dated - defensible):')
-    agreed.forEach(h => console.log(h))
+    agreed.forEach(h => {
+      const file = (h.match(/^\s*([^:]+):/) || [])[1]
+      console.log(h + (file && dirtySet.has(file) ? '  ⚠ dirty file' : ''))
+    })
+    if (dirtyAgreedHits.length) {
+      console.log(
+        `⚠ memory dirty (uncommitted manual edits: ${dirtyAgreedHits.join(', ')}) - dated lines above may not match the tamper-evident ledger until reviewed`
+      )
+    }
   }
   if (claimed.length) {
     if (agreed.length) console.log('')
@@ -1493,7 +1517,18 @@ function collectDoctorIssues(eng) {
   }
   if (s.stale) issues.push(`trust signal is STALE (${s.signalAge}d) - reconfirm with fde log contact ... --signal`)
   if (!readOwner(eng)) issues.push('no .owner - run any write or: fde owner set you@firm.com')
-  if (!fs.existsSync(path.join(eng, '.git'))) issues.push('memory not git-versioned - next write will init, or re-run resume --init')
+  const gitHealth = memoryGitHealthy(eng)
+  if (!gitHealth.ok) {
+    if (gitHealth.reason === 'broken') {
+      issues.push(
+        'memory git is BROKEN (UNVERSIONED) - receipts are not tamper-evident; repair: mv .fde/.git .fde/.git.broken && re-run any fde write (or resume --init) to re-init the ledger'
+      )
+    } else if (gitHealth.reason === 'no-git-bin') {
+      issues.push('git binary missing - engagement memory cannot be versioned (receipts stay dated, not tamper-evident)')
+    } else {
+      issues.push('memory not git-versioned - next write will init, or re-run resume --init')
+    }
+  }
   const success = readClean(eng, 'success.md')
   if (!firstLine(success, 80)) issues.push('success.md has no stated done-definition - fill before plan/build')
   if (!sectionBody(readClean(eng, 'context.md'), 'Next action')) {
@@ -1731,10 +1766,24 @@ function cmdGarden(args) {
   const apply = args.includes('--apply')
   const eng = resolveEngagement({ forWrite: apply })
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+  const gitHealth = memoryGitHealthy(eng)
   // Gardener contract (from Rowboat note_curation): no new facts, no deleted substance,
-  // reversible via git, confirm before apply. Mechanical only - no LLM rewrite.
-  console.log('GARDEN (contract: no new facts · no deleted substance · reversible via memory git)')
+  // reversible via git when healthy, confirm before apply. Mechanical only - no LLM rewrite.
+  if (gitHealth.ok) {
+    console.log('GARDEN (contract: no new facts · no deleted substance · reversible via memory git)')
+  } else if (gitHealth.reason === 'broken') {
+    console.log('GARDEN (contract: no new facts · no deleted substance · ⚠ memory git BROKEN — NOT reversible until ledger is repaired)')
+  } else {
+    console.log('GARDEN (contract: no new facts · no deleted substance · ⚠ memory not git-versioned — NOT reversible)')
+  }
   console.log(resumeTriage(eng))
+  if (!gitHealth.ok) {
+    console.log(
+      gitHealth.reason === 'broken'
+        ? '\n⚠ ledger is UNVERSIONED (corrupt .git). Repair before trusting garden apply: mv .fde/.git .fde/.git.broken && run any fde write to re-init.'
+        : '\n⚠ no memory git — garden apply cannot create a reversible commit until the ledger exists.'
+    )
+  }
   const proposals = []
   const s = computeSignals(eng)
   if (s.stale) {
@@ -1742,6 +1791,16 @@ function cmdGarden(args) {
       id: 'reconfirm-signal',
       kind: 'manual',
       text: `Reconfirm stale ${s.trust} signal (${s.signalAge}d): fde log contact "…" --signal`,
+    })
+  }
+  const dupes = findDuplicateOpenRisks(eng)
+  if (dupes.length) {
+    const sample = (dupes[0][0] || '').replace(/\s+/g, ' ').trim().slice(0, 50)
+    proposals.push({
+      id: 'dedupe-risks',
+      kind: 'apply',
+      text: `Consolidate ${dupes.length} duplicate open-risk cluster(s) (e.g. "${sample}${sample.length >= 50 ? '…' : ''}") — keep first, retire echoes`,
+      clusters: dupes,
     })
   }
   const ctx = readEng(eng, 'context.md')
@@ -1769,12 +1828,26 @@ function cmdGarden(args) {
   proposals.forEach((p, i) => console.log(`  ${i + 1}. [${p.kind}] ${p.text}`))
   if (!apply) {
     console.log('\nApply mechanical items only:  fde garden --apply')
-    console.log('Manual items stay yours. Every apply commits to memory git.')
+    console.log('Manual items stay yours. Every apply commits to memory git when the ledger is healthy.')
     return
+  }
+  if (!gitHealth.ok && gitHealth.reason === 'broken') {
+    console.error('refusing garden --apply while memory git is broken - repair the ledger first')
+    process.exit(1)
   }
   ensureMemoryGit(eng)
   let applied = 0
+  const touched = new Set()
   for (const p of proposals) {
+    if (p.id === 'dedupe-risks') {
+      const n = applyRiskDedupe(eng, p.clusters)
+      if (n > 0) {
+        applied++
+        touched.add('risks.md')
+        console.log(`applied: retired ${n} duplicate open-risk echo(s) → ## Retired`)
+      }
+      continue
+    }
     if (p.id !== 'archive-sessions') continue
     const cutDates = new Set(p.sessionBlocks.map(b => b.date))
     const keep = []
@@ -1808,11 +1881,59 @@ function cmdGarden(args) {
       atomicWriteFile(path.join(eng, 'context.md'), keep.join('\n').replace(/\n*$/, '\n'))
     })
     applied++
+    touched.add('context.md')
+    touched.add('context-archive.md')
     console.log(`applied: archived ${p.sessionBlocks.length} old session-end blocks → context-archive.md`)
   }
-  const hash = commitMemory(eng, 'garden', { files: ['context.md', 'context-archive.md'] })
+  const hash = commitMemory(eng, 'garden', { files: [...touched] })
   if (!applied) console.log('no mechanical proposals applied (manual items remain)')
   else console.log(`garden done${hash ? ` @${hash}` : ''}`)
+}
+
+// Keep the first open-risk bullet per fingerprint; move later echoes under ## Retired.
+function applyRiskDedupe(eng, clusters) {
+  const p = path.join(eng, 'risks.md')
+  let md = readEng(eng, 'risks.md')
+  if (!md) return 0
+  const echoTexts = new Set()
+  for (const group of clusters) {
+    for (let i = 1; i < group.length; i++) echoTexts.add(group[i])
+  }
+  if (!echoTexts.size) return 0
+  const retiredLines = []
+  const kept = []
+  let inRetired = false
+  let moved = 0
+  for (const raw of md.split('\n')) {
+    const t = raw.trim()
+    if (/^#{1,6}\s+Retired\b/i.test(t)) {
+      inRetired = true
+      kept.push(raw)
+      continue
+    }
+    if (!inRetired) {
+      const m = t.match(/^-\s*\[\d{4}-\d{2}-\d{2}\]\s*(?:\[@[^\]]+\]\s*)?(.*)$/)
+      if (m && echoTexts.has(m[1].trim())) {
+        retiredLines.push(raw)
+        moved++
+        continue
+      }
+    }
+    kept.push(raw)
+  }
+  if (!moved) return 0
+  let out = kept.join('\n')
+  if (!/^#{1,6}\s+Retired\b/im.test(out)) {
+    out = out.replace(/\n*$/, '\n\n## Retired\n')
+  }
+  const stamp = new Date().toISOString().slice(0, 10)
+  const block = retiredLines.map(l => {
+    const body = l.trim().replace(/^-\s*/, '')
+    return `- [${stamp}] (garden dedupe) ${body}`
+  }).join('\n')
+  out = appendUnderSection(out, 'Retired', block)
+  withFileLock(p, () => { atomicWriteFile(p, out.endsWith('\n') ? out : out + '\n') })
+  return moved
 }
 
 function engagementSlugFromPath(eng) {
