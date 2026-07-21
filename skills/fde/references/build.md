@@ -58,7 +58,7 @@ The spec becomes the test list - every line is something to verify after build.
    - `[DEFERRED]` intentionally left for a later task (state which one)
    Surface the results to the FDE. If any scenario fails, fix it before cleanup. This is not optional - the spec is the contract.
 9. **Cleanup pass after it works.** Dedupe repeated mechanics into the smallest service module; behavior unchanged; re-run the same tests. If you wrote 200 lines and 50 would do, rewrite before review.
-10. **Review gate (before merge):** two stages, in order - (a) **scope**: does the diff match the approved spec and `decisions.md`, nothing more? (b) **safety**: blast radius honest, tests meaningful, rollback real, secrets absent. Fix real findings, re-verify, repeat until clean or blocked on a human decision.
+10. **Review gate (before merge):** two stages, in order - (a) **intent vs diff**: every path KEEP / JUSTIFY / SPLIT / DROP against the stated slice in `decisions.md` (see `review.md` Stage 1); (b) **safety**: blast radius honest, tests meaningful, rollback real, secrets absent. Fix real findings, re-verify, repeat until clean or blocked on a human decision.
 11. **Log and deliver.** Update the artifacts (below). Visible progress beats invisible perfection - every 2–3 tasks something shown to a stakeholder.
 
 **Touching existing code - classify before changing:**

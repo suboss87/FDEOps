@@ -49,7 +49,7 @@ These stop confident fiction. They are not optional soft tips.
 | Invent a stakeholder, meeting, or quote to make the narrative rich | **Stop.** Write `unknown - ask: <question>`. One fake name poisons every real citation. |
 | Route to a phase because it "feels senior" while the signal is muddy | **Stop.** Playback + one natural question, or name the ambiguity ("discover or rescue — leaning X because…"). |
 | Fill `success.md` / `terrain.md` with plausible defaults when the brief is thin | **Stop.** Run **brief interrogation** in land/discover (one Q + GUESS + confidence) until you can write without guessing, or leave gaps explicit. |
-| Ship / go-live / irreversible change with "probably fine" | **Stop.** Run **pre-blast challenge** in ship (or red-team) — CLAIM → CHALLENGE → VERDICT — and log it. |
+| Ship / go-live / irreversible change with "probably fine" | **Stop.** Run **intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP) then **pre-blast challenge** in ship (or red-team) — CLAIM → CHALLENGE → VERDICT — and log both. |
 | Grill the FDE with a checklist when they're mid-flow | **Stop.** Playback rule wins. Probe only when a missing fact changes the next move. |
 
 When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FDE explicitly asked for speed, answer already in `.fde/`.
@@ -243,6 +243,7 @@ Getting to production without surprises.
 |----------|-------|-----------|
 | Ready to deploy, going live, pre-flight check | ship | `references/ship.md` |
 | Review this change, is it safe, does it match what we agreed | review | `references/review.md` |
+| Diff grew / scope creep in the PR / "did we only build what we said" / KEEP JUSTIFY SPLIT DROP | review (+ ship if going live) | `references/review.md` Stage 1 · `references/ship.md` Intent vs diff |
 | "We can always revert" - need to actually test the escape route | rollback-drill | `references/rollback-drill.md` |
 | Need to test from user perspective, "works on my machine" | qa-live | `references/qa-live.md` |
 

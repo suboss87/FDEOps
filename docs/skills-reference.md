@@ -58,8 +58,8 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [ship](../skills/fde/references/ship.md) | Pre-flight + canary + rollback + **scale-readiness gate** + **progressive adoption** | Ready to deploy, going live, pre-flight check |
-| [review](../skills/fde/references/review.md) | Scope first (did we build what was agreed), then safety | Review this change, is it safe, does it match what we agreed |
+| [ship](../skills/fde/references/ship.md) | **Intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP) + pre-flight + canary + rollback + **scale-readiness** + **progressive adoption** | Ready to deploy, going live, pre-flight check |
+| [review](../skills/fde/references/review.md) | Stage 1 **intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP), then safety | Review this change, is it safe, does it match what we agreed, scope creep in the PR |
 | [rollback-drill](../skills/fde/references/rollback-drill.md) | Test the escape route on staging before you need it at 2am | "We can always revert" - need to actually test the escape route |
 | [qa-live](../skills/fde/references/qa-live.md) | Test from the user's chair, real browser, five perspectives | Need to test from user perspective, "works on my machine" |
 
@@ -106,8 +106,8 @@ The 10 phases most engagements actually run through, with what gets written wher
 | [close](../skills/fde/references/close.md) | Engagement ending | Retrospective with receipts; pattern extraction; the 2am handoff | `retrospectives/` `patterns.md` `handoff.md` |
 | [plan](../skills/fde/references/plan.md) | Scope clear, needs sequencing | Backwards from success; fragile first; PR-sized tasks; acceptance-criteria gate | `decisions.md` |
 | [build](../skills/fde/references/build.md) | Agreed slice ready | Blast radius declared; characterisation tests on legacy; Strangler Fig; cleanup pass | `decisions.md` `risks.md` `delivery.md` |
-| [review](../skills/fde/references/review.md) | Change needs a merge gate | Stage 1 scope vs `decisions.md`, then 5-dimension safety; review-fix loop until clean | `decisions.md` |
-| [ship](../skills/fde/references/ship.md) | Ready to deploy | Pre-flight incl. CAB; canary with rollback-on-anomaly; pulse defined before closing the laptop | `delivery.md` |
+| [review](../skills/fde/references/review.md) | Change needs a merge gate | Stage 1 KEEP/JUSTIFY/SPLIT/DROP vs stated intent, then 5-dimension safety; review-fix loop until clean | `decisions.md` |
+| [ship](../skills/fde/references/ship.md) | Ready to deploy | Intent vs diff receipt, then pre-flight/CAB; canary with rollback-on-anomaly; pulse before closing the laptop | `delivery.md` |
 
 ---
 
