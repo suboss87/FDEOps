@@ -65,6 +65,7 @@ Let silence sit. If their fear doesn't match the written brief, the brief is wro
 - **The previous attempt** - "we tried something similar last year" is the most important sentence in the first meeting. Who was involved? Still there and protective, or gone because of it?
 - **The passed-over internal team** - they know exactly what's wrong, and they resent the FDE's presence. Find them before the first standup, ask what they tried, use their language in every meeting. Make them look right and they protect you; ignore them and they wait for the mistake.
 - **The sacred thing** - "Is there anything in this environment I should treat as untouchable?" The hesitation before the answer is the answer.
+- **Exception path (operating map seed)** - "When the happy path breaks this week, what do people actually do — who do they call, what spreadsheet opens, what do they skip?" Capture the break → workaround → who owns it. Do not build a full map on day 1; seed rows later in `terrain.md` → `## Operating map (exception-led)` during discover. Unknowns stay `unknown - ask:`.
 - **AI posture and policy** - tools already in use (sanctioned or shadow), and: "Does your organisation have a policy on AI-generated code? Are there decisions where you would not be comfortable with AI involvement?"
 - **Boundaries in multi-vendor rooms** - who owns what surface, who signs off before a change crosses it.
 
@@ -76,7 +77,7 @@ Before the end of day 1, ship one visible thing: a small bug fix, a cleanup the 
 
 **`brief.md`** - what they said, who sent the FDE, the timeline, **and the gap list**.
 
-**`success.md`** - what done looks like, how it's measured, who actually signs off, what is explicitly out of scope. Agreed with the customer, not assumed.
+**`success.md`** - what done looks like, **primary value bucket** (`cost-save` | `risk-mitigation` | `revenue-uplift`), baseline → target, who actually signs off, what is explicitly out of scope. Agreed with the customer, not assumed.
 
 **`stakeholders.md`**:
 ```markdown
@@ -100,7 +101,7 @@ One falsifiable hypothesis about the real problem also goes at the bottom of `br
 
 ## Checkpoint
 
-One page back to the FDE: success + sign-off owner, out-of-scope boundary, sacred data, stakeholder map with veto power, AI posture, the hypothesis, and the top CRITICAL assumptions still OPEN. If it doesn't fit one page, the engagement isn't understood yet.
+One page back to the FDE: success + value bucket + sign-off owner, out-of-scope boundary, sacred data, stakeholder map with veto power, AI posture, the hypothesis, the top CRITICAL assumptions still OPEN, and any exception-path seeds heard (break → workaround → owner) for discover to map into `terrain.md`. If it doesn't fit one page, the engagement isn't understood yet.
 
 If remote: trust-building takes ~40% longer - push for a short video call before anything asynchronous.
 

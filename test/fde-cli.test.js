@@ -1383,3 +1383,44 @@ test('phase ship/close warns when open risks remain', () => {
   assert.equal(phase.status, 0, phase.stderr)
   assert.match(phase.stderr, /open risk/i)
 })
+
+test('doctor ship/close: value bucket required; eval only when AI in scope', () => {
+  const sandbox = makeSandbox('doctor-value-eval')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'valco']).status, 0)
+  const eng = engagementPath(sandbox, 'valco')
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
+  fs.writeFileSync(
+    path.join(eng, 'context.md'),
+    '# Engagement context\n**Phase:** ship\n\n## Next action\n- canary the parity fix\n'
+  )
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\nDone when: finance signs off.\n')
+  fs.writeFileSync(path.join(eng, 'risks.md'), '# Risks\n')
+
+  const noBucket = runFde(sandbox, ['doctor'])
+  assert.notEqual(noBucket.status, 0)
+  assert.match(noBucket.stdout, /value bucket/i)
+  assert.doesNotMatch(noBucket.stdout, /eval receipt/i, 'non-AI ship must not force eval pack')
+
+  fs.writeFileSync(
+    path.join(eng, 'success.md'),
+    '# Success\nDone when: finance signs off.\n**Primary value bucket:** cost-save\n**Baseline → target:** 4h → 1h reconciliation\n'
+  )
+  const nonAiOk = runFde(sandbox, ['doctor'])
+  assert.equal(nonAiOk.status, 0, nonAiOk.stdout + nonAiOk.stderr)
+
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n| Date | Slice | Bucket | Promised | Measured | Evidence | Rollback |\n|------|-------|--------|----------|----------|----------|----------|\n| 2026-07-01 | parity | cost-save | cut recon time | pending | | |\n\n## Shipped\nRAG retrieval path live for ops FAQ.\n'
+  )
+  const aiMissingEval = runFde(sandbox, ['doctor'])
+  assert.notEqual(aiMissingEval.status, 0)
+  assert.match(aiMissingEval.stdout, /eval receipt/i)
+
+  fs.writeFileSync(
+    path.join(eng, 'evals.md'),
+    '# Eval pack\n**Verdict:** SHIP\n**Last run:** 2026-07-18\n| ID | Input | Expected | Result |\n|----|-------|----------|--------|\n| G1 | known FAQ | cited answer | pass |\n'
+  )
+  const aiOk = runFde(sandbox, ['doctor'])
+  assert.equal(aiOk.status, 0, aiOk.stdout + aiOk.stderr)
+})

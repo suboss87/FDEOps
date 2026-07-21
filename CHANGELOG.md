@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.9.13 — 2026-07-21
+
+Audit → eval → deploy loop hardened in method + doctor (no schema break).
+
+### Added
+- **Exception-led operating map** in `terrain.md` + land/discover method (exceptions, workarounds, who holds knowledge).
+- **Engagement eval pack** — optional `evals.md`, `references/eval-pack.md`, AI overlay + ship gate (non-AI stays `n/a`).
+- **Value + receipts gates** on ship/close — cost-save / risk-mitigation / revenue-uplift + audit/eval receipts.
+- **`fde doctor`** warns on ship/close missing value bucket; warns for missing eval receipt only when AI is in scope.
+
+### Changed
+- `success.md` / `delivery.md` templates: primary value bucket + Ship receipts; ledger gains Bucket column.
+
 ## 3.9.12 — 2026-07-21
 
 Honest privacy wording for `<private>` tags.
