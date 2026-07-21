@@ -1424,3 +1424,86 @@ test('doctor ship/close: value bucket required; eval only when AI in scope', () 
   const aiOk = runFde(sandbox, ['doctor'])
   assert.equal(aiOk.status, 0, aiOk.stdout + aiOk.stderr)
 })
+
+test('doctor shouts when memory .git is corrupt (silent ledger death)', () => {
+  const sandbox = makeSandbox('broken-git')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'broke']).status, 0)
+  const eng = engagementPath(sandbox, 'broke')
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope until audit']).status, 0)
+  fs.writeFileSync(
+    path.join(eng, 'context.md'),
+    '# Engagement context\n**Phase:** build\n\n## Next action\n- fix ledger\n'
+  )
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\nDone when: pilot signed.\n')
+  // Corrupt the ledger the way Agent 3 did: .git still exists, HEAD/objects dead.
+  fs.writeFileSync(path.join(eng, '.git', 'HEAD'), 'ref: refs/heads/does-not-exist\n')
+  fs.rmSync(path.join(eng, '.git', 'objects'), { recursive: true, force: true })
+  fs.mkdirSync(path.join(eng, '.git', 'objects'), { recursive: true })
+
+  const doctor = runFde(sandbox, ['doctor'])
+  assert.notEqual(doctor.status, 0)
+  assert.match(doctor.stdout, /BROKEN|UNVERSIONED/i)
+
+  const garden = runFde(sandbox, ['garden'])
+  assert.equal(garden.status, 0, garden.stderr)
+  assert.match(garden.stdout, /BROKEN|NOT reversible/i)
+  assert.doesNotMatch(garden.stdout, /reversible via memory git\)/)
+})
+
+test('receipts caveats ON RECORD hits in dirty memory files', () => {
+  const sandbox = makeSandbox('receipts-dirty')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'dirtco']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
+  const eng = engagementPath(sandbox, 'dirtco')
+  const decisions = fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8')
+  fs.writeFileSync(
+    path.join(eng, 'decisions.md'),
+    decisions.replace('descope reporting until audit', 'descope reporting until audit (backdated hand edit)')
+  )
+  const r = runFde(sandbox, ['receipts', 'descope'])
+  assert.equal(r.status, 0, r.stderr)
+  assert.match(r.stdout, /ON RECORD/)
+  assert.match(r.stdout, /dirty/i)
+})
+
+test('debrief --smart caps long preview lines and routes Decided: to decisions', () => {
+  const sandbox = makeSandbox('smart-cap')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'smartco']).status, 0)
+  const long = 'x'.repeat(8000)
+  const notes = `Decided: freeze prompts for the pilot\nNoise line ${long}\n`
+  const notesPath = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notesPath, notes)
+  const smart = runFde(sandbox, ['debrief', '--smart', notesPath])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.match(smart.stdout, /→ decisions\.md/)
+  assert.match(smart.stdout, /freeze prompts/)
+  assert.doesNotMatch(smart.stdout, /x{500}/, 'preview must not echo the full 8k line')
+  assert.match(smart.stdout, /… \(\d+ chars\)/)
+})
+
+test('garden proposes and applies duplicate open-risk consolidation', () => {
+  const sandbox = makeSandbox('garden-dedupe')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'gardenco']).status, 0)
+  const eng = engagementPath(sandbox, 'gardenco')
+  fs.writeFileSync(
+    path.join(eng, 'risks.md'),
+    '# Risks\n' +
+      '- [2026-05-01] PLC vendor firmware drift on line 3\n' +
+      '- [2026-05-08] PLC vendor firmware drift on line 3 again\n' +
+      '- [2026-05-15] PLC vendor firmware drift still open\n' +
+      '- [2026-05-20] PLC vendor firmware drift on line 3\n'
+  )
+  // Make fingerprints match closely enough (doctor already clusters these).
+  const propose = runFde(sandbox, ['garden'])
+  assert.equal(propose.status, 0, propose.stderr)
+  assert.match(propose.stdout, /duplicate open-risk|Consolidate/i)
+
+  const applied = runFde(sandbox, ['garden', '--apply'])
+  assert.equal(applied.status, 0, applied.stderr)
+  assert.match(applied.stdout, /retired|dedupe/i)
+  const risks = fs.readFileSync(path.join(eng, 'risks.md'), 'utf8')
+  assert.match(risks, /## Retired/i)
+  const open = risks.split(/^##\s+Retired/im)[0]
+  const openBullets = open.split('\n').filter(l => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(l.trim()))
+  assert.ok(openBullets.length < 4, `expected fewer open risks after dedupe, got ${openBullets.length}`)
+})

@@ -151,12 +151,32 @@ function createMemoryApi(deps) {
     } catch (_) { return '' }
   }
 
+  // True only when .git exists AND can resolve HEAD. A corrupt ledger (broken
+  // HEAD / missing objects) still has a .git directory — existsSync alone lied.
+  function memoryGitHealthy(eng) {
+    if (!eng) return { ok: false, reason: 'missing' }
+    if (!fs.existsSync(path.join(eng, '.git'))) return { ok: false, reason: 'missing' }
+    if (!gitBinOk()) return { ok: false, reason: 'no-git-bin' }
+    try {
+      execFileSync('git', ['rev-parse', '--verify', 'HEAD'], {
+        cwd: eng, encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'],
+      })
+      execFileSync('git', ['status', '--porcelain'], {
+        cwd: eng, encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'],
+      })
+      return { ok: true, reason: '' }
+    } catch (_) {
+      return { ok: false, reason: 'broken' }
+    }
+  }
+
   return {
     MEMORY_EPHEMERAL,
     memoryPorcelainPaths,
     memoryDirtyManual,
     commitMemory,
     memoryHead,
+    memoryGitHealthy,
     ensureMemoryGit,
   }
 }
