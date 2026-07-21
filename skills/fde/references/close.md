@@ -17,6 +17,12 @@ The engagement doesn't end at ship. It ends when the customer can maintain what 
 - Which risk almost became real?
 - AI components: did they behave in production? What failure modes did the prototype hide? Is the team equipped to maintain them?
 
+**1b. Value + receipts close gate (refuse green close if any fail):**
+- Primary value bucket in `success.md` matches what the sponsor funded; at least one ledger row has **Measured** (not forever-`pending`) with evidence for that bucket — or the retrospective explicitly records “not measured; sponsor accepted pending.”
+- Audit receipt exists for the final shipped path (exceptions/operating map walked; cite file).
+- Eval receipt: **n/a if no AI**, else final golden/eval result + HITL owner recorded; kill switch / fallback named in `handoff.md`.
+- One line in the retrospective: which bucket moved, by how much, vs baseline.
+
 **2. The pattern.** Anything that happened here and will happen again - a compliance approach, a migration pattern, a stakeholder dynamic - gets encoded for reuse. **If you do it twice, encode it.**
 
 **3. The handoff.** Operational knowledge for the person woken at 2am, not technical documentation: the 3 things that will break and the fix for each · who holds the tribal knowledge · what each alert means · deploy and rollback in plain language. AI components additionally: model version, what normal output looks like (so drift is recognisable), fallback behaviour, who owns retraining, **how to disable the AI path without taking down the feature** - without this the team turns it off at the first misbehaviour and it stays off.
@@ -33,11 +39,12 @@ The engagement doesn't end at ship. It ends when the customer can maintain what 
 
 ## Checkpoint
 
-Direct assessment to the FDE: did the engagement achieve `success.md` · 2–3 lessons that matter · is the pattern worth encoding · is the handoff complete or where are the gaps. Honest - a gap named now is cheaper than a callback in six weeks.
+Direct assessment to the FDE: did the engagement achieve `success.md` · 2–3 lessons that matter · is the pattern worth encoding · is the handoff complete or where are the gaps. Also: value bucket + audit receipt green; eval **n/a or green**. Pending Measured without sponsor acceptance = gap, not green close. Honest - a gap named now is cheaper than a callback in six weeks.
 
 ## Principles
 
 - Done = the customer operates without you.
+- No named value bucket moved (or sponsor-accepted pending) = not a green close.
 - The retrospective is an investment in the next engagement, not a post-mortem.
 - Encode what repeated. The same lesson learned twice is a process failure.
 - Write the handoff for 2am.

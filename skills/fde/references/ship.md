@@ -2,7 +2,7 @@
 
 **Enter when:** a slice is built, reviewed, and ready to deploy.
 
-**Read first:** `context.md`, `delivery.md`. Load `trust-profile.md` if the deploy touches regulated data or needs an approval chain.
+**Read first:** `context.md`, `delivery.md`, `success.md`. Load `trust-profile.md` if the deploy touches regulated data or needs an approval chain. Load `evals.md` when the deploy touches AI/ML/LLM/RAG/agents.
 
 Opening question, calm tech lead voice: **has anyone actually *run* the rollback, or is it still a slide?** If only planned, that's today's work - say so plainly.
 
@@ -42,10 +42,26 @@ Score each dimension green/amber/red. This is the gate, not a suggestion:
 | Runbook | Exists and someone other than you has read it | Exists but unreviewed | Missing |
 | Monitoring | Alerts configured, owner named, dashboard live | Alerts configured, no named owner | No monitoring |
 
+### Value + receipts gate (score with the table above)
+
+| Dimension | Green | Amber | Red |
+|-----------|-------|-------|-----|
+| **Value bucket** | `success.md` names primary bucket (`cost-save` \| `risk-mitigation` \| `revenue-uplift`) and a baseline→target metric; this slice’s value-ledger row has **Bucket** + **Promised** | Bucket named; **Measured** still `pending` with a pulse date | No bucket, or Promised empty / ticket-theater only |
+| **Audit receipt** | Dated line in `delivery.md` (`## Ship receipts` or ledger Evidence) proving exceptions/operating path were walked — cite `terrain.md` / `reality.md` / `audit.md` | Path described, not verified this ship | No audit receipt for this slice |
+| **Eval receipt** | **n/a** (no AI on this slice) **or** `evals.md` Verdict SHIP with dated golden run + HITL gate named | Eval pack exists; known fails open with owner + date | AI in scope and no eval receipt |
+| **AI eval pack** | `.fde/evals.md` Verdict SHIP; goldens run this change; critical fails 0; HITL filled if policy requires | Pack exists; run stale vs change log | AI-touching deploy and pack missing / NO-SHIP / HITL required but empty |
+
 **Any RED = stop. Do not deploy. Fix the red dimension first.**
 **2+ AMBER = sponsor conversation before deploying.** Present the ambers and get explicit "proceed" or "fix first."
 
-Write the readiness score to `delivery.md` before deploying. The score is the evidence if anything goes wrong.
+**AI-touching deploys (model, embeddings, RAG, agent, or inference path):**
+1. Read `.fde/evals.md`. If missing → **RED. Do not deploy.** Create the pack (`eval-pack` / `ai` overlay) and re-score.
+2. If Verdict is not **SHIP**, or Last run is older than the latest change-log row → **RED.**
+3. If `trust-profile.md` requires human-in-the-loop and the HITL gate has no reviewer → **RED.**
+4. Log in `delivery.md` → `## Ship receipts` before deploy: audit cite + eval receipt.
+5. Non-AI deploys: Eval = **n/a** — do not invent an empty pack.
+
+Write the readiness score (including value + receipts) to `delivery.md` before deploying. The score is the evidence if anything goes wrong.
 
 ## Pre-blast challenge (before the deploy button)
 
@@ -146,13 +162,14 @@ Adoption isn't a handoff-stage problem - it starts during build. Software that l
 
 ## Checkpoint
 
-Before 100%: canary clean, business metric verified, pulse written into `delivery.md`. Any item unconfirmed → the deploy waits. For enterprise-scale: scale-readiness gate passed before broad rollout.
+Before 100%: canary clean, business metric verified, pulse written into `delivery.md`. Also green: value bucket named, audit receipt dated, eval receipt **n/a or pass**. Missing any of those → not green. For enterprise-scale: scale-readiness gate passed before broad rollout.
 
 ## Principles
 
 - A deployment without a tested rollback is reckless.
 - Roll back on any canary anomaly; investigate safely.
 - Verify the business metric, not just the technical one.
-- No pulse, no done.
+- No value bucket, no green ship. No pulse, no done.
+- AI path without eval receipt = fix-first; non-AI ships leave eval as n/a.
 - Scale readiness is organizational, not just technical. Check all 8 dimensions.
 - Adoption is measured from day one, not hoped for at launch.
