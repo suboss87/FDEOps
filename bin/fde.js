@@ -843,8 +843,11 @@ function cmdResume(args) {
     const fdeDir = path.join(engRoot, '.fde')
     const existed = fs.existsSync(fdeDir)
 
+    // Optional stubs (AI eval pack, …) stay in templates/ for copy-on-use — not day-1 scaffold.
+    const SKIP_INIT_TEMPLATES = new Set(['evals.md'])
     const fillTemplates = (destFde) => {
       for (const f of fs.readdirSync(tpl)) {
+        if (SKIP_INIT_TEMPLATES.has(f)) continue
         const src = path.join(tpl, f); const dst = path.join(destFde, f)
         if (fs.statSync(src).isDirectory()) fs.mkdirSync(dst, { recursive: true })
         else if (!fs.existsSync(dst)) fs.copyFileSync(src, dst)
@@ -1501,6 +1504,18 @@ function collectDoctorIssues(eng) {
       `phase is ${s.phase} with ${s.openRisks} open risk(s) - retire, hand off, or move still-live ones before calling the embed done`
     )
   }
+  if (s.phase === 'close' || s.phase === 'ship') {
+    if (!hasValueBucket(eng)) {
+      issues.push(
+        `phase is ${s.phase} with no value bucket (cost-save | risk-mitigation | revenue-uplift) in success.md or delivery value ledger`
+      )
+    }
+    if (engagementTouchesAI(eng) && !hasEvalReceipt(eng)) {
+      issues.push(
+        `phase is ${s.phase} with AI in scope but no eval receipt (evals.md Verdict or delivery Eval / Ship receipts) — required before green ship/close`
+      )
+    }
+  }
   const dupes = findDuplicateOpenRisks(eng)
   if (dupes.length) {
     const sample = (dupes[0][0] || '').replace(/\s+/g, ' ').trim().slice(0, 60)
@@ -1509,6 +1524,71 @@ function collectDoctorIssues(eng) {
     )
   }
   return issues
+}
+
+// Strip template comments / italic *(hints)* so doctor does not treat stubs as filled.
+function stripTemplateNoise(md) {
+  return String(md || '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\*\([^)]*\)\*/g, '')
+}
+
+const VALUE_BUCKET_RE = /(cost[- ]?save|risk[- ]?mitigat|revenue[- ]?uplift)/i
+
+function hasValueBucket(eng) {
+  const success = stripTemplateNoise(readClean(eng, 'success.md'))
+  const bucketLine = success.match(/\*\*Primary value bucket:\*\*\s*(.+)/i)
+  if (bucketLine && VALUE_BUCKET_RE.test(bucketLine[1].trim())) return true
+  if (!/\*\*Primary value bucket:\*\*/i.test(success) && VALUE_BUCKET_RE.test(success)) return true
+
+  const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger') || '')
+  const table = parseMdTable(ledger)
+  if (table) {
+    const bIdx = colIndex(table.headers, /bucket/i)
+    if (bIdx !== -1) {
+      for (const row of table.rows) {
+        const cell = String(row[bIdx] || '').trim()
+        if (cell && VALUE_BUCKET_RE.test(cell)) return true
+      }
+    } else if (VALUE_BUCKET_RE.test(ledger)) {
+      return true
+    }
+  } else if (VALUE_BUCKET_RE.test(ledger)) {
+    return true
+  }
+  return false
+}
+
+// AI in scope for ship/close hygiene — delivery/decisions/trust evidence only.
+// Do not scan terrain.md: its template headers mention LLM and would false-positive every ship.
+function engagementTouchesAI(eng) {
+  const trust = readClean(eng, 'trust-profile.md')
+  const aiSec = stripTemplateNoise(sectionBody(trust, 'AI policy') || '')
+  if (aiSec.trim().length > 20) return true
+  const blob = stripTemplateNoise([
+    readClean(eng, 'delivery.md'),
+    readClean(eng, 'decisions.md'),
+  ].join('\n'))
+  return /\b(llm|rag|embedding|inference|model card|agentic|openai|anthropic|vector database|vector db)\b/i.test(blob)
+}
+
+function hasEvalReceipt(eng) {
+  const evalsPath = path.join(eng, 'evals.md')
+  if (fs.existsSync(evalsPath)) {
+    const e = stripTemplateNoise(readClean(eng, 'evals.md'))
+    // Empty G1 stub + "Pass / fail" heading is not a receipt — need a real verdict/run/result.
+    if (/\*\*Verdict:\*\*\s*SHIP\b/i.test(e) || /(?:^|\n)\s*-\s*\*\*Verdict:\*\*\s*SHIP\b/i.test(e)) return true
+    if (/\bLast run:\s*\d{4}-\d{2}-\d{2}/i.test(e)) return true
+    if (/\|\s*G\d+\s*\|[^|\n]+\|[^|\n]+\|[^|\n]+\|[^|\n]+\|\s*pass\s*\|/i.test(e)) return true
+  }
+  const del = stripTemplateNoise(readClean(eng, 'delivery.md'))
+  if (/#{1,6}\s+Eval\b/i.test(del) && /\b(pass|SHIP|\d+\/\d+)\b/i.test(sectionBody(del, 'Eval') || del)) return true
+  if (/\beval (pack|receipt)[:\s].*\b(pass|SHIP)\b/i.test(del)) return true
+  const receipts = sectionBody(del, 'Ship receipts') || ''
+  if (/\bevals\.md\b/i.test(receipts) && /\b(pass|SHIP)\b/i.test(receipts) && !/\*\([^)]*evals\.md[^)]*\)\*/i.test(receipts)) {
+    return true
+  }
+  return false
 }
 
 // Lean line for session-start TRIAGE - count + top issue + NL cue. Omitted when clean.

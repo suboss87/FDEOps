@@ -4,9 +4,17 @@
 
 ## Value ledger
 
-| Date | Slice | Promised | Measured | Evidence | Rollback |
-|------|-------|----------|----------|----------|----------|
-| | | *(what we said it would change)* | *(what actually changed, or pending)* | *(who/when/metric)* | |
+| Date | Slice | Bucket | Promised | Measured | Evidence | Rollback |
+|------|-------|--------|----------|----------|----------|----------|
+| | | *(cost-save / risk-mitigation / revenue-uplift)* | *(what we said it would change)* | *(what actually changed, or pending)* | *(who/when/metric)* | |
+
+## Ship receipts
+
+<!-- Fill before green ship. Eval = n/a unless AI touches the slice. -->
+
+| Date | Slice | Audit receipt | Eval receipt |
+|------|-------|---------------|--------------|
+| | | *(dated cite: exceptions/operating path verified — terrain/reality/audit)* | *(n/a \| evals.md pass + HITL owner)* |
 
 ## Shipped
 
