@@ -197,4 +197,6 @@ Built and maintained by **[Subash Natarajan](https://www.linkedin.com/in/subashn
 
 Thanks to builders whose craft helped sharpen the thinking behind this kit, among them [Andrej Karpathy](https://karpathy.ai/)'s engineering guidelines and the [agentic engineering workflow](https://github.com/pawel-cell/micky-podcast-agentic-engineering) notes from David Ondrej / Michael Shimeles. FDEOps itself is handcrafted for field work; any resemblance is inspiration, not a fork.
 
+**What we won't build:** SaaS sync or Slack/Notion connectors inside the CLI, CRM as core, hardware capture, or generic code-craft skill packs (TDD/review already exist elsewhere - FDEOps owns the engagement, not the keyboard). The `fde` CLI stays local-only.
+
 [FDE Methodology](FDE-METHODOLOGY.md) - [SECURITY.md](SECURITY.md) - [PRIVACY.md](PRIVACY.md) - [Repo layout](docs/REPO_LAYOUT.md) - [Skills matrix](docs/skills.md) - MIT

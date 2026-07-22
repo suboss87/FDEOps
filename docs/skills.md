@@ -1,8 +1,14 @@
-# The skills matrix - 35 skills + 5 overlays
+# One skill, three layers
 
-One skill (`@fde`) routes across six domains. You never pick a method by name - describe your situation and the router picks. This page is the full map; per-method details live in [skills-reference.md](./skills-reference.md).
+One skill (`@fde`) routes by situation - you never pick a method by name. Three layers:
 
-## 35 skills across 6 domains
+1. **Daily** - prep, debrief, receipts, status, triage / doctor
+2. **Engagement** - land → discover → plan → build → ship → close (the methods below)
+3. **Overlays** - ai / fintech / healthcare / gov / artifacts (plus eval-pack as an AI companion)
+
+The full map is below; per-method details live in [skills-reference.md](./skills-reference.md).
+
+## Engagement methods (35 across 6 domains)
 
 | Domain | Skills | What it covers |
 |--------|--------|---------------|
