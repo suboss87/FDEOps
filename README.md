@@ -7,7 +7,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-**Memory + methodology + skills, in one kit.** Skill packs teach your AI agent how to build. None of them remember who the client is, what was decided, or what's safe to ship. FDEOps adds the missing layer: a private fieldbook per engagement (`.fde/`), a field methodology (land → close), and one `@fde` skill that routes it all. Built for Forward Deployed Engineers, and anyone embedded in client work: consultants, agency developers, solutions architects, fractional CTOs. Feels like a second brain; behaves like a defensible record (dated, sourced, yours).
+**Memory + methodology + skills, in one kit.** Skill packs teach your AI agent how to build. But none of them remember who the client is, what was decided, or what's safe to ship. FDEOps adds the missing layer: a private fieldbook per engagement (`.fde/`), a field methodology (land → close), and one `@fde` skill that routes it all. 
+
+This is built for Forward Deployed Engineers, and anyone embedded in client work: consultants, agency developers, solutions architects, fractional CTOs. Feels like a second brain; behaves like a defensible record (dated, sourced, yours).
 
 ```
   land      discover      plan      build      ship      close
