@@ -87,18 +87,19 @@ npx fdeops dashboard                # optional local HTML view of the fieldbook
 
 | You say | Agent runs |
 |---------|------------|
-| Debrief these notes | `fde debrief --smart …` → you confirm → `--apply` |
+| Debrief these notes | `fde debrief --smart …` → agent rewrites propose with prefixes if needed → you confirm → `--apply` |
 | Prep me for the sponsor meeting | `fde prep "…"` |
 | When did we agree to drop that? | `fde receipts …` |
 | Draft the sponsor update | `fde status` (+ judgment in chat) |
 | Log that the sponsor went quiet | `fde log contact "…" --signal amber` |
+| Wrap the session / share the thinking / before the PR | Session digest into `.fde/` (TL;DR, decisions & why) — not transcript sync |
 
 **Full command list** (power users / scripts):
 
 ```bash
 fde triage                        # short status (also injected by session hooks)
 fde debrief notes.md              # if notes already use decision: / risk: / … prefixes
-fde debrief --smart notes.md      # propose from messy notes; --apply after confirm
+fde debrief --smart notes.md      # heuristic propose (not AI); agent prefixes → --apply after confirm
 fde doctor                        # check the fieldbook for gaps
 fde prep "sponsor sync"           # walk-in brief from existing memory
 fde log decision "…"
