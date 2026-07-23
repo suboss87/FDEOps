@@ -443,16 +443,56 @@ const {
 } = createMemoryApi({ fs, path, gitBinOk, writeOwnerIfMissing, atomicWriteFile })
 
 // Pull the body under a "## Heading" up to the next "##" (or EOF).
-function sectionBody(md, heading) {
-  const lines = md.split('\n')
-  const start = lines.findIndex(l => new RegExp('^#{1,6}\\s+' + heading + '\\b', 'i').test(l.trim()))
-  if (start === -1) return ''
-  const body = []
-  for (let i = start + 1; i < lines.length; i++) {
-    if (/^#{1,6}\s/.test(lines[i].trim())) break
-    body.push(lines[i])
+// opts.lastNonEmpty: when duplicate headings exist (common skill trap: template
+// "## Next action" left empty, agent appends a second), prefer the last filled
+// body so triage/resume do not silently report "(none set)".
+function sectionBody(md, heading, opts) {
+  const preferLast = opts && opts.lastNonEmpty
+  const lines = String(md || '').split('\n')
+  const re = new RegExp('^#{1,6}\\s+' + heading + '\\b', 'i')
+  let first = ''
+  let lastFilled = ''
+  let seen = false
+  for (let i = 0; i < lines.length; i++) {
+    if (!re.test(lines[i].trim())) continue
+    const body = []
+    for (let j = i + 1; j < lines.length; j++) {
+      if (/^#{1,6}\s/.test(lines[j].trim())) break
+      body.push(lines[j])
+    }
+    const text = body.join('\n').trim()
+    if (!seen) { first = text; seen = true }
+    if (text) lastFilled = text
   }
-  return body.join('\n').trim()
+  if (!seen) return ''
+  return preferLast ? (lastFilled || first) : first
+}
+
+function countSections(md, heading) {
+  const re = new RegExp('^#{1,6}\\s+' + heading + '\\b', 'i')
+  let n = 0
+  for (const raw of String(md || '').split('\n')) {
+    if (re.test(raw.trim())) n++
+  }
+  return n
+}
+
+// Remove every "## Heading" section (heading line + body). Used to collapse
+// duplicate Next action blocks before writing a single canonical one.
+function stripAllSections(md, heading) {
+  const lines = String(md || '').split('\n')
+  const re = new RegExp('^#{1,6}\\s+' + heading + '\\b', 'i')
+  const out = []
+  for (let i = 0; i < lines.length; i++) {
+    if (re.test(lines[i].trim())) {
+      i++
+      while (i < lines.length && !/^#{1,6}\s/.test(lines[i].trim())) i++
+      i--
+      continue
+    }
+    out.push(lines[i])
+  }
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').replace(/^\n+/, '').replace(/\n*$/, '\n')
 }
 
 // Append `entry` as the last line of a "## Heading" section, creating the
@@ -1106,11 +1146,12 @@ function setContextPhase(eng, phase) {
 
 
 // Meeting notes → structured memory. Deterministic routing, zero AI: lines that
-// start with decision:/risk:/delivery:/contact: (case-insensitive) go to their
-// LOG_FILES target as dated bullets; everything else lands in context.md as one
-// dated debrief block. contact: lines may carry an inline [signal:x] token
-// anywhere in the text - preserved verbatim so computeSignals can trust it.
-// --smart: heuristic propose from messy prose (confirm with --apply). No network.
+// start with decision:/risk:/delivery:/contact:/next: (case-insensitive) go to
+// their LOG_FILES target as dated bullets; everything else lands in context.md
+// as one dated debrief block. contact: lines may carry an inline [signal:x]
+// token anywhere in the text - preserved verbatim so computeSignals can trust it.
+// --smart: thin heuristic propose (existing prefixes + light keywords). Not a
+// brain — the agent rewrites .debrief-propose with prefixes; --apply commits.
 // --dry-run prints the routing without writing anything.
 function inferContactSignal(text) {
   const t = String(text)
@@ -1178,8 +1219,13 @@ function setNextAction(eng, text) {
   const p = path.join(eng, 'context.md')
   let md = readEng(eng, 'context.md')
   if (!md) md = '# Engagement context\n\n'
-  if (/^##\s+Next action\b/im.test(md)) {
-    md = md.replace(/(^##\s+Next action\b[^\n]*\n)([\s\S]*?)(?=^##\s|\s*$)/im, `$1\n${bullet}\n\n`)
+  // Collapse duplicate ## Next action headings (skill-append trap) into one.
+  md = stripAllSections(md, 'Next action')
+  if (/^##\s+Current state\b/im.test(md)) {
+    md = md.replace(
+      /(^##\s+Current state\b[^\n]*\n)([\s\S]*?)(?=^##\s|\s*$)/im,
+      (_, h, body) => `${h}${String(body).replace(/\n*$/, '\n')}\n## Next action\n\n${bullet}\n\n`
+    )
   } else {
     md = md.replace(/\n*$/, `\n\n## Next action\n\n${bullet}\n`)
   }
@@ -1593,8 +1639,13 @@ function collectDoctorIssues(eng) {
   }
   const success = readClean(eng, 'success.md')
   if (!firstLine(success, 80)) issues.push('success.md has no stated done-definition - fill before plan/build')
-  if (!sectionBody(readClean(eng, 'context.md'), 'Next action')) {
+  const ctxMd = readClean(eng, 'context.md')
+  if (!sectionBody(ctxMd, 'Next action', { lastNonEmpty: true })) {
     issues.push('no ## Next action in context.md - Monday morning has nothing to drive')
+  } else if (countSections(ctxMd, 'Next action') > 1) {
+    issues.push(
+      'duplicate ## Next action headings in context.md - fill the first (template) section and remove extras; triage reads the last non-empty'
+    )
   }
   if ((s.phase === 'close' || s.phase === 'ship') && s.openRisks > 0) {
     issues.push(
@@ -2090,7 +2141,7 @@ function cmdDashboard(args) {
   // one-liners, sector/overlay, days elapsed, and the four structured widgets.
   engagements.forEach(e => {
     const ctx = readClean(e.dir, 'context.md')
-    e.next = (sectionBody(ctx, 'Next action').split('\n').find(l => l.trim()) || '').trim()
+    e.next = (sectionBody(ctx, 'Next action', { lastNonEmpty: true }).split('\n').find(l => l.trim()) || '').trim()
     e.hasNext = !!e.next
     e.lastSession = firstLine(sectionBody(ctx, 'Current state'), 240)
     // 220, not 140 - now that brief/reality each get their own full-width
@@ -2158,7 +2209,7 @@ function printUsage() {
   fde log phase <phase>    set engagement phase (land|discover|plan|build|ship|close)
   fde log --undo           remove the last CLI log/debrief entry from memory
   fde debrief [file]       meeting notes → memory (prefixed lines; --dry-run; --force)
-  fde debrief --smart      propose routing from messy notes → review → fde debrief --apply
+  fde debrief --smart      heuristic propose (prefix + light keywords); agent routes, CLI gates → --apply
   fde prep [label]         grounded walk-in brief from existing .fde/ only
   fde doctor               lint engagement memory (stale signals, gaps)
   fde redact <term>        preview/remove lines containing a buried term (pass --apply to commit)

@@ -123,7 +123,7 @@ The 10 phases most engagements actually run through, with what gets written wher
 1. On entry the agent reads a bounded view of `context.md` (via `fde resume`) - nothing else until the phase needs it.
 2. **Deliverable = memory:** every phase's output IS a `.fde/` file; nothing is maintained by hand.
 3. Every claim carries evidence: `(ops lead, Day 5)` · `(churn: 47/90d)` · `(stated, unverified)`.
-4. On exit the agent appends where-we-left-off to `context.md`; the `session-stop` hook backstops it deterministically (hooks resolve the engagement via the workspace registry written by `fde resume --init`).
+4. On exit (and before a PR) the agent runs a **session digest** — TL;DR, key decisions & why, scope/verification, gotchas, next action — into existing `.fde/` files (not chat transcripts into the product repo); the `session-stop` hook backstops a thin snapshot (hooks resolve the engagement via the workspace registry written by `fde resume --init`).
 5. One customer, one folder. Never merged.
 
 v2's 16 standalone skills were consolidated into the single `@fde` router in v3.

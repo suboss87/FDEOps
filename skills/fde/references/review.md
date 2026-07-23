@@ -57,9 +57,15 @@ Five dimensions, line-specific ("line 47 fails under concurrent writes - no lock
 5. Re-run tests/typechecks - state what ran.
 6. Re-review. Repeat until Pass/Pass or a human must decide scope/product.
 
+## Before the PR - thinking for the next reader
+
+Code alone loses the "why." Before you call the change reviewable, run the **session digest** from the memory contract (SKILL.md On exit): TL;DR, key decisions & rationale, scope + how you verified, gotchas. Confirm with the FDE, then write into `.fde/` — `decisions.md` / `delivery.md` / `context.md`. Reviewers (or Monday-you) should answer "why this approach?" from the fieldbook, not from a chat transcript. Do **not** dump agent logs into the product repo.
+
 ## Artifact
 
-**`decisions.md`** - each cycle logged: what was reviewed, flagged, fixed, verified. Stage 1 failures recorded with the specific mismatch.
+**`decisions.md`** - each cycle logged: what was reviewed, flagged, fixed, verified. Stage 1 failures recorded with the specific mismatch. Digest decisions (with *why*) land here too when the slice ships.
+
+**`delivery.md`** - scope + verification from the digest when a PR is opening; intent-vs-diff receipt stays the ship gate.
 
 ## Principles
 
@@ -68,3 +74,4 @@ Five dimensions, line-specific ("line 47 fails under concurrent writes - no lock
 - Specific or silent - vague concerns waste everyone's time.
 - No rollback path = first finding.
 - A clean review proves this diff is safe as agreed - not that the feature was right.
+- Judgment in `.fde/` beats transcript in git.
