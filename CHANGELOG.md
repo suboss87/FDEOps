@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.9.17 — 2026-07-23
+
+Dogfood round: honest `--smart` contract + fix duplicate `## Next action` trap.
+
+### Fixed
+- **Duplicate `## Next action`** — triage/status/dashboard read the last non-empty section (template empty + agent-appended second heading no longer reports `next: (none set)`). `fde doctor` flags duplicates. `next:` / `setNextAction` collapses to one section.
+
+### Changed
+- **`--smart` honesty** — skill + debrief reference + USAGE state clearly: CLI is prefix/keyword gate + writer; the agent rewrites `.debrief-propose` with type prefixes. Editing the propose file means rewriting lines with prefixes, not annotating.
+
 ## 3.9.16 — 2026-07-21
 
 Intent vs diff gate — scope-creep detector fitted into ship/review (not a new skill).

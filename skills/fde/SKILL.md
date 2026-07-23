@@ -35,7 +35,7 @@ This is what makes fdeops a second brain instead of a chat window.
 2. **Deliverable = memory.** The output of every phase IS a `.fde/` file. You never ask the FDE to "update their notes" - producing the work and writing the memory are one action. The phase reference tells you which file.
 3. **Evidence rule.** Every claim in an artifact carries its source: `(validated with: ops lead, Day 5)`, `(churn: 47 commits/90d)`, `(stated, unverified)`. The FDE defends these files in front of skeptical clients - traceable beats plausible.
 4. **No invented facts - ever.** People, names, quotes, meetings, and numbers exist only if the FDE said them or the repo shows them. Never invent a stakeholder, a conversation, or a source to make the narrative richer - one fabricated name poisons every real citation around it. A missing fact is written as `unknown - ask: <the question>`, nothing else.
-5. **On exit:** before the session ends, append three lines to `context.md`: where we are, what changed today, the next step. The `session-stop` hook backstops this deterministically (hooks resolve the engagement through the workspace registry - no env var needed), but you write the meaningful version.
+5. **On exit:** before the session ends, update `context.md`: where we are, what changed today, and the next step under the **existing** `## Next action` heading (replace the bullet — never append a second `## Next action`, or triage will miss it). The `session-stop` hook backstops this deterministically (hooks resolve the engagement through the workspace registry - no env var needed), but you write the meaningful version.
 6. **One customer, one folder.** Never merge two engagements into one `.fde/`. Confirm which engagement applies when multiple exist.
 7. **Never delete a code-read section when rewriting an artifact.** `stakeholders.md`'s `## Signal history` holds dated `[signal:...]` tokens that `fde status`/`fde receipts`/the dashboard read verbatim; `risks.md`'s `## Retired` is read the same way. Rewriting either file as an artifact (land, audit, stakeholder-radar) is fine - dropping one of these sections is not. Carry existing entries forward untouched.
 
@@ -70,7 +70,7 @@ When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FD
 |-----------------------------|---------|
 | (session entry / where are we) | `fde resume` or use injected TRIAGE; `fde resume --init <name>` only if unbound |
 | Day-1 look at the repo | `fde scan` - then you interpret against the brief |
-| "Debrief these notes" / pastes meeting notes | Prefer `fde debrief --smart <notes>` → show propose → on confirm `fde debrief --apply`. Fallback: structure `decision:`/`risk:`/`delivery:`/`contact:` lines yourself, show FDE, then `fde debrief` |
+| "Debrief these notes" / pastes meeting notes | Prefer `fde debrief --smart <notes>` → **you** (the agent) rewrite `.debrief-propose` with `decision:`/`risk:`/`delivery:`/`contact:`/`next:` prefixes where needed → show FDE → on confirm `fde debrief --apply`. `--smart` is a prefix/keyword gate, not a brain. Fallback: structure prefixed lines yourself, show FDE, then `fde debrief` |
 | "Prep me for the meeting with …" / walk-in brief | `fde prep "<short label>"` - present the brief in plain language; do not invent facts missing from `.fde/` |
 | "When did we agree…?" / scope dispute | `fde receipts <term>` - answer with dates; no hit = gap, not proof |
 | "Draft the sponsor update" / how are we doing | `fde status` then follow `references/status.md` for the narrative |
@@ -79,7 +79,7 @@ When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FD
 | "Clean up the fieldbook" / hygiene / memory feels messy | `fde doctor` - walk issues in plain language; propose fixes; never auto-rewrite without confirm. Contradictions need judgment (brief vs reality) - doctor is structural; you handle meaning. |
 | "Scrub this secret / redact that token" (buried line, not just last write) | `fde redact <term>` preview, then `fde redact <term> --apply` after confirm. Undo is last-write only; redact is for buried lines. Remind them to rotate the real credential. |
 
-**The debrief verb.** Highest-frequency loop. When the FDE shares notes or says "debrief": **you** run the smart path (write notes to a temp file if needed). Show the proposed routing in plain language. Only `--apply` (or pipe prefixed lines) after they confirm. Never ask them to run the CLI. Detail: `references/debrief.md`.
+**The debrief verb.** Highest-frequency loop. When the FDE shares notes or says "debrief": **you** run the smart path (write notes to a temp file if needed). `--smart` writes a propose file via deterministic heuristics (existing prefixes + light keywords); authentic rambling notes often land mostly in context until **you** rewrite lines with type prefixes. Show the proposed routing in plain language. Only `--apply` (or pipe prefixed lines) after they confirm. Never ask them to run the CLI. Detail: `references/debrief.md`.
 
 CLI missing → use the manual fallbacks inside each reference (still you write files; still never ask the FDE to run setup).
 

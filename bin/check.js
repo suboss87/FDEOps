@@ -235,6 +235,13 @@ if (!skillBody.includes('fde prep')) {
 if (!skillBody.includes('debrief --smart')) {
   fail('SKILL.md must prefer fde debrief --smart for messy notes')
 }
+const debriefRef = read('skills/fde/references/debrief.md')
+if (!/gate \+ writer|not a brain/i.test(debriefRef) || !/rewrite.*prefix/i.test(debriefRef)) {
+  fail('debrief.md must state --smart is a gate (agent rewrites propose with prefixes)')
+} else ok('debrief --smart honesty contract')
+if (!/existing.*## Next action|never append a second/i.test(skillBody)) {
+  fail('SKILL.md must warn against appending a second ## Next action')
+} else ok('session-end Next action instruction')
 if (!/\btriage\b/.test(hook)) {
   fail('session-start must still inject TRIAGE')
 }

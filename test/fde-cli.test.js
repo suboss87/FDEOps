@@ -1524,6 +1524,36 @@ test('debrief --smart caps long preview lines and routes Decided: to decisions',
   assert.match(smart.stdout, /… \(\d+ chars\)/)
 })
 
+test('triage prefers last non-empty ## Next action; doctor flags duplicates', () => {
+  const sandbox = makeSandbox('next-dup')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'nextdup']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'kickoff complete']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'discover']).status, 0)
+  const eng = engagementPath(sandbox, 'nextdup')
+  fs.writeFileSync(
+    path.join(eng, 'context.md'),
+    '# Engagement context\n**Phase:** discover\n\n## Current state\nKickoff done\n\n## Next action\n\n## Notes\nold\n\n## Next action\n- walk in with Priya one-pager\n'
+  )
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\nDone when: pilot signed.\n')
+  const triage = runFde(sandbox, ['triage'])
+  assert.equal(triage.status, 0, triage.stderr)
+  assert.match(triage.stdout, /Priya one-pager/)
+  assert.doesNotMatch(triage.stdout, /next: \(none set/)
+  const doctor = runFde(sandbox, ['doctor'])
+  assert.notEqual(doctor.status, 0)
+  assert.match(doctor.stdout, /duplicate ## Next action/i)
+
+  // next: apply collapses duplicates into one filled section
+  const notesPath = path.join(sandbox.workspace, 'next-only.md')
+  fs.writeFileSync(notesPath, 'next: send recap before Thursday\n')
+  assert.equal(runFde(sandbox, ['debrief', notesPath]).status, 0)
+  const ctx = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  const headings = ctx.match(/^##\s+Next action\b/gim) || []
+  assert.equal(headings.length, 1, 'setNextAction must collapse duplicate headings')
+  assert.match(ctx, /send recap before Thursday/)
+  assert.doesNotMatch(ctx, /Priya one-pager/)
+})
+
 test('garden proposes and applies duplicate open-risk consolidation', () => {
   const sandbox = makeSandbox('garden-dedupe')
   assert.equal(runFde(sandbox, ['resume', '--init', 'gardenco']).status, 0)
