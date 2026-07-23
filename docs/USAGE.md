@@ -92,6 +92,7 @@ npx fdeops dashboard                # optional local HTML view of the fieldbook
 | When did we agree to drop that? | `fde receipts …` |
 | Draft the sponsor update | `fde status` (+ judgment in chat) |
 | Log that the sponsor went quiet | `fde log contact "…" --signal amber` |
+| Wrap the session / share the thinking / before the PR | Session digest into `.fde/` (TL;DR, decisions & why) — not transcript sync |
 
 **Full command list** (power users / scripts):
 

@@ -35,7 +35,18 @@ This is what makes fdeops a second brain instead of a chat window.
 2. **Deliverable = memory.** The output of every phase IS a `.fde/` file. You never ask the FDE to "update their notes" - producing the work and writing the memory are one action. The phase reference tells you which file.
 3. **Evidence rule.** Every claim in an artifact carries its source: `(validated with: ops lead, Day 5)`, `(churn: 47 commits/90d)`, `(stated, unverified)`. The FDE defends these files in front of skeptical clients - traceable beats plausible.
 4. **No invented facts - ever.** People, names, quotes, meetings, and numbers exist only if the FDE said them or the repo shows them. Never invent a stakeholder, a conversation, or a source to make the narrative richer - one fabricated name poisons every real citation around it. A missing fact is written as `unknown - ask: <the question>`, nothing else.
-5. **On exit:** before the session ends, update `context.md`: where we are, what changed today, and the next step under the **existing** `## Next action` heading (replace the bullet — never append a second `## Next action`, or triage will miss it). The `session-stop` hook backstops this deterministically (hooks resolve the engagement through the workspace registry - no env var needed), but you write the meaningful version.
+5. **On exit (session digest):** before the session ends — and again before opening a PR — capture the *thinking*, not the chat. Propose this digest in plain language; on FDE confirm, write into existing `.fde/` files (never a transcript dump, never a product-repo history folder):
+
+   | Digest beat | Lands in |
+   |-------------|----------|
+   | **TL;DR** (1–2 sentences: what moved) | `context.md` current state / short dated note |
+   | **Key decisions & why** (only real ones) | `decisions.md` dated lines — skip if none |
+   | **Pivot / aha** (course correction that mattered) | one line in `context.md`, or `decisions.md` if it changed the plan |
+   | **Scope + verification** (files/slice + how you checked) | `delivery.md` when code or a PR is in play; else skip |
+   | **Gotchas for the next reader** | `context.md` (teammate / Monday-you) |
+   | **Next action** | existing `## Next action` — **replace** the bullet; never append a second heading |
+
+   The `session-stop` hook backstops a thin snapshot; **you** write the meaningful digest. Raw agent transcripts stay on the machine — judgment is what ships in the fieldbook.
 6. **One customer, one folder.** Never merge two engagements into one `.fde/`. Confirm which engagement applies when multiple exist.
 7. **Never delete a code-read section when rewriting an artifact.** `stakeholders.md`'s `## Signal history` holds dated `[signal:...]` tokens that `fde status`/`fde receipts`/the dashboard read verbatim; `risks.md`'s `## Retired` is read the same way. Rewriting either file as an artifact (land, audit, stakeholder-radar) is fine - dropping one of these sections is not. Carry existing entries forward untouched.
 
@@ -51,6 +62,7 @@ These stop confident fiction. They are not optional soft tips.
 | Fill `success.md` / `terrain.md` with plausible defaults when the brief is thin | **Stop.** Run **brief interrogation** in land/discover (one Q + GUESS + confidence) until you can write without guessing, or leave gaps explicit. |
 | Ship / go-live / irreversible change with "probably fine" | **Stop.** Run **intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP) then **pre-blast challenge** in ship (or red-team) — CLAIM → CHALLENGE → VERDICT — and log both. |
 | Grill the FDE with a checklist when they're mid-flow | **Stop.** Playback rule wins. Probe only when a missing fact changes the next move. |
+| Sync chat transcripts / agent brain folders into the product git repo for "team share" | **Stop.** Run **session digest** into `.fde/` (judgment only). Transcripts stay local. |
 
 When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FDE explicitly asked for speed, answer already in `.fde/`.
 
@@ -244,6 +256,7 @@ Getting to production without surprises.
 | Ready to deploy, going live, pre-flight check | ship | `references/ship.md` |
 | Review this change, is it safe, does it match what we agreed | review | `references/review.md` |
 | Diff grew / scope creep in the PR / "did we only build what we said" / KEEP JUSTIFY SPLIT DROP | review (+ ship if going live) | `references/review.md` Stage 1 · `references/ship.md` Intent vs diff |
+| Wrap the session / share the thinking / catch teammates up / before I open the PR | (memory contract — session digest) | SKILL.md **On exit** — write TL;DR + decisions/why into `.fde/`; no transcript sync |
 | "We can always revert" - need to actually test the escape route | rollback-drill | `references/rollback-drill.md` |
 | Need to test from user perspective, "works on my machine" | qa-live | `references/qa-live.md` |
 

@@ -2,13 +2,14 @@
 
 ## 3.9.17 — 2026-07-23
 
-Dogfood round: honest `--smart` contract + fix duplicate `## Next action` trap.
+Dogfood round: honest `--smart` contract + fix duplicate `## Next action` trap. Session digest: share thinking via `.fde/`, not transcript sync.
 
 ### Fixed
 - **Duplicate `## Next action`** — triage/status/dashboard read the last non-empty section (template empty + agent-appended second heading no longer reports `next: (none set)`). `fde doctor` flags duplicates. `next:` / `setNextAction` collapses to one section.
 
 ### Changed
 - **`--smart` honesty** — skill + debrief reference + USAGE state clearly: CLI is prefix/keyword gate + writer; the agent rewrites `.debrief-propose` with type prefixes. Editing the propose file means rewriting lines with prefixes, not annotating.
+- **Session digest (On exit / before PR)** — memory contract captures TL;DR, decisions & why, pivot, scope/verification, gotchas into existing `.fde/` files; review/build gates require it before merge. Explicitly not agent-transcript sync into the product repo.
 
 ## 3.9.16 — 2026-07-21
 

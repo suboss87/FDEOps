@@ -242,6 +242,12 @@ if (!/gate \+ writer|not a brain/i.test(debriefRef) || !/rewrite.*prefix/i.test(
 if (!/existing.*## Next action|never append a second/i.test(skillBody)) {
   fail('SKILL.md must warn against appending a second ## Next action')
 } else ok('session-end Next action instruction')
+if (!/session digest/i.test(skillBody) || !/Key decisions & why/i.test(skillBody)) {
+  fail('SKILL.md memory contract must define session digest (TL;DR / decisions & why → .fde/)')
+} else ok('session digest in memory contract')
+if (!/transcript/i.test(skillBody) || !/judgment/i.test(skillBody)) {
+  fail('SKILL.md must reject transcript dumps in favor of judgment in .fde/')
+} else ok('session digest anti-transcript gate')
 if (!/\btriage\b/.test(hook)) {
   fail('session-start must still inject TRIAGE')
 }
