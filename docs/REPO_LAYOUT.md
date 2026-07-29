@@ -6,7 +6,8 @@
 | `adapters/` | Thin per-tool pointers (Codex/`AGENTS.md`, Gemini, Cursor, Copilot, local LLMs) - `node bin/install.js adapters <dir>` |
 | `templates/.fde/` | Core memory templates for `fde resume --init` (phase artifacts are created by phases on demand; `evals.md` is optional) |
 | `examples/` | Fictional walkthroughs with sample `.fde/` files |
-| `bin/fde.js` | Deterministic CLI - scan, resume, triage, log, debrief, prep, doctor, garden, redact, receipts, capture, preserve, status, dashboard |
+| `bin/fde.js` | Deterministic CLI - scan, resume, triage, log, debrief, ingest, prep, doctor, garden, redact, receipts, capture, preserve, status, dashboard |
+| `mcp/` | Optional MCP servers (e.g. `fdeops-ingest` — stdio wrapper around `fde ingest` verbs; source MCPs remain user-configured) |
 | `bin/lib/` | Shared memory / trust / render helpers used by the CLI |
 | `bin/check.js` | Structural + install smoke gate (`npm run check`) |
 | `bin/install.js` | `node bin/install.js` (skills + hooks on disk) |

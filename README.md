@@ -91,6 +91,7 @@ npx fdeops resume                 # prints a short "where we are" for this clien
 - **You** describe the situation with `@fde` (or plain language once the skill is loaded)
 - **Session start / end** - small hooks load where you left off and capture what changed (no re-paste)
 - **Local CLI** - memory writes, search, and status with no model tokens; the agent runs it. You do not need to learn it for daily use ([docs/USAGE.md](docs/USAGE.md))
+- **Pluggable pull (ingest)** - large transcripts and emails can land in `.inbox/` via `fde ingest stage` after **your** source MCPs fetch them (Granola, Gmail, Notion, custom — not bundled in fdeops). Same propose → confirm → apply loop as debrief; nothing unreviewed enters the fieldbook. No ambient sync.
 
 fdeops complements repo memory: CLAUDE.md holds how the *code* works; the fieldbook holds how the *client engagement* works.
 

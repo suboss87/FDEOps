@@ -19,6 +19,7 @@
  *   fde prep [label]        grounded walk-in brief from existing .fde/ only
  *   fde doctor              deterministic memory lint (stale signals, gaps)
  *   fde garden [--apply]    propose safe consolidations; apply only with --apply
+ *   fde ingest …            stage → propose → apply pull sink (.inbox/; never auto-writes .fde/)
  *   fde owner [set …]       who keeps this engagement record
  *   fde receipts <term>     "what did we agree?" - search memory with dates
  *   fde capture             session-end snapshot → context.md (hooks use this)
@@ -1399,6 +1400,188 @@ function cmdDebrief(args) {
   console.log(parts.length ? `${verb} → ${parts.join(', ')}` : 'debrief empty - nothing routed')
 }
 
+// Pull sink: stage raw artifacts outside the memory ledger, then reuse debrief
+// propose/apply. Never writes .fde/ until the FDE confirms apply. Source SaaS
+// (Granola/Gmail/…) is not here — only staging + the existing confirm gate.
+function inboxDir(eng) {
+  return path.join(path.dirname(eng), '.inbox')
+}
+
+function sanitizeIngestToken(s, fallback) {
+  const t = String(s || '').toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48)
+  return t || fallback
+}
+
+function parseIngestFrontMatter(raw) {
+  const text = String(raw || '')
+  if (!text.startsWith('---\n')) return { meta: {}, body: text }
+  const end = text.indexOf('\n---\n', 4)
+  if (end === -1) return { meta: {}, body: text }
+  const head = text.slice(4, end)
+  const body = text.slice(end + 5)
+  const meta = {}
+  for (const line of head.split('\n')) {
+    const m = /^([a-z_]+):\s*(.*)$/i.exec(line.trim())
+    if (m) meta[m[1].toLowerCase()] = m[2].trim()
+  }
+  return { meta, body }
+}
+
+function resolveInboxItem(eng, id) {
+  const box = inboxDir(eng)
+  const want = String(id || '').trim()
+  if (!want) return null
+  const direct = path.join(box, want)
+  if (fs.existsSync(direct) && fs.statSync(direct).isFile()) return direct
+  const withMd = want.endsWith('.md') ? want : `${want}.md`
+  const alt = path.join(box, withMd)
+  if (fs.existsSync(alt) && fs.statSync(alt).isFile()) return alt
+  try {
+    const hits = fs.readdirSync(box).filter(f => f === want || f.startsWith(want) || f.includes(want))
+    if (hits.length === 1) return path.join(box, hits[0])
+  } catch (_) {}
+  return null
+}
+
+function cmdIngest(args) {
+  args = args.slice()
+  const sub = (args.shift() || '').toLowerCase()
+  if (!['stage', 'list', 'propose', 'apply'].includes(sub)) {
+    console.error('usage: fde ingest stage [--source NAME] [--title TEXT] [--force] [file|-]\n' +
+      '       fde ingest list\n' +
+      '       fde ingest propose <id>\n' +
+      '       fde ingest apply')
+    process.exit(1)
+  }
+
+  if (sub === 'apply') {
+    cmdDebrief(['--apply', ...args])
+    return
+  }
+
+  const eng = resolveEngagement({ forWrite: true })
+  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+
+  if (sub === 'list') {
+    const box = inboxDir(eng)
+    if (!fs.existsSync(box)) {
+      console.log(`inbox empty → ${box}`)
+      console.log('(stage with: fde ingest stage --source granola notes.md)')
+      return
+    }
+    const files = fs.readdirSync(box).filter(f => f.endsWith('.md')).sort().reverse()
+    if (!files.length) {
+      console.log(`inbox empty → ${box}`)
+      return
+    }
+    console.log(`INBOX → ${box}\n`)
+    for (const f of files) {
+      const raw = fs.readFileSync(path.join(box, f), 'utf8')
+      const { meta } = parseIngestFrontMatter(raw)
+      const src = meta.source || '?'
+      const title = meta.title || ''
+      const when = meta.staged || ''
+      console.log(`  ${f}${title ? `  ${title}` : ''}  via:${src}${when ? `  ${when}` : ''}`)
+    }
+    console.log(`\npropose:  fde ingest propose <id>`)
+    return
+  }
+
+  if (sub === 'propose') {
+    const id = args[0]
+    if (!id) { console.error('usage: fde ingest propose <id>'); process.exit(1) }
+    const item = resolveInboxItem(eng, id)
+    if (!item) {
+      console.error(`ingest propose: no staged item matching "${id}" - run: fde ingest list`)
+      process.exit(1)
+    }
+    const raw = stripControlChars(fs.readFileSync(item, 'utf8'))
+    const { meta, body } = parseIngestFrontMatter(raw)
+    const source = meta.source || 'manual'
+    const title = meta.title || path.basename(item, '.md')
+    const stamped = meta.staged || 'unknown'
+    const viaLine = `via:${source} ${title} (staged ${stamped}; file ${path.basename(item)})`
+    const input = `${viaLine}\n\n${body.trim()}\n`
+    if (Buffer.byteLength(input) > DEBRIEF_MAX_BYTES) {
+      console.error(`ingest propose refused: staged item is over ${DEBRIEF_MAX_BYTES} bytes after provenance. Split it.`)
+      process.exit(1)
+    }
+    const proposed = smartProposeText(input)
+    const proposePath = path.join(eng, DEBRIEF_PROPOSE)
+    withFileLock(proposePath, () => { atomicWriteFile(proposePath, proposed) })
+    console.log(`INGEST PROPOSE from ${path.basename(item)} (via:${source})\n`)
+    routeDebriefInput(eng, proposed, { dry: true, force: false })
+    console.log(`\nproposal saved → ${proposePath}`)
+    console.log('confirm:  fde ingest apply')
+    console.log('(agent: rewrite lines with decision:/risk:/contact:/next: prefixes before apply)')
+    return
+  }
+
+  // stage
+  let source = 'manual'
+  let title = ''
+  let force = false
+  const rest = []
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--source' && args[i + 1]) { source = args[++i]; continue }
+    if (args[i] === '--title' && args[i + 1]) { title = args[++i]; continue }
+    if (args[i] === '--force') { force = true; continue }
+    rest.push(args[i])
+  }
+  source = sanitizeIngestToken(source, 'manual')
+  const titleSlug = sanitizeIngestToken(title || 'notes', 'notes')
+  if (!title) title = titleSlug
+
+  let input = ''
+  if (rest[0] && rest[0] !== '-') {
+    const p = path.resolve(rest[0])
+    try {
+      const st = fs.statSync(p)
+      if (st.size > DEBRIEF_MAX_BYTES) {
+        console.error(`ingest stage refused: ${rest[0]} is ${st.size} bytes (max ${DEBRIEF_MAX_BYTES}). Split or stage a relevant section.`)
+        process.exit(1)
+      }
+      input = stripControlChars(fs.readFileSync(p, 'utf8'))
+    } catch (e) {
+      failFs(e, 'read', p)
+    }
+  } else {
+    input = stripControlChars(fs.readFileSync(0, 'utf8'))
+    if (Buffer.byteLength(input) > DEBRIEF_MAX_BYTES) {
+      console.error(`ingest stage refused: stdin is over ${DEBRIEF_MAX_BYTES} bytes. Split the notes.`)
+      process.exit(1)
+    }
+  }
+  if (!input.trim()) {
+    console.error('ingest stage refused: empty input')
+    process.exit(1)
+  }
+  const hit = findSecretHit(input)
+  if (hit && !force) { refuseSecret('ingest stage', hit); process.exit(1) }
+  if (hit && force) console.error(`warning: staging possible ${hit} (--force)`)
+
+  const box = inboxDir(eng)
+  try { fs.mkdirSync(box, { recursive: true }) } catch (e) { failFs(e, 'create inbox', box) }
+  const compact = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
+  const id = `${compact}-${source}-${titleSlug}.md`
+  const dest = path.join(box, id)
+  const body = [
+    '---',
+    `source: ${source}`,
+    `title: ${title.replace(/\n/g, ' ').slice(0, 120)}`,
+    `staged: ${new Date().toISOString()}`,
+    `id: ${id}`,
+    '---',
+    '',
+    input.replace(/\s+$/, '') + '\n',
+  ].join('\n')
+  withFileLock(dest, () => { atomicWriteFile(dest, body) })
+  console.log(`staged → ${dest}`)
+  console.log(`id: ${id}`)
+  console.log('next:   fde ingest propose ' + id)
+  console.log('(does not write .fde/ — confirm via propose → apply)')
+}
+
 function cmdReceipts(args) {
   const term = args.join(' ')
   if (!term) { console.error('usage: fde receipts <search term>'); process.exit(1) }
@@ -2293,6 +2476,10 @@ function printUsage() {
   fde log --undo           remove the last CLI log/debrief entry from memory
   fde debrief [file]       meeting notes → memory (prefixed lines; --dry-run; --force)
   fde debrief --smart      heuristic propose (prefix + light keywords); agent routes, CLI gates → --apply
+  fde ingest stage …       stage raw pull into <engagement>/.inbox/ (not .fde/)
+  fde ingest list          list staged inbox items
+  fde ingest propose <id>  smart-propose a staged item → .debrief-propose (confirm before apply)
+  fde ingest apply         same as: fde debrief --apply
   fde prep [label]         grounded walk-in brief from existing .fde/ only
   fde doctor               lint engagement memory (stale signals, gaps)
   fde redact <term>        preview/remove lines containing a buried term (pass --apply to commit)
@@ -2305,7 +2492,8 @@ function printUsage() {
   fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
   env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)
   writes require a workspace bind (or FDEOPS_ENGAGEMENT) - folder-name match is read-only
-  .fde/ is git-versioned locally for tamper-evident receipts (no remote, no telemetry)`)
+  .fde/ is git-versioned locally for tamper-evident receipts (no remote, no telemetry)
+  ingest is a sink only - source MCPs (Granola/Gmail/…) are user-configured; never ambient sync`)
 }
 
 const [cmd, ...args] = process.argv.slice(2)
@@ -2315,6 +2503,7 @@ switch (cmd) {
   case 'triage': cmdTriage(); break
   case 'log': cmdLog(args); break
   case 'debrief': cmdDebrief(args); break
+  case 'ingest': cmdIngest(args); break
   case 'prep': cmdPrep(args); break
   case 'doctor': cmdDoctor(); break
   case 'redact': cmdRedact(args); break

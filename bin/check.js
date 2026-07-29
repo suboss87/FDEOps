@@ -316,7 +316,7 @@ if (!fs.existsSync(path.join(root, 'bin', 'fde.js'))) {
       .map(name => path.join('bin', 'lib', name)),
   ]
   const cliSource = cliFiles.map(read).join('\n')
-  for (const sub of ['cmdScan', 'cmdResume', 'cmdLog', 'cmdDebrief', 'cmdReceipts', 'cmdCapture', 'cmdStatus', 'cmdDashboard']) {
+  for (const sub of ['cmdScan', 'cmdResume', 'cmdLog', 'cmdDebrief', 'cmdIngest', 'cmdReceipts', 'cmdCapture', 'cmdStatus', 'cmdDashboard']) {
     if (!cliSource.includes(sub)) fail(`CLI sources missing ${sub}`)
   }
   if (!JSON.parse(read('package.json')).bin.fde) fail('package.json must expose the fde bin')
@@ -344,6 +344,14 @@ const plugin = JSON.parse(read('.claude-plugin/plugin.json'))
 if (pkg.version !== plugin.version) {
   fail(`version mismatch package.json ${pkg.version} vs plugin ${plugin.version}`)
 } else ok('plugin version aligned')
+
+if (!fs.existsSync(path.join(root, 'mcp', 'fdeops-ingest', 'server.js'))) {
+  fail('mcp/fdeops-ingest/server.js missing (ingest MCP sink)')
+} else if (!read('mcp/fdeops-ingest/server.js').includes('ingest_stage')) {
+  fail('ingest MCP must expose ingest_stage')
+} else if (!read('skills/fde/references/ingest.md').includes('stage')) {
+  fail('skills/fde/references/ingest.md missing stage contract')
+} else ok('ingest MCP + skill reference')
 
 if (!fs.existsSync(path.join(root, '.github', 'ISSUE_TEMPLATE', 'bug_report.yml'))) {
   fail('GitHub issue template missing')

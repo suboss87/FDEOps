@@ -4,6 +4,16 @@ Open layout for engagement memory. **Default path:** `~/fde-engagements/<name>/.
 
 Optional: `./.fde/` in a workspace only if the engagement allows it and it is gitignored.
 
+## Staging (`.inbox/`)
+
+Beside each engagement folder, **`~/fde-engagements/<name>/.inbox/`** holds raw pulls from external sources (transcripts, emails, exports). Staged by `fde ingest stage`; **not** part of the memory git ledger and **not** the system of record.
+
+| Path | Purpose | Written by |
+|------|---------|------------|
+| `.inbox/<staged-files>` | Raw artifacts before review | `fde ingest stage` (agent fetches via user-configured source MCPs) |
+
+After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same routing as `fde debrief --apply`). Raw files remain in `.inbox/` for audit. Optional `via:<source>` provenance on applied lines. NDA surface — same home-tree privacy rules as `.fde/`.
+
 ## Core files (start here)
 
 | File | Purpose | Written by |

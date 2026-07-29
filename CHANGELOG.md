@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.9.19 — 2026-07-29
+
+Ingest sink — pull large artifacts from user-configured source MCPs; same confirm loop as debrief.
+
+### Added
+- **`fde ingest` CLI** — `stage`, `list`, `propose`, `apply` verbs. Raw pulls land in `<engagement>/.inbox/`; apply routes dated facts into `.fde/` (wraps debrief `--smart` / `--apply`). Optional `via:<source>` provenance.
+- **`mcp/fdeops-ingest`** — thin stdio MCP mirroring ingest verbs. Source MCPs (Granola, Gmail, Notion, custom) stay user-configured outside fdeops.
+- **Skill + docs** — `@fde` routing for "make sure we're up to date" / pull-from-source; `references/ingest.md` method card; cross-links in debrief, USAGE, schema, PRIVACY, README.
+
+### Changed
+- Explicit non-goals restated: no bundled OAuth/connectors, no ambient sync, no unreviewed writes to `.fde/`.
+
 ## 3.9.18 — 2026-07-29
 
 Failure-path + stakeholder identity hygiene — Veric-style depth without the platform.

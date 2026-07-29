@@ -1,0 +1,12 @@
+{
+  "name": "fdeops-ingest-mcp",
+  "version": "3.9.19",
+  "private": true,
+  "description": "Thin stdio MCP sink for FDEOps ingest (stage → propose → apply). Zero runtime dependencies.",
+  "bin": {
+    "fdeops-ingest-mcp": "./server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
