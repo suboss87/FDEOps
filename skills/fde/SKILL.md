@@ -83,6 +83,7 @@ When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FD
 | (session entry / where are we) | `fde resume` or use injected TRIAGE; `fde resume --init <name>` only if unbound |
 | Day-1 look at the repo | `fde scan` - then you interpret against the brief |
 | "Debrief these notes" / pastes meeting notes | Prefer `fde debrief --smart <notes>` → **you** (the agent) rewrite `.debrief-propose` with `decision:`/`risk:`/`delivery:`/`contact:`/`next:` prefixes where needed → show FDE → on confirm `fde debrief --apply`. `--smart` is a prefix/keyword gate, not a brain. Fallback: structure prefixed lines yourself, show FDE, then `fde debrief` |
+| "Make sure we're up to date" / "pull relevant info" / "pull from Granola/email/transcript" | Bind engagement; if ambiguous ask which meeting/thread. Use whatever source MCPs the FDE has configured (Granola, Gmail, Notion, custom — **not bundled in fdeops**) to fetch raw text → `fde ingest stage [--source NAME] [--title TEXT]` → `fde ingest propose <id>` → **you** rewrite `.debrief-propose` with type prefixes → show FDE → on confirm `fde ingest apply`. **Never auto-apply. Never ambient sync.** Detail: `references/ingest.md` |
 | "Prep me for the meeting with …" / walk-in brief | `fde prep "<short label>"` - present the brief in plain language; do not invent facts missing from `.fde/` |
 | "When did we agree…?" / scope dispute | `fde receipts <term>` - answer with dates; no hit = gap, not proof |
 | "Draft the sponsor update" / how are we doing | `fde status` then follow `references/status.md` for the narrative |
@@ -269,6 +270,7 @@ Running the engagement and ending it well.
 | Weekly update due, "need to send the sponsor something" | status | `references/status.md` |
 | Demo coming up, show-and-tell, exec walkthrough | demo-prep | `references/demo-prep.md` |
 | Just out of a meeting, raw notes, "they said…", "debrief" | debrief | the debrief verb (above) + `references/debrief.md` |
+| Make sure we're up to date, pull what's relevant, fetch from Granola/Gmail/transcript | ingest | `references/ingest.md` (stage → propose → confirm → apply; source MCPs are user-configured) |
 | Prep me for a meeting / walk-in brief / "what should I know before I talk to…" | - | run `fde prep "<label>"`, present in plain language |
 | Sponsor's boss needs a summary, board update, justify continued investment | exec-narrative | `references/exec-narrative.md` |
 | Status across all my customers | dashboard | `references/dashboard.md` |

@@ -58,6 +58,25 @@ Not sure which client a workspace writes to? `fde resume --bind` shows the bindi
 
 ---
 
+## Ingest: pull large artifacts → same confirm loop
+
+When a transcript or email is too large to paste, or lives in Granola/Gmail/Notion:
+
+**Via the agent:** `@fde make sure Acme is up to date — pull what's relevant`. It binds the engagement, uses **your** configured source MCPs to fetch raw text (fdeops does not bundle Gmail/Granola), stages with `fde ingest stage`, proposes with `fde ingest propose`, shows you the routing, and only runs `fde ingest apply` after you confirm. No auto-apply, no background sync.
+
+**Directly (zero tokens, you already have the file):**
+
+```bash
+fde ingest stage --source granola --title "Sponsor sync 2026-07-29" transcript.txt
+fde ingest list
+fde ingest propose <id-or-filename>   # → .debrief-propose (same as debrief --smart)
+fde ingest apply                      # after you review — same as debrief --apply
+```
+
+Raw stays in `~/fde-engagements/<client>/.inbox/`; dated facts land in `.fde/` with optional `via:<source>` provenance. Optional MCP wrapper: `mcp/fdeops-ingest` (stdio tools mirror the verbs). Method detail: [skills/fde/references/ingest.md](../skills/fde/references/ingest.md).
+
+---
+
 ## Trust signals
 
 Log stakeholder temperature as structured tokens, not vibes:
@@ -88,6 +107,7 @@ npx fdeops dashboard                # optional local HTML view of the fieldbook
 | You say | Agent runs |
 |---------|------------|
 | Debrief these notes | `fde debrief --smart …` → agent rewrites propose with prefixes if needed → you confirm → `--apply` |
+| Make sure we're up to date / pull from Granola or email | Source MCP fetch → `fde ingest stage` → `fde ingest propose` → you confirm → `fde ingest apply` |
 | Prep me for the sponsor meeting | `fde prep "…"` |
 | When did we agree to drop that? | `fde receipts …` |
 | Draft the sponsor update | `fde status` (+ judgment in chat) |
@@ -100,6 +120,10 @@ npx fdeops dashboard                # optional local HTML view of the fieldbook
 fde triage                        # short status (also injected by session hooks)
 fde debrief notes.md              # if notes already use decision: / risk: / … prefixes
 fde debrief --smart notes.md      # heuristic propose (not AI); agent prefixes → --apply after confirm
+fde ingest stage [--source NAME] [--title TEXT] [file|-]  # raw pull → .inbox/
+fde ingest list                   # staged items
+fde ingest propose <id>           # → .debrief-propose (same smart path)
+fde ingest apply                  # after confirm — same as debrief --apply
 fde doctor                        # check the fieldbook for gaps
 fde prep "sponsor sync"           # walk-in brief from existing memory
 fde log decision "…"
@@ -118,12 +142,14 @@ Each `.fde/` is a local git repo (no remote, no telemetry). Writes stage only th
 ## Where files live
 
 ```text
-~/fde-engagements/<client-name>/.fde/
-  context.md      ← AI loads first each session (+ dated debrief blocks)
-  brief.md        ← what they said (hypothesis)
-  reality.md      ← what is actually true
-  stakeholders.md ← contacts + [signal:…] tokens
-  …
+~/fde-engagements/<client-name>/
+  .fde/
+    context.md      ← AI loads first each session (+ dated debrief blocks)
+    brief.md        ← what they said (hypothesis)
+    reality.md      ← what is actually true
+    stakeholders.md ← contacts + [signal:…] tokens
+    …
+  .inbox/           ← raw staged pulls (ingest); not the memory ledger
 ```
 
 The workspace registry (written by `fde resume --init`) tells the AI and the hooks which engagement this workspace belongs to - no environment variable needed. (Advanced override: [install.md § FDEOPS_ENGAGEMENT](./install.md#advanced-fdeops_engagement-override).)

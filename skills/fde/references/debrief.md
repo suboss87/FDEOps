@@ -2,6 +2,8 @@
 
 **Enter when:** the FDE just left a meeting/call and dumps raw notes, a transcript, or "they said…". Highest-frequency moment in FDE life. Capture within the hour.
 
+**Large transcripts or emails** sitting in Granola/Gmail/Notion → prefer **`fde ingest stage`** first (via source MCPs the FDE configured), then the same propose → confirm → **`fde ingest apply`** path. See `references/ingest.md`. Pasted short notes stay on this debrief verb.
+
 **Read first:** `context.md`, `stakeholders.md` (signals against what's known).
 
 **Who runs the CLI:** you (the agent). Never tell the FDE to type `fde debrief …`.

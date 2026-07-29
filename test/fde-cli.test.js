@@ -1679,3 +1679,59 @@ test('doctor flags stakeholder identity forks (Denise vs Denise Chen)', () => {
   const clean = runFde(sandbox, ['doctor'])
   assert.equal(clean.status, 0, clean.stdout + clean.stderr)
 })
+
+test('ingest stage → propose → apply never writes .fde until confirm', () => {
+  const sandbox = makeSandbox('ingest-sink')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'ingestco']).status, 0)
+  const eng = engagementPath(sandbox, 'ingestco')
+  const inbox = path.join(sandbox.home, 'fde-engagements', 'ingestco', '.inbox')
+  const notes = path.join(sandbox.workspace, 'call.md')
+  fs.writeFileSync(
+    notes,
+    [
+      'decision: agreed to descope reporting until audit — Denise',
+      'Denise went quiet after the board review',
+      'next: send one-pager before Thursday',
+    ].join('\n')
+  )
+
+  const stage = runFde(sandbox, ['ingest', 'stage', '--source', 'granola', '--title', 'board prep', notes])
+  assert.equal(stage.status, 0, stage.stderr)
+  assert.match(stage.stdout, /staged →/)
+  assert.match(stage.stdout, /does not write \.fde/)
+  assert.equal(fs.existsSync(inbox), true)
+  const staged = fs.readdirSync(inbox).filter(f => f.endsWith('.md'))
+  assert.equal(staged.length, 1)
+  assert.match(staged[0], /granola/)
+  const decisionsBefore = fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8')
+
+  const listed = runFde(sandbox, ['ingest', 'list'])
+  assert.equal(listed.status, 0, listed.stderr)
+  assert.match(listed.stdout, /INBOX|granola|board prep/i)
+
+  const propose = runFde(sandbox, ['ingest', 'propose', staged[0]])
+  assert.equal(propose.status, 0, propose.stderr)
+  assert.match(propose.stdout, /INGEST PROPOSE|via:granola/)
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-propose')), true)
+  assert.equal(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), decisionsBefore)
+
+  // Agent-shaped prefixes (simulate rewrite) then apply
+  fs.writeFileSync(
+    path.join(eng, '.debrief-propose'),
+    [
+      'via:granola board prep',
+      'decision: agreed to descope reporting until audit — Denise',
+      'contact: Denise went quiet after the board review [signal:amber]',
+      'next: send one-pager before Thursday',
+      '',
+    ].join('\n')
+  )
+  const apply = runFde(sandbox, ['ingest', 'apply'])
+  assert.equal(apply.status, 0, apply.stderr)
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /descope reporting/)
+  assert.match(fs.readFileSync(path.join(eng, 'stakeholders.md'), 'utf8'), /\[signal:amber\].*Denise|Denise.*\[signal:amber\]/)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /one-pager/)
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-propose')), false)
+  // raw staging preserved
+  assert.equal(fs.readdirSync(inbox).length, 1)
+})
