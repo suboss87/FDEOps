@@ -1671,7 +1671,90 @@ function collectDoctorIssues(eng) {
       `${dupes.length} duplicate open-risk cluster(s) (e.g. "${sample}${sample.length >= 60 ? '…' : ''}") - consolidate or retire echoes in risks.md`
     )
   }
+  // Failure-path (exception-led operating map): required once past discover.
+  // Land seeds; discover fills; plan+ without a real break→owner row is wallpaper.
+  if (/^(plan|build|ship|close)$/.test(s.phase) && !hasOperatingMapContent(eng)) {
+    issues.push(
+      `phase is ${s.phase} with empty operating map - fill terrain.md ## Operating map (exception-led): break → who notices → workaround → evidence`
+    )
+  }
+  const aliases = findAmbiguousStakeholders(eng)
+  if (aliases.length) {
+    const sample = aliases[0].forms.slice(0, 3).join(' / ')
+    issues.push(
+      `${aliases.length} stakeholder identity cluster(s) (e.g. "${sample}") - same person under different names? consolidate in stakeholders.md`
+    )
+  }
   return issues
+}
+
+// True when ## Operating map has at least one real exception row (not the empty template).
+function hasOperatingMapContent(eng) {
+  const terrain = stripTemplateNoise(readClean(eng, 'terrain.md'))
+  const body = sectionBody(terrain, 'Operating map')
+  if (!body.trim()) return false
+  const table = parseMdTable(body)
+  if (table) {
+    const exIdx = colIndex(table.headers, /exception|break/i)
+    const idx = exIdx !== -1 ? exIdx : 0
+    for (const row of table.rows) {
+      const cell = (row[idx] || '').trim()
+      if (cell && !/^unknown/i.test(cell)) return true
+    }
+  }
+  for (const raw of body.split('\n')) {
+    const t = raw.trim().replace(/^[-*]\s+/, '')
+    if (!t || t.startsWith('#') || t.startsWith('|') || /^\*\*/.test(t)) continue
+    if (t.length >= 8 && !/^unknown/i.test(t)) return true
+  }
+  return false
+}
+
+// Near-duplicate stakeholder forms sharing a first-name key (Denise vs Denise Chen).
+function findAmbiguousStakeholders(eng) {
+  const forms = []
+  const md = readClean(eng, 'stakeholders.md')
+  const table = parseMdTable(md)
+  if (table) {
+    const nameIdx = colIndex(table.headers, /name|who/i)
+    if (nameIdx !== -1) {
+      for (const row of table.rows) {
+        const name = (row[nameIdx] || '').trim()
+        if (!name || name.length < 2) continue
+        forms.push(name)
+      }
+    }
+  }
+  for (const h of parseSignalHistoryEntries(eng)) {
+    const name = displayNameFromSignalText(h.text)
+    if (name && name.length >= 2 && !/^anon:/i.test(name)) forms.push(name)
+  }
+  const byKey = new Map()
+  for (const name of forms) {
+    const key = signalSubjectKey(name)
+    if (!key || key.startsWith('anon:')) continue
+    const norm = name.replace(/\s+/g, ' ').trim().toLowerCase()
+    if (!byKey.has(key)) byKey.set(key, new Set())
+    byKey.get(key).add(norm)
+  }
+  const clusters = []
+  for (const [key, set] of byKey) {
+    if (set.size < 2) continue
+    // Prefer clusters where forms aren't just identical casing - already lowercased.
+    // Require at least one multi-token form vs a shorter form (Denise / Denise Chen).
+    const list = [...set]
+    const hasLong = list.some(f => f.split(/\s+/).length >= 2)
+    const hasShort = list.some(f => f.split(/\s+/).length === 1)
+    if (hasLong && hasShort) {
+      clusters.push({ key, forms: list })
+      continue
+    }
+    // Or two multi-token forms that share first token but differ later (Denise Chen / Denise C.)
+    if (list.length >= 2 && list.every(f => f.split(/\s+/).length >= 2)) {
+      clusters.push({ key, forms: list })
+    }
+  }
+  return clusters
 }
 
 // Strip template comments / italic *(hints)* so doctor does not treat stubs as filled.

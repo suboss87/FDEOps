@@ -20,7 +20,7 @@ Optional: `./.fde/` in a workspace only if the engagement allows it and it is gi
 | File | Purpose | Written by |
 |------|---------|------------|
 | `reality.md` | Actual problem vs brief | discover |
-| `terrain.md` | Codebase map, hotspots, test gaps, exception-led operating map | discover, audit |
+| `terrain.md` | Codebase map, hotspots, test gaps, exception-led operating map (doctor requires ≥1 row from plan+) | discover, audit |
 | `decisions.md` | Plan + kill list + technical choices + reviews | plan, initiative-triage, build, review, `fde debrief` |
 | `risks.md` | Live risk register | plan, build, rescue, `fde debrief` |
 | `delivery.md` | Value ledger (bucket → promised → measured → evidence) + ship receipts + status memos | build, ship, status, close, `fde debrief` |

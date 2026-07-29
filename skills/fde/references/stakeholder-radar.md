@@ -28,6 +28,8 @@ The org chart tells you who reports to whom. The stakeholder radar tells you who
 
 **3. The 48-hour rule.** A stakeholder who goes amber has roughly 48 hours before they go red. A stakeholder who goes red is already escalating above you. Respond same-day to amber signals - not with more delivery, with a conversation.
 
+**3b. One name per person.** If the table says "Denise Chen" and Signal history says "Denise" or "D. Chen", trust keys fork and prep lies. Consolidate to one spelling. `fde doctor` flags these identity clusters — treat that as a fix, not a nit.
+
 **4. Detect the invisible escalation.** Three markers:
 - Questions shift from "what are you building" to "when will it be done" - someone above is asking.
 - A meeting gets shortened or cancelled - they're meeting without you.
