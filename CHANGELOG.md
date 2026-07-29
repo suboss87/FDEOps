@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.9.18 — 2026-07-29
+
+Failure-path + stakeholder identity hygiene — Veric-style depth without the platform.
+
+### Added
+- **`fde doctor` operating map** - from `plan` onward, empty `terrain.md` ## Operating map (exception-led) is a hygiene fail (break → who notices → workaround). Discover may still be empty; land only seeds.
+- **`fde doctor` stakeholder identity clusters** - flags Denise vs Denise Chen style name forks so trust keys don't split.
+
+### Changed
+- Discover / stakeholder-radar / templates note doctor enforcement and one-name-per-person.
+
 ## 3.9.17 — 2026-07-23
 
 Dogfood round: honest `--smart` contract + fix duplicate `## Next action` trap. Session digest: share thinking via `.fde/`, not transcript sync.

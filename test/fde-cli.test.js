@@ -72,6 +72,23 @@ function engagementPath(sandbox, slug) {
   return path.join(sandbox.home, 'fde-engagements', slug, '.fde')
 }
 
+function fillOperatingMap(eng, exception = 'Friday batch fails reconciliation') {
+  fs.writeFileSync(
+    path.join(eng, 'terrain.md'),
+    [
+      '# Terrain',
+      '**Stack:** node',
+      '',
+      '## Operating map (exception-led)',
+      '',
+      '| Exception / break | Who notices first | What they do today (workaround) | System of record then | Blast if wrong | Evidence |',
+      '|-------------------|-------------------|---------------------------------|-----------------------|----------------|----------|',
+      `| ${exception} | Denise | manual spreadsheet | email thread | payroll late | heard 2026-07-01 |`,
+      '',
+    ].join('\n')
+  )
+}
+
 function gitInEng(eng, args) {
   return spawnSync('git', ['-C', eng, ...args], { encoding: 'utf8' })
 }
@@ -1399,13 +1416,18 @@ test('doctor ship/close: value bucket required; eval only when AI in scope', () 
 
   const noBucket = runFde(sandbox, ['doctor'])
   assert.notEqual(noBucket.status, 0)
-  assert.match(noBucket.stdout, /value bucket/i)
+  assert.match(noBucket.stdout, /value bucket|operating map/i)
   assert.doesNotMatch(noBucket.stdout, /eval receipt/i, 'non-AI ship must not force eval pack')
 
   fs.writeFileSync(
     path.join(eng, 'success.md'),
     '# Success\nDone when: finance signs off.\n**Primary value bucket:** cost-save\n**Baseline → target:** 4h → 1h reconciliation\n'
   )
+  const stillMap = runFde(sandbox, ['doctor'])
+  assert.notEqual(stillMap.status, 0)
+  assert.match(stillMap.stdout, /operating map/i)
+
+  fillOperatingMap(eng)
   const nonAiOk = runFde(sandbox, ['doctor'])
   assert.equal(nonAiOk.status, 0, nonAiOk.stdout + nonAiOk.stderr)
 
@@ -1579,4 +1601,81 @@ test('garden proposes and applies duplicate open-risk consolidation', () => {
   const open = risks.split(/^##\s+Retired/im)[0]
   const openBullets = open.split('\n').filter(l => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(l.trim()))
   assert.ok(openBullets.length < 4, `expected fewer open risks after dedupe, got ${openBullets.length}`)
+})
+
+test('doctor requires operating map from plan onward; silent on discover', () => {
+  const sandbox = makeSandbox('opmap-doctor')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'opmap']).status, 0)
+  const eng = engagementPath(sandbox, 'opmap')
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\nDone when: pilot signed.\n')
+  fs.writeFileSync(
+    path.join(eng, 'context.md'),
+    '# Engagement context\n**Phase:** discover\n\n## Next action\n- map Friday exception\n'
+  )
+  fs.writeFileSync(path.join(eng, 'risks.md'), '# Risks\n')
+  const discoverOk = runFde(sandbox, ['doctor'])
+  assert.equal(discoverOk.status, 0, discoverOk.stdout + discoverOk.stderr)
+  assert.doesNotMatch(discoverOk.stdout, /operating map/i)
+
+  assert.equal(runFde(sandbox, ['log', 'phase', 'plan']).status, 0)
+  fs.writeFileSync(
+    path.join(eng, 'context.md'),
+    '# Engagement context\n**Phase:** plan\n\n## Next action\n- sequence the parity slice\n'
+  )
+  const planMissing = runFde(sandbox, ['doctor'])
+  assert.notEqual(planMissing.status, 0)
+  assert.match(planMissing.stdout, /operating map/i)
+
+  fillOperatingMap(eng)
+  const planOk = runFde(sandbox, ['doctor'])
+  assert.equal(planOk.status, 0, planOk.stdout + planOk.stderr)
+})
+
+test('doctor flags stakeholder identity forks (Denise vs Denise Chen)', () => {
+  const sandbox = makeSandbox('alias-doctor')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'aliasco']).status, 0)
+  const eng = engagementPath(sandbox, 'aliasco')
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'discover']).status, 0)
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\nDone when: pilot signed.\n')
+  fs.writeFileSync(
+    path.join(eng, 'context.md'),
+    '# Engagement context\n**Phase:** discover\n\n## Next action\n- confirm Denise channel\n'
+  )
+  fs.writeFileSync(path.join(eng, 'risks.md'), '# Risks\n')
+  const today = new Date().toISOString().slice(0, 10)
+  fs.writeFileSync(
+    path.join(eng, 'stakeholders.md'),
+    [
+      '# Stakeholders',
+      '| Name | Role | Stance | Notes |',
+      '|------|------|--------|-------|',
+      '| Denise Chen | sponsor | champion | |',
+      '| Denise | AP lead | neutral | |',
+      '',
+      '## Signal history',
+      `- [${today}] [signal:amber] Denise went quiet after board`,
+      '',
+    ].join('\n')
+  )
+  const doctor = runFde(sandbox, ['doctor'])
+  assert.notEqual(doctor.status, 0)
+  assert.match(doctor.stdout, /stakeholder identity|Denise/i)
+
+  fs.writeFileSync(
+    path.join(eng, 'stakeholders.md'),
+    [
+      '# Stakeholders',
+      '| Name | Role | Stance | Notes |',
+      '|------|------|--------|-------|',
+      '| Denise Chen | sponsor | champion | also AP lead |',
+      '',
+      '## Signal history',
+      `- [${today}] [signal:amber] Denise Chen went quiet after board`,
+      '',
+    ].join('\n')
+  )
+  const clean = runFde(sandbox, ['doctor'])
+  assert.equal(clean.status, 0, clean.stdout + clean.stderr)
 })
