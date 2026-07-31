@@ -36,6 +36,10 @@ Source MCP(s)          fdeops-ingest MCP           fde CLI
 |---------|------|---------|
 | `fdeops-ingest-mcp` | [`fdeops-ingest/`](./fdeops-ingest/) | Ingest sink (stage, list, propose, apply) |
 
+## Recipes (copy-paste connect)
+
+See [`recipes/`](./recipes/) for file, Granola-shaped, and Notion-shaped setup. In chat: `@fde I want to connect Granola` → skill `ingest-connect` walks the FDE through config + reload + verify.
+
 ## Adding a source MCP
 
 Source MCPs are **not** bundled in fdeops. To add Granola, Gmail, or another provider:

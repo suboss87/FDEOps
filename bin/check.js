@@ -351,7 +351,15 @@ if (!fs.existsSync(path.join(root, 'mcp', 'fdeops-ingest', 'server.js'))) {
   fail('ingest MCP must expose ingest_stage')
 } else if (!read('skills/fde/references/ingest.md').includes('stage')) {
   fail('skills/fde/references/ingest.md missing stage contract')
-} else ok('ingest MCP + skill reference')
+} else if (!fs.existsSync(path.join(root, 'skills', 'fde', 'references', 'ingest-connect.md'))) {
+  fail('skills/fde/references/ingest-connect.md missing')
+} else {
+  for (const recipe of ['file.md', 'granola.md', 'notion.md']) {
+    if (!fs.existsSync(path.join(root, 'mcp', 'recipes', recipe))) fail(`mcp/recipes/${recipe} missing`)
+  }
+  if (!read('README.md').includes('mcp/recipes')) fail('README must point at mcp/recipes for connect clarity')
+  ok('ingest MCP + connect recipes + skill reference')
+}
 
 if (!fs.existsSync(path.join(root, '.github', 'ISSUE_TEMPLATE', 'bug_report.yml'))) {
   fail('GitHub issue template missing')

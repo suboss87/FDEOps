@@ -31,6 +31,7 @@ Day to day you only need `@fde` and normal English. No command cheat sheet.
 |------|--------------|--------------|
 | **Start of week** | Open your AI coding agent (nothing to paste) | It already knows where you left off - trust, phase, what's next |
 | **After a meeting** | `@fde` debrief these notes *(paste or attach them)* | Proposed updates to the record - you review, then confirm |
+| **Pull from tools** | `@fde` connect Granola *(once)* · then `@fde` pull today's Acme transcript | Wire any source MCP you choose; FDEOps stages → proposes → you confirm. Recipes: [mcp/recipes/](mcp/recipes/) |
 | **Before a stakeholder meeting** | `@fde` prep me for tomorrow's meeting with the sponsor | A short brief from what you already logged - not a blank chat |
 | **Someone disputes scope** | `@fde` when did we agree to drop that feature? | Dated answers from the record (or a clear gap if nothing was logged) |
 | **End of week** | `@fde` draft the sponsor update from the record | Status grounded in what actually happened |
@@ -91,7 +92,7 @@ npx fdeops resume                 # prints a short "where we are" for this clien
 - **You** describe the situation with `@fde` (or plain language once the skill is loaded)
 - **Session start / end** - small hooks load where you left off and capture what changed (no re-paste)
 - **Local CLI** - memory writes, search, and status with no model tokens; the agent runs it. You do not need to learn it for daily use ([docs/USAGE.md](docs/USAGE.md))
-- **Pluggable pull (ingest)** - large transcripts and emails can land in `.inbox/` via `fde ingest stage` after **your** source MCPs fetch them (Granola, Gmail, Notion, custom — not bundled in fdeops). Same propose → confirm → apply loop as debrief; nothing unreviewed enters the fieldbook. No ambient sync.
+- **Pluggable pull (ingest)** - FDEOps is the **sink**, not a connector pack. You add any source MCP (Granola, Notion, Drive, …) in Cursor/Claude; say `@fde connect …` for a guided config + recipe, then pull in plain language. Raw text → `.inbox/` → propose → you confirm → `.fde/`. No ambient sync; nothing unreviewed enters the fieldbook. See [mcp/recipes/](mcp/recipes/).
 
 fdeops complements repo memory: CLAUDE.md holds how the *code* works; the fieldbook holds how the *client engagement* works.
 

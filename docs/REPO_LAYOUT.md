@@ -7,7 +7,7 @@
 | `templates/.fde/` | Core memory templates for `fde resume --init` (phase artifacts are created by phases on demand; `evals.md` is optional) |
 | `examples/` | Fictional walkthroughs with sample `.fde/` files |
 | `bin/fde.js` | Deterministic CLI - scan, resume, triage, log, debrief, ingest, prep, doctor, garden, redact, receipts, capture, preserve, status, dashboard |
-| `mcp/` | Optional MCP servers (e.g. `fdeops-ingest` — stdio wrapper around `fde ingest` verbs; source MCPs remain user-configured) |
+| `mcp/` | Optional MCP sink (`fdeops-ingest`) + source **recipes** (`mcp/recipes/` — file, granola, notion); source MCPs remain user-configured |
 | `bin/lib/` | Shared memory / trust / render helpers used by the CLI |
 | `bin/check.js` | Structural + install smoke gate (`npm run check`) |
 | `bin/install.js` | `node bin/install.js` (skills + hooks on disk) |
