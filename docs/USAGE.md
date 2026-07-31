@@ -62,7 +62,9 @@ Not sure which client a workspace writes to? `fde resume --bind` shows the bindi
 
 When a transcript or email is too large to paste, or lives in Granola/Gmail/Notion:
 
-**Via the agent:** `@fde make sure Acme is up to date — pull what's relevant`. It binds the engagement, uses **your** configured source MCPs to fetch raw text (fdeops does not bundle Gmail/Granola), stages with `fde ingest stage`, proposes with `fde ingest propose`, shows you the routing, and only runs `fde ingest apply` after you confirm. No auto-apply, no background sync.
+**Connect once (plain language):** `@fde I want to connect Granola` (or Notion / a new MCP). The agent runs a capability check, emits an `mcp.json` snippet from [mcp/recipes/](../mcp/recipes/), and asks you to save + reload in Cursor/Claude — it cannot silently install host MCPs. Then: `@fde what can you pull?`
+
+**Pull:** `@fde make sure Acme is up to date — pull what's relevant`. It binds the engagement, uses **your** configured source MCPs to fetch raw text (fdeops does not bundle Gmail/Granola), stages with `fde ingest stage`, proposes with `fde ingest propose`, shows you the routing, and only runs `fde ingest apply` after you confirm. No auto-apply, no background sync.
 
 **Directly (zero tokens, you already have the file):**
 
@@ -107,7 +109,8 @@ npx fdeops dashboard                # optional local HTML view of the fieldbook
 | You say | Agent runs |
 |---------|------------|
 | Debrief these notes | `fde debrief --smart …` → agent rewrites propose with prefixes if needed → you confirm → `--apply` |
-| Make sure we're up to date / pull from Granola or email | Source MCP fetch → `fde ingest stage` → `fde ingest propose` → you confirm → `fde ingest apply` |
+| Make sure we're up to date / pull from Granola or email | Capability check → source MCP fetch → `fde ingest stage` → propose → confirm → apply |
+| Connect Granola / Notion / a new MCP / what can you pull | Guided `mcp.json` + [mcp/recipes/](../mcp/recipes/); save/reload in host; test stage only |
 | Prep me for the sponsor meeting | `fde prep "…"` |
 | When did we agree to drop that? | `fde receipts …` |
 | Draft the sponsor update | `fde status` (+ judgment in chat) |

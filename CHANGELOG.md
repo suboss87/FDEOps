@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.9.20 — 2026-07-31
+
+Ingest connect UX — wire any source MCP in plain language; recipes + capability check.
+
+### Added
+- **`@fde` connect flow** — "connect Granola/Notion / a new MCP" / "what can you pull?" → `references/ingest-connect.md` (config snippet, host save/reload, verify; no silent install).
+- **`mcp/recipes/`** — file, granola-shaped, notion-shaped recipes into the ingest sink.
+- **Capability check** before pull — list available sink/source tools; never pretend a source exists.
+
+### Changed
+- README / USAGE clarify: FDEOps is the sink; sources are user MCPs; connect once then pull in natural language.
+
 ## 3.9.19 — 2026-07-29
 
 Ingest sink — pull large artifacts from user-configured source MCPs; same confirm loop as debrief.
