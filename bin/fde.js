@@ -1001,7 +1001,9 @@ function cmdResume(args) {
   const eng = resolveEngagement()
   if (!eng) {
     const list = fs.existsSync(ENGAGEMENTS_ROOT)
-      ? fs.readdirSync(ENGAGEMENTS_ROOT).filter(d => !d.startsWith('.')).join(', ') || '(none yet)'
+      ? fs.readdirSync(ENGAGEMENTS_ROOT).sort()
+        .filter(d => !d.startsWith('.') && fs.existsSync(path.join(ENGAGEMENTS_ROOT, d, '.fde')))
+        .join(', ') || '(none yet)'
       : '(none yet)'
     console.log(`NO ENGAGEMENT for this workspace.\nexisting: ${list}\ncreate + bind one:  fde resume --init <client-name>`)
     process.exit(2)

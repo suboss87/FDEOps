@@ -412,6 +412,19 @@ test('a sibling directory with a shared path prefix does NOT match the binding',
   assert.match(r.stdout, /NO ENGAGEMENT/, 'shared-prefix sibling must not resolve to the binding')
 })
 
+test('NO ENGAGEMENT lists real engagements only, not rendered dashboards', () => {
+  const sandbox = makeSandbox('unbound-list')
+  runFde(sandbox, ['resume', '--init', 'clienta'])
+  const dash = runFde(sandbox, ['dashboard'])
+  assert.equal(dash.status, 0, dash.stderr)
+
+  const unbound = path.join(sandbox.dir, 'elsewhere')
+  fs.mkdirSync(unbound, { recursive: true })
+  const r = runFde(sandbox, ['resume'], { cwd: fs.realpathSync(unbound) })
+  assert.match(r.stdout, /existing: clienta$/m)
+  assert.doesNotMatch(r.stdout, /fieldbook-current\.html/, 'dashboard output is not an engagement')
+})
+
 test('receipts separates dated agreements from unverified claims', () => {
   const sandbox = makeSandbox('receipts-claims')
   runFde(sandbox, ['resume', '--init', 'nw'])
