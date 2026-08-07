@@ -214,8 +214,12 @@ const PRIVATE_TAG = /<(\/)?private\b[^>]*>/gi
 // Depth-aware split of a markdown body into public text and sealed blocks. A
 // nested block seals to the outermost close, an unclosed one seals to EOF, and a
 // stray close is dropped - a regex pair cannot do any of those safely.
+// HTML comments go first: template hints and pasted notes hide content there, and
+// `clean` is what debrief/ingest preview to a human and route into memory.
 function splitPrivate(md) {
   const text = String(md || '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<!--[\s\S]*$/, '')
   const blocks = []
   let out = ''
   let cursor = 0
@@ -253,7 +257,7 @@ function splitPrivate(md) {
 }
 
 function stripPrivate(md) {
-  return stripControlChars(splitPrivate(md).clean.replace(/<!--[\s\S]*?-->/g, ''))
+  return stripControlChars(splitPrivate(md).clean)
 }
 
 // Read + redact in one step - the default way dashboard code should ever touch
@@ -1340,13 +1344,17 @@ function writeProposal(eng, text) {
   const { clean, blocks } = splitPrivate(text)
   const proposePath = path.join(eng, DEBRIEF_PROPOSE)
   const privatePath = path.join(eng, DEBRIEF_PRIVATE)
-  withFileLock(proposePath, () => { atomicWriteFile(proposePath, clean) })
+  // Seal first. A refused or failed sidecar write must not leave behind a
+  // proposal whose (private - redacted) marker has nothing left behind it.
   if (blocks.length) {
+    const blocked = refuseSymlinkWrite(privatePath, { soft: true })
+    if (blocked) { console.error(blocked); process.exit(1) }
     withFileLock(privatePath, () => { atomicWriteFile(privatePath, `${blocks.join('\n')}\n`) })
     try { fs.chmodSync(privatePath, 0o600) } catch (_) {}
   } else {
     try { fs.unlinkSync(privatePath) } catch (_) {}
   }
+  withFileLock(proposePath, () => { atomicWriteFile(proposePath, clean) })
   return { proposePath, clean, blocks }
 }
 
@@ -1441,6 +1449,11 @@ function cmdDebrief(args) {
       process.exit(1)
     }
     sealed = readSealedProposal(eng)
+    if (!sealed.length && input.includes(PRIVATE_MARKER)) {
+      console.error(`refused: the proposal seals a private note but ${DEBRIEF_PRIVATE} is missing or unreadable - applying now would drop it silently.`)
+      console.error('re-run the propose step (fde debrief --smart <notes> | fde ingest propose <id>).')
+      process.exit(1)
+    }
   } else {
     input = readDebriefInput(args)
   }

@@ -1824,6 +1824,66 @@ test('routable lines inside a <private> block are sealed, never routed unsealed'
   assert.doesNotMatch(fs.readFileSync(html, 'utf8'), /12345678/)
 })
 
+test('a secret hidden in an HTML comment never reaches a preview or memory', () => {
+  const sandbox = makeSandbox('private-comment')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'commentco']).status, 0)
+  const eng = engagementPath(sandbox, 'commentco')
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, [
+    'Decided: renew the support contract.',
+    '<!-- Bank account for payout: 12345678 -->',
+    '<!-- unterminated comment hiding 87654321',
+    '',
+  ].join('\n'))
+
+  const smart = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.doesNotMatch(smart.stdout, /12345678|87654321/)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, '.debrief-propose'), 'utf8'), /12345678|87654321/)
+
+  const dry = runFde(sandbox, ['debrief', '--dry-run'], { input: fs.readFileSync(notes, 'utf8') })
+  assert.doesNotMatch(dry.stdout, /12345678|87654321/)
+
+  assert.equal(runFde(sandbox, ['debrief', '--apply']).status, 0)
+  for (const f of ['context.md', 'decisions.md', 'risks.md']) {
+    assert.doesNotMatch(fs.readFileSync(path.join(eng, f), 'utf8'), /12345678|87654321/)
+  }
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /renew the support contract/)
+})
+
+test('apply refuses when the sealed sidecar went missing instead of dropping it', () => {
+  const sandbox = makeSandbox('sidecar-loss')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'lossco']).status, 0)
+  const eng = engagementPath(sandbox, 'lossco')
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, [
+    'decision: ship the pilot in March',
+    '<private>',
+    'Bank account for payout: 12345678',
+    '</private>',
+    '',
+  ].join('\n'))
+
+  assert.equal(runFde(sandbox, ['debrief', '--smart', notes]).status, 0)
+  fs.unlinkSync(path.join(eng, '.debrief-private'))
+  const apply = runFde(sandbox, ['debrief', '--apply'])
+  assert.equal(apply.status, 1)
+  assert.match(apply.stderr, /missing or unreadable/)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /ship the pilot/)
+
+  // a symlinked sidecar is refused without leaving an unbacked proposal behind
+  const outside = path.join(sandbox.dir, 'outside.md')
+  fs.writeFileSync(outside, 'untouched\n')
+  fs.unlinkSync(path.join(eng, '.debrief-propose'))
+  fs.symlinkSync(outside, path.join(eng, '.debrief-private'))
+  const refused = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(refused.status, 1)
+  assert.match(refused.stderr, /symlink/)
+  assert.equal(fs.readFileSync(outside, 'utf8'), 'untouched\n')
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-propose')), false)
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-private.lock')), false)
+})
+
 test('near-miss <private> tags still seal instead of failing open', () => {
   const sandbox = makeSandbox('private-tags')
   assert.equal(runFde(sandbox, ['resume', '--init', 'tagco']).status, 0)
