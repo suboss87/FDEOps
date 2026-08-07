@@ -1749,6 +1749,97 @@ test('ingest stage → propose → apply never writes .fde until confirm', () =>
   assert.equal(fs.readdirSync(inbox).length, 1)
 })
 
+test('propose previews never echo <private> content, and apply still seals it', () => {
+  const sandbox = makeSandbox('propose-private')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'privco']).status, 0)
+  const eng = engagementPath(sandbox, 'privco')
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, [
+    'decision: use postgres for the pilot',
+    '<private>',
+    'Bank account for payout: 12345678',
+    '</private>',
+    '',
+  ].join('\n'))
+
+  const smart = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.doesNotMatch(smart.stdout, /12345678/)
+  assert.match(smart.stdout, /private - redacted/)
+  assert.match(fs.readFileSync(path.join(eng, '.debrief-propose'), 'utf8'), /<private>/)
+
+  assert.equal(runFde(sandbox, ['debrief', '--apply']).status, 0)
+  const context = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  assert.match(context, /<private>[\s\S]*12345678[\s\S]*<\/private>/)
+  assert.doesNotMatch(runFde(sandbox, ['resume']).stdout, /12345678/)
+
+  const stage = runFde(sandbox, ['ingest', 'stage', '--source', 'granola', '--title', 'payout', notes])
+  assert.equal(stage.status, 0, stage.stderr)
+  const staged = fs.readdirSync(path.join(path.dirname(eng), '.inbox')).filter(f => f.endsWith('.md'))
+  const propose = runFde(sandbox, ['ingest', 'propose', staged[0]])
+  assert.equal(propose.status, 0, propose.stderr)
+  assert.doesNotMatch(propose.stdout, /12345678/)
+  assert.match(propose.stdout, /private - redacted/)
+})
+
+test('ingest_propose over MCP keeps <private> content out of the model-facing result', async () => {
+  const sandbox = makeSandbox('mcp-private')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'mcpco']).status, 0)
+  const server = path.join(root, 'mcp', 'fdeops-ingest', 'server.js')
+  const proc = spawn(process.execPath, [server], {
+    cwd: root,
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      HOME: sandbox.home,
+      USERPROFILE: sandbox.home,
+      FDEOPS_ENGAGEMENT: engagementPath(sandbox, 'mcpco'),
+    },
+  })
+  const lines = []
+  let buf = ''
+  proc.stdout.on('data', (d) => {
+    buf += d
+    while (buf.includes('\n')) {
+      const line = buf.slice(0, buf.indexOf('\n')).trim()
+      buf = buf.slice(buf.indexOf('\n') + 1)
+      if (line) lines.push(JSON.parse(line))
+    }
+  })
+  const send = (msg) => proc.stdin.write(`${JSON.stringify(msg)}\n`)
+  const waitFor = async (count) => {
+    const deadline = Date.now() + 10000
+    while (lines.length < count && Date.now() < deadline) await new Promise(r => setTimeout(r, 50))
+  }
+
+  send({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } } })
+  send({
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'tools/call',
+    params: {
+      name: 'ingest_stage',
+      arguments: {
+        source: 'granola',
+        title: 'payout',
+        content: 'decision: use postgres for the pilot\n<private>\nBank account for payout: 12345678\n</private>\n',
+      },
+    },
+  })
+  await waitFor(2)
+  const stagedId = (JSON.stringify(lines[1]).match(/(\d{8}T\d{6}Z-granola-payout\.md)/) || [])[1]
+  assert.ok(stagedId, `no staged id in ${JSON.stringify(lines[1])}`)
+
+  send({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'ingest_propose', arguments: { id: stagedId } } })
+  await waitFor(3)
+  proc.kill()
+
+  assert.equal(lines.length, 3, `expected 3 replies, got ${JSON.stringify(lines)}`)
+  const proposeText = lines[2].result.content.map(c => c.text).join('\n')
+  assert.doesNotMatch(proposeText, /12345678/)
+  assert.match(proposeText, /private - redacted/)
+})
+
 test('ingest MCP server speaks newline-delimited stdio as the MCP transport requires', async () => {
   const server = path.join(root, 'mcp', 'fdeops-ingest', 'server.js')
   const proc = spawn(process.execPath, [server], { cwd: root, stdio: ['pipe', 'pipe', 'pipe'] })

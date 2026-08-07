@@ -1299,7 +1299,11 @@ function routeDebriefInput(eng, input, { dry, force }) {
   const ctxLines = []
   let nextAction = ''
   ensureMemoryGit(eng)
-  for (const raw of input.split('\n')) {
+  // A dry run only echoes, so redact before splitting: a <private> block's interior
+  // lines carry no markers of their own and would otherwise be previewed verbatim
+  // into a terminal or a model. Writes keep the raw input, so the block still lands
+  // in memory sealed rather than dropped.
+  for (const raw of (dry ? stripPrivate(input) : input).split('\n')) {
     let line = raw.trim()
     if (!line) continue
     const bare = line.replace(/^[-*+]\s+/, '').replace(/^\*\*(decision|risk|delivery|contact|next):?\*\*:?\s*/i, '$1: ')
