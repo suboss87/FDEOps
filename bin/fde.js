@@ -2658,8 +2658,10 @@ function cmdDemo(args) {
   demoStep('7. Next morning, a fresh agent session with no memory of any of this', ['resume'], workspace, env)
   demoStep('8. A meeting in ten minutes - what do you walk in knowing?', ['prep', 'sponsor check-in'], workspace, env)
   demoStep('9. Six weeks later: "we never agreed to drop the rewrite"', ['receipts', 'rewrite'], workspace, env)
-  const dash = demoStep('10. The whole engagement on one page', ['dashboard'], workspace, env)
-  const html = (dash.match(/\S+fieldbook[^\s]*\.html/) || [])[0]
+  demoStep('10. The whole engagement on one page', ['dashboard'], workspace, env)
+  // cmdDashboard's default out path, computed rather than scraped from its output:
+  // a HOME with a space in it truncates any whitespace-delimited parse.
+  const html = path.join(root, 'fieldbook-current.html')
 
   console.log(`
   ${demoHead('What just happened')}
@@ -2671,7 +2673,7 @@ function cmdDemo(args) {
     the dashboard - it is sealed in context.md and redacted from anything an agent
     or a screen share can see.
   - Tomorrow's session starts from the record instead of a blank chat.
-${html ? `\n  Open the fieldbook:  ${html}` : ''}
+${fs.existsSync(html) ? `\n  Open the fieldbook:  ${html}` : ''}
 
   ${demoHead('Your turn')}  (inside your own client's workspace)
 

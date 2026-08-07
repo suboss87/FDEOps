@@ -542,6 +542,15 @@ test('demo runs the real CLI on a fake client, leaks no private block, and stays
   assert.equal(
     (fs.readFileSync(path.join(demoEng, 'decisions.md'), 'utf8').match(/Stripe connector/g) || []).length, 1,
     'a second run must start from empty, not stack duplicates')
+  // "John Doe" home directories: the fieldbook path the demo hands the user must
+  // be the whole path, not everything after the last space.
+  const spaced = path.join(sandbox.dir, 'John Doe', 'engagements')
+  const sp = runFde(sandbox, ['demo'], { env: { FDEOPS_ENGAGEMENTS_ROOT: spaced } })
+  assert.equal(sp.status, 0, sp.stderr)
+  const shown = (sp.stdout.match(/Open the fieldbook:\s+(.+)/) || [])[1]
+  assert.equal(shown, path.join(spaced, '.demo', 'fieldbook-current.html'))
+  assert.equal(fs.existsSync(shown), true, 'the path the demo prints must be openable')
+
   const clean = runFde(sandbox, ['demo', '--clean'], { env: { FDEOPS_ENGAGEMENTS_ROOT: root } })
   assert.equal(clean.status, 0, clean.stderr)
   assert.equal(fs.existsSync(path.join(root, '.demo')), false)
