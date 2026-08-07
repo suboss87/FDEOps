@@ -161,6 +161,18 @@ cd fdeops && git pull && node bin/install.js
 
 Or via npm: `npx fdeops@latest` (fetches the latest published fdeops).
 
+### What the installer will not touch
+
+Every skill directory fdeops creates under `~/.claude/skills/` carries a `.fdeops-managed` marker, and the installer only removes or overwrites directories that have it. If you wrote your own skill whose name collides with one fdeops ships or shipped in v2 (`healthcare-fde`, `fintech-fde`, `gov-fde`, `fde-*`), it is left untouched and reported:
+
+```text
+  skip   1 skill dir(s) fdeops did not create - removing them would destroy your own work:
+           ~/.claude/skills/healthcare-fde
+         move or delete them yourself, or re-run with --force to let fdeops take them over
+```
+
+Delete a `.fdeops-managed` marker to make fdeops treat that directory as yours from then on. `node bin/install.js --force` overrides the check.
+
 ---
 
 ## Usage

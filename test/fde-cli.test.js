@@ -502,6 +502,56 @@ test('resume bounds a long context.md and survives <private> redaction (anchor n
   assert.doesNotMatch(r.stdout, /OLD session log line 5\b/, 'the old middle must be hidden, not dumped')
 })
 
+test('install never deletes or overwrites a skill dir the user wrote (issue #8)', () => {
+  const sandbox = makeSandbox('install-ownership')
+  const skills = path.join(sandbox.home, '.claude', 'skills')
+  const mine = path.join(skills, 'healthcare-fde')
+  fs.mkdirSync(mine, { recursive: true })
+  fs.writeFileSync(path.join(mine, 'SKILL.md'), '---\nname: healthcare-fde\n---\nmy own hard-won prompt\n')
+  fs.writeFileSync(path.join(mine, 'notes.md'), 'irreplaceable\n')
+  const ownFde = path.join(skills, 'fde')
+  fs.mkdirSync(ownFde, { recursive: true })
+  fs.writeFileSync(path.join(ownFde, 'SKILL.md'), '---\nname: fde\n---\nunrelated skill of mine\n')
+
+  const first = runInstall(sandbox, [])
+  assert.equal(first.status, 0, first.stderr)
+  assert.equal(fs.readFileSync(path.join(mine, 'SKILL.md'), 'utf8'), '---\nname: healthcare-fde\n---\nmy own hard-won prompt\n')
+  assert.equal(fs.existsSync(path.join(mine, 'notes.md')), true, 'user-authored skill must survive install')
+  assert.equal(fs.readFileSync(path.join(ownFde, 'SKILL.md'), 'utf8'), '---\nname: fde\n---\nunrelated skill of mine\n')
+  assert.match(first.stdout, /fdeops did not create/)
+  assert.match(first.stdout, /healthcare-fde/)
+
+  // --force is the documented escape hatch
+  const forced = runInstall(sandbox, ['--force'])
+  assert.equal(forced.status, 0, forced.stderr)
+  assert.equal(fs.existsSync(mine), false, '--force removes the legacy dir')
+  assert.match(fs.readFileSync(path.join(ownFde, 'SKILL.md'), 'utf8'), /fdeops|fieldbook/i)
+  assert.equal(fs.existsSync(path.join(ownFde, '.fdeops-managed')), true)
+
+  // dirs fdeops created are marked, so the next run can clean them up on its own
+  const legacy = path.join(skills, 'fde-land')
+  fs.mkdirSync(legacy, { recursive: true })
+  fs.writeFileSync(path.join(legacy, 'SKILL.md'), 'stale v2 content\n')
+  fs.writeFileSync(path.join(legacy, '.fdeops-managed'), 'managed-by: fdeops\n')
+  const second = runInstall(sandbox, [])
+  assert.equal(second.status, 0, second.stderr)
+  assert.equal(fs.existsSync(legacy), false, 'a marked v2 dir is still cleaned up')
+  assert.match(second.stdout, /Removed 1 v2 skill dir/)
+})
+
+test('install adopts an earlier unmarked fdeops skill so upgrades still apply', () => {
+  const sandbox = makeSandbox('install-adopt')
+  const ownFde = path.join(sandbox.home, '.claude', 'skills', 'fde')
+  fs.mkdirSync(ownFde, { recursive: true })
+  fs.writeFileSync(path.join(ownFde, 'SKILL.md'), '---\nname: fde\n---\nold fdeops brain from a pre-marker install\n')
+
+  const r = runInstall(sandbox, [])
+  assert.equal(r.status, 0, r.stderr)
+  assert.match(r.stdout, /adopt/)
+  assert.equal(fs.existsSync(path.join(ownFde, '.fdeops-managed')), true)
+  assert.doesNotMatch(fs.readFileSync(path.join(ownFde, 'SKILL.md'), 'utf8'), /pre-marker install/)
+})
+
 test('adapters-only install places the skill the pointer files reference', () => {
   // Ground simulation found: `npx fdeops adapters .` (the documented Cursor/
   // Codex path) wrote a pointer to ~/.claude/skills/fde/SKILL.md without ever

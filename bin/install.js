@@ -53,6 +53,38 @@ function slugify(name) {
     || 'engagement'
 }
 
+// Written into every skill directory this installer creates. Nothing is ever
+// removed or overwritten without it: `healthcare-fde` and `fintech-fde` are
+// plausible names for a skill the user wrote themselves, and a name collision
+// must be reported, not silently resolved by deleting their work.
+const MANAGED_MARKER = '.fdeops-managed'
+
+function markManaged(dir) {
+  let version = 'unknown'
+  try { version = require(path.join(__dirname, '..', 'package.json')).version } catch (_) {}
+  try {
+    fs.writeFileSync(
+      path.join(dir, MANAGED_MARKER),
+      `managed-by: fdeops\nversion: ${version}\ninstalled: ${new Date().toISOString()}\n` +
+      'Delete this file to make fdeops treat the directory as yours and leave it alone.\n',
+    )
+  } catch (_) {}
+}
+
+function isManaged(dir) {
+  return fs.existsSync(path.join(dir, MANAGED_MARKER))
+}
+
+// Fingerprint of a skill fdeops itself wrote before markers existed: the shipped
+// SKILL.md names the fdeops engagement brain. Only consulted for a directory
+// whose name matches one we ship, and only to overwrite it - never to delete.
+function wasInstalledByUs(dir) {
+  try {
+    const md = fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8')
+    return /engagement fieldbook for forward deployed engineers/i.test(md) || /fdeops/i.test(md)
+  } catch (_) { return false }
+}
+
 // v2 shipped 16 standalone skills; v3 is one `fde` skill + references.
 // Leaving the old ones in place would route users to stale content.
 const LEGACY_SKILL_DIRS = [
@@ -62,22 +94,58 @@ const LEGACY_SKILL_DIRS = [
   'gov-fde',
 ]
 
-function removeLegacySkills() {
+function removeLegacySkills(opts = {}) {
   let removed = 0
+  const skipped = []
   for (const dir of LEGACY_SKILL_DIRS) {
     const p = path.join(GLOBAL_SKILLS_DIR, dir)
-    if (fs.existsSync(path.join(p, 'SKILL.md'))) {
+    if (!fs.existsSync(path.join(p, 'SKILL.md'))) continue
+    if (isManaged(p) || opts.force) {
       fs.rmSync(p, { recursive: true, force: true })
       removed++
+    } else {
+      skipped.push(dir)
     }
   }
-  return removed
+  return { removed, skipped }
 }
 
-function installSkills() {
-  const removed = removeLegacySkills()
-  if (removed > 0) console.log(`  Removed ${removed} v2 skill dir(s) (now covered by @fde)`)
-  copyDir(SKILLS_SRC, GLOBAL_SKILLS_DIR)
+// Copy each skill in, but never over a directory fdeops did not create.
+function installSkillDirs(opts = {}) {
+  const skipped = []
+  fs.mkdirSync(GLOBAL_SKILLS_DIR, { recursive: true })
+  for (const entry of fs.readdirSync(SKILLS_SRC, { withFileTypes: true })) {
+    const src = path.join(SKILLS_SRC, entry.name)
+    const dest = path.join(GLOBAL_SKILLS_DIR, entry.name)
+    if (!entry.isDirectory()) { fs.copyFileSync(src, dest); continue }
+    if (fs.existsSync(dest) && !isManaged(dest) && !opts.force) {
+      // Installs predating the marker are still ours: adopt a same-named dir
+      // whose SKILL.md is recognizably fdeops', so upgrades keep working.
+      if (!wasInstalledByUs(dest)) {
+        skipped.push(entry.name)
+        continue
+      }
+      console.log(`  adopt  ~/.claude/skills/${entry.name} (earlier fdeops install)`)
+    }
+    copyDir(src, dest)
+    markManaged(dest)
+  }
+  return { skipped }
+}
+
+function reportCollisions(paths, verb) {
+  if (!paths.length) return
+  console.log(`  skip   ${paths.length} skill dir(s) fdeops did not create - ${verb} would destroy your own work:`)
+  for (const name of paths) console.log(`           ~/.claude/skills/${name}`)
+  console.log('         move or delete them yourself, or re-run with --force to let fdeops take them over')
+}
+
+function installSkills(opts = {}) {
+  const legacy = removeLegacySkills(opts)
+  if (legacy.removed > 0) console.log(`  Removed ${legacy.removed} v2 skill dir(s) (now covered by @fde)`)
+  const placed = installSkillDirs(opts)
+  reportCollisions(legacy.skipped, 'removing them')
+  reportCollisions(placed.skipped, 'overwriting them')
   fs.mkdirSync(GLOBAL_HOOKS_DIR, { recursive: true })
   for (const name of HOOK_SCRIPTS) {
     const src = path.join(HOOKS_SRC, name)
@@ -138,7 +206,7 @@ function placePointer(destPath, content, label, appendable) {
   console.log(`  write  ${label}`)
 }
 
-function cmdAdapters(targetDir) {
+function cmdAdapters(targetDir, opts = {}) {
   const dest = path.resolve(targetDir || process.cwd())
   console.log('')
   console.log(`  fdeops cross-platform adapters → ${dest}`)
@@ -150,7 +218,7 @@ function cmdAdapters(targetDir) {
   // yet, a dangling reference for anyone following the documented Cursor/Codex
   // path. installSkills() is idempotent (safe to call every run).
   if (!fs.existsSync(path.join(GLOBAL_SKILLS_DIR, 'fde', 'SKILL.md'))) {
-    installSkills()
+    installSkills(opts)
     console.log('  Skills → ~/.claude/skills/  (installed - the pointers below need this)')
     console.log('')
   }
@@ -198,11 +266,11 @@ function cmdInit(engagementName) {
   console.log('')
 }
 
-function cmdInstall() {
+function cmdInstall(opts = {}) {
   console.log('')
   console.log('  fdeops - installs on YOUR machine only')
   console.log('')
-  installSkills()
+  installSkills(opts)
   console.log('  Skills → ~/.claude/skills/')
   console.log('  Hooks → ~/.claude/hooks/fdeops-*')
   console.log('  CLI → ~/.claude/fdeops/fde.js  (try: node ~/.claude/fdeops/fde.js scan)')
@@ -229,13 +297,16 @@ const FDE_SUBCOMMANDS = [
   'garden', 'owner', 'receipts', 'capture', 'status', 'dashboard', 'help',
 ]
 
-const arg = process.argv[2]
+const argv = process.argv.slice(2)
+const force = argv.includes('--force')
+const positional = argv.filter(a => a !== '--force')
+const arg = positional[0]
 if (arg === 'init') {
-  cmdInit(process.argv[3])
+  cmdInit(positional[1])
 } else if (arg === 'adapters') {
-  cmdAdapters(process.argv[3])
+  cmdAdapters(positional[1], { force })
 } else if (FDE_SUBCOMMANDS.includes(arg)) {
   require(path.join(__dirname, 'fde.js'))
 } else {
-  cmdInstall()
+  cmdInstall({ force })
 }
