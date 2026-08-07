@@ -97,7 +97,14 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   const routed = new Set()
   const routing = (router.split('## Routing - 6 domains')[1] || '').split('**Overlays')[0]
   for (const line of routing.split('\n')) {
-    if (!/^\|/.test(line) || !/`references\/[a-z0-9-]+\.md`/.test(line)) continue
+    // Candidate rows are selected on the reference name in ANY form, then the
+    // shape is enforced - a row this cannot read must fail, never be skipped,
+    // or a method could go undocumented by being written unusually.
+    if (!/^\|/.test(line) || !/references\/[a-z0-9-]+\.md/.test(line)) continue
+    if (!/`references\/[a-z0-9-]+\.md`/.test(line)) {
+      fail(`SKILL.md routing row must name its reference as \`references/<name>.md\`: ${line.trim().slice(0, 80)}`)
+      continue
+    }
     // | You hear | <method> | <cell mentioning references/*.md> |
     const method = (line.split('|')[2] || '').trim().replace(/\s*\([^)]*\)\s*$/, '')
     if (!/^[a-z0-9-]+$/.test(method)) {
@@ -114,10 +121,17 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   const documented = new Set()
   let documentedRows = 0
   for (const line of reference.split('### Overlays')[0].split('\n')) {
-    const m = line.match(/^\|\s*\[([a-z0-9-]+)\]\(\.\.\/skills\/fde\/references\//)
+    const m = line.match(/^\|\s*\[([a-z0-9-]+)\]\(\.\.\/skills\/fde\/references\/([a-z0-9-]+\.md)\)/)
     if (!m) continue
     documentedRows++
     documented.add(m[1])
+    // A link nobody followed is the same unverifiable claim this gate exists for:
+    // the target must exist, and it must be the method the text names.
+    if (m[2] !== `${m[1]}.md`) {
+      fail(`docs/skills-reference.md links [${m[1]}] at references/${m[2]}`)
+    } else if (!fs.existsSync(path.join(root, 'skills', 'fde', 'references', m[2]))) {
+      fail(`docs/skills-reference.md links references/${m[2]}, which does not exist`)
+    }
   }
   if (documented.size !== documentedRows) {
     fail(`docs/skills-reference.md lists ${documentedRows} method rows for ${documented.size} methods - a duplicate row inflates the count`)
