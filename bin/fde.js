@@ -206,13 +206,54 @@ function stripControlChars(s) {
   return String(s || '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '')
 }
 
+const PRIVATE_MARKER = '(private - redacted)'
+// Openers tolerate whitespace and attributes (<private >, <private data-x="1">)
+// so a near-miss tag still seals instead of failing open.
+const PRIVATE_TAG = /<(\/)?private\b[^>]*>/gi
+
+// Depth-aware split of a markdown body into public text and sealed blocks. A
+// nested block seals to the outermost close, an unclosed one seals to EOF, and a
+// stray close is dropped - a regex pair cannot do any of those safely.
+function splitPrivate(md) {
+  const text = String(md || '')
+  const blocks = []
+  let out = ''
+  let cursor = 0
+  let depth = 0
+  let start = 0
+  let m
+  PRIVATE_TAG.lastIndex = 0
+  while ((m = PRIVATE_TAG.exec(text))) {
+    const closing = Boolean(m[1])
+    if (!closing) {
+      if (depth === 0) {
+        out += text.slice(cursor, m.index)
+        start = m.index
+      }
+      depth++
+    } else if (depth > 0) {
+      depth--
+      if (depth === 0) {
+        blocks.push(text.slice(start, m.index + m[0].length))
+        out += PRIVATE_MARKER
+        cursor = m.index + m[0].length
+      }
+    } else {
+      out += text.slice(cursor, m.index)
+      cursor = m.index + m[0].length
+    }
+  }
+  if (depth > 0) {
+    blocks.push(text.slice(start))
+    out += PRIVATE_MARKER
+  } else {
+    out += text.slice(cursor)
+  }
+  return { clean: out, blocks }
+}
+
 function stripPrivate(md) {
-  return stripControlChars(
-    String(md || '')
-      .replace(/<private>[\s\S]*?<\/private>/gi, '(private - redacted)')
-      .replace(/<private>[\s\S]*$/i, '(private - redacted)')
-      .replace(/<!--[\s\S]*?-->/g, '')
-  )
+  return stripControlChars(splitPrivate(md).clean.replace(/<!--[\s\S]*?-->/g, ''))
 }
 
 // Read + redact in one step - the default way dashboard code should ever touch
@@ -385,6 +426,9 @@ function rmTreeQuiet(dir) {
 
 const OWNER_FILE = '.owner'
 const DEBRIEF_PROPOSE = '.debrief-propose'
+// The agent is told to open and rewrite .debrief-propose, so sealed blocks are
+// held out of it in an owner-only sidecar that only --apply reads back.
+const DEBRIEF_PRIVATE = '.debrief-private'
 
 function gitBinOk() {
   try {
@@ -1292,14 +1336,40 @@ function previewLine(text, max = 240) {
   return `${t.slice(0, max)}… (${t.length} chars)`
 }
 
-function routeDebriefInput(eng, input, { dry, force }) {
+function writeProposal(eng, text) {
+  const { clean, blocks } = splitPrivate(text)
+  const proposePath = path.join(eng, DEBRIEF_PROPOSE)
+  const privatePath = path.join(eng, DEBRIEF_PRIVATE)
+  withFileLock(proposePath, () => { atomicWriteFile(proposePath, clean) })
+  if (blocks.length) {
+    withFileLock(privatePath, () => { atomicWriteFile(privatePath, `${blocks.join('\n')}\n`) })
+    try { fs.chmodSync(privatePath, 0o600) } catch (_) {}
+  } else {
+    try { fs.unlinkSync(privatePath) } catch (_) {}
+  }
+  return { proposePath, clean, blocks }
+}
+
+function readSealedProposal(eng) {
+  try {
+    return splitPrivate(stripControlChars(fs.readFileSync(path.join(eng, DEBRIEF_PRIVATE), 'utf8'))).blocks
+  } catch (_) { return [] }
+}
+
+function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
   const d = new Date()
   const date = d.toISOString().slice(0, 10)
   const counts = { decision: 0, risk: 0, delivery: 0, contact: 0, next: 0 }
   const ctxLines = []
   let nextAction = ''
   ensureMemoryGit(eng)
-  for (const raw of input.split('\n')) {
+  // Sealed blocks are pulled out before routing, so a <private> block's interior
+  // lines are never previewed and never routed into decisions/risks/stakeholders
+  // unsealed. They land verbatim in context.md instead: the preview a human
+  // approves is exactly what --apply writes.
+  const { clean: routable, blocks: inlinePrivate } = splitPrivate(input)
+  const privateBlocks = [...inlinePrivate, ...sealed]
+  for (const raw of routable.split('\n')) {
     let line = raw.trim()
     if (!line) continue
     const bare = line.replace(/^[-*+]\s+/, '').replace(/^\*\*(decision|risk|delivery|contact|next):?\*\*:?\s*/i, '$1: ')
@@ -1333,12 +1403,16 @@ function routeDebriefInput(eng, input, { dry, force }) {
     }
   }
   if (nextAction && !dry) setNextAction(eng, nextAction)
-  if (ctxLines.length) {
+  if (ctxLines.length || privateBlocks.length) {
     const stamp = `${date} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     if (dry) ctxLines.forEach(l => console.log(`→ context.md  - ${previewLine(l)}`))
-    else lockedAppendFile(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${ctxLines.map(l => `- ${l}`).join('\n')}\n`)
+    else {
+      const bullets = ctxLines.length ? `${ctxLines.map(l => `- ${l}`).join('\n')}\n` : ''
+      const sealed = privateBlocks.length ? `${privateBlocks.join('\n')}\n` : ''
+      lockedAppendFile(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${bullets}${sealed}`)
+    }
   }
-  return { counts, ctxLines, date, nextAction }
+  return { counts, ctxLines, date, nextAction, privateBlocks }
 }
 
 function cmdDebrief(args) {
@@ -1360,36 +1434,38 @@ function cmdDebrief(args) {
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
 
   let input = ''
+  let sealed = []
   if (apply && !smart && !args[0]) {
     try { input = stripControlChars(fs.readFileSync(path.join(eng, DEBRIEF_PROPOSE), 'utf8')) } catch (_) {
       console.error('nothing to apply - run: fde debrief --smart <notes.md>   then   fde debrief --apply')
       process.exit(1)
     }
+    sealed = readSealedProposal(eng)
   } else {
     input = readDebriefInput(args)
   }
 
   if (smart) {
-    const proposed = smartProposeText(input)
-    const proposePath = path.join(eng, DEBRIEF_PROPOSE)
-    withFileLock(proposePath, () => { atomicWriteFile(proposePath, proposed) })
+    const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
     console.log('SMART PROPOSE (heuristic - review before apply; no new facts invented beyond line rewrites)\n')
-    routeDebriefInput(eng, proposed, { dry: true, force })
+    routeDebriefInput(eng, clean, { dry: true, force, sealed: blocks })
     if (!apply) {
       console.log(`\nproposal saved → ${proposePath}`)
       console.log('confirm:  fde debrief --apply')
       console.log('(edit the propose file first if a line mis-routed)')
       return
     }
-    input = proposed
+    input = clean
+    sealed = blocks
   }
 
-  const { counts, ctxLines } = routeDebriefInput(eng, input, { dry, force })
+  const { counts, ctxLines, privateBlocks } = routeDebriefInput(eng, input, { dry, force, sealed })
   if (!dry) {
     const hash = commitMemory(eng, 'debrief', {
       files: ['decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'context.md', SIGNAL_LEDGER],
     })
     try { fs.unlinkSync(path.join(eng, DEBRIEF_PROPOSE)) } catch (_) {}
+    try { fs.unlinkSync(path.join(eng, DEBRIEF_PRIVATE)) } catch (_) {}
     if (hash) console.log(`memory @${hash}`)
   }
   const plural = {
@@ -1398,6 +1474,7 @@ function cmdDebrief(args) {
   const parts = Object.keys(counts).filter(t => counts[t])
     .map(t => `${counts[t]} ${counts[t] === 1 ? (t === 'next' ? 'next action' : t) : plural[t]}`)
   if (ctxLines.length) parts.push(`${ctxLines.length} context line${ctxLines.length === 1 ? '' : 's'}`)
+  if (privateBlocks.length) parts.push(`${privateBlocks.length} sealed private note${privateBlocks.length === 1 ? '' : 's'}`)
   const verb = dry ? 'debrief would route' : 'debrief routed'
   console.log(parts.length ? `${verb} → ${parts.join(', ')}` : 'debrief empty - nothing routed')
 }
@@ -1508,11 +1585,9 @@ function cmdIngest(args) {
       console.error(`ingest propose refused: staged item is over ${DEBRIEF_MAX_BYTES} bytes after provenance. Split it.`)
       process.exit(1)
     }
-    const proposed = smartProposeText(input)
-    const proposePath = path.join(eng, DEBRIEF_PROPOSE)
-    withFileLock(proposePath, () => { atomicWriteFile(proposePath, proposed) })
+    const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
     console.log(`INGEST PROPOSE from ${path.basename(item)} (via:${source})\n`)
-    routeDebriefInput(eng, proposed, { dry: true, force: false })
+    routeDebriefInput(eng, clean, { dry: true, force: false, sealed: blocks })
     console.log(`\nproposal saved → ${proposePath}`)
     console.log('confirm:  fde ingest apply')
     console.log('(agent: rewrite lines with decision:/risk:/contact:/next: prefixes before apply)')
