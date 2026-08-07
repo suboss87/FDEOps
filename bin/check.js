@@ -92,11 +92,19 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
 // per-domain list; both drifted from SKILL.md once (ingest / ingest-connect
 // routed but undocumented), and a number nobody can verify is worse than none.
 {
+  // Every routing row must parse. A row this misses is a method that could go
+  // undocumented for free, so an unparsed row is a hard failure, not a silent skip.
   const routed = new Set()
-  const routing = router.split('## Routing - 6 domains')[1] || ''
+  const routing = (router.split('## Routing - 6 domains')[1] || '').split('**Overlays')[0]
   for (const line of routing.split('\n')) {
-    const m = line.match(/^\|.*?\|\s*([a-z0-9-]+)(?:\s*\([^)]*\))?\s*\|\s*`references/)
-    if (m) routed.add(m[1])
+    if (!/^\|/.test(line) || !/`references\/[a-z0-9-]+\.md`/.test(line)) continue
+    // | You hear | <method> | <cell mentioning references/*.md> |
+    const method = (line.split('|')[2] || '').trim().replace(/\s*\([^)]*\)\s*$/, '')
+    if (!/^[a-z0-9-]+$/.test(method)) {
+      fail(`check.js cannot read the method name in a SKILL.md routing row: ${line.trim().slice(0, 80)}`)
+      continue
+    }
+    routed.add(method)
   }
   if (!routed.size) fail('check.js could not parse the SKILL.md routing table')
 
@@ -104,22 +112,37 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   // method inside the six domain tables, ending at the Overlays section.
   const reference = read('docs/skills-reference.md')
   const documented = new Set()
+  let documentedRows = 0
   for (const line of reference.split('### Overlays')[0].split('\n')) {
     const m = line.match(/^\|\s*\[([a-z0-9-]+)\]\(\.\.\/skills\/fde\/references\//)
-    if (m) documented.add(m[1])
+    if (!m) continue
+    documentedRows++
+    documented.add(m[1])
+  }
+  if (documented.size !== documentedRows) {
+    fail(`docs/skills-reference.md lists ${documentedRows} method rows for ${documented.size} methods - a duplicate row inflates the count`)
   }
   const undocumented = [...routed].filter(name => !documented.has(name))
   if (undocumented.length) {
     fail(`SKILL.md routes skill(s) missing from docs/skills-reference.md: ${undocumented.join(', ')}`)
   }
+  // and the other direction: a documented method nothing routes to is a method
+  // the agent can never reach, advertised anyway.
+  const unrouted = [...documented].filter(name => !routed.has(name))
+  if (unrouted.length) {
+    fail(`docs/skills-reference.md documents method(s) SKILL.md never routes to: ${unrouted.join(', ')}`)
+  }
   for (const rel of ['docs/skills.md', 'docs/skills-reference.md']) {
     const body = read(rel)
     const absent = [...documented].filter(name => !new RegExp(`\\b${name}\\b`).test(body))
     if (absent.length) fail(`${rel} does not list method(s): ${absent.join(', ')}`)
-    const claim = body.match(/(\d+)\s+methods/)
-    if (!claim) fail(`${rel} must state how many methods it documents`)
-    else if (Number(claim[1]) !== documented.size) {
-      fail(`${rel} claims ${claim[1]} methods; ${documented.size} are documented`)
+    // every count claim, not just the first: an earlier sentence must not shadow
+    // a stale headline (or the reverse).
+    const claims = [...body.matchAll(/(\d+)\s+methods/g)].map(m => Number(m[1]))
+    if (!claims.length) fail(`${rel} must state how many methods it documents`)
+    const wrong = [...new Set(claims.filter(n => n !== documented.size))]
+    if (wrong.length) {
+      fail(`${rel} claims ${wrong.join('/')} methods; ${documented.size} are documented`)
     }
   }
   ok(`public method count is verifiable (${documented.size} documented, ${routed.size} routed)`)
