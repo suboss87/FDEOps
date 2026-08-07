@@ -166,7 +166,7 @@ function reportLinks(names) {
   if (!names.length) return
   console.log(`  skip   ${names.length} skill path(s) that are symlinks - fdeops will not write through them:`)
   for (const name of names) console.log(`           ~/.claude/skills/${name} -> ${readLinkQuiet(path.join(GLOBAL_SKILLS_DIR, name))}`)
-  console.log('         they point outside ~/.claude/skills; remove the link if you want fdeops to install here')
+  console.log('         remove the link if you want fdeops to install at that path itself')
 }
 
 function readLinkQuiet(p) {
