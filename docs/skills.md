@@ -8,7 +8,7 @@ One skill (`@fde`) routes by situation - you never pick a method by name. Three 
 
 The full map is below; per-method details live in [skills-reference.md](./skills-reference.md).
 
-## Engagement methods (35 across 6 domains)
+## Engagement methods (37 methods across 6 domains)
 
 | Domain | Skills | What it covers |
 |--------|--------|---------------|
@@ -17,7 +17,7 @@ The full map is below; per-method details live in [skills-reference.md](./skills
 | **Plan & Align** | plan, business-case, options-analysis, initiative-triage | Sequencing work, getting sponsor alignment |
 | **Build & Guard** | build, incremental-build, test-on-legacy, blast-radius, debug, rescue, security-audit, observability | Building safely on their codebase |
 | **Ship & Verify** | ship, review, rollback-drill, qa-live | Getting to production without surprises |
-| **Operate & Close** | status, demo-prep, debrief, exec-narrative, dashboard, multi-customer-ops, close, handoff-engineering, pattern-extract, red-team | Running and ending the engagement well |
+| **Operate & Close** | status, demo-prep, debrief, exec-narrative, dashboard, multi-customer-ops, close, handoff-engineering, pattern-extract, red-team, ingest, ingest-connect | Running and ending the engagement well; pulling from source MCPs |
 
 Each skill is a **method, not advice**: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.
 

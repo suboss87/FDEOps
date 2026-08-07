@@ -1,4 +1,4 @@
-# fdeops Reference - one skill, 35 methods across 6 domains
+# fdeops Reference - one skill, 37 methods across 6 domains
 
 v3 ships **one skill**: `@fde` ([skills/fde/SKILL.md](../skills/fde/SKILL.md)). You describe the situation; it routes to a phase and follows that phase's method from [skills/fde/references/](../skills/fde/references/). Engagement memory lives in `~/fde-engagements/<name>/.fde/` (one folder per customer).
 
@@ -78,6 +78,8 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 | [handoff-engineering](../skills/fde/references/handoff-engineering.md) | Operations runbook, knowledge transfer, confidence scoring | Engagement ending, team needs to operate without you |
 | [pattern-extract](../skills/fde/references/pattern-extract.md) | If you did it twice, encode it; patterns are compound interest | Something worked well and will apply to future engagements |
 | [red-team](../skills/fde/references/red-team.md) | Stress-test a plan, handoff, or narrative before someone else does | "Red-team this," "stress-test my plan," poke holes, what am I missing |
+| [ingest](../skills/fde/references/ingest.md) | Pull raw text from any source MCP into `.inbox/`, propose, you confirm | "Pull today's transcript," "bring in the Notion page" |
+| [ingest-connect](../skills/fde/references/ingest-connect.md) | Guided config for a source MCP you already trust, plus a reusable recipe | "Connect Granola," "wire up Drive" |
 
 ### Overlays (activate on signal, alongside whatever skill is running)
 

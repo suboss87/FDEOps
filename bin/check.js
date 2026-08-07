@@ -88,6 +88,43 @@ for (const refFile of mentioned) {
 }
 ok(`router dispatch (${mentioned.length} reference targets verified) + memory contract`)
 
+// Public claims must match the router. The docs advertise a method count and a
+// per-domain list; both drifted from SKILL.md once (ingest / ingest-connect
+// routed but undocumented), and a number nobody can verify is worse than none.
+{
+  const routed = new Set()
+  const routing = router.split('## Routing - 6 domains')[1] || ''
+  for (const line of routing.split('\n')) {
+    const m = line.match(/^\|.*?\|\s*([a-z0-9-]+)(?:\s*\([^)]*\))?\s*\|\s*`references/)
+    if (m) routed.add(m[1])
+  }
+  if (!routed.size) fail('check.js could not parse the SKILL.md routing table')
+
+  // docs/skills-reference.md is the canonical per-method list: one row per
+  // method inside the six domain tables, ending at the Overlays section.
+  const reference = read('docs/skills-reference.md')
+  const documented = new Set()
+  for (const line of reference.split('### Overlays')[0].split('\n')) {
+    const m = line.match(/^\|\s*\[([a-z0-9-]+)\]\(\.\.\/skills\/fde\/references\//)
+    if (m) documented.add(m[1])
+  }
+  const undocumented = [...routed].filter(name => !documented.has(name))
+  if (undocumented.length) {
+    fail(`SKILL.md routes skill(s) missing from docs/skills-reference.md: ${undocumented.join(', ')}`)
+  }
+  for (const rel of ['docs/skills.md', 'docs/skills-reference.md']) {
+    const body = read(rel)
+    const absent = [...documented].filter(name => !new RegExp(`\\b${name}\\b`).test(body))
+    if (absent.length) fail(`${rel} does not list method(s): ${absent.join(', ')}`)
+    const claim = body.match(/(\d+)\s+methods/)
+    if (!claim) fail(`${rel} must state how many methods it documents`)
+    else if (Number(claim[1]) !== documented.size) {
+      fail(`${rel} claims ${claim[1]} methods; ${documented.size} are documented`)
+    }
+  }
+  ok(`public method count is verifiable (${documented.size} documented, ${routed.size} routed)`)
+}
+
 const install = read('bin/install.js')
 if (install.includes('scaffoldFdeInProject(process.cwd())')) {
   fail('install.js must not auto-scaffold .fde in customer cwd')
