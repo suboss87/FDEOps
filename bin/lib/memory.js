@@ -3,7 +3,7 @@
 const { execFileSync } = require('child_process')
 
 // Ephemeral sidecar files - never treated as "manual tamper" dirt.
-const MEMORY_EPHEMERAL = new Set(['.last-write', '.debrief-propose'])
+const MEMORY_EPHEMERAL = new Set(['.last-write', '.debrief-propose', '.debrief-private'])
 
 function createMemoryApi(deps) {
   const { fs, path, gitBinOk, writeOwnerIfMissing, atomicWriteFile } = deps
@@ -131,7 +131,7 @@ function createMemoryApi(deps) {
       execFileSync('git', ['init'], { cwd: eng, stdio: 'ignore', timeout: 10000 })
       atomicWriteFile(
         path.join(eng, '.gitignore'),
-        ['*.lock', '*.tmp', '.last-write', '.debrief-propose', ''].join('\n')
+        ['*.lock', '*.tmp', '.last-write', '.debrief-propose', '.debrief-private', ''].join('\n')
       )
       const owner = writeOwnerIfMissing(eng)
       configureMemoryGitIdentity(eng, owner)
