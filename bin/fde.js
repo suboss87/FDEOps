@@ -260,6 +260,15 @@ function stripPrivate(md) {
   return stripControlChars(splitPrivate(md).clean)
 }
 
+// Persisted blocks must be balanced. splitPrivate() seals an unclosed block to
+// EOF and hands it back exactly as written; storing that would leave a dangling
+// opener that swallows every note appended to the file afterwards.
+function sealedText(blocks) {
+  return blocks
+    .map(b => (/<\/private\b[^>]*>$/i.test(b.trim()) ? `${b}\n` : `${b}\n</private>\n`))
+    .join('')
+}
+
 // Read + redact in one step - the default way dashboard code should ever touch
 // a markdown file, so a forgotten stripPrivate() call can't leak a <private> block.
 function readClean(eng, f) { return stripPrivate(readEng(eng, f)) }
@@ -396,7 +405,10 @@ function atomicWriteFile(p, content, opts = {}) {
   }
   const tmp = `${p}.${process.pid}.${Date.now()}.tmp`
   try {
-    fs.writeFileSync(tmp, content)
+    // opts.mode is set at create time: a secret must never exist world-readable,
+    // not even for the window between rename and a follow-up chmod.
+    fs.writeFileSync(tmp, content, opts.mode ? { mode: opts.mode } : undefined)
+    if (opts.mode) fs.chmodSync(tmp, opts.mode)
     fs.renameSync(tmp, p)
   } catch (e) {
     try { fs.unlinkSync(tmp) } catch (_) {}
@@ -1349,7 +1361,7 @@ function writeProposal(eng, text) {
   if (blocks.length) {
     const blocked = refuseSymlinkWrite(privatePath, { soft: true })
     if (blocked) { console.error(blocked); process.exit(1) }
-    withFileLock(privatePath, () => { atomicWriteFile(privatePath, `${blocks.join('\n')}\n`) })
+    withFileLock(privatePath, () => { atomicWriteFile(privatePath, sealedText(blocks), { mode: 0o600 }) })
     try { fs.chmodSync(privatePath, 0o600) } catch (_) {}
   } else {
     try { fs.unlinkSync(privatePath) } catch (_) {}
@@ -1416,7 +1428,7 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
     if (dry) ctxLines.forEach(l => console.log(`→ context.md  - ${previewLine(l)}`))
     else {
       const bullets = ctxLines.length ? `${ctxLines.map(l => `- ${l}`).join('\n')}\n` : ''
-      const sealed = privateBlocks.length ? `${privateBlocks.join('\n')}\n` : ''
+      const sealed = privateBlocks.length ? sealedText(privateBlocks) : ''
       lockedAppendFile(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${bullets}${sealed}`)
     }
   }

@@ -1884,6 +1884,32 @@ test('apply refuses when the sealed sidecar went missing instead of dropping it'
   assert.equal(fs.existsSync(path.join(eng, '.debrief-private.lock')), false)
 })
 
+test('an unclosed private note is balanced before storage and cannot swallow later notes', () => {
+  const sandbox = makeSandbox('unclosed-seal')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'unclosedco']).status, 0)
+  const eng = engagementPath(sandbox, 'unclosedco')
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, [
+    'decision: ship the pilot in March',
+    '<private>',
+    'Bank account for payout: 12345678',
+    '',
+  ].join('\n'))
+
+  assert.equal(runFde(sandbox, ['debrief', '--smart', notes]).status, 0)
+  const sidecar = fs.readFileSync(path.join(eng, '.debrief-private'), 'utf8')
+  assert.match(sidecar, /<\/private>/)
+  assert.equal(fs.statSync(path.join(eng, '.debrief-private')).mode & 0o777, 0o600)
+  assert.equal(runFde(sandbox, ['debrief', '--apply']).status, 0)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /12345678[\s\S]*<\/private>/)
+
+  fs.writeFileSync(notes, 'later public note about the March rollout\n')
+  assert.equal(runFde(sandbox, ['debrief', notes]).status, 0)
+  const resume = runFde(sandbox, ['resume', '--full'])
+  assert.doesNotMatch(resume.stdout, /12345678/)
+  assert.match(resume.stdout, /later public note about the March rollout/)
+})
+
 test('near-miss <private> tags still seal instead of failing open', () => {
   const sandbox = makeSandbox('private-tags')
   assert.equal(runFde(sandbox, ['resume', '--init', 'tagco']).status, 0)
