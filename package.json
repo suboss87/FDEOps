@@ -20,7 +20,9 @@
     "adapters/",
     "mcp/",
     "CLAUDE.md.template",
-    "AGENTS.md"
+    "AGENTS.md",
+    "plugin.json",
+    "mcp.json"
   ],
   "keywords": [
     "claude-code",

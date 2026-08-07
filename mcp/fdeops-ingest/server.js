@@ -70,31 +70,41 @@ const TOOLS = [
 let readBuffer = Buffer.alloc(0)
 
 function writeMessage(obj) {
-  const body = JSON.stringify(obj)
-  process.stdout.write(`Content-Length: ${Buffer.byteLength(body, 'utf8')}\r\n\r\n${body}`)
+  process.stdout.write(`${JSON.stringify(obj)}\n`)
 }
 
+// MCP stdio frames messages by newline. Content-Length headers are tolerated on
+// input only, so an LSP-style client still gets through.
 function parseMessages() {
   const messages = []
-  while (true) {
-    const headerEnd = readBuffer.indexOf('\r\n\r\n')
-    if (headerEnd === -1) break
-
-    const header = readBuffer.slice(0, headerEnd).toString('utf8')
-    const match = header.match(/Content-Length:\s*(\d+)/i)
-    if (!match) {
-      readBuffer = readBuffer.slice(headerEnd + 4)
+  while (readBuffer.length) {
+    if (/^Content-Length:/i.test(readBuffer.slice(0, 15).toString('utf8'))) {
+      const headerEnd = readBuffer.indexOf('\r\n\r\n')
+      if (headerEnd === -1) break
+      const header = readBuffer.slice(0, headerEnd).toString('utf8')
+      const match = header.match(/Content-Length:\s*(\d+)/i)
+      if (!match) {
+        readBuffer = readBuffer.slice(headerEnd + 4)
+        continue
+      }
+      const length = parseInt(match[1], 10)
+      const bodyStart = headerEnd + 4
+      if (readBuffer.length < bodyStart + length) break
+      const body = readBuffer.slice(bodyStart, bodyStart + length).toString('utf8')
+      readBuffer = readBuffer.slice(bodyStart + length)
+      try {
+        messages.push(JSON.parse(body))
+      } catch (_) {}
       continue
     }
 
-    const length = parseInt(match[1], 10)
-    const bodyStart = headerEnd + 4
-    if (readBuffer.length < bodyStart + length) break
-
-    const body = readBuffer.slice(bodyStart, bodyStart + length).toString('utf8')
-    readBuffer = readBuffer.slice(bodyStart + length)
+    const newline = readBuffer.indexOf('\n')
+    if (newline === -1) break
+    const line = readBuffer.slice(0, newline).toString('utf8').trim()
+    readBuffer = readBuffer.slice(newline + 1)
+    if (!line) continue
     try {
-      messages.push(JSON.parse(body))
+      messages.push(JSON.parse(line))
     } catch (_) {}
   }
   return messages

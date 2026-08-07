@@ -104,6 +104,14 @@ Existing `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` files are never clobbered - an 
 
 ---
 
+## Agent Plugins clients
+
+fdeops is packaged as an [Agent Plugins 1.0.0](https://agent-plugins.org/specification) plugin: the repository root is the plugin root, with `plugin.json`, the `@fde` skill under `skills/fde/`, and the ingest MCP sink declared in `mcp.json`. A client that supports the format loads all three from a checkout or the npm tarball with no per-client wiring and no absolute paths.
+
+The format covers packaging only - it defines no install mechanism, permissions, or trust model, so nothing above changes. Claude Code keeps using `.claude-plugin/` and the hooks; other tools keep using the adapters.
+
+---
+
 ## The memory hooks
 
 `node bin/install.js` copies three hooks to `~/.claude/hooks/` (registered automatically by the Claude Code plugin; for other tools, register per that tool's hook documentation):
