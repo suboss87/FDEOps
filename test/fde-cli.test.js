@@ -1903,6 +1903,18 @@ test('an unclosed private note is balanced before storage and cannot swallow lat
   assert.equal(runFde(sandbox, ['debrief', '--apply']).status, 0)
   assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /12345678[\s\S]*<\/private>/)
 
+  fs.writeFileSync(notes, [
+    '<private>',
+    'first secret 12345678',
+    '<private>',
+    'second secret 87654321',
+    '',
+  ].join('\n'))
+  assert.equal(runFde(sandbox, ['debrief', notes]).status, 0)
+  const ctx = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  const tags = ctx.match(/<(\/)?private\b[^>]*>/gi) || []
+  assert.equal(tags.filter(t => t.startsWith('</')).length, tags.length / 2, ctx)
+
   fs.writeFileSync(notes, 'later public note about the March rollout\n')
   assert.equal(runFde(sandbox, ['debrief', notes]).status, 0)
   const resume = runFde(sandbox, ['resume', '--full'])

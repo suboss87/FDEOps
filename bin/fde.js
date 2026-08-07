@@ -264,9 +264,18 @@ function stripPrivate(md) {
 // EOF and hands it back exactly as written; storing that would leave a dangling
 // opener that swallows every note appended to the file afterwards.
 function sealedText(blocks) {
-  return blocks
-    .map(b => (/<\/private\b[^>]*>$/i.test(b.trim()) ? `${b}\n` : `${b}\n</private>\n`))
-    .join('')
+  return blocks.map((b) => {
+    let open = 0
+    let m
+    PRIVATE_TAG.lastIndex = 0
+    while ((m = PRIVATE_TAG.exec(b))) {
+      if (m[1]) open = Math.max(0, open - 1)
+      else open++
+    }
+    // Balance by count, not by suffix: one block can hold several unclosed
+    // openers, and each needs its own closer or the tail still dangles.
+    return `${b}\n${'</private>\n'.repeat(open)}`
+  }).join('')
 }
 
 // Read + redact in one step - the default way dashboard code should ever touch
