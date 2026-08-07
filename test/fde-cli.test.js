@@ -543,13 +543,76 @@ test('install adopts an earlier unmarked fdeops skill so upgrades still apply', 
   const sandbox = makeSandbox('install-adopt')
   const ownFde = path.join(sandbox.home, '.claude', 'skills', 'fde')
   fs.mkdirSync(ownFde, { recursive: true })
-  fs.writeFileSync(path.join(ownFde, 'SKILL.md'), '---\nname: fde\n---\nold fdeops brain from a pre-marker install\n')
+  // what a pre-marker install actually left behind: our shipped frontmatter
+  fs.writeFileSync(path.join(ownFde, 'SKILL.md'),
+    '---\nname: fde\ndescription: Engagement fieldbook for Forward Deployed Engineers. Use when …\n---\nold fdeops brain from a pre-marker install\n')
 
   const r = runInstall(sandbox, [])
   assert.equal(r.status, 0, r.stderr)
   assert.match(r.stdout, /adopt/)
   assert.equal(fs.existsSync(path.join(ownFde, '.fdeops-managed')), true)
   assert.doesNotMatch(fs.readFileSync(path.join(ownFde, 'SKILL.md'), 'utf8'), /pre-marker install/)
+
+  // A skill of the user's that merely mentions fdeops in prose is not ours: the
+  // fingerprint is the shipped frontmatter, not the word "fdeops" somewhere.
+  const mentions = makeSandbox('install-mentions')
+  const theirs = path.join(mentions.home, '.claude', 'skills', 'fde')
+  fs.mkdirSync(theirs, { recursive: true })
+  const prose = '---\nname: fde\ndescription: My own wrapper around fdeops for retainer clients\n---\nirreplaceable\n'
+  fs.writeFileSync(path.join(theirs, 'SKILL.md'), prose)
+  const m = runInstall(mentions, [])
+  assert.equal(m.status, 0, m.stderr)
+  assert.equal(fs.readFileSync(path.join(theirs, 'SKILL.md'), 'utf8'), prose, 'prose mentioning fdeops must not authorize an overwrite')
+  assert.match(m.stdout, /fdeops did not create/)
+})
+
+test('install refuses to write through a symlinked skill dir, even with --force', () => {
+  const sandbox = makeSandbox('install-symlink')
+  const skills = path.join(sandbox.home, '.claude', 'skills')
+  // the user keeps skills in their own tree and links them into ~/.claude
+  const real = path.join(sandbox.dir, 'my-skills', 'fde')
+  fs.mkdirSync(real, { recursive: true })
+  const mine = '---\nname: fde\ndescription: Engagement fieldbook for Forward Deployed Engineers - my fork\n---\nsentinel\n'
+  fs.writeFileSync(path.join(real, 'SKILL.md'), mine)
+  fs.mkdirSync(skills, { recursive: true })
+  fs.symlinkSync(real, path.join(skills, 'fde'))
+  // and a legacy-named one, which the removal path must not follow either
+  const realLegacy = path.join(sandbox.dir, 'my-skills', 'gov-fde')
+  fs.mkdirSync(realLegacy, { recursive: true })
+  fs.writeFileSync(path.join(realLegacy, 'SKILL.md'), 'my gov skill\n')
+  fs.symlinkSync(realLegacy, path.join(skills, 'gov-fde'))
+
+  for (const args of [[], ['--force']]) {
+    const r = runInstall(sandbox, args)
+    assert.equal(fs.readFileSync(path.join(real, 'SKILL.md'), 'utf8'), mine,
+      `fdeops wrote through the symlink (${args.join(' ') || 'no flags'})`)
+    assert.equal(fs.existsSync(path.join(real, '.fdeops-managed')), false,
+      'no marker may be planted outside ~/.claude/skills')
+    assert.equal(fs.existsSync(path.join(real, 'references')), false)
+    assert.equal(fs.existsSync(path.join(realLegacy, 'SKILL.md')), true, 'a symlinked legacy dir must survive')
+    assert.equal(fs.lstatSync(path.join(skills, 'fde')).isSymbolicLink(), true, 'the link itself stays the user\'s')
+    assert.match(r.stdout, /symlinks - fdeops will not write through them/)
+  }
+})
+
+test('install reports an unwritable skill dir in human terms and finishes the rest', () => {
+  const sandbox = makeSandbox('install-readonly')
+  const dest = path.join(sandbox.home, '.claude', 'skills', 'fde')
+  fs.mkdirSync(dest, { recursive: true })
+  fs.writeFileSync(path.join(dest, 'SKILL.md'),
+    '---\nname: fde\ndescription: Engagement fieldbook for Forward Deployed Engineers. Use when …\n---\nold\n')
+  fs.chmodSync(dest, 0o500)
+  try {
+    const r = runInstall(sandbox, [])
+    assert.equal(r.status, 1, 'a partial install must not report success')
+    assert.match(r.stdout, /permission denied/)
+    assert.doesNotMatch(r.stderr, /at Object\.|node:internal/, 'no stack trace')
+    // the rest of the install still landed
+    assert.equal(fs.existsSync(path.join(sandbox.home, '.claude', 'fdeops', 'fde.js')), true)
+    assert.equal(fs.existsSync(path.join(sandbox.home, '.claude', 'FDEOPS-CLAUDE.md')), true)
+  } finally {
+    fs.chmodSync(dest, 0o700)
+  }
 })
 
 test('adapters-only install places the skill the pointer files reference', () => {

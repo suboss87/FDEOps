@@ -173,6 +173,11 @@ Every skill directory fdeops creates under `~/.claude/skills/` carries a `.fdeop
 
 Delete a `.fdeops-managed` marker to make fdeops treat that directory as yours from then on. `node bin/install.js --force` overrides the check.
 
+Two things `--force` does **not** override:
+
+- **Symlinks.** If `~/.claude/skills/fde` is a link into your own tree, fdeops refuses to write through it and tells you where it points. `--force` is permission to take over that location, not to follow it somewhere else.
+- **Permissions.** An unwritable skill directory is reported (`permission denied at …`), the rest of the install still lands, and the installer exits non-zero so a script can tell it was incomplete.
+
 ---
 
 ## Usage

@@ -75,13 +75,24 @@ function isManaged(dir) {
   return fs.existsSync(path.join(dir, MANAGED_MARKER))
 }
 
-// Fingerprint of a skill fdeops itself wrote before markers existed: the shipped
-// SKILL.md names the fdeops engagement brain. Only consulted for a directory
-// whose name matches one we ship, and only to overwrite it - never to delete.
+// A skill "directory" that is really a symlink points somewhere outside
+// ~/.claude/skills that fdeops has no claim on. Writing through it would edit
+// files in the user's own tree - refuse even under --force, which is permission
+// to take over this location, not to follow it elsewhere.
+function isLink(p) {
+  try { return fs.lstatSync(p).isSymbolicLink() } catch (_) { return false }
+}
+
+// Fingerprint of a skill fdeops itself wrote before markers existed. Anchored on
+// the shipped frontmatter, not a bare "fdeops" substring: a skill of the user's
+// that merely mentions fdeops in prose is theirs, not ours. Only consulted for a
+// directory whose name matches one we ship, and only to overwrite - never to delete.
 function wasInstalledByUs(dir) {
   try {
     const md = fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8')
-    return /engagement fieldbook for forward deployed engineers/i.test(md) || /fdeops/i.test(md)
+    const fm = (md.match(/^---\n([\s\S]*?)\n---/) || [])[1]
+    if (!fm) return false
+    return /^description:\s*Engagement fieldbook for Forward Deployed Engineers\b/im.test(fm)
   } catch (_) { return false }
 }
 
@@ -97,8 +108,10 @@ const LEGACY_SKILL_DIRS = [
 function removeLegacySkills(opts = {}) {
   let removed = 0
   const skipped = []
+  const links = []
   for (const dir of LEGACY_SKILL_DIRS) {
     const p = path.join(GLOBAL_SKILLS_DIR, dir)
+    if (isLink(p)) { links.push(dir); continue }
     if (!fs.existsSync(path.join(p, 'SKILL.md'))) continue
     if (isManaged(p) || opts.force) {
       fs.rmSync(p, { recursive: true, force: true })
@@ -107,17 +120,20 @@ function removeLegacySkills(opts = {}) {
       skipped.push(dir)
     }
   }
-  return { removed, skipped }
+  return { removed, skipped, links }
 }
 
 // Copy each skill in, but never over a directory fdeops did not create.
 function installSkillDirs(opts = {}) {
   const skipped = []
+  const links = []
+  const failed = []
   fs.mkdirSync(GLOBAL_SKILLS_DIR, { recursive: true })
   for (const entry of fs.readdirSync(SKILLS_SRC, { withFileTypes: true })) {
     const src = path.join(SKILLS_SRC, entry.name)
     const dest = path.join(GLOBAL_SKILLS_DIR, entry.name)
     if (!entry.isDirectory()) { fs.copyFileSync(src, dest); continue }
+    if (isLink(dest)) { links.push(entry.name); continue }
     if (fs.existsSync(dest) && !isManaged(dest) && !opts.force) {
       // Installs predating the marker are still ours: adopt a same-named dir
       // whose SKILL.md is recognizably fdeops', so upgrades keep working.
@@ -127,10 +143,16 @@ function installSkillDirs(opts = {}) {
       }
       console.log(`  adopt  ~/.claude/skills/${entry.name} (earlier fdeops install)`)
     }
-    copyDir(src, dest)
-    markManaged(dest)
+    // One unwritable skill dir must not abort the install with a stack trace:
+    // say it in human terms, place the rest, and exit non-zero at the end.
+    try {
+      copyDir(src, dest)
+      markManaged(dest)
+    } catch (e) {
+      failed.push({ name: entry.name, code: e.code || 'error', path: e.path || dest })
+    }
   }
-  return { skipped }
+  return { skipped, links, failed }
 }
 
 function reportCollisions(paths, verb) {
@@ -140,12 +162,38 @@ function reportCollisions(paths, verb) {
   console.log('         move or delete them yourself, or re-run with --force to let fdeops take them over')
 }
 
+function reportLinks(names) {
+  if (!names.length) return
+  console.log(`  skip   ${names.length} skill path(s) that are symlinks - fdeops will not write through them:`)
+  for (const name of names) console.log(`           ~/.claude/skills/${name} -> ${readLinkQuiet(path.join(GLOBAL_SKILLS_DIR, name))}`)
+  console.log('         they point outside ~/.claude/skills; remove the link if you want fdeops to install here')
+}
+
+function readLinkQuiet(p) {
+  try { return fs.readlinkSync(p) } catch (_) { return '(unreadable)' }
+}
+
+// Anything here means part of the install did not land; cmdInstall exits non-zero.
+let installIncomplete = false
+function reportFailures(failures) {
+  if (!failures.length) return
+  installIncomplete = true
+  console.log(`  error  ${failures.length} skill dir(s) could not be written:`)
+  for (const f of failures) {
+    const why = f.code === 'EACCES' || f.code === 'EPERM' ? 'permission denied' : f.code
+    console.log(`           ~/.claude/skills/${f.name} - ${why} at ${f.path}`)
+  }
+  console.log('         fix the permissions (or remove the directory) and re-run - the rest of the install continued')
+}
+
 function installSkills(opts = {}) {
   const legacy = removeLegacySkills(opts)
   if (legacy.removed > 0) console.log(`  Removed ${legacy.removed} v2 skill dir(s) (now covered by @fde)`)
   const placed = installSkillDirs(opts)
   reportCollisions(legacy.skipped, 'removing them')
   reportCollisions(placed.skipped, 'overwriting them')
+  reportLinks([...new Set([...legacy.links, ...placed.links])])
+  reportFailures(placed.failed)
   fs.mkdirSync(GLOBAL_HOOKS_DIR, { recursive: true })
   for (const name of HOOK_SCRIPTS) {
     const src = path.join(HOOKS_SRC, name)
@@ -288,6 +336,9 @@ function cmdInstall(opts = {}) {
   console.log('  Then open your workspace and use @fde')
   console.log('  Docs: docs/install.md')
   console.log('')
+  // A partly-installed skill set is not success - a script that ran this must be
+  // able to tell, and the reason is already printed above.
+  if (installIncomplete) process.exit(1)
 }
 
 // `npx fdeops scan` must recon, not install - any fde subcommand passes straight
