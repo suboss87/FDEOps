@@ -361,6 +361,66 @@ if (!fs.existsSync(path.join(root, 'mcp', 'fdeops-ingest', 'server.js'))) {
   ok('ingest MCP + connect recipes + skill reference')
 }
 
+// Agent Plugins 1.0.0 conformance (agent-plugins.org/specification).
+// plugin.json has a closed schema: an illegal field is fatal to the whole plugin,
+// and an mcp.json whose $schema version differs from plugin.json silently disables MCP.
+const AP_VERSION = '1.0.0'
+const AP_PLUGIN_SCHEMA = `https://agent-plugins.org/schemas/${AP_VERSION}/plugin.schema.json`
+const AP_MCP_SCHEMA = `https://agent-plugins.org/schemas/${AP_VERSION}/mcp.schema.json`
+const AP_MANIFEST_FIELDS = [
+  '$schema', 'name', 'version', 'description', 'author',
+  'homepage', 'repository', 'license', 'keywords', 'extensions',
+]
+
+const apManifest = JSON.parse(read('plugin.json'))
+const apUnknown = Object.keys(apManifest).filter(k => !AP_MANIFEST_FIELDS.includes(k))
+if (apManifest.$schema !== AP_PLUGIN_SCHEMA) {
+  fail(`plugin.json $schema must be ${AP_PLUGIN_SCHEMA}`)
+} else if (apUnknown.length) {
+  fail(`plugin.json has non-portable field(s) ${apUnknown.join(', ')} - client-specific data belongs under extensions`)
+} else if (!/^(?!.*(?:--|\.\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(apManifest.name)) {
+  fail(`plugin.json name "${apManifest.name}" violates Agent Plugins name constraints`)
+} else if (apManifest.version !== pkg.version) {
+  fail(`version mismatch package.json ${pkg.version} vs plugin.json ${apManifest.version}`)
+} else ok('agent plugins manifest')
+
+const apMcp = JSON.parse(read('mcp.json'))
+const apServers = apMcp.mcpServers || {}
+if (apMcp.$schema !== AP_MCP_SCHEMA) {
+  fail(`mcp.json $schema must be ${AP_MCP_SCHEMA} (a version mismatch with plugin.json disables MCP)`)
+} else if (Object.keys(apMcp).some(k => k !== '$schema' && k !== 'mcpServers')) {
+  fail('mcp.json permits only $schema and mcpServers')
+} else {
+  for (const [name, srv] of Object.entries(apServers)) {
+    if (srv.type !== 'stdio') fail(`mcp.json ${name}: fdeops ships stdio servers only (local-only core)`)
+    else if (!srv.command || (/[\s/]/.test(srv.command) && !srv.command.startsWith('./'))) {
+      fail(`mcp.json ${name}: command must be one executable token or a ./-relative path`)
+    } else if ((srv.args || []).some(a => path.isAbsolute(a))) {
+      fail(`mcp.json ${name}: args must use \${PLUGIN_ROOT}, never an absolute path`)
+    } else if (Object.keys(srv.env || {}).some(k => k === 'PLUGIN_ROOT' || k === 'PLUGIN_DATA')) {
+      fail(`mcp.json ${name}: env must not set PLUGIN_ROOT/PLUGIN_DATA (client-supplied)`)
+    }
+  }
+  const ingest = apServers['fdeops-ingest']
+  const target = ingest && (ingest.args || []).join(' ').replace('${PLUGIN_ROOT}/', '')
+  if (!ingest) fail('mcp.json must declare the fdeops-ingest stdio server')
+  else if (!fs.existsSync(path.join(root, target))) fail(`mcp.json fdeops-ingest points at missing ${target}`)
+  else ok('agent plugins mcp config')
+}
+
+// A manifest that ships only in git and not in the npm tarball is the worst kind of drift.
+for (const manifest of ['plugin.json', 'mcp.json']) {
+  if (!(pkg.files || []).includes(manifest)) fail(`package.json files must include ${manifest}`)
+  else ok(`${manifest} published to npm`)
+}
+
+for (const entry of fs.readdirSync(path.join(root, 'skills'))) {
+  const dir = path.join(root, 'skills', entry)
+  if (!fs.statSync(dir).isDirectory()) continue
+  if (!fs.existsSync(path.join(dir, 'SKILL.md'))) fail(`skills/${entry}/ has no SKILL.md - clients skip it`)
+  else ok(`skill ${entry} discoverable`)
+}
+
 if (!fs.existsSync(path.join(root, '.github', 'ISSUE_TEMPLATE', 'bug_report.yml'))) {
   fail('GitHub issue template missing')
 } else ok('issue templates')

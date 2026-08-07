@@ -1748,3 +1748,33 @@ test('ingest stage → propose → apply never writes .fde until confirm', () =>
   // raw staging preserved
   assert.equal(fs.readdirSync(inbox).length, 1)
 })
+
+test('ingest MCP server speaks newline-delimited stdio as the MCP transport requires', async () => {
+  const server = path.join(root, 'mcp', 'fdeops-ingest', 'server.js')
+  const proc = spawn(process.execPath, [server], { cwd: root, stdio: ['pipe', 'pipe', 'pipe'] })
+  const lines = []
+  let buf = ''
+  proc.stdout.on('data', (d) => {
+    buf += d
+    while (buf.includes('\n')) {
+      const line = buf.slice(0, buf.indexOf('\n')).trim()
+      buf = buf.slice(buf.indexOf('\n') + 1)
+      if (line) lines.push(JSON.parse(line))
+    }
+  })
+
+  const send = (msg) => proc.stdin.write(`${JSON.stringify(msg)}\n`)
+  send({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } } })
+  send({ jsonrpc: '2.0', id: 2, method: 'tools/list' })
+
+  const deadline = Date.now() + 8000
+  while (lines.length < 2 && Date.now() < deadline) await new Promise(r => setTimeout(r, 50))
+  proc.kill()
+
+  assert.equal(lines.length, 2, `expected 2 newline-framed replies, got ${JSON.stringify(lines)}`)
+  assert.equal(lines[0].result.serverInfo.name, 'fdeops-ingest')
+  assert.deepEqual(
+    lines[1].result.tools.map(t => t.name),
+    ['ingest_stage', 'ingest_list', 'ingest_propose', 'ingest_apply']
+  )
+})

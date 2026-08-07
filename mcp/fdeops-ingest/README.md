@@ -22,7 +22,9 @@ Each tool returns `{ stdout, stderr, status }` from the CLI.
 
 ## Configure in Cursor / Claude
 
-Add to your MCP config (`~/.cursor/mcp.json`, Claude Desktop config, etc.):
+**Agent Plugins clients: nothing to configure.** fdeops ships a root [`mcp.json`](../../mcp.json) declaring this server as `stdio` with a `${PLUGIN_ROOT}`-relative path, so a client that supports [Agent Plugins 1.0.0](https://agent-plugins.org/specification) wires it on install - no absolute paths to edit.
+
+Everywhere else, add to your MCP config (`~/.cursor/mcp.json`, Claude Desktop config, etc.):
 
 ```json
 {
