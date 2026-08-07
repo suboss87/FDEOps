@@ -180,7 +180,15 @@ if (!fs.existsSync(path.join(root, 'docs', 'schema.md'))) fail('docs/schema.md m
 else ok('docs/schema.md')
 
 if (!fs.existsSync(path.join(root, 'SECURITY.md'))) fail('SECURITY.md missing')
-else ok('SECURITY.md')
+else {
+  // A reporting section that only offers GitHub Security Advisories is a dead end
+  // whenever private reporting is off for the repo (that page 403s), which is how
+  // issue #9 sat unreported. Require a channel that does not depend on a repo setting.
+  const sec = read('SECURITY.md')
+  if (!/[\w.+-]+@[\w-]+\.[\w.]+/.test(sec)) {
+    fail('SECURITY.md must give a reporting channel that works when GitHub private reporting is off (an email address)')
+  } else ok('SECURITY.md (reachable reporting channel)')
+}
 
 const exampleFiles = ['reality.md', 'decisions.md', 'delivery.md', 'stakeholders.md', 'assumptions.md']
 for (const f of exampleFiles) {
