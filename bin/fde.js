@@ -2540,8 +2540,150 @@ function cmdDashboard(args) {
   }
 }
 
+// ---------- demo (see the value before touching a real client) ----------
+// Everything below runs the real commands against a throwaway engagement under
+// ~/fde-engagements/.demo/ - the leading dot keeps it out of every portfolio
+// listing (status --all, dashboard --all, resume's "existing:" line). Nothing
+// here fabricates output: the fieldbook you see is what debrief/log actually
+// wrote, so the demo cannot drift from the product.
+const DEMO_SLUG = 'acme-payments'
+const DEMO_NOTES = `Kickoff call with Acme payments team - Priya (VP Eng, sponsor), Tom (staff eng)
+
+decision: settle on the existing Stripe connector instead of the in-house rewrite - Priya wants the Q3 audit clean first
+risk: nobody can name who owns the reconciliation job; it has failed silently twice since March
+delivery: read-only access to the payments repo and the last 90 days of audit logs
+contact: Priya is bought in but travelling for two weeks - Tom is the day-to-day decision maker
+next: get the reconciliation runbook from Tom before touching anything
+
+<private>
+Priya hinted the previous vendor was let go mid-contract. Do not repeat this to the team.
+</private>
+`
+
+// What `@fde land` drafts with the human in the chat. The CLI has no command for
+// these two files by design (they are judgment, not appends), so the demo writes
+// them and says so - the transcript stays honest either way.
+const DEMO_LAND_ARTIFACTS = {
+  'brief.md': `# Brief - Acme payments
+
+**As stated:** clean up payment reconciliation before the Q3 audit.
+**What we heard instead:** nobody owns the reconciliation job, and it fails silently.
+**Out of scope (agreed):** the in-house connector rewrite.
+`,
+  'success.md': `# Success
+
+- Reconciliation failures alert someone within 15 minutes, with a named owner.
+- The Q3 audit can trace any settlement discrepancy to a dated record.
+
+**Signed off by:** Priya (VP Eng) - 2026-08-07
+`,
+}
+
+function demoRoot() { return path.join(ENGAGEMENTS_ROOT, '.demo') }
+
+// Piping the demo into a file or a docs snippet must not litter escape codes.
+const DEMO_BOLD = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR
+function demoHead(s) { return DEMO_BOLD ? `\x1b[1m${s}\x1b[0m` : s }
+
+function demoStep(label, argv, cwd, env) {
+  console.log(`\n${demoHead(label)}`)
+  console.log(`  $ fde ${argv.join(' ')}\n`)
+  const r = require('child_process').spawnSync(process.execPath, [__filename, ...argv], {
+    cwd, env, encoding: 'utf8',
+  })
+  const out = `${r.stdout || ''}${r.stderr || ''}`.trimEnd()
+  if (out) console.log(out.split('\n').map(l => `  ${l}`).join('\n'))
+  // doctor exits 1 on hygiene findings, resume exits 2 when unbound: a demo step
+  // failing means the product is broken, so surface it instead of pretending.
+  if (r.status !== 0 && !(argv[0] === 'doctor')) {
+    console.error(`\n  demo step failed (exit ${r.status}): fde ${argv.join(' ')}`)
+    process.exit(1)
+  }
+  return out
+}
+
+function cmdDemo(args) {
+  const root = demoRoot()
+  if (args.includes('--clean')) {
+    rmTreeQuiet(root)
+    console.log(`removed ${root}\n(your real engagements under ${ENGAGEMENTS_ROOT} were not touched)`)
+    return
+  }
+  // Always start from empty, so the demo is the same on the tenth run as the first.
+  rmTreeQuiet(root)
+  const workspace = path.join(root, 'acme-payments-repo')
+  try {
+    fs.mkdirSync(workspace, { recursive: true })
+  } catch (e) { failFs(e, 'create demo workspace', workspace) }
+  const notes = path.join(workspace, 'kickoff-notes.md')
+  fs.writeFileSync(notes, DEMO_NOTES)
+  const env = {
+    ...process.env,
+    FDEOPS_ENGAGEMENTS_ROOT: root,
+    // the demo must resolve to its own sandbox, never to whatever the shell points at
+    FDEOPS_ENGAGEMENT: '',
+    FDEOS_ENGAGEMENT: '',
+  }
+
+  console.log(`
+  fdeops demo - a fake client, real commands, nothing sent anywhere
+
+  Sandbox:  ${root}
+  Fake client: Acme (payments platform). No data of yours is read or written.`)
+
+  demoStep('1. Monday of week 1 - create the fieldbook for this client', ['resume', '--init', DEMO_SLUG], workspace, env)
+  demoStep('2. You walk out of the kickoff with messy notes - hand them over', ['debrief', '--smart', notes], workspace, env)
+  demoStep('3. You confirm. Only now does anything enter the record', ['debrief', '--apply'], workspace, env)
+  demoStep('4. Say where you are in the engagement', ['log', 'phase', 'land'], workspace, env)
+  const engDir = path.join(root, DEMO_SLUG, '.fde')
+  console.log(`\n${demoHead('5. During land, @fde drafts the brief and the definition of done with you')}`)
+  console.log('  (the two files the agent writes with you in the chat - not a CLI command)\n')
+  for (const [file, body] of Object.entries(DEMO_LAND_ARTIFACTS)) {
+    try { fs.writeFileSync(path.join(engDir, file), body) } catch (e) { failFs(e, 'write demo artifact', file) }
+    console.log(`  → ${file}`)
+  }
+  // The header fields the agent fills during land, in place - the debrief content
+  // below them stays untouched.
+  const ctxPath = path.join(engDir, 'context.md')
+  const ctx = fs.readFileSync(ctxPath, 'utf8')
+    .replace(/^\*\*Engagement:\*\*\s*$/m, '**Engagement:** Acme payments reconciliation')
+    .replace(/^\*\*Customer:\*\*\s*$/m, '**Customer:** Acme (fake - this is the demo)')
+  fs.writeFileSync(ctxPath, ctx)
+  console.log('  → context.md (engagement + customer header)')
+  // Land them in the ledger the way the agent would, or every later step warns
+  // about uncommitted manual edits - correct behaviour, wrong lesson for a demo.
+  const landHash = commitMemory(engDir, 'land: brief + success', { files: [...Object.keys(DEMO_LAND_ARTIFACTS), 'context.md'] })
+  if (landHash) console.log(`  memory @${landHash}`)
+  demoStep('6. Two days later, the sponsor goes quiet', ['log', 'contact', 'Priya has not replied to two emails about the runbook', '--signal', 'amber'], workspace, env)
+  demoStep('7. Next morning, a fresh agent session with no memory of any of this', ['resume'], workspace, env)
+  demoStep('8. A meeting in ten minutes - what do you walk in knowing?', ['prep', 'sponsor check-in'], workspace, env)
+  demoStep('9. Six weeks later: "we never agreed to drop the rewrite"', ['receipts', 'rewrite'], workspace, env)
+  const dash = demoStep('10. The whole engagement on one page', ['dashboard'], workspace, env)
+  const html = (dash.match(/\S+fieldbook[^\s]*\.html/) || [])[0]
+
+  console.log(`
+  ${demoHead('What just happened')}
+
+  - Every line above came from the real CLI - no canned output.
+  - The kickoff notes became dated decisions, risks, deliveries and a stakeholder
+    signal, and you confirmed before any of it was written.
+  - The <private> block in those notes never appears in resume, prep, receipts or
+    the dashboard - it is sealed in context.md and redacted from anything an agent
+    or a screen share can see.
+  - Tomorrow's session starts from the record instead of a blank chat.
+${html ? `\n  Open the fieldbook:  ${html}` : ''}
+
+  ${demoHead('Your turn')}  (inside your own client's workspace)
+
+    fde resume --init <client-name>
+
+  Delete this demo whenever you like:  fde demo --clean
+`)
+}
+
 function printUsage() {
   console.log(`fde - deterministic core of fdeops
+  fde demo                 60-second walkthrough on a fake client (fde demo --clean removes it)
   fde scan                 day-1 recon of this repo (facts, no AI)
   fde resume               load this workspace's engagement memory (bounded)
   fde resume --full        load the complete context.md (no bound)
@@ -2575,6 +2717,7 @@ function printUsage() {
 
 const [cmd, ...args] = process.argv.slice(2)
 switch (cmd) {
+  case 'demo': cmdDemo(args); break
   case 'scan': cmdScan(); break
   case 'resume': cmdResume(args); break
   case 'triage': cmdTriage(); break
