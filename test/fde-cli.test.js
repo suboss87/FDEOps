@@ -1766,11 +1766,17 @@ test('propose previews never echo <private> content, and apply still seals it', 
   assert.equal(smart.status, 0, smart.stderr)
   assert.doesNotMatch(smart.stdout, /12345678/)
   assert.match(smart.stdout, /private - redacted/)
-  assert.match(fs.readFileSync(path.join(eng, '.debrief-propose'), 'utf8'), /<private>/)
+  // the agent-facing propose file holds no secret; the sidecar does, owner-only
+  const proposeText = fs.readFileSync(path.join(eng, '.debrief-propose'), 'utf8')
+  assert.doesNotMatch(proposeText, /12345678|<private>/)
+  const sidecar = path.join(eng, '.debrief-private')
+  assert.match(fs.readFileSync(sidecar, 'utf8'), /12345678/)
+  assert.equal(fs.statSync(sidecar).mode & 0o777, 0o600)
 
   assert.equal(runFde(sandbox, ['debrief', '--apply']).status, 0)
   const context = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
   assert.match(context, /<private>[\s\S]*12345678[\s\S]*<\/private>/)
+  assert.equal(fs.existsSync(sidecar), false)
   assert.doesNotMatch(runFde(sandbox, ['resume']).stdout, /12345678/)
 
   const stage = runFde(sandbox, ['ingest', 'stage', '--source', 'granola', '--title', 'payout', notes])
@@ -1780,6 +1786,71 @@ test('propose previews never echo <private> content, and apply still seals it', 
   assert.equal(propose.status, 0, propose.stderr)
   assert.doesNotMatch(propose.stdout, /12345678/)
   assert.match(propose.stdout, /private - redacted/)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, '.debrief-propose'), 'utf8'), /12345678/)
+})
+
+test('routable lines inside a <private> block are sealed, never routed unsealed', () => {
+  const sandbox = makeSandbox('private-routing')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'sealco']).status, 0)
+  const eng = engagementPath(sandbox, 'sealco')
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, [
+    'decision: ship the pilot in March',
+    '<private>',
+    'decision: pay the vendor via account 12345678',
+    'risk: account 12345678 is exposed in the runbook',
+    '</private>',
+    '',
+  ].join('\n'))
+
+  const smart = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.doesNotMatch(smart.stdout, /12345678/)
+  assert.equal(runFde(sandbox, ['debrief', '--apply']).status, 0)
+
+  // what the human approved is what got written: no unsealed decision/risk
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /12345678/)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, 'risks.md'), 'utf8'), /12345678/)
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /ship the pilot in March/)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /<private>[\s\S]*12345678[\s\S]*<\/private>/)
+
+  for (const cmd of [['resume'], ['resume', '--full'], ['triage'], ['prep'], ['status', '--all'], ['receipts', 'account'], ['garden'], ['doctor']]) {
+    const out = runFde(sandbox, cmd)
+    assert.doesNotMatch(out.stdout + out.stderr, /12345678/, `${cmd.join(' ')} leaked`)
+  }
+  const dash = runFde(sandbox, ['dashboard'])
+  const html = (dash.stdout.match(/\S+\.html/) || [])[0]
+  assert.ok(html, dash.stdout)
+  assert.doesNotMatch(fs.readFileSync(html, 'utf8'), /12345678/)
+})
+
+test('near-miss <private> tags still seal instead of failing open', () => {
+  const sandbox = makeSandbox('private-tags')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'tagco']).status, 0)
+  const eng = engagementPath(sandbox, 'tagco')
+  fs.appendFileSync(path.join(eng, 'context.md'), [
+    '',
+    '<private >',
+    'trailing space opener 11111111',
+    '</private>',
+    '<private data-x="1">',
+    'attribute opener 22222222',
+    '</private >',
+    '<private>',
+    'outer <private>inner 33333333</private> still sealed 44444444',
+    '</private>',
+    '</private>',
+    'stray closer keeps public text visible',
+    '<private>',
+    'unclosed to EOF 55555555',
+    '',
+  ].join('\n'))
+
+  for (const cmd of [['resume'], ['resume', '--full'], ['prep'], ['triage']]) {
+    const out = runFde(sandbox, cmd)
+    assert.doesNotMatch(out.stdout + out.stderr, /11111111|22222222|33333333|44444444|55555555/, `${cmd.join(' ')} leaked`)
+  }
+  assert.match(runFde(sandbox, ['resume', '--full']).stdout, /stray closer keeps public text visible/)
 })
 
 test('ingest_propose over MCP keeps <private> content out of the model-facing result', async () => {
