@@ -1884,6 +1884,26 @@ test('apply refuses when the sealed sidecar went missing instead of dropping it'
   assert.equal(fs.existsSync(path.join(eng, '.debrief-private.lock')), false)
 })
 
+test('a stray <!-- already in memory does not hide later notes, and quoting the redaction marker still applies', () => {
+  const sandbox = makeSandbox('comment-scope')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'scopeco']).status, 0)
+  const eng = engagementPath(sandbox, 'scopeco')
+
+  // stored memory: a dangling comment opener must not blank the rest of the file
+  fs.appendFileSync(path.join(eng, 'context.md'), '\n- note with a stray <!-- opener\n- later visible note about rollout\n')
+  const resume = runFde(sandbox, ['resume', '--full'])
+  assert.match(resume.stdout, /later visible note about rollout/)
+
+  // notes quoting "(private - redacted)" sealed nothing, so apply must not refuse
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, `decision: keep the audit trail\nresume printed (private - redacted) for that entry\n`)
+  assert.equal(runFde(sandbox, ['debrief', '--smart', notes]).status, 0)
+  const apply = runFde(sandbox, ['debrief', '--apply'])
+  assert.equal(apply.status, 0, apply.stderr)
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /keep the audit trail/)
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-seal')), false)
+})
+
 test('an unclosed private note is balanced before storage and cannot swallow later notes', () => {
   const sandbox = makeSandbox('unclosed-seal')
   assert.equal(runFde(sandbox, ['resume', '--init', 'unclosedco']).status, 0)
