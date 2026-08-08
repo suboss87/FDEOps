@@ -96,17 +96,29 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   // undocumented for free, so an unparsed row is a hard failure, not a silent skip.
   const routed = new Set()
   const routing = (router.split('## Routing - 6 domains')[1] || '').split('**Overlays')[0]
+  const methodCell = line => (line.split('|')[2] || '').trim().replace(/\s*\([^)]*\)\s*$/, '')
   for (const line of routing.split('\n')) {
+    if (!/^\|/.test(line)) continue
+    // A row that names a method but no reference would route that method while
+    // nothing requires anyone to document it - shape checks can only police rows
+    // they recognise, so name a method here and you must name its reference.
+    if (!/references\/[a-z0-9-]+\.md/.test(line)) {
+      const orphan = methodCell(line)
+      // a method name, not a `-` placeholder (CLI-only rows) or a `---` separator
+      if (/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(orphan)) {
+        fail(`SKILL.md routes '${orphan}' without naming a reference: ${line.trim().slice(0, 80)}`)
+      }
+      continue
+    }
     // Candidate rows are selected on the reference name in ANY form, then the
     // shape is enforced - a row this cannot read must fail, never be skipped,
     // or a method could go undocumented by being written unusually.
-    if (!/^\|/.test(line) || !/references\/[a-z0-9-]+\.md/.test(line)) continue
     if (!/`references\/[a-z0-9-]+\.md`/.test(line)) {
       fail(`SKILL.md routing row must name its reference as \`references/<name>.md\`: ${line.trim().slice(0, 80)}`)
       continue
     }
     // | You hear | <method> | <cell mentioning references/*.md> |
-    const method = (line.split('|')[2] || '').trim().replace(/\s*\([^)]*\)\s*$/, '')
+    const method = methodCell(line)
     if (!/^[a-z0-9-]+$/.test(method)) {
       fail(`check.js cannot read the method name in a SKILL.md routing row: ${line.trim().slice(0, 80)}`)
       continue
@@ -148,7 +160,9 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   }
   for (const rel of ['docs/skills.md', 'docs/skills-reference.md']) {
     const body = read(rel)
-    const absent = [...documented].filter(name => !new RegExp(`\\b${name}\\b`).test(body))
+    // `-` is a word boundary, so \bingest\b matches inside `ingest-connect`:
+    // a method could disappear from the docs behind a hyphenated sibling.
+    const absent = [...documented].filter(name => !new RegExp(`(?<![\\w-])${name}(?![\\w-])`).test(body))
     if (absent.length) fail(`${rel} does not list method(s): ${absent.join(', ')}`)
     // every count claim, not just the first: an earlier sentence must not shadow
     // a stale headline (or the reverse).
