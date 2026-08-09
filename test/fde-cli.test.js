@@ -502,6 +502,62 @@ test('resume bounds a long context.md and survives <private> redaction (anchor n
   assert.doesNotMatch(r.stdout, /OLD session log line 5\b/, 'the old middle must be hidden, not dumped')
 })
 
+test('demo runs the real CLI on a fake client, leaks no private block, and stays out of the portfolio', () => {
+  const sandbox = makeSandbox('demo')
+  const root = path.join(sandbox.dir, 'engagements')
+  // a real engagement the demo must not touch or advertise
+  assert.equal(runFde(sandbox, ['resume', '--init', 'realclient'], { env: { FDEOPS_ENGAGEMENTS_ROOT: root } }).status, 0)
+
+  const r = runFde(sandbox, ['demo'], { env: { FDEOPS_ENGAGEMENTS_ROOT: root } })
+  assert.equal(r.status, 0, r.stderr)
+  // the value promise: notes routed, memory reloaded cold, receipts dated
+  assert.match(r.stdout, /ENGAGEMENT READY/)
+  assert.match(r.stdout, /debrief routed/)
+  assert.match(r.stdout, /ON RECORD \(dated - defensible\)/)
+  assert.match(r.stdout, /MEETING PREP/)
+  assert.match(r.stdout, /fieldbook-current\.html/)
+  // no fabricated transcript: the record on disk holds what the demo printed
+  const demoEng = path.join(root, '.demo', 'acme-payments', '.fde')
+  assert.match(fs.readFileSync(path.join(demoEng, 'decisions.md'), 'utf8'), /Stripe connector/)
+  assert.match(fs.readFileSync(path.join(demoEng, 'risks.md'), 'utf8'), /reconciliation job/)
+
+  // the demo's own <private> block must not reach the transcript or the dashboard
+  const secret = 'previous vendor was let go'
+  assert.doesNotMatch(r.stdout, new RegExp(secret))
+  assert.match(fs.readFileSync(path.join(demoEng, 'context.md'), 'utf8'), new RegExp(secret),
+    'sealed, not lost - otherwise this assertion is vacuous')
+  const html = fs.readFileSync(path.join(root, '.demo', 'fieldbook-current.html'), 'utf8')
+  assert.doesNotMatch(html, new RegExp(secret))
+  assert.match(html, /reconciliation job/, 'non-vacuous: the demo engagement did render')
+
+  // isolation: real portfolio views never show the demo, and the real registry is untouched
+  const all = runFde(sandbox, ['status', '--all'], { env: { FDEOPS_ENGAGEMENTS_ROOT: root } })
+  assert.match(all.stdout, /realclient/)
+  assert.doesNotMatch(all.stdout, /acme-payments/)
+  assert.doesNotMatch(fs.readFileSync(path.join(root, '.registry'), 'utf8'), /\.demo/)
+
+  // repeatable, then removable
+  const again = runFde(sandbox, ['demo'], { env: { FDEOPS_ENGAGEMENTS_ROOT: root } })
+  assert.equal(again.status, 0, again.stderr)
+  assert.equal(
+    (fs.readFileSync(path.join(demoEng, 'decisions.md'), 'utf8').match(/Stripe connector/g) || []).length, 1,
+    'a second run must start from empty, not stack duplicates')
+  // "John Doe" home directories: the fieldbook path the demo hands the user must
+  // be the whole path, not everything after the last space.
+  const spaced = path.join(sandbox.dir, 'John Doe', 'engagements')
+  const sp = runFde(sandbox, ['demo'], { env: { FDEOPS_ENGAGEMENTS_ROOT: spaced } })
+  assert.equal(sp.status, 0, sp.stderr)
+  const shown = (sp.stdout.match(/Open the fieldbook:\s+(.+)/) || [])[1]
+  assert.equal(shown, path.join(spaced, '.demo', 'fieldbook-current.html'))
+  assert.equal(fs.existsSync(shown), true, 'the path the demo prints must be openable')
+
+  const clean = runFde(sandbox, ['demo', '--clean'], { env: { FDEOPS_ENGAGEMENTS_ROOT: root } })
+  assert.equal(clean.status, 0, clean.stderr)
+  assert.equal(fs.existsSync(path.join(root, '.demo')), false)
+  assert.equal(fs.existsSync(path.join(root, 'realclient', '.fde', 'context.md')), true,
+    'clean must not touch real engagements')
+})
+
 test('adapters-only install places the skill the pointer files reference', () => {
   // Ground simulation found: `npx fdeops adapters .` (the documented Cursor/
   // Codex path) wrote a pointer to ~/.claude/skills/fde/SKILL.md without ever
