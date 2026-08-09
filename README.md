@@ -40,6 +40,16 @@ Same client folder every time (`~/fde-engagements/<client>/.fde/`). Your AI codi
 
 ---
 
+## See it in 60 seconds (no client, no install)
+
+```bash
+npx fdeops demo
+```
+
+Walks one fake engagement end to end with the **real** commands: messy kickoff notes → proposed updates → you confirm → cold session reload → meeting prep → dated receipts → the fieldbook page. Nothing of yours is read, nothing leaves the machine, and it lives in a throwaway `~/fde-engagements/.demo/` that never appears in your portfolio. Remove it with `npx fdeops demo --clean`.
+
+---
+
 ## Quickstart
 
 **1. Install** (pick one)
@@ -79,7 +89,7 @@ npx fdeops resume                 # prints a short "where we are" for this clien
 - **Cursor / Codex / Copilot / Gemini CLI:** `npx fdeops adapters .` - [adapters/](adapters/README.md)
 - **Local LLMs (Ollama, LM Studio, llama.cpp):** load `skills/fde/SKILL.md` as the system prompt - [guide](adapters/LOCAL-LLM.md)
 - **Manual / air-gapped:** `git clone https://github.com/suboss87/fdeops.git && cd fdeops && node bin/install.js`
-- **Try without install:** `npx fdeops scan` - day-1 recon (heuristic leads, not findings)
+- **Try without install:** `npx fdeops demo` - the whole loop on a fake client · `npx fdeops scan` - day-1 recon of this repo (heuristic leads, not findings)
 - **Requires:** [Node.js](https://nodejs.org) >= 18 for the CLI and adapters
 - **Advanced:** `FDEOPS_ENGAGEMENT` overrides the workspace registry. Full matrix: [docs/install.md](docs/install.md)
 
