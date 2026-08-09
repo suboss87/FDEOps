@@ -214,8 +214,14 @@ const PRIVATE_TAG = /<(\/)?private\b[^>]*>/gi
 // Depth-aware split of a markdown body into public text and sealed blocks. A
 // nested block seals to the outermost close, an unclosed one seals to EOF, and a
 // stray close is dropped - a regex pair cannot do any of those safely.
-function splitPrivate(md) {
-  const text = String(md || '')
+// HTML comments go first: template hints and pasted notes hide content there, and
+// `clean` is what debrief/ingest preview to a human and route into memory.
+// opts.sealDangling seals an unterminated `<!--` to EOF. Only untrusted input
+// gets that: on the read path a stray `<!--` already stored in memory would
+// otherwise hide every line after it from every view.
+function splitPrivate(md, opts = {}) {
+  let text = String(md || '').replace(/<!--[\s\S]*?-->/g, '')
+  if (opts.sealDangling) text = text.replace(/<!--[\s\S]*$/, '')
   const blocks = []
   let out = ''
   let cursor = 0
@@ -253,7 +259,25 @@ function splitPrivate(md) {
 }
 
 function stripPrivate(md) {
-  return stripControlChars(splitPrivate(md).clean.replace(/<!--[\s\S]*?-->/g, ''))
+  return stripControlChars(splitPrivate(md).clean)
+}
+
+// Persisted blocks must be balanced. splitPrivate() seals an unclosed block to
+// EOF and hands it back exactly as written; storing that would leave a dangling
+// opener that swallows every note appended to the file afterwards.
+function sealedText(blocks) {
+  return blocks.map((b) => {
+    let open = 0
+    let m
+    PRIVATE_TAG.lastIndex = 0
+    while ((m = PRIVATE_TAG.exec(b))) {
+      if (m[1]) open = Math.max(0, open - 1)
+      else open++
+    }
+    // Balance by count, not by suffix: one block can hold several unclosed
+    // openers, and each needs its own closer or the tail still dangles.
+    return `${b}\n${'</private>\n'.repeat(open)}`
+  }).join('')
 }
 
 // Read + redact in one step - the default way dashboard code should ever touch
@@ -392,7 +416,10 @@ function atomicWriteFile(p, content, opts = {}) {
   }
   const tmp = `${p}.${process.pid}.${Date.now()}.tmp`
   try {
-    fs.writeFileSync(tmp, content)
+    // opts.mode is set at create time: a secret must never exist world-readable,
+    // not even for the window between rename and a follow-up chmod.
+    fs.writeFileSync(tmp, content, opts.mode ? { mode: opts.mode } : undefined)
+    if (opts.mode) fs.chmodSync(tmp, opts.mode)
     fs.renameSync(tmp, p)
   } catch (e) {
     try { fs.unlinkSync(tmp) } catch (_) {}
@@ -429,6 +456,7 @@ const DEBRIEF_PROPOSE = '.debrief-propose'
 // The agent is told to open and rewrite .debrief-propose, so sealed blocks are
 // held out of it in an owner-only sidecar that only --apply reads back.
 const DEBRIEF_PRIVATE = '.debrief-private'
+const DEBRIEF_SEAL = '.debrief-seal'
 
 function gitBinOk() {
   try {
@@ -1337,17 +1365,34 @@ function previewLine(text, max = 240) {
 }
 
 function writeProposal(eng, text) {
-  const { clean, blocks } = splitPrivate(text)
+  const { clean, blocks } = splitPrivate(text, { sealDangling: true })
   const proposePath = path.join(eng, DEBRIEF_PROPOSE)
   const privatePath = path.join(eng, DEBRIEF_PRIVATE)
-  withFileLock(proposePath, () => { atomicWriteFile(proposePath, clean) })
+  // Seal first. A refused or failed sidecar write must not leave behind a
+  // proposal whose (private - redacted) marker has nothing left behind it.
   if (blocks.length) {
-    withFileLock(privatePath, () => { atomicWriteFile(privatePath, `${blocks.join('\n')}\n`) })
+    const blocked = refuseSymlinkWrite(privatePath, { soft: true })
+    if (blocked) { console.error(blocked); process.exit(1) }
+    withFileLock(privatePath, () => { atomicWriteFile(privatePath, sealedText(blocks), { mode: 0o600 }) })
     try { fs.chmodSync(privatePath, 0o600) } catch (_) {}
   } else {
     try { fs.unlinkSync(privatePath) } catch (_) {}
   }
+  withFileLock(proposePath, () => { atomicWriteFile(proposePath, clean) })
+  // Receipt, so apply knows how many blocks the human actually approved. Counting
+  // (private - redacted) markers in the proposal instead would refuse forever on
+  // notes that merely quote the wording - the CLI prints it, so it gets pasted back.
+  withFileLock(path.join(eng, DEBRIEF_SEAL), () => {
+    atomicWriteFile(path.join(eng, DEBRIEF_SEAL), `${blocks.length}\n`)
+  })
   return { proposePath, clean, blocks }
+}
+
+function readSealCount(eng) {
+  try {
+    const n = parseInt(fs.readFileSync(path.join(eng, DEBRIEF_SEAL), 'utf8').trim(), 10)
+    return Number.isInteger(n) && n >= 0 ? n : null
+  } catch (_) { return null }
 }
 
 function readSealedProposal(eng) {
@@ -1367,7 +1412,7 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
   // lines are never previewed and never routed into decisions/risks/stakeholders
   // unsealed. They land verbatim in context.md instead: the preview a human
   // approves is exactly what --apply writes.
-  const { clean: routable, blocks: inlinePrivate } = splitPrivate(input)
+  const { clean: routable, blocks: inlinePrivate } = splitPrivate(input, { sealDangling: true })
   const privateBlocks = [...inlinePrivate, ...sealed]
   for (const raw of routable.split('\n')) {
     let line = raw.trim()
@@ -1408,7 +1453,7 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
     if (dry) ctxLines.forEach(l => console.log(`→ context.md  - ${previewLine(l)}`))
     else {
       const bullets = ctxLines.length ? `${ctxLines.map(l => `- ${l}`).join('\n')}\n` : ''
-      const sealed = privateBlocks.length ? `${privateBlocks.join('\n')}\n` : ''
+      const sealed = privateBlocks.length ? sealedText(privateBlocks) : ''
       lockedAppendFile(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${bullets}${sealed}`)
     }
   }
@@ -1441,6 +1486,12 @@ function cmdDebrief(args) {
       process.exit(1)
     }
     sealed = readSealedProposal(eng)
+    const expected = readSealCount(eng)
+    if (expected === null ? (!sealed.length && input.includes(PRIVATE_MARKER)) : sealed.length < expected) {
+      console.error(`refused: the proposal seals a private note but ${DEBRIEF_PRIVATE} is missing or unreadable - applying now would drop it silently.`)
+      console.error('re-run the propose step (fde debrief --smart <notes> | fde ingest propose <id>).')
+      process.exit(1)
+    }
   } else {
     input = readDebriefInput(args)
   }
@@ -1466,6 +1517,7 @@ function cmdDebrief(args) {
     })
     try { fs.unlinkSync(path.join(eng, DEBRIEF_PROPOSE)) } catch (_) {}
     try { fs.unlinkSync(path.join(eng, DEBRIEF_PRIVATE)) } catch (_) {}
+  try { fs.unlinkSync(path.join(eng, DEBRIEF_SEAL)) } catch (_) {}
     if (hash) console.log(`memory @${hash}`)
   }
   const plural = {
@@ -2540,8 +2592,152 @@ function cmdDashboard(args) {
   }
 }
 
+// ---------- demo (see the value before touching a real client) ----------
+// Everything below runs the real commands against a throwaway engagement under
+// ~/fde-engagements/.demo/ - the leading dot keeps it out of every portfolio
+// listing (status --all, dashboard --all, resume's "existing:" line). Nothing
+// here fabricates output: the fieldbook you see is what debrief/log actually
+// wrote, so the demo cannot drift from the product.
+const DEMO_SLUG = 'acme-payments'
+const DEMO_NOTES = `Kickoff call with Acme payments team - Priya (VP Eng, sponsor), Tom (staff eng)
+
+decision: settle on the existing Stripe connector instead of the in-house rewrite - Priya wants the Q3 audit clean first
+risk: nobody can name who owns the reconciliation job; it has failed silently twice since March
+delivery: read-only access to the payments repo and the last 90 days of audit logs
+contact: Priya is bought in but travelling for two weeks - Tom is the day-to-day decision maker
+next: get the reconciliation runbook from Tom before touching anything
+
+<private>
+Priya hinted the previous vendor was let go mid-contract. Do not repeat this to the team.
+</private>
+`
+
+// What `@fde land` drafts with the human in the chat. The CLI has no command for
+// these two files by design (they are judgment, not appends), so the demo writes
+// them and says so - the transcript stays honest either way.
+const DEMO_LAND_ARTIFACTS = {
+  'brief.md': `# Brief - Acme payments
+
+**As stated:** clean up payment reconciliation before the Q3 audit.
+**What we heard instead:** nobody owns the reconciliation job, and it fails silently.
+**Out of scope (agreed):** the in-house connector rewrite.
+`,
+  'success.md': `# Success
+
+- Reconciliation failures alert someone within 15 minutes, with a named owner.
+- The Q3 audit can trace any settlement discrepancy to a dated record.
+
+**Signed off by:** Priya (VP Eng) - 2026-08-07
+`,
+}
+
+function demoRoot() { return path.join(ENGAGEMENTS_ROOT, '.demo') }
+
+// Piping the demo into a file or a docs snippet must not litter escape codes.
+const DEMO_BOLD = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR
+function demoHead(s) { return DEMO_BOLD ? `\x1b[1m${s}\x1b[0m` : s }
+
+function demoStep(label, argv, cwd, env) {
+  console.log(`\n${demoHead(label)}`)
+  console.log(`  $ fde ${argv.join(' ')}\n`)
+  const r = require('child_process').spawnSync(process.execPath, [__filename, ...argv], {
+    cwd, env, encoding: 'utf8',
+  })
+  const out = `${r.stdout || ''}${r.stderr || ''}`.trimEnd()
+  if (out) console.log(out.split('\n').map(l => `  ${l}`).join('\n'))
+  // doctor exits 1 on hygiene findings, resume exits 2 when unbound: a demo step
+  // failing means the product is broken, so surface it instead of pretending.
+  if (r.status !== 0 && !(argv[0] === 'doctor')) {
+    console.error(`\n  demo step failed (exit ${r.status}): fde ${argv.join(' ')}`)
+    process.exit(1)
+  }
+  return out
+}
+
+function cmdDemo(args) {
+  const root = demoRoot()
+  if (args.includes('--clean')) {
+    rmTreeQuiet(root)
+    console.log(`removed ${root}\n(your real engagements under ${ENGAGEMENTS_ROOT} were not touched)`)
+    return
+  }
+  // Always start from empty, so the demo is the same on the tenth run as the first.
+  rmTreeQuiet(root)
+  const workspace = path.join(root, 'acme-payments-repo')
+  try {
+    fs.mkdirSync(workspace, { recursive: true })
+  } catch (e) { failFs(e, 'create demo workspace', workspace) }
+  const notes = path.join(workspace, 'kickoff-notes.md')
+  fs.writeFileSync(notes, DEMO_NOTES)
+  const env = {
+    ...process.env,
+    FDEOPS_ENGAGEMENTS_ROOT: root,
+    // the demo must resolve to its own sandbox, never to whatever the shell points at
+    FDEOPS_ENGAGEMENT: '',
+    FDEOS_ENGAGEMENT: '',
+  }
+
+  console.log(`
+  fdeops demo - a fake client, real commands, nothing sent anywhere
+
+  Sandbox:  ${root}
+  Fake client: Acme (payments platform). No data of yours is read or written.`)
+
+  demoStep('1. Monday of week 1 - create the fieldbook for this client', ['resume', '--init', DEMO_SLUG], workspace, env)
+  demoStep('2. You walk out of the kickoff with messy notes - hand them over', ['debrief', '--smart', notes], workspace, env)
+  demoStep('3. You confirm. Only now does anything enter the record', ['debrief', '--apply'], workspace, env)
+  demoStep('4. Say where you are in the engagement', ['log', 'phase', 'land'], workspace, env)
+  const engDir = path.join(root, DEMO_SLUG, '.fde')
+  console.log(`\n${demoHead('5. During land, @fde drafts the brief and the definition of done with you')}`)
+  console.log('  (the two files the agent writes with you in the chat - not a CLI command)\n')
+  for (const [file, body] of Object.entries(DEMO_LAND_ARTIFACTS)) {
+    try { fs.writeFileSync(path.join(engDir, file), body) } catch (e) { failFs(e, 'write demo artifact', file) }
+    console.log(`  → ${file}`)
+  }
+  // The header fields the agent fills during land, in place - the debrief content
+  // below them stays untouched.
+  const ctxPath = path.join(engDir, 'context.md')
+  const ctx = fs.readFileSync(ctxPath, 'utf8')
+    .replace(/^\*\*Engagement:\*\*\s*$/m, '**Engagement:** Acme payments reconciliation')
+    .replace(/^\*\*Customer:\*\*\s*$/m, '**Customer:** Acme (fake - this is the demo)')
+  fs.writeFileSync(ctxPath, ctx)
+  console.log('  → context.md (engagement + customer header)')
+  // Land them in the ledger the way the agent would, or every later step warns
+  // about uncommitted manual edits - correct behaviour, wrong lesson for a demo.
+  const landHash = commitMemory(engDir, 'land: brief + success', { files: [...Object.keys(DEMO_LAND_ARTIFACTS), 'context.md'] })
+  if (landHash) console.log(`  memory @${landHash}`)
+  demoStep('6. Two days later, the sponsor goes quiet', ['log', 'contact', 'Priya has not replied to two emails about the runbook', '--signal', 'amber'], workspace, env)
+  demoStep('7. Next morning, a fresh agent session with no memory of any of this', ['resume'], workspace, env)
+  demoStep('8. A meeting in ten minutes - what do you walk in knowing?', ['prep', 'sponsor check-in'], workspace, env)
+  demoStep('9. Six weeks later: "we never agreed to drop the rewrite"', ['receipts', 'rewrite'], workspace, env)
+  demoStep('10. The whole engagement on one page', ['dashboard'], workspace, env)
+  // cmdDashboard's default out path, computed rather than scraped from its output:
+  // a HOME with a space in it truncates any whitespace-delimited parse.
+  const html = path.join(root, 'fieldbook-current.html')
+
+  console.log(`
+  ${demoHead('What just happened')}
+
+  - Every line above came from the real CLI - no canned output.
+  - The kickoff notes became dated decisions, risks, deliveries and a stakeholder
+    signal, and you confirmed before any of it was written.
+  - The <private> block in those notes never appears in resume, prep, receipts or
+    the dashboard - it is sealed in context.md and redacted from anything an agent
+    or a screen share can see.
+  - Tomorrow's session starts from the record instead of a blank chat.
+${fs.existsSync(html) ? `\n  Open the fieldbook:  ${html}` : ''}
+
+  ${demoHead('Your turn')}  (inside your own client's workspace)
+
+    fde resume --init <client-name>
+
+  Delete this demo whenever you like:  fde demo --clean
+`)
+}
+
 function printUsage() {
   console.log(`fde - deterministic core of fdeops
+  fde demo                 60-second walkthrough on a fake client (fde demo --clean removes it)
   fde scan                 day-1 recon of this repo (facts, no AI)
   fde resume               load this workspace's engagement memory (bounded)
   fde resume --full        load the complete context.md (no bound)
@@ -2575,6 +2771,7 @@ function printUsage() {
 
 const [cmd, ...args] = process.argv.slice(2)
 switch (cmd) {
+  case 'demo': cmdDemo(args); break
   case 'scan': cmdScan(); break
   case 'resume': cmdResume(args); break
   case 'triage': cmdTriage(); break

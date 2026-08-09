@@ -134,6 +134,7 @@ fde log contact "…" --signal amber
 fde receipts "descope"            # dated agreements (ON RECORD)
 fde dashboard --all               # every client, sorted by trust
 fde status [--all]                # trust-first triage
+fde demo                          # the whole loop on a fake client (--clean removes it)
 ```
 
 Optional: `export FDEOPS_ENGAGEMENTS_ROOT=~/path/to/engagements` to isolate from `~/fde-engagements`.

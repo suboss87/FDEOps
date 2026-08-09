@@ -502,6 +502,62 @@ test('resume bounds a long context.md and survives <private> redaction (anchor n
   assert.doesNotMatch(r.stdout, /OLD session log line 5\b/, 'the old middle must be hidden, not dumped')
 })
 
+test('demo runs the real CLI on a fake client, leaks no private block, and stays out of the portfolio', () => {
+  const sandbox = makeSandbox('demo')
+  const root = path.join(sandbox.dir, 'engagements')
+  // a real engagement the demo must not touch or advertise
+  assert.equal(runFde(sandbox, ['resume', '--init', 'realclient'], { env: { FDEOPS_ENGAGEMENTS_ROOT: root } }).status, 0)
+
+  const r = runFde(sandbox, ['demo'], { env: { FDEOPS_ENGAGEMENTS_ROOT: root } })
+  assert.equal(r.status, 0, r.stderr)
+  // the value promise: notes routed, memory reloaded cold, receipts dated
+  assert.match(r.stdout, /ENGAGEMENT READY/)
+  assert.match(r.stdout, /debrief routed/)
+  assert.match(r.stdout, /ON RECORD \(dated - defensible\)/)
+  assert.match(r.stdout, /MEETING PREP/)
+  assert.match(r.stdout, /fieldbook-current\.html/)
+  // no fabricated transcript: the record on disk holds what the demo printed
+  const demoEng = path.join(root, '.demo', 'acme-payments', '.fde')
+  assert.match(fs.readFileSync(path.join(demoEng, 'decisions.md'), 'utf8'), /Stripe connector/)
+  assert.match(fs.readFileSync(path.join(demoEng, 'risks.md'), 'utf8'), /reconciliation job/)
+
+  // the demo's own <private> block must not reach the transcript or the dashboard
+  const secret = 'previous vendor was let go'
+  assert.doesNotMatch(r.stdout, new RegExp(secret))
+  assert.match(fs.readFileSync(path.join(demoEng, 'context.md'), 'utf8'), new RegExp(secret),
+    'sealed, not lost - otherwise this assertion is vacuous')
+  const html = fs.readFileSync(path.join(root, '.demo', 'fieldbook-current.html'), 'utf8')
+  assert.doesNotMatch(html, new RegExp(secret))
+  assert.match(html, /reconciliation job/, 'non-vacuous: the demo engagement did render')
+
+  // isolation: real portfolio views never show the demo, and the real registry is untouched
+  const all = runFde(sandbox, ['status', '--all'], { env: { FDEOPS_ENGAGEMENTS_ROOT: root } })
+  assert.match(all.stdout, /realclient/)
+  assert.doesNotMatch(all.stdout, /acme-payments/)
+  assert.doesNotMatch(fs.readFileSync(path.join(root, '.registry'), 'utf8'), /\.demo/)
+
+  // repeatable, then removable
+  const again = runFde(sandbox, ['demo'], { env: { FDEOPS_ENGAGEMENTS_ROOT: root } })
+  assert.equal(again.status, 0, again.stderr)
+  assert.equal(
+    (fs.readFileSync(path.join(demoEng, 'decisions.md'), 'utf8').match(/Stripe connector/g) || []).length, 1,
+    'a second run must start from empty, not stack duplicates')
+  // "John Doe" home directories: the fieldbook path the demo hands the user must
+  // be the whole path, not everything after the last space.
+  const spaced = path.join(sandbox.dir, 'John Doe', 'engagements')
+  const sp = runFde(sandbox, ['demo'], { env: { FDEOPS_ENGAGEMENTS_ROOT: spaced } })
+  assert.equal(sp.status, 0, sp.stderr)
+  const shown = (sp.stdout.match(/Open the fieldbook:\s+(.+)/) || [])[1]
+  assert.equal(shown, path.join(spaced, '.demo', 'fieldbook-current.html'))
+  assert.equal(fs.existsSync(shown), true, 'the path the demo prints must be openable')
+
+  const clean = runFde(sandbox, ['demo', '--clean'], { env: { FDEOPS_ENGAGEMENTS_ROOT: root } })
+  assert.equal(clean.status, 0, clean.stderr)
+  assert.equal(fs.existsSync(path.join(root, '.demo')), false)
+  assert.equal(fs.existsSync(path.join(root, 'realclient', '.fde', 'context.md')), true,
+    'clean must not touch real engagements')
+})
+
 test('adapters-only install places the skill the pointer files reference', () => {
   // Ground simulation found: `npx fdeops adapters .` (the documented Cursor/
   // Codex path) wrote a pointer to ~/.claude/skills/fde/SKILL.md without ever
@@ -1822,6 +1878,124 @@ test('routable lines inside a <private> block are sealed, never routed unsealed'
   const html = (dash.stdout.match(/\S+\.html/) || [])[0]
   assert.ok(html, dash.stdout)
   assert.doesNotMatch(fs.readFileSync(html, 'utf8'), /12345678/)
+})
+
+test('a secret hidden in an HTML comment never reaches a preview or memory', () => {
+  const sandbox = makeSandbox('private-comment')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'commentco']).status, 0)
+  const eng = engagementPath(sandbox, 'commentco')
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, [
+    'Decided: renew the support contract.',
+    '<!-- Bank account for payout: 12345678 -->',
+    '<!-- unterminated comment hiding 87654321',
+    '',
+  ].join('\n'))
+
+  const smart = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.doesNotMatch(smart.stdout, /12345678|87654321/)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, '.debrief-propose'), 'utf8'), /12345678|87654321/)
+
+  const dry = runFde(sandbox, ['debrief', '--dry-run'], { input: fs.readFileSync(notes, 'utf8') })
+  assert.doesNotMatch(dry.stdout, /12345678|87654321/)
+
+  assert.equal(runFde(sandbox, ['debrief', '--apply']).status, 0)
+  for (const f of ['context.md', 'decisions.md', 'risks.md']) {
+    assert.doesNotMatch(fs.readFileSync(path.join(eng, f), 'utf8'), /12345678|87654321/)
+  }
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /renew the support contract/)
+})
+
+test('apply refuses when the sealed sidecar went missing instead of dropping it', () => {
+  const sandbox = makeSandbox('sidecar-loss')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'lossco']).status, 0)
+  const eng = engagementPath(sandbox, 'lossco')
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, [
+    'decision: ship the pilot in March',
+    '<private>',
+    'Bank account for payout: 12345678',
+    '</private>',
+    '',
+  ].join('\n'))
+
+  assert.equal(runFde(sandbox, ['debrief', '--smart', notes]).status, 0)
+  fs.unlinkSync(path.join(eng, '.debrief-private'))
+  const apply = runFde(sandbox, ['debrief', '--apply'])
+  assert.equal(apply.status, 1)
+  assert.match(apply.stderr, /missing or unreadable/)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /ship the pilot/)
+
+  // a symlinked sidecar is refused without leaving an unbacked proposal behind
+  const outside = path.join(sandbox.dir, 'outside.md')
+  fs.writeFileSync(outside, 'untouched\n')
+  fs.unlinkSync(path.join(eng, '.debrief-propose'))
+  fs.symlinkSync(outside, path.join(eng, '.debrief-private'))
+  const refused = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(refused.status, 1)
+  assert.match(refused.stderr, /symlink/)
+  assert.equal(fs.readFileSync(outside, 'utf8'), 'untouched\n')
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-propose')), false)
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-private.lock')), false)
+})
+
+test('a stray <!-- already in memory does not hide later notes, and quoting the redaction marker still applies', () => {
+  const sandbox = makeSandbox('comment-scope')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'scopeco']).status, 0)
+  const eng = engagementPath(sandbox, 'scopeco')
+
+  // stored memory: a dangling comment opener must not blank the rest of the file
+  fs.appendFileSync(path.join(eng, 'context.md'), '\n- note with a stray <!-- opener\n- later visible note about rollout\n')
+  const resume = runFde(sandbox, ['resume', '--full'])
+  assert.match(resume.stdout, /later visible note about rollout/)
+
+  // notes quoting "(private - redacted)" sealed nothing, so apply must not refuse
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, `decision: keep the audit trail\nresume printed (private - redacted) for that entry\n`)
+  assert.equal(runFde(sandbox, ['debrief', '--smart', notes]).status, 0)
+  const apply = runFde(sandbox, ['debrief', '--apply'])
+  assert.equal(apply.status, 0, apply.stderr)
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /keep the audit trail/)
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-seal')), false)
+})
+
+test('an unclosed private note is balanced before storage and cannot swallow later notes', () => {
+  const sandbox = makeSandbox('unclosed-seal')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'unclosedco']).status, 0)
+  const eng = engagementPath(sandbox, 'unclosedco')
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, [
+    'decision: ship the pilot in March',
+    '<private>',
+    'Bank account for payout: 12345678',
+    '',
+  ].join('\n'))
+
+  assert.equal(runFde(sandbox, ['debrief', '--smart', notes]).status, 0)
+  const sidecar = fs.readFileSync(path.join(eng, '.debrief-private'), 'utf8')
+  assert.match(sidecar, /<\/private>/)
+  assert.equal(fs.statSync(path.join(eng, '.debrief-private')).mode & 0o777, 0o600)
+  assert.equal(runFde(sandbox, ['debrief', '--apply']).status, 0)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /12345678[\s\S]*<\/private>/)
+
+  fs.writeFileSync(notes, [
+    '<private>',
+    'first secret 12345678',
+    '<private>',
+    'second secret 87654321',
+    '',
+  ].join('\n'))
+  assert.equal(runFde(sandbox, ['debrief', notes]).status, 0)
+  const ctx = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  const tags = ctx.match(/<(\/)?private\b[^>]*>/gi) || []
+  assert.equal(tags.filter(t => t.startsWith('</')).length, tags.length / 2, ctx)
+
+  fs.writeFileSync(notes, 'later public note about the March rollout\n')
+  assert.equal(runFde(sandbox, ['debrief', notes]).status, 0)
+  const resume = runFde(sandbox, ['resume', '--full'])
+  assert.doesNotMatch(resume.stdout, /12345678/)
+  assert.match(resume.stdout, /later public note about the March rollout/)
 })
 
 test('near-miss <private> tags still seal instead of failing open', () => {
