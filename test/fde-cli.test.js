@@ -1880,6 +1880,124 @@ test('routable lines inside a <private> block are sealed, never routed unsealed'
   assert.doesNotMatch(fs.readFileSync(html, 'utf8'), /12345678/)
 })
 
+test('a secret hidden in an HTML comment never reaches a preview or memory', () => {
+  const sandbox = makeSandbox('private-comment')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'commentco']).status, 0)
+  const eng = engagementPath(sandbox, 'commentco')
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, [
+    'Decided: renew the support contract.',
+    '<!-- Bank account for payout: 12345678 -->',
+    '<!-- unterminated comment hiding 87654321',
+    '',
+  ].join('\n'))
+
+  const smart = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.doesNotMatch(smart.stdout, /12345678|87654321/)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, '.debrief-propose'), 'utf8'), /12345678|87654321/)
+
+  const dry = runFde(sandbox, ['debrief', '--dry-run'], { input: fs.readFileSync(notes, 'utf8') })
+  assert.doesNotMatch(dry.stdout, /12345678|87654321/)
+
+  assert.equal(runFde(sandbox, ['debrief', '--apply']).status, 0)
+  for (const f of ['context.md', 'decisions.md', 'risks.md']) {
+    assert.doesNotMatch(fs.readFileSync(path.join(eng, f), 'utf8'), /12345678|87654321/)
+  }
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /renew the support contract/)
+})
+
+test('apply refuses when the sealed sidecar went missing instead of dropping it', () => {
+  const sandbox = makeSandbox('sidecar-loss')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'lossco']).status, 0)
+  const eng = engagementPath(sandbox, 'lossco')
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, [
+    'decision: ship the pilot in March',
+    '<private>',
+    'Bank account for payout: 12345678',
+    '</private>',
+    '',
+  ].join('\n'))
+
+  assert.equal(runFde(sandbox, ['debrief', '--smart', notes]).status, 0)
+  fs.unlinkSync(path.join(eng, '.debrief-private'))
+  const apply = runFde(sandbox, ['debrief', '--apply'])
+  assert.equal(apply.status, 1)
+  assert.match(apply.stderr, /missing or unreadable/)
+  assert.doesNotMatch(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /ship the pilot/)
+
+  // a symlinked sidecar is refused without leaving an unbacked proposal behind
+  const outside = path.join(sandbox.dir, 'outside.md')
+  fs.writeFileSync(outside, 'untouched\n')
+  fs.unlinkSync(path.join(eng, '.debrief-propose'))
+  fs.symlinkSync(outside, path.join(eng, '.debrief-private'))
+  const refused = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(refused.status, 1)
+  assert.match(refused.stderr, /symlink/)
+  assert.equal(fs.readFileSync(outside, 'utf8'), 'untouched\n')
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-propose')), false)
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-private.lock')), false)
+})
+
+test('a stray <!-- already in memory does not hide later notes, and quoting the redaction marker still applies', () => {
+  const sandbox = makeSandbox('comment-scope')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'scopeco']).status, 0)
+  const eng = engagementPath(sandbox, 'scopeco')
+
+  // stored memory: a dangling comment opener must not blank the rest of the file
+  fs.appendFileSync(path.join(eng, 'context.md'), '\n- note with a stray <!-- opener\n- later visible note about rollout\n')
+  const resume = runFde(sandbox, ['resume', '--full'])
+  assert.match(resume.stdout, /later visible note about rollout/)
+
+  // notes quoting "(private - redacted)" sealed nothing, so apply must not refuse
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, `decision: keep the audit trail\nresume printed (private - redacted) for that entry\n`)
+  assert.equal(runFde(sandbox, ['debrief', '--smart', notes]).status, 0)
+  const apply = runFde(sandbox, ['debrief', '--apply'])
+  assert.equal(apply.status, 0, apply.stderr)
+  assert.match(fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8'), /keep the audit trail/)
+  assert.equal(fs.existsSync(path.join(eng, '.debrief-seal')), false)
+})
+
+test('an unclosed private note is balanced before storage and cannot swallow later notes', () => {
+  const sandbox = makeSandbox('unclosed-seal')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'unclosedco']).status, 0)
+  const eng = engagementPath(sandbox, 'unclosedco')
+  const notes = path.join(sandbox.workspace, 'notes.md')
+  fs.writeFileSync(notes, [
+    'decision: ship the pilot in March',
+    '<private>',
+    'Bank account for payout: 12345678',
+    '',
+  ].join('\n'))
+
+  assert.equal(runFde(sandbox, ['debrief', '--smart', notes]).status, 0)
+  const sidecar = fs.readFileSync(path.join(eng, '.debrief-private'), 'utf8')
+  assert.match(sidecar, /<\/private>/)
+  assert.equal(fs.statSync(path.join(eng, '.debrief-private')).mode & 0o777, 0o600)
+  assert.equal(runFde(sandbox, ['debrief', '--apply']).status, 0)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /12345678[\s\S]*<\/private>/)
+
+  fs.writeFileSync(notes, [
+    '<private>',
+    'first secret 12345678',
+    '<private>',
+    'second secret 87654321',
+    '',
+  ].join('\n'))
+  assert.equal(runFde(sandbox, ['debrief', notes]).status, 0)
+  const ctx = fs.readFileSync(path.join(eng, 'context.md'), 'utf8')
+  const tags = ctx.match(/<(\/)?private\b[^>]*>/gi) || []
+  assert.equal(tags.filter(t => t.startsWith('</')).length, tags.length / 2, ctx)
+
+  fs.writeFileSync(notes, 'later public note about the March rollout\n')
+  assert.equal(runFde(sandbox, ['debrief', notes]).status, 0)
+  const resume = runFde(sandbox, ['resume', '--full'])
+  assert.doesNotMatch(resume.stdout, /12345678/)
+  assert.match(resume.stdout, /later public note about the March rollout/)
+})
+
 test('near-miss <private> tags still seal instead of failing open', () => {
   const sandbox = makeSandbox('private-tags')
   assert.equal(runFde(sandbox, ['resume', '--init', 'tagco']).status, 0)

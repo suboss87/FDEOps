@@ -55,7 +55,7 @@ After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same rou
 
 ## Rules
 
-1. **`<private>...</private>`** - redacted from CLI, dashboard, and hook-injected context. Nothing inside a block is ever routed into `decisions.md`/`risks.md`/`delivery.md`/`stakeholders.md`; `fde debrief`/`fde ingest` seal it verbatim into `context.md` instead, and hold it out of the agent-facing `.debrief-propose` in an owner-only `.debrief-private` sidecar that only `--apply` reads. Do not load raw blocks into the model via file tools or paste.
+1. **`<private>...</private>`** - redacted from CLI, dashboard, and hook-injected context. Nothing inside a block is ever routed into `decisions.md`/`risks.md`/`delivery.md`/`stakeholders.md`; `fde debrief`/`fde ingest` seal it verbatim into `context.md` instead, and hold it out of the agent-facing `.debrief-propose` in an owner-only (`0600`) `.debrief-private` sidecar that only `--apply` reads; a `.debrief-seal` receipt records how many blocks were sealed, so `--apply` refuses rather than silently dropping one if the sidecar disappears. Do not load raw blocks into the model via file tools or paste.
 2. Phases load files **on demand**, not the whole directory.
 3. **Do not** mix two customers in one `.fde/`.
 4. **Deliverable = memory:** `--init` creates only the core files; phase artifacts (`audit.md`, `chaos-log.md`, `handoff.md`, `evals.md`, …) are created by their phases when they run - formats live in [skills/fde/references/](../skills/fde/references/).
