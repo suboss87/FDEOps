@@ -214,8 +214,14 @@ const PRIVATE_TAG = /<(\/)?private\b[^>]*>/gi
 // Depth-aware split of a markdown body into public text and sealed blocks. A
 // nested block seals to the outermost close, an unclosed one seals to EOF, and a
 // stray close is dropped - a regex pair cannot do any of those safely.
-function splitPrivate(md) {
-  const text = String(md || '')
+// HTML comments go first: template hints and pasted notes hide content there, and
+// `clean` is what debrief/ingest preview to a human and route into memory.
+// opts.sealDangling seals an unterminated `<!--` to EOF. Only untrusted input
+// gets that: on the read path a stray `<!--` already stored in memory would
+// otherwise hide every line after it from every view.
+function splitPrivate(md, opts = {}) {
+  let text = String(md || '').replace(/<!--[\s\S]*?-->/g, '')
+  if (opts.sealDangling) text = text.replace(/<!--[\s\S]*$/, '')
   const blocks = []
   let out = ''
   let cursor = 0
@@ -253,7 +259,25 @@ function splitPrivate(md) {
 }
 
 function stripPrivate(md) {
-  return stripControlChars(splitPrivate(md).clean.replace(/<!--[\s\S]*?-->/g, ''))
+  return stripControlChars(splitPrivate(md).clean)
+}
+
+// Persisted blocks must be balanced. splitPrivate() seals an unclosed block to
+// EOF and hands it back exactly as written; storing that would leave a dangling
+// opener that swallows every note appended to the file afterwards.
+function sealedText(blocks) {
+  return blocks.map((b) => {
+    let open = 0
+    let m
+    PRIVATE_TAG.lastIndex = 0
+    while ((m = PRIVATE_TAG.exec(b))) {
+      if (m[1]) open = Math.max(0, open - 1)
+      else open++
+    }
+    // Balance by count, not by suffix: one block can hold several unclosed
+    // openers, and each needs its own closer or the tail still dangles.
+    return `${b}\n${'</private>\n'.repeat(open)}`
+  }).join('')
 }
 
 // Read + redact in one step - the default way dashboard code should ever touch
@@ -392,7 +416,10 @@ function atomicWriteFile(p, content, opts = {}) {
   }
   const tmp = `${p}.${process.pid}.${Date.now()}.tmp`
   try {
-    fs.writeFileSync(tmp, content)
+    // opts.mode is set at create time: a secret must never exist world-readable,
+    // not even for the window between rename and a follow-up chmod.
+    fs.writeFileSync(tmp, content, opts.mode ? { mode: opts.mode } : undefined)
+    if (opts.mode) fs.chmodSync(tmp, opts.mode)
     fs.renameSync(tmp, p)
   } catch (e) {
     try { fs.unlinkSync(tmp) } catch (_) {}
@@ -429,6 +456,7 @@ const DEBRIEF_PROPOSE = '.debrief-propose'
 // The agent is told to open and rewrite .debrief-propose, so sealed blocks are
 // held out of it in an owner-only sidecar that only --apply reads back.
 const DEBRIEF_PRIVATE = '.debrief-private'
+const DEBRIEF_SEAL = '.debrief-seal'
 
 function gitBinOk() {
   try {
@@ -1337,17 +1365,34 @@ function previewLine(text, max = 240) {
 }
 
 function writeProposal(eng, text) {
-  const { clean, blocks } = splitPrivate(text)
+  const { clean, blocks } = splitPrivate(text, { sealDangling: true })
   const proposePath = path.join(eng, DEBRIEF_PROPOSE)
   const privatePath = path.join(eng, DEBRIEF_PRIVATE)
-  withFileLock(proposePath, () => { atomicWriteFile(proposePath, clean) })
+  // Seal first. A refused or failed sidecar write must not leave behind a
+  // proposal whose (private - redacted) marker has nothing left behind it.
   if (blocks.length) {
-    withFileLock(privatePath, () => { atomicWriteFile(privatePath, `${blocks.join('\n')}\n`) })
+    const blocked = refuseSymlinkWrite(privatePath, { soft: true })
+    if (blocked) { console.error(blocked); process.exit(1) }
+    withFileLock(privatePath, () => { atomicWriteFile(privatePath, sealedText(blocks), { mode: 0o600 }) })
     try { fs.chmodSync(privatePath, 0o600) } catch (_) {}
   } else {
     try { fs.unlinkSync(privatePath) } catch (_) {}
   }
+  withFileLock(proposePath, () => { atomicWriteFile(proposePath, clean) })
+  // Receipt, so apply knows how many blocks the human actually approved. Counting
+  // (private - redacted) markers in the proposal instead would refuse forever on
+  // notes that merely quote the wording - the CLI prints it, so it gets pasted back.
+  withFileLock(path.join(eng, DEBRIEF_SEAL), () => {
+    atomicWriteFile(path.join(eng, DEBRIEF_SEAL), `${blocks.length}\n`)
+  })
   return { proposePath, clean, blocks }
+}
+
+function readSealCount(eng) {
+  try {
+    const n = parseInt(fs.readFileSync(path.join(eng, DEBRIEF_SEAL), 'utf8').trim(), 10)
+    return Number.isInteger(n) && n >= 0 ? n : null
+  } catch (_) { return null }
 }
 
 function readSealedProposal(eng) {
@@ -1367,7 +1412,7 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
   // lines are never previewed and never routed into decisions/risks/stakeholders
   // unsealed. They land verbatim in context.md instead: the preview a human
   // approves is exactly what --apply writes.
-  const { clean: routable, blocks: inlinePrivate } = splitPrivate(input)
+  const { clean: routable, blocks: inlinePrivate } = splitPrivate(input, { sealDangling: true })
   const privateBlocks = [...inlinePrivate, ...sealed]
   for (const raw of routable.split('\n')) {
     let line = raw.trim()
@@ -1408,7 +1453,7 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
     if (dry) ctxLines.forEach(l => console.log(`→ context.md  - ${previewLine(l)}`))
     else {
       const bullets = ctxLines.length ? `${ctxLines.map(l => `- ${l}`).join('\n')}\n` : ''
-      const sealed = privateBlocks.length ? `${privateBlocks.join('\n')}\n` : ''
+      const sealed = privateBlocks.length ? sealedText(privateBlocks) : ''
       lockedAppendFile(path.join(eng, 'context.md'), `\n## Debrief - ${stamp}\n${bullets}${sealed}`)
     }
   }
@@ -1441,6 +1486,12 @@ function cmdDebrief(args) {
       process.exit(1)
     }
     sealed = readSealedProposal(eng)
+    const expected = readSealCount(eng)
+    if (expected === null ? (!sealed.length && input.includes(PRIVATE_MARKER)) : sealed.length < expected) {
+      console.error(`refused: the proposal seals a private note but ${DEBRIEF_PRIVATE} is missing or unreadable - applying now would drop it silently.`)
+      console.error('re-run the propose step (fde debrief --smart <notes> | fde ingest propose <id>).')
+      process.exit(1)
+    }
   } else {
     input = readDebriefInput(args)
   }
@@ -1466,6 +1517,7 @@ function cmdDebrief(args) {
     })
     try { fs.unlinkSync(path.join(eng, DEBRIEF_PROPOSE)) } catch (_) {}
     try { fs.unlinkSync(path.join(eng, DEBRIEF_PRIVATE)) } catch (_) {}
+  try { fs.unlinkSync(path.join(eng, DEBRIEF_SEAL)) } catch (_) {}
     if (hash) console.log(`memory @${hash}`)
   }
   const plural = {
