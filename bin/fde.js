@@ -887,8 +887,9 @@ function extractLog(eng) {
   const FLAT = /^-\s*\[(\d{4}-\d{2}-\d{2})\]\s*(.+)$/
   const entries = []
   const push = (date, text, kind) => {
+    const sig = (text.match(/\[signal:(red|amber|green)\]/i) || [])[1] || ''
     text = text.replace(/\[signal:(red|amber|green)\]\s*/i, '').trim()
-    if (date && text) entries.push({ date, text, kind })
+    if (date && text) entries.push({ date, text, kind, sig: sig.toLowerCase() })
   }
 
   readClean(eng, 'decisions.md').split('\n').forEach(l => {
@@ -914,7 +915,9 @@ function extractLog(eng) {
   // rows or the same note renders twice and looks like a double write.
   const seen = new Set()
   return entries.filter(e => {
-    const key = `${e.kind}|${e.date}|${e.text}`
+    // The signal is part of the event: the same note logged amber then red on
+    // one day is an escalation, not a duplicate.
+    const key = `${e.kind}|${e.date}|${e.sig}|${e.text}`
     if (seen.has(key)) return false
     seen.add(key)
     return true

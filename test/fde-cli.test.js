@@ -2246,9 +2246,32 @@ test('a typo\'d fdeops subcommand errors instead of silently installing', () => 
   assert.match(upper.stdout, /real engagements .* were not touched/)
   assert.equal(fs.existsSync(path.join(sandbox.home, '.claude', 'skills', 'fde')), false)
 
+  // Asking a question is not consent to write to the home directory either.
+  for (const flag of ['--help', '-h', '--version', '-v']) {
+    const r = runInstall(sandbox, [flag])
+    const expected = /version/.test(flag) || flag === '-v' ? /^\d+\.\d+\.\d+/ : /fde /
+    assert.match(r.stdout, expected, `${flag} should answer, not install: ${r.stdout}`)
+    assert.equal(
+      fs.existsSync(path.join(sandbox.home, '.claude', 'skills', 'fde')),
+      false,
+      `${flag} must not write ~/.claude`
+    )
+  }
+
   // Bare invocation still installs.
   assert.equal(runInstall(sandbox, []).status, 0)
   assert.ok(fs.existsSync(path.join(sandbox.home, '.claude', 'skills', 'fde')))
+})
+
+test('a flag before the verb does not corrupt the argument the CLI receives', () => {
+  const sandbox = makeSandbox('argvorder')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'rotate vaultkey9 before ship']).status, 0)
+
+  const plain = runInstall(sandbox, ['redact', 'vaultkey9'], { cwd: sandbox.workspace })
+  const flagFirst = runInstall(sandbox, ['--force', 'redact', 'vaultkey9'], { cwd: sandbox.workspace })
+  assert.match(plain.stdout, /1 matching line\(s\) for "vaultkey9"/)
+  assert.equal(flagFirst.stdout, plain.stdout, 'a leading flag changed which term was searched')
 })
 
 test('the fieldbook LOG shows one row per logged contact, not one per storage location', () => {
@@ -2267,6 +2290,13 @@ test('the fieldbook LOG shows one row per logged contact, not one per storage lo
   const rowsFor = text => logRows.filter(r => r.includes(text)).length
   assert.equal(rowsFor('Denise saw the demo'), 1, `LOG rows: ${logRows.join(' | ')}`)
   assert.equal(rowsFor('Marco confirmed scope'), 1, `LOG rows: ${logRows.join(' | ')}`)
+
+  // Same note, same day, escalating signal: an event, not a duplicate.
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Marco confirmed scope', '--signal', 'red']).status, 0)
+  assert.equal(runFde(sandbox, ['dashboard']).status, 0)
+  const after = fs.readFileSync(path.join(sandbox.home, 'fde-engagements', 'fieldbook-current.html'), 'utf8')
+  const afterRows = (after.match(/<span class="fb-log-text">[^<]*<\/span>/g) || [])
+  assert.equal(afterRows.filter(r => r.includes('Marco confirmed scope')).length, 2, `LOG rows: ${afterRows.join(' | ')}`)
 })
 
 test('doctor flags unbalanced <private> markers, which change what is public', () => {
