@@ -88,6 +88,94 @@ for (const refFile of mentioned) {
 }
 ok(`router dispatch (${mentioned.length} reference targets verified) + memory contract`)
 
+// Public claims must match the router. The docs advertise a method count and a
+// per-domain list; both drifted from SKILL.md once (ingest / ingest-connect
+// routed but undocumented), and a number nobody can verify is worse than none.
+{
+  // Every routing row must parse. A row this misses is a method that could go
+  // undocumented for free, so an unparsed row is a hard failure, not a silent skip.
+  const routed = new Set()
+  const routing = (router.split('## Routing - 6 domains')[1] || '').split('**Overlays')[0]
+  const methodCell = line => (line.split('|')[2] || '').trim().replace(/\s*\([^)]*\)\s*$/, '')
+  for (const line of routing.split('\n')) {
+    if (!/^\|/.test(line)) continue
+    // A row that names a method but no reference would route that method while
+    // nothing requires anyone to document it - shape checks can only police rows
+    // they recognise, so name a method here and you must name its reference.
+    if (!/references\/[a-z0-9-]+\.md/.test(line)) {
+      const orphan = methodCell(line)
+      // a method name, not a `-` placeholder (CLI-only rows) or a `---` separator
+      if (/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(orphan)) {
+        fail(`SKILL.md routes '${orphan}' without naming a reference: ${line.trim().slice(0, 80)}`)
+      }
+      continue
+    }
+    // Candidate rows are selected on the reference name in ANY form, then the
+    // shape is enforced - a row this cannot read must fail, never be skipped,
+    // or a method could go undocumented by being written unusually.
+    if (!/`references\/[a-z0-9-]+\.md`/.test(line)) {
+      fail(`SKILL.md routing row must name its reference as \`references/<name>.md\`: ${line.trim().slice(0, 80)}`)
+      continue
+    }
+    // | You hear | <method> | <cell mentioning references/*.md> |
+    const method = methodCell(line)
+    if (!/^[a-z0-9-]+$/.test(method)) {
+      fail(`check.js cannot read the method name in a SKILL.md routing row: ${line.trim().slice(0, 80)}`)
+      continue
+    }
+    routed.add(method)
+  }
+  if (!routed.size) fail('check.js could not parse the SKILL.md routing table')
+
+  // docs/skills-reference.md is the canonical per-method list: one row per
+  // method inside the six domain tables, ending at the Overlays section.
+  const reference = read('docs/skills-reference.md')
+  const documented = new Set()
+  let documentedRows = 0
+  for (const line of reference.split('### Overlays')[0].split('\n')) {
+    const m = line.match(/^\|\s*\[([a-z0-9-]+)\]\(\.\.\/skills\/fde\/references\/([a-z0-9-]+\.md)\)/)
+    if (!m) continue
+    documentedRows++
+    documented.add(m[1])
+    // A link nobody followed is the same unverifiable claim this gate exists for:
+    // the target must exist, and it must be the method the text names.
+    if (m[2] !== `${m[1]}.md`) {
+      fail(`docs/skills-reference.md links [${m[1]}] at references/${m[2]}`)
+    } else if (!fs.existsSync(path.join(root, 'skills', 'fde', 'references', m[2]))) {
+      fail(`docs/skills-reference.md links references/${m[2]}, which does not exist`)
+    }
+  }
+  if (documented.size !== documentedRows) {
+    fail(`docs/skills-reference.md lists ${documentedRows} method rows for ${documented.size} methods - a duplicate row inflates the count`)
+  }
+  const undocumented = [...routed].filter(name => !documented.has(name))
+  if (undocumented.length) {
+    fail(`SKILL.md routes skill(s) missing from docs/skills-reference.md: ${undocumented.join(', ')}`)
+  }
+  // and the other direction: a documented method nothing routes to is a method
+  // the agent can never reach, advertised anyway.
+  const unrouted = [...documented].filter(name => !routed.has(name))
+  if (unrouted.length) {
+    fail(`docs/skills-reference.md documents method(s) SKILL.md never routes to: ${unrouted.join(', ')}`)
+  }
+  for (const rel of ['docs/skills.md', 'docs/skills-reference.md']) {
+    const body = read(rel)
+    // `-` is a word boundary, so \bingest\b matches inside `ingest-connect`:
+    // a method could disappear from the docs behind a hyphenated sibling.
+    const absent = [...documented].filter(name => !new RegExp(`(?<![\\w-])${name}(?![\\w-])`).test(body))
+    if (absent.length) fail(`${rel} does not list method(s): ${absent.join(', ')}`)
+    // every count claim, not just the first: an earlier sentence must not shadow
+    // a stale headline (or the reverse).
+    const claims = [...body.matchAll(/(\d+)\s+methods/g)].map(m => Number(m[1]))
+    if (!claims.length) fail(`${rel} must state how many methods it documents`)
+    const wrong = [...new Set(claims.filter(n => n !== documented.size))]
+    if (wrong.length) {
+      fail(`${rel} claims ${wrong.join('/')} methods; ${documented.size} are documented`)
+    }
+  }
+  ok(`public method count is verifiable (${documented.size} documented, ${routed.size} routed)`)
+}
+
 const install = read('bin/install.js')
 if (install.includes('scaffoldFdeInProject(process.cwd())')) {
   fail('install.js must not auto-scaffold .fde in customer cwd')
