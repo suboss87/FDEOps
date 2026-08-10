@@ -673,12 +673,18 @@ function detectOverlay(eng) {
 // prose section (e.g. risks.md's "## Retired") after the table is never
 // swept in as rows.
 function parseMdTable(md) {
-  const cells = r => r.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|').map(c => c.trim())
+  // Split on unescaped pipes only, then unescape: a ledger full of "40% \| p95"
+  // otherwise shifts every later cell and the table reads as a different table.
+  const cells = r => r.replace(/^\s*\|/, '').replace(/(?<!\\)\|\s*$/, '')
+    .split(/(?<!\\)\|/).map(c => c.replace(/\\\|/g, '|').trim())
   const isSep = r => r.includes('-') && /^\|?[\s:|-]+\|?$/.test(r.trim())
   let headers = null
   const rows = []
   for (const raw of md.split('\n')) {
     const t = raw.trim()
+    // A redacted row is still a row: sealing one line must not truncate the
+    // table and silently hide every row under it.
+    if (t === PRIVATE_MARKER) continue
     if (!/^\|.*\|/.test(t)) { if (headers) break; continue }
     if (isSep(t)) continue
     const cs = cells(t)
@@ -2111,7 +2117,10 @@ function hasValueBucket(eng) {
 // A measured number the FDE calculated is not a benefit the customer agreed to.
 // Rows carrying a real Measured value need a named customer-side owner in
 // "Accepted by", or they close as claimed - the distinction the renewal turns on.
-const PENDING_CELL_RE = /^(pending|tbd|n\/a|na|-+|—+|…)$/i
+// "pending review", "TBD.", "n/a (blocked)" and "..." are all the same thing an
+// FDE means by an empty cell - nagging about them teaches people to ignore doctor.
+const PENDING_CELL_RE =
+  /^(?:pending|tbd|to ?be ?(?:measured|confirmed|determined)|n\s*\/\s*a|na|none|unknown|not measured|\?+|\.{2,}|…|-+|—+|–+)(?:[^\w].*)?$/i
 
 function claimedValueRows(eng) {
   const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger') || '')

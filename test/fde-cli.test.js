@@ -1680,6 +1680,51 @@ test('doctor calls out a measured benefit nobody on the customer side accepted',
   fs.writeFileSync(path.join(eng, 'delivery.md'), ledger('12min over 2 incidents', 'Denise Chen, Jul 9'))
   const accepted = runFde(sandbox, ['doctor'])
   assert.equal(accepted.status, 0, accepted.stdout + accepted.stderr)
+
+  // An escaped pipe in a latency figure must not shift the columns: the row
+  // reads pending and stays quiet, and the same table with a real unaccepted
+  // measurement still fires.
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n' +
+      '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
+      '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+      '| 2026-07-01 | routing | risk-mitigation | 4h \\| 15min p95 | pending | | kill test | off |\n'
+  )
+  const pipedPending = runFde(sandbox, ['doctor'])
+  assert.equal(pipedPending.status, 0, pipedPending.stdout + pipedPending.stderr)
+
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n' +
+      '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
+      '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+      '| 2026-07-01 | routing | risk-mitigation | 4h → 15min | 40% \\| p95 | | kill test | off |\n'
+  )
+  const pipedMeasured = runFde(sandbox, ['doctor'])
+  assert.notEqual(pipedMeasured.status, 0)
+  assert.match(pipedMeasured.stdout, /1 value ledger row\(s\) measured but not accepted/)
+
+  // A sealed row must not truncate the table and hide every row beneath it.
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n' +
+      '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
+      '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+      '| 2026-06-20 | rate card | cost-save | trim spend | <private>SEALED-4242 saved</private> | | invoice | n/a |\n' +
+      '| 2026-07-01 | routing | risk-mitigation | 4h → 15min | 12min over 2 incidents | | kill test | off |\n'
+  )
+  const sealedAbove = runFde(sandbox, ['doctor'])
+  assert.notEqual(sealedAbove.status, 0)
+  assert.match(sealedAbove.stdout, /2 value ledger row\(s\) measured but not accepted/)
+  assert.doesNotMatch(sealedAbove.stdout, /SEALED-4242/, 'doctor must never echo sealed content')
+
+  // Placeholder near-misses mean "not measured yet", not "measured".
+  for (const placeholder of ['pending review', 'TBD.', 'n/a (blocked)', '...', '?']) {
+    fs.writeFileSync(path.join(eng, 'delivery.md'), ledger(placeholder, ''))
+    const near = runFde(sandbox, ['doctor'])
+    assert.equal(near.status, 0, `${placeholder}: ${near.stdout}${near.stderr}`)
+  }
 })
 
 test('ANSI / control chars cannot smuggle fake colors into triage', () => {
