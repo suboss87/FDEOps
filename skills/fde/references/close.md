@@ -18,7 +18,7 @@ The engagement doesn't end at ship. It ends when the customer can maintain what 
 - AI components: did they behave in production? What failure modes did the prototype hide? Is the team equipped to maintain them?
 
 **1b. Value + receipts close gate (refuse green close if any fail):**
-- Primary value bucket in `success.md` matches what the sponsor funded; at least one ledger row has **Measured** (not forever-`pending`) with evidence for that bucket — or the retrospective explicitly records “not measured; sponsor accepted pending.”
+- Primary value bucket in `success.md` matches what the sponsor funded; at least one ledger row has **Measured** (not forever-`pending`) with evidence **and a named customer-side owner in Accepted by** for that bucket — or the retrospective explicitly records “not measured; sponsor accepted pending.” A measured-but-unaccepted number closes as `claimed`; say so in the retrospective rather than closing green on arithmetic nobody signed.
 - Audit receipt exists for the final shipped path (exceptions/operating map walked; cite file).
 - Eval receipt: **n/a if no AI**, else final golden/eval result + HITL owner recorded; kill switch / fallback named in `handoff.md`.
 - One line in the retrospective: which bucket moved, by how much, vs baseline.
@@ -40,6 +40,16 @@ The engagement doesn't end at ship. It ends when the customer can maintain what 
 ## Checkpoint
 
 Direct assessment to the FDE: did the engagement achieve `success.md` · 2–3 lessons that matter · is the pattern worth encoding · is the handoff complete or where are the gaps. Also: value bucket + audit receipt green; eval **n/a or green**. Pending Measured without sponsor acceptance = gap, not green close. Honest - a gap named now is cheaper than a callback in six weeks.
+
+## Worked example
+
+Acme, twelve weeks in, the FDE is rolling off.
+
+Retrospective against the receipts: `brief.md` asked for monitoring, `reality.md` proved it was ownership — and the delta is the most useful paragraph in the file, because it is exactly the argument the next engagement will need.
+
+The close gate bites in a useful way. The ledger shows detection at 12 minutes measured across two real incidents, but **Accepted by** is empty — Marco confirmed it in Slack, Denise (finance) never did, and Denise is whose escalation started the engagement. So it closes as `claimed` with a one-line retrospective note and a named next step, rather than a green close on a number nobody with budget agreed to.
+
+`handoff.md` is written for the person woken at 2am: the three things that break, what the page means, how to re-run manually the way Marco does, and who holds the tribal knowledge (Raj, who built the original job — credited, because he protects it now). `patterns.md` gets *"unowned job" presents as "unmonitored job"* — it has now happened twice.
 
 ## Principles
 

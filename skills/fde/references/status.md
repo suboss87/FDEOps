@@ -16,7 +16,7 @@
 | **A — Answer** | What you recommend / what happens next week (≤3 bullets) | plan Now lane, delivery promised→measured |
 
 Then add, still on the same page:
-1. **Value this week** - from the value ledger: promised → measured (or "pending") with evidence citation.
+1. **Value this week** - from the value ledger: promised → measured (or "pending") → **accepted by whom**, with evidence citation. A measured number nobody on the customer side has agreed to is written as `claimed`, and the Ask never rests on it - if the whole case for the next phase is a claimed number, the real ask this week is "who signs off that this is real?".
 2. **Kill / defer reminder** - one line from the plan kill list so scope fights stay visible.
 3. **Hostile Q prep** - three questions a skeptical sponsor will ask, with one-line answers from memory.
 
@@ -34,7 +34,7 @@ Append the draft to `delivery.md` under `## Status - <date>` using the SCQA head
 **C:** ...
 **Q:** ...
 **A:** ...
-**Value ledger:** promised … / measured … (evidence)
+**Value ledger:** promised … / measured … / accepted by … (evidence) — or `claimed, unaccepted`
 **Kill list reminder:** …
 **Hostile Qs:** 1) … 2) … 3) …
 ```
@@ -42,6 +42,16 @@ Append the draft to `delivery.md` under `## Status - <date>` using the SCQA head
 ## Checkpoint
 
 Walk the FDE through the Complication and the Ask - confirm the framing matches what the sponsor can hear right now (check `stakeholders.md` signal first: a red-signal sponsor gets a different opening than a green one).
+
+## Worked example
+
+Acme, week 3, Priya's Friday update.
+
+**S:** failure routing is live; detection is 12 min against the 4h baseline in `success.md`. **C** leads with the bad news, not the win: the second incident was acked 40 minutes late because the rota has one name on it, and that name was on leave. **Q:** one ask — a second name on the rota by Wednesday. **A:** three bullets, top of the Now lane.
+
+Value ledger line: `promised 4h → 15min / measured 12min over 2 incidents / accepted by — (Marco confirmed operationally, finance not yet)` → written as `claimed, unaccepted`, which is what makes the Ask honest rather than a victory lap.
+
+Hostile Q prep, from memory not imagination: "why did we pay for alerting we already had?" → the receipt from `decisions.md` and the disabled-alerting finding in `reality.md`. Kill list reminder: the service rewrite is still deferred, accepted by Priya on Jun 12.
 
 ## Principles
 
