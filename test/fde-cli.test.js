@@ -2272,6 +2272,16 @@ test('a flag before the verb does not corrupt the argument the CLI receives', ()
   const flagFirst = runInstall(sandbox, ['--force', 'redact', 'vaultkey9'], { cwd: sandbox.workspace })
   assert.match(plain.stdout, /1 matching line\(s\) for "vaultkey9"/)
   assert.equal(flagFirst.stdout, plain.stdout, 'a leading flag changed which term was searched')
+
+  // A command's own flag typed before the command is not silently dropped.
+  const misplaced = runInstall(sandbox, ['--all', 'status'], { cwd: sandbox.workspace })
+  assert.equal(misplaced.status, 1)
+  assert.match(misplaced.stderr, /unknown option '--all' before 'status'/)
+
+  // Flags after the verb still reach the command.
+  const all = runInstall(sandbox, ['status', '--all'], { cwd: sandbox.workspace })
+  assert.equal(all.status, 0, all.stderr)
+  assert.notEqual(all.stdout, runInstall(sandbox, ['status'], { cwd: sandbox.workspace }).stdout)
 })
 
 test('the fieldbook LOG shows one row per logged contact, not one per storage location', () => {
@@ -2297,6 +2307,9 @@ test('the fieldbook LOG shows one row per logged contact, not one per storage lo
   const after = fs.readFileSync(path.join(sandbox.home, 'fde-engagements', 'fieldbook-current.html'), 'utf8')
   const afterRows = (after.match(/<span class="fb-log-text">[^<]*<\/span>/g) || [])
   assert.equal(afterRows.filter(r => r.includes('Marco confirmed scope')).length, 2, `LOG rows: ${afterRows.join(' | ')}`)
+  // …and the two rows are distinguishable, or they read as a double write.
+  assert.match(after, /fb-log-sig t-amber/)
+  assert.match(after, /fb-log-sig t-red/)
 })
 
 test('doctor flags unbalanced <private> markers, which change what is public', () => {

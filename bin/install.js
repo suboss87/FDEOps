@@ -396,6 +396,17 @@ const arg = raw ? known.find(k => k === raw.toLowerCase()) : undefined
 const askedHelp = argv.some(a => /^--?(h|help)$/i.test(a))
 const askedVersion = argv.some(a => /^--?(v|version)$/i.test(a))
 
+// Flags before the verb belong to fdeops, so an unknown one is a mistake worth
+// saying out loud - the alternative is honoring `fdeops --all status` by
+// quietly dropping --all.
+const FDEOPS_FLAGS = /^--?(force|h|help|v|version)$/i
+const leading = (raw === undefined ? argv : argv.slice(0, argv.indexOf(raw))).filter(a => !FDEOPS_FLAGS.test(a))
+if (leading.length) {
+  console.error(`  fdeops: unknown option '${leading[0]}'${raw ? ` before '${raw}' - put command options after the command: fdeops ${raw} ${leading[0]}` : ''}`)
+  console.error('  fdeops itself takes only --force, --help and --version.')
+  process.exit(1)
+}
+
 if (raw && !arg) {
   const guess = nearest(raw, known)
   console.error(`  fdeops: unknown command '${raw}'${guess ? ` - did you mean '${guess}'?` : ''}`)

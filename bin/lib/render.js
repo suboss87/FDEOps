@@ -196,6 +196,7 @@ strong{font-weight:600}
 .fb-log-date{font-family:'Geist Mono',monospace;font-size:11.5px;color:var(--ink-faint);flex:0 0 48px}
 .fb-log-kind{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.03em;text-transform:uppercase;flex:0 0 62px}
 .fb-log-text{flex:1 1 auto;font-size:14px;line-height:1.5;color:var(--ink)}
+.fb-log-sig{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap}
 .fb-more{border-top:1px solid var(--line);padding:12px 0}
 .fb-more:first-child{border-top:none;padding-top:0}
 .fb-more-sum{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px}
@@ -537,6 +538,7 @@ ${e.log.map(g => `<div class="fb-row fb-log">
 <span class="fb-log-date">${escapeHtml(formatLogDate(g.date))}</span>
 <span class="fb-log-kind t-${g.kind === 'receipt' ? 'green' : g.kind === 'decision' ? 'accent' : 'faint'}">${escapeHtml(g.kind)}</span>
 <span class="fb-log-text">${inlineMd(g.text)}</span>
+${g.sig ? `<span class="fb-log-sig t-${g.sig}" title="trust signal ${escapeHtml(g.sig)}">●&nbsp;${escapeHtml(g.sig)}</span>` : ''}
 </div>`).join('\n')}
 </div>
 </div>` : ''
