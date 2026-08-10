@@ -85,7 +85,9 @@ const exampleReferences = [
   'assumption-audit.md', 'scope-defense.md',
 ]
 for (const f of exampleReferences) {
-  const body = read(`skills/fde/references/${f}`)
+  const p = path.join(root, 'skills', 'fde', 'references', f)
+  if (!fs.existsSync(p)) { fail(`missing method reference skills/fde/references/${f}`); continue }
+  const body = fs.readFileSync(p, 'utf8')
   const section = (body.match(/\n## Worked example\n([\s\S]*?)(?=\n## |$)/) || [])[1]
   if (!section) {
     fail(`references/${f} missing ## Worked example`)
