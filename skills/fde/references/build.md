@@ -127,11 +127,23 @@ The FDE's job is to make themselves replaceable. Not at handoff - every day. A c
 
 - **`decisions.md`** - each significant choice: what, alternatives considered, why this one. For non-trivial architecture decisions, present three options to the FDE (safe / pragmatic / aggressive) with costs and a recommendation - three options is a real decision; one option is a request for trust. Integration contracts go here too.
 - **`risks.md`** - new risks discovered while building.
-- **`delivery.md`** - append a **value ledger** row for every ship: Date | Slice | Bucket | Promised | Measured | Evidence | Rollback. Bucket is `cost-save` / `risk-mitigation` / `revenue-uplift`. "Measured" may be `pending` until the pulse exists - never skip the promised column. Narrative under Shipped is optional color; the ledger is the record status and close read.
+- **`delivery.md`** - append a **value ledger** row for every ship: Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback. Bucket is `cost-save` / `risk-mitigation` / `revenue-uplift`. "Measured" may be `pending` until the pulse exists - never skip the promised column. Narrative under Shipped is optional color; the ledger is the record status and close read.
+
+  **Measured is not the same as accepted.** A number the FDE calculated is `claimed` until a named customer-side owner agrees it is real - their finance lead, their ops manager, the person whose budget it moves. Write the name and the date in **Accepted by**; leave it empty and the row reads `claimed`, never "delivered". This is the difference between a benefit that survives the renewal conversation and one the sponsor's CFO deletes in the review.
 
 ## Checkpoint
 
 Before merge: the two-stage review (scope, then safety) has run clean, verification evidence is stated, and the slice is demonstrable. If `trust-profile.md` requires human sign-off on AI-generated code, that sign-off exists.
+
+## Worked example
+
+Acme task 1: route reconciliation failures to a named on-call.
+
+Characterisation first — a test that captures what the job does *today* when it exits non-zero (silently succeeds from the caller's perspective). That test fails after the fix, which is the point: it documents the behaviour being changed rather than trusting the diff.
+
+Mid-build, Tom asks to "just also fix the retry logic while you're in there." That is a scope decision, not a request: logged in `decisions.md` with the blast radius (retry touches the settlement path — not in this slice's declared radius) and routed to the plan's Next lane.
+
+Ledger row on ship: `Jun 18 | failure routing | risk-mitigation | 4h → 15min detection | pending | — | staging kill test, PR #212 | disable alert route`. **Accepted by** stays empty until Marco confirms from a real incident — until then the number is claimed, and the status update says so.
 
 ## Principles
 

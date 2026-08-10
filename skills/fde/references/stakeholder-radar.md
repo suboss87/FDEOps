@@ -45,6 +45,17 @@ In every engagement where an external FDE was brought in, an internal team was p
 - **Use their language.** In every meeting. They hear their words coming back and they feel consulted, not replaced.
 - **Make them look right.** Credit their prior work in your artifacts. They protect you if they feel respected; they wait for your mistake if they don't.
 
+**6. Before a decision meeting: pre-wire, then pre-mortem.**
+
+A recommendation that needs several people to say yes is not won in the room; it is won in the week before it. When the FDE is heading into a go/no-go, a budget ask, or anything that visibly costs someone territory:
+
+- **Sort by position, not by seniority.** Firm supporter / firm opponent / **swing**. Effort goes almost entirely to swings - supporters need reinforcement, not persuasion, and a firm opponent is rarely moved by a louder version of the argument that already failed.
+- **Name what each swing is protecting.** The objection voiced in a meeting is usually a proxy: headcount, budget, credibility, control, or the reporting line that gets messier. Write the underlying motivation next to the stated objection - they are different sentences.
+- **Sequence the conversations.** Whoever makes the others easier to win goes first; whoever is reassured by seeing names already on board goes last. One-on-one for anyone who would lose face conceding in a group.
+- **Pre-mortem the meeting.** "It's Thursday, the meeting went badly - who sank it, and with what sentence?" That sentence is the pre-wire you are missing. If the answer is a specific person's objection, their conversation happens *before* the room convenes, not in it.
+
+Log the sequence and the pre-mortem sentence in `context.md` as the plan for the week - a pre-wire plan that lives only in the FDE's head is not a plan.
+
 ## Artifact
 
 **`stakeholders.md`** - updated with evidence-dated signal changes:
@@ -60,6 +71,16 @@ Signal changes get a dated evidence note. A signal that moved without evidence l
 ## Checkpoint
 
 One line per stakeholder who changed signal this week. If nobody changed: "Map stable - next check <date>." If a ghost appeared or a resistor went quiet: name it, recommend the move, and update `context.md` with the action.
+
+## Worked example
+
+Acme, week 6. Priya's replies have gone from same-day to two days, and a phase-2 go/no-go is scheduled for Thursday.
+
+Two signals, not one feeling: response time doubled *and* a finance analyst nobody introduced started asking when the work completes. That combination is an invisible escalation — someone above Priya is asking, and the meeting is already happening without the FDE.
+
+Positions: Priya is a supporter under pressure. Marco is a supporter who does not vote. Denise (finance) is the swing, and what she is protecting is not the budget line she cites — it is that her team's escalation started this and she has nothing to show her own director. Raj is a firm opponent on the rewrite question, and no amount of the same argument moves him.
+
+Sequence: Denise one-on-one Tuesday with the incident numbers in her units, then Priya Wednesday, so Priya walks in already knowing finance is not going to object. Pre-mortem sentence: *"Denise says 'we still don't know if this actually caught anything'"* — which is precisely why Tuesday exists. `stakeholders.md` records `Priya | sponsor | green→amber | reply latency 1d → 2d, unintroduced analyst (Jul 3)`; `context.md` carries the sequence.
 
 ## Principles
 

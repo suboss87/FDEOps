@@ -72,6 +72,16 @@ The full option details in the same entry or linked to a section in `reality.md`
 
 Present the three options and the recommendation. One question to the FDE: "Which option matches what the sponsor can hear right now?" (A risk-averse sponsor after an incident → conservative. A founder pre-fundraise → ambitious.) If unsure: present all three and let the sponsor decide.
 
+## Worked example
+
+Acme: the reconciliation job needs to survive the FDE leaving. Priya asks "so what should we do?"
+
+Three real paths, not a strawman set. **Safe:** keep the job, add the rota and runbook — two weeks, no new failure modes, does nothing about the 47-commits/90d hotspot. **Pragmatic:** extract the settlement-matching step behind a tested interface — six weeks, retires the untested hotspot, needs Raj's time and he currently opposes it. **Aggressive:** rewrite the service — a quarter, fixes everything, and the same team already abandoned this once.
+
+Same dimensions on each, so comparison is instant, and every cost carries a source: the six-week figure is churn-based, not felt.
+
+Recommendation: pragmatic, conditional — *if* Raj is on the design, otherwise safe, because the aggressive path failed here before for exactly the reason it would fail again. `decisions.md` records the decision, who chose it, and the condition, so week 10's "why aren't we rewriting it" has an answer with a date on it.
+
 ## Principles
 
 - Three options, never one. One option is a request for trust; three is a real decision.

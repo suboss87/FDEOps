@@ -1970,6 +1970,12 @@ function collectDoctorIssues(eng) {
         `phase is ${s.phase} with no value bucket (cost-save | risk-mitigation | revenue-uplift) in success.md or delivery value ledger`
       )
     }
+    const value = claimedValueRows(eng)
+    if (value.claimed) {
+      issues.push(
+        `${value.claimed} value ledger row(s) measured but not accepted by anyone on the customer side${value.columnMissing ? ' (no "Accepted by" column)' : ''} - a number only we agree with is claimed, not delivered; name who signed off in delivery.md`
+      )
+    }
     if (engagementTouchesAI(eng) && !hasEvalReceipt(eng)) {
       issues.push(
         `phase is ${s.phase} with AI in scope but no eval receipt (evals.md Verdict or delivery Eval / Ship receipts) — required before green ship/close`
@@ -2100,6 +2106,28 @@ function hasValueBucket(eng) {
     return true
   }
   return false
+}
+
+// A measured number the FDE calculated is not a benefit the customer agreed to.
+// Rows carrying a real Measured value need a named customer-side owner in
+// "Accepted by", or they close as claimed - the distinction the renewal turns on.
+const PENDING_CELL_RE = /^(pending|tbd|n\/a|na|-+|—+|…)$/i
+
+function claimedValueRows(eng) {
+  const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger') || '')
+  const table = parseMdTable(ledger)
+  if (!table) return { claimed: 0, columnMissing: false }
+  const mIdx = colIndex(table.headers, /measured/i)
+  if (mIdx === -1) return { claimed: 0, columnMissing: false }
+  const aIdx = colIndex(table.headers, /accept/i)
+  let claimed = 0
+  for (const row of table.rows) {
+    const measured = String(row[mIdx] || '').trim()
+    if (!measured || PENDING_CELL_RE.test(measured)) continue
+    const accepted = aIdx === -1 ? '' : String(row[aIdx] || '').trim()
+    if (!accepted || PENDING_CELL_RE.test(accepted)) claimed++
+  }
+  return { claimed, columnMissing: aIdx === -1 }
 }
 
 // AI in scope for ship/close hygiene — delivery/decisions/trust evidence only.

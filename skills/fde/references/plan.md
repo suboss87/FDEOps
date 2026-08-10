@@ -131,6 +131,16 @@ Write migration strategy to `decisions.md` under `## Migration`. Each service ge
 
 Never quietly update tasks. Name the reset: update `reality.md` and `success.md`, one paragraph in `decisions.md` - what changed, why, new sequence. An undocumented reset looks like drift; a documented one looks like the FDE caught something important.
 
+## Worked example
+
+Acme, after discover: the reconciliation job is unowned, Marco's spreadsheet is the real fallback.
+
+**Now** is three tasks, not eight. Task 1 is *failures reach a named human* — delivers a page to a rota, accepts "kill the job mid-run → the on-call is paged within 15 min", touches the job wrapper and the alert config, rollback is re-disable the route, verify by killing it in staging. Value promised: `risk-mitigation — a silent failure becomes a 15-minute one`.
+
+The kill list in `decisions.md` is where the plan earns its keep: the rewrite of the reconciliation service that Tom keeps proposing goes there — *deferred, the failure mode is ownership not architecture (Priya accepted, Jun 12)* — along with the finance dashboard finance asked for directly. Both stay visible so the same argument is not re-litigated in week 4 without a receipt.
+
+First visible slice goes to Marco, not Priya: he is the one whose morning changes, and his confirmation is what makes the sponsor update true.
+
 ## Principles
 
 - Plan from success backwards, not from today forwards.

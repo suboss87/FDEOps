@@ -4,9 +4,9 @@
 
 ## Value ledger
 
-| Date | Slice | Bucket | Promised | Measured | Evidence | Rollback |
-|------|-------|--------|----------|----------|----------|----------|
-| | | *(cost-save / risk-mitigation / revenue-uplift)* | *(what we said it would change)* | *(what actually changed, or pending)* | *(who/when/metric)* | |
+| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |
+|------|-------|--------|----------|----------|-------------|----------|----------|
+| | | *(cost-save / risk-mitigation / revenue-uplift)* | *(what we said it would change)* | *(what actually changed, or pending)* | *(customer-side name + date, or it stays claimed)* | *(who/when/metric)* | |
 
 ## Ship receipts
 

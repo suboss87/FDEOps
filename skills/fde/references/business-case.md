@@ -69,6 +69,16 @@ The sponsor who sees you've identified where the case could break trusts the cas
 
 Walk the FDE through: the cost of doing nothing (anchor), the investment, the return, and the one sensitivity that matters most. If the FDE says "the sponsor won't buy the ROI number" - ask what number they would believe and work backwards from there.
 
+## Worked example
+
+Acme phase 2 needs funding. The case starts with the cost of doing nothing, not the cost of building.
+
+Anchor: two silent failures since March, each one day of finance reconciliation by hand plus a late close (`reality.md`, Marco's sheet). That is the number the sponsor already believes because her own team reported it.
+
+Driver model the sponsor can trace: incidents/quarter × hours of manual reconciliation × loaded cost, plus the tail risk of a late regulatory close — stated separately, because mixing a certain small number with an uncertain large one is how a case loses credibility.
+
+Sensitivity names the two drivers that swing it: incident frequency (2/quarter → 1/quarter and the case halves) and whether the manual re-run continues in parallel (if Marco keeps re-running every morning, the saving is theoretical). The second one is the honest weakness, so it is in the case rather than waiting to be found in the room — with the condition that makes it hold: the morning re-run stops after two clean cycles, agreed with Marco.
+
 ## Principles
 
 - The cost of doing nothing is always the opening move. Anchor before proposing.
