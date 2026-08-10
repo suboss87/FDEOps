@@ -192,6 +192,16 @@ If discovery revealed the problem is 3× the brief: the FDE tells the customer *
 
 Stop. Don't form a fourth hypothesis. Three disproven reads means the brief is actively misleading - usually the person who briefed doesn't know, or knows and can't say. Change method: stop analysing the system, ask three people separately "if you had to bet on what's actually wrong here, what would you say?" The thing they all hesitate before saying is the real problem.
 
+## Worked example
+
+Acme's brief blamed missing monitoring. Discovery goes to the workaround first.
+
+`git log` shows the reconciliation module at 47 commits/90d with no tests, all from one author who left in February. Marco (ops lead) turns out to keep a spreadsheet: every morning he re-runs the job manually and eyeballs the totals — a habit nobody mentioned because to him it is just the job. That spreadsheet is the system of record when the job fails, which is the actual finding.
+
+`reality.md`: **Confirmed:** the job has no owner, and the manual re-run masks failures for a day (evidence: Marco's sheet, Day 5; two silent failures since March, finance escalation Mar 14). **Stated brief was wrong because:** alerting existed last year and was disabled — adding it again without an owner reproduces the same outcome. `terrain.md` gets the hotspot row and an operating-map row: `job fails silently → Marco notices next morning → re-runs by hand → spreadsheet is truth → LOAD-BEARING (Marco, Day 5)`.
+
+Checkpoint to the FDE names the sponsor decision this creates: fund ownership, or fund alerting and accept the same failure in six months.
+
 ## Principles
 
 - The brief is a hypothesis until evidence confirms it.

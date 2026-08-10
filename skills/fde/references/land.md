@@ -79,6 +79,16 @@ Before the end of day 1, ship one visible thing: a small bug fix, a cleanup the 
 
 **`success.md`** - what done looks like, **primary value bucket** (`cost-save` | `risk-mitigation` | `revenue-uplift`), baseline → target, who actually signs off, what is explicitly out of scope. Agreed with the customer, not assumed.
 
+For every target number, run the **gaming check** before it is written down: *how could this metric hit its target without the customer being any better off?* There is always an answer, and the answer is what the org will drift toward under pressure. Write the guard next to the metric:
+
+```markdown
+| Metric | Baseline → target | Gamed by | Guard |
+|--------|-------------------|----------|-------|
+| reconciliation alert latency | 4h → 15min | alerting on everything, so nobody reads them | alerts acked by a named owner, ≤2/week |
+```
+
+A metric with no gaming check is a metric the FDE will be held to and cannot defend. If the customer resists the guard, that is the real conversation - they are attached to the number, not the outcome.
+
 **`stakeholders.md`**:
 ```markdown
 | Who | Role | Signal | Notes |
@@ -104,6 +114,16 @@ One falsifiable hypothesis about the real problem also goes at the bottom of `br
 One page back to the FDE: success + value bucket + sign-off owner, out-of-scope boundary, sacred data, stakeholder map with veto power, AI posture, the hypothesis, the top CRITICAL assumptions still OPEN, and any exception-path seeds heard (break → workaround → owner) for discover to map into `terrain.md`. If it doesn't fit one page, the engagement isn't understood yet.
 
 If remote: trust-building takes ~40% longer - push for a short video call before anything asynchronous.
+
+## Worked example
+
+Kickoff at Acme payments. Priya (VP Eng) sponsors; the brief says "add monitoring to the reconciliation service."
+
+Asking what happens the week after a perfect delivery gets: "I stop hearing about it from finance." That is the real success statement — not monitoring. The previous attempt surfaces too: the platform team built alerting last year, it was turned off. Raj, who built it, is still there and was not in the kickoff — the passed-over team, found on day 1 rather than at the first standup.
+
+What gets written: `success.md` with bucket `risk-mitigation`, `reconciliation failures reach a named owner within 15 min (baseline: 4h, found by finance)`, gaming check `alerting on everything so nobody reads them` → guard `≤2 alerts/week, acked by name`, sign-off Priya. `brief.md` carries the gap list and the hypothesis: *the job is not unmonitored, it is unowned*. `assumptions.md` seeds `"finance would act on an alert" — CRITICAL — OPEN — (stated, unverified)`. `trust-profile.md` records the sacred thing Priya hesitated before naming.
+
+Day-1 deliverable: fix the log line that swallows the job's exit code. Small, visible, in their environment.
 
 ## Principles
 

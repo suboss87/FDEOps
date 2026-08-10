@@ -186,6 +186,16 @@ Adoption isn't a handoff-stage problem - it starts during build. Software that l
 
 Before 100%: canary clean, business metric verified, pulse written into `delivery.md`. Also green: value bucket named, audit receipt dated, eval receipt **n/a or pass**, **intent vs diff clean** (no unresolved SPLIT/DROP). Missing any of those → not green. For enterprise-scale: scale-readiness gate passed before broad rollout.
 
+## Worked example
+
+Acme, shipping the failure-routing slice into a payments environment on a Thursday.
+
+Readiness scoring catches two things the diff does not. The audit receipt is missing: the operating map says Marco's manual re-run is the fallback, and nobody has checked whether the new page fires *before* his morning run or after — if after, the alert changes nothing. That gets walked and cited before deploy. Second, the intent-vs-diff read shows the PR also touches the settlement retry that was deferred in build; it comes out.
+
+Pre-blast challenge: "what does this break if it fires at 3am and nobody acks?" Answer: nothing breaks, but the rota is not yet agreed — so the deploy waits on a name, not on code. That is a one-day slip that prevents a fake green.
+
+After deploy: `delivery.md` ship receipt with the audit cite, the kill test evidence, and the rollback line. Eval receipt: n/a, no AI in this path.
+
 ## Principles
 
 - A deployment without a tested rollback is reckless.

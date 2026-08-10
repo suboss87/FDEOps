@@ -1629,6 +1629,104 @@ test('doctor ship/close: value bucket required; eval only when AI in scope', () 
   assert.equal(aiOk.status, 0, aiOk.stdout + aiOk.stderr)
 })
 
+test('doctor calls out a measured benefit nobody on the customer side accepted', () => {
+  const sandbox = makeSandbox('doctor-claimed-value')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'claimco']).status, 0)
+  const eng = engagementPath(sandbox, 'claimco')
+  assert.equal(runFde(sandbox, ['log', 'decision', 'route failures to on-call']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
+  fs.writeFileSync(
+    path.join(eng, 'context.md'),
+    '# Engagement context\n**Phase:** ship\n\n## Next action\n- confirm the number with finance\n'
+  )
+  fs.writeFileSync(
+    path.join(eng, 'success.md'),
+    '# Success\nDone when: finance signs off.\n**Primary value bucket:** risk-mitigation\n'
+  )
+  fs.writeFileSync(path.join(eng, 'risks.md'), '# Risks\n')
+  fillOperatingMap(eng)
+
+  const ledger = (measured, accepted) =>
+    '# Delivery\n## Value ledger\n' +
+    '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
+    '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+    `| 2026-07-01 | failure routing | risk-mitigation | 4h → 15min | ${measured} | ${accepted} | kill test | disable route |\n`
+
+  // Still being measured: nothing to accept yet, so no nag.
+  fs.writeFileSync(path.join(eng, 'delivery.md'), ledger('pending', ''))
+  const stillPending = runFde(sandbox, ['doctor'])
+  assert.equal(stillPending.status, 0, stillPending.stdout + stillPending.stderr)
+
+  // A number we calculated and nobody signed: claimed, not delivered.
+  fs.writeFileSync(path.join(eng, 'delivery.md'), ledger('12min over 2 incidents', ''))
+  const claimed = runFde(sandbox, ['doctor'])
+  assert.notEqual(claimed.status, 0)
+  assert.match(claimed.stdout, /1 value ledger row\(s\) measured but not accepted/)
+  assert.doesNotMatch(claimed.stdout, /no "Accepted by" column/)
+
+  // An older ledger without the column is the same finding, said differently.
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n' +
+      '| Date | Slice | Bucket | Promised | Measured | Evidence | Rollback |\n' +
+      '|------|-------|--------|----------|----------|----------|----------|\n' +
+      '| 2026-07-01 | failure routing | risk-mitigation | 4h → 15min | 12min over 2 incidents | kill test | disable route |\n'
+  )
+  const legacy = runFde(sandbox, ['doctor'])
+  assert.notEqual(legacy.status, 0)
+  assert.match(legacy.stdout, /no "Accepted by" column/)
+
+  // Named customer-side owner clears it.
+  fs.writeFileSync(path.join(eng, 'delivery.md'), ledger('12min over 2 incidents', 'Denise Chen, Jul 9'))
+  const accepted = runFde(sandbox, ['doctor'])
+  assert.equal(accepted.status, 0, accepted.stdout + accepted.stderr)
+
+  // An escaped pipe in a latency figure must not shift the columns: the row
+  // reads pending and stays quiet, and the same table with a real unaccepted
+  // measurement still fires.
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n' +
+      '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
+      '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+      '| 2026-07-01 | routing | risk-mitigation | 4h \\| 15min p95 | pending | | kill test | off |\n'
+  )
+  const pipedPending = runFde(sandbox, ['doctor'])
+  assert.equal(pipedPending.status, 0, pipedPending.stdout + pipedPending.stderr)
+
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n' +
+      '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
+      '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+      '| 2026-07-01 | routing | risk-mitigation | 4h → 15min | 40% \\| p95 | | kill test | off |\n'
+  )
+  const pipedMeasured = runFde(sandbox, ['doctor'])
+  assert.notEqual(pipedMeasured.status, 0)
+  assert.match(pipedMeasured.stdout, /1 value ledger row\(s\) measured but not accepted/)
+
+  // A sealed row must not truncate the table and hide every row beneath it.
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n' +
+      '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
+      '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+      '| 2026-06-20 | rate card | cost-save | trim spend | <private>SEALED-4242 saved</private> | | invoice | n/a |\n' +
+      '| 2026-07-01 | routing | risk-mitigation | 4h → 15min | 12min over 2 incidents | | kill test | off |\n'
+  )
+  const sealedAbove = runFde(sandbox, ['doctor'])
+  assert.notEqual(sealedAbove.status, 0)
+  assert.match(sealedAbove.stdout, /2 value ledger row\(s\) measured but not accepted/)
+  assert.doesNotMatch(sealedAbove.stdout, /SEALED-4242/, 'doctor must never echo sealed content')
+
+  // Placeholder near-misses mean "not measured yet", not "measured".
+  for (const placeholder of ['pending review', 'TBD.', 'n/a (blocked)', '...', '?']) {
+    fs.writeFileSync(path.join(eng, 'delivery.md'), ledger(placeholder, ''))
+    const near = runFde(sandbox, ['doctor'])
+    assert.equal(near.status, 0, `${placeholder}: ${near.stdout}${near.stderr}`)
+  }
+})
+
 test('ANSI / control chars cannot smuggle fake colors into triage', () => {
   const sandbox = makeSandbox('ansi-smuggle')
   assert.equal(runFde(sandbox, ['resume', '--init', 'ansico']).status, 0)

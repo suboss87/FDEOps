@@ -76,6 +76,29 @@ for (const f of requiredReferences) {
 }
 ok('phase references')
 
+// A method reference teaches by showing one engagement, not by describing a shape:
+// every judgment-heavy reference carries a worked example that names the memory
+// file the work lands in. Prose-only guidance drifts into advice nobody can apply.
+const exampleReferences = [
+  'land.md', 'discover.md', 'plan.md', 'build.md', 'ship.md', 'close.md',
+  'status.md', 'stakeholder-radar.md', 'options-analysis.md', 'business-case.md',
+  'assumption-audit.md', 'scope-defense.md',
+]
+for (const f of exampleReferences) {
+  const p = path.join(root, 'skills', 'fde', 'references', f)
+  if (!fs.existsSync(p)) { fail(`missing method reference skills/fde/references/${f}`); continue }
+  const body = fs.readFileSync(p, 'utf8')
+  const section = (body.match(/\n## Worked example\n([\s\S]*?)(?=\n## |$)/) || [])[1]
+  if (!section) {
+    fail(`references/${f} missing ## Worked example`)
+  } else if (section.trim().length < 400) {
+    fail(`references/${f} worked example is too thin to teach anything`)
+  } else if (!/`[a-z-]+\.md`/.test(section)) {
+    fail(`references/${f} worked example never names the memory file the work lands in`)
+  }
+}
+ok(`worked examples (${exampleReferences.length} references)`)
+
 const router = read('skills/fde/SKILL.md')
 if (!router.includes('memory contract')) fail('SKILL.md must define the memory contract')
 // every references/<name>.md the router mentions must exist

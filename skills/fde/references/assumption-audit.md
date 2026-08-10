@@ -72,6 +72,16 @@ Status values: `OPEN` · `TESTING` · `CONFIRMED` · `DISPROVED` · `PARKED`. A 
 
 Tell the FDE: how many assumptions extracted, how many critical, which ones were tested, which changed the direction. If a critical assumption is disproved: recommend the next move (rescope, pivot, or the conversation with the sponsor) before the FDE asks. If any CRITICAL remains OPEN: do not route to plan.
 
+## Worked example
+
+Acme's brief reads cleanly, which is the signal.
+
+Extracted assumptions include one nobody said aloud: *finance would act on an alert*. The whole plan rests on it, and the evidence behind it is a sentence in a kickoff. Blast radius CRITICAL — if false, alerting changes nothing and the engagement delivers a page nobody answers.
+
+Validation is a test, not a discussion, and it is cheap: send one real failure notification to the finance channel and watch what happens. It goes first because highest blast radius × cheapest test is the killer test.
+
+Result: acked in 40 minutes, by Marco, not finance. Assumption DISPROVED, and the plan changes before six weeks are spent on it — the alert needs a rota with an owner, which is a different piece of work than the one that was funded. `assumptions.md` records the status, the evidence, and the date; the finding is presented to the FDE as a fact base, not as "the brief was wrong".
+
 ## Principles
 
 - Every "just" is an assumption. Every "should" is an assumption.
