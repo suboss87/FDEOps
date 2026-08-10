@@ -149,10 +149,20 @@ function installSkillDirs(opts = {}) {
       copyDir(src, dest)
       markManaged(dest)
     } catch (e) {
-      failed.push({ name: entry.name, code: e.code || 'error', path: e.path || dest })
+      failed.push({ name: entry.name, code: e.code || 'error', path: destPathFor(e.path, src, dest) })
     }
   }
   return { skipped, links, failed }
+}
+
+// A failed copy can surface either side of the operation; the user can only fix
+// the destination, so never point them at a path inside the package.
+function destPathFor(failedPath, src, dest) {
+  if (!failedPath) return dest
+  if (failedPath === src || failedPath.startsWith(src + path.sep)) {
+    return path.join(dest, path.relative(src, failedPath))
+  }
+  return failedPath
 }
 
 function reportCollisions(paths, verb) {
@@ -348,15 +358,54 @@ const FDE_SUBCOMMANDS = [
   'garden', 'owner', 'receipts', 'capture', 'status', 'dashboard', 'help',
 ]
 
+const INSTALL_SUBCOMMANDS = ['init', 'adapters', 'install']
+
+function editDistance(a, b) {
+  let prev = [...Array(b.length + 1).keys()]
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i]
+    for (let j = 1; j <= b.length; j++) {
+      row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1))
+    }
+    prev = row
+  }
+  return prev[b.length]
+}
+
+function nearest(word, known) {
+  const w = word.toLowerCase()
+  let best = null
+  let bestScore = 3
+  for (const k of known) {
+    const d = editDistance(w, k)
+    if (d < bestScore) { best = k; bestScore = d }
+  }
+  return best
+}
+
 const argv = process.argv.slice(2)
 const force = argv.includes('--force')
-const positional = argv.filter(a => a !== '--force')
-const arg = positional[0]
+const positional = argv.filter(a => !a.startsWith('-'))
+const raw = positional[0]
+// `fdeops Demo` is a typo, not a request to rewrite ~/.claude: verbs match
+// case-insensitively, and anything unrecognized fails loudly instead of
+// falling through to a full install.
+const known = INSTALL_SUBCOMMANDS.concat(FDE_SUBCOMMANDS)
+const arg = raw ? known.find(k => k === raw.toLowerCase()) : undefined
+
+if (raw && !arg) {
+  const guess = nearest(raw, known)
+  console.error(`  fdeops: unknown command '${raw}'${guess ? ` - did you mean '${guess}'?` : ''}`)
+  console.error('  Run `npx fdeops help` for the command list, or `npx fdeops` with no arguments to install.')
+  process.exit(1)
+}
+
 if (arg === 'init') {
   cmdInit(positional[1])
 } else if (arg === 'adapters') {
   cmdAdapters(positional[1], { force })
-} else if (FDE_SUBCOMMANDS.includes(arg)) {
+} else if (arg && arg !== 'install') {
+  process.argv[2] = arg
   require(path.join(__dirname, 'fde.js'))
 } else {
   cmdInstall({ force })

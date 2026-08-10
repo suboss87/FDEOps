@@ -280,6 +280,25 @@ function sealedText(blocks) {
   }).join('')
 }
 
+// Unbalanced markers do not leak a sealed block, but they change what is public:
+// a stray `</private>` leaves the text after it in the clear, and a forgotten
+// closer seals everything appended later. Counts only - never the content.
+function privateMarkerImbalance(md) {
+  const text = String(md || '')
+  let depth = 0
+  let unclosed = 0
+  let stray = 0
+  let m
+  PRIVATE_TAG.lastIndex = 0
+  while ((m = PRIVATE_TAG.exec(text))) {
+    if (!m[1]) depth++
+    else if (depth > 0) depth--
+    else stray++
+  }
+  unclosed = depth
+  return { unclosed, stray }
+}
+
 // Read + redact in one step - the default way dashboard code should ever touch
 // a markdown file, so a forgotten stripPrivate() call can't leak a <private> block.
 function readClean(eng, f) { return stripPrivate(readEng(eng, f)) }
@@ -890,7 +909,16 @@ function extractLog(eng) {
   })
 
   entries.sort((a, b) => b.date.localeCompare(a.date))
-  return entries.slice(0, 15)
+  // `fde log contact` records one entry in two places (stakeholders.md "Signal
+  // history" and .signal-ledger); the timeline reads both, so collapse identical
+  // rows or the same note renders twice and looks like a double write.
+  const seen = new Set()
+  return entries.filter(e => {
+    const key = `${e.kind}|${e.date}|${e.text}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  }).slice(0, 15)
 }
 
 // ---------- commands ----------
@@ -1949,6 +1977,17 @@ function collectDoctorIssues(eng) {
       issues.push('memory not git-versioned - next write will init, or re-run resume --init')
     }
   }
+  for (const file of REDACT_FILES) {
+    const abs = path.join(eng, file)
+    if (!fs.existsSync(abs)) continue
+    const { unclosed, stray } = privateMarkerImbalance(readEng(eng, file))
+    if (stray) {
+      issues.push(`${file} has ${stray} unmatched </private> - text after it is PUBLIC; pair or delete the marker`)
+    }
+    if (unclosed) {
+      issues.push(`${file} has ${unclosed} unclosed <private> - everything after it is sealed, including notes added later`)
+    }
+  }
   const success = readClean(eng, 'success.md')
   if (!firstLine(success, 80)) issues.push('success.md has no stated done-definition - fill before plan/build')
   const ctxMd = readClean(eng, 'context.md')
@@ -2737,7 +2776,7 @@ ${fs.existsSync(html) ? `\n  Open the fieldbook:  ${html}` : ''}
 
 function printUsage() {
   console.log(`fde - deterministic core of fdeops
-  fde demo                 60-second walkthrough on a fake client (fde demo --clean removes it)
+  fde demo                 the whole loop on a fake client (fde demo --clean removes it)
   fde scan                 day-1 recon of this repo (facts, no AI)
   fde resume               load this workspace's engagement memory (bounded)
   fde resume --full        load the complete context.md (no bound)

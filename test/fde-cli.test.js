@@ -2227,3 +2227,63 @@ test('ingest MCP server speaks newline-delimited stdio as the MCP transport requ
     ['ingest_stage', 'ingest_list', 'ingest_propose', 'ingest_apply']
   )
 })
+
+test('a typo\'d fdeops subcommand errors instead of silently installing', () => {
+  const sandbox = makeSandbox('typo')
+  for (const typo of ['dmeo', 'dashbord', 'instal', 'nonsense']) {
+    const r = runInstall(sandbox, [typo])
+    assert.equal(r.status, 1, `${typo} should fail: ${r.stdout}`)
+    assert.match(r.stderr, new RegExp(`unknown command '${typo}'`))
+    assert.equal(
+      fs.existsSync(path.join(sandbox.home, '.claude', 'skills', 'fde')),
+      false,
+      `${typo} must not write ~/.claude`
+    )
+  }
+  // Case is a typo too, not a request to rewrite the home directory.
+  const upper = runInstall(sandbox, ['Demo', '--clean'])
+  assert.equal(upper.status, 0, upper.stderr)
+  assert.match(upper.stdout, /real engagements .* were not touched/)
+  assert.equal(fs.existsSync(path.join(sandbox.home, '.claude', 'skills', 'fde')), false)
+
+  // Bare invocation still installs.
+  assert.equal(runInstall(sandbox, []).status, 0)
+  assert.ok(fs.existsSync(path.join(sandbox.home, '.claude', 'skills', 'fde')))
+})
+
+test('the fieldbook LOG shows one row per logged contact, not one per storage location', () => {
+  const sandbox = makeSandbox('logdedup')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Denise saw the demo', '--signal', 'green']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Marco confirmed scope', '--signal', 'amber']).status, 0)
+
+  const eng = engagementPath(sandbox, 'acme')
+  // The CLI records each contact twice on purpose (markdown + .signal-ledger).
+  assert.match(fs.readFileSync(path.join(eng, '.signal-ledger'), 'utf8'), /Denise saw the demo/)
+
+  assert.equal(runFde(sandbox, ['dashboard']).status, 0)
+  const html = fs.readFileSync(path.join(sandbox.home, 'fde-engagements', 'fieldbook-current.html'), 'utf8')
+  const logRows = html.match(/<span class="fb-log-text">[^<]*<\/span>/g) || []
+  const rowsFor = text => logRows.filter(r => r.includes(text)).length
+  assert.equal(rowsFor('Denise saw the demo'), 1, `LOG rows: ${logRows.join(' | ')}`)
+  assert.equal(rowsFor('Marco confirmed scope'), 1, `LOG rows: ${logRows.join(' | ')}`)
+})
+
+test('doctor flags unbalanced <private> markers, which change what is public', () => {
+  const sandbox = makeSandbox('privbalance')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  // Doctor stays quiet on an untouched day-1 template; give it real work first.
+  assert.equal(runFde(sandbox, ['log', 'decision', 'ship the retry slice']).status, 0)
+  const eng = engagementPath(sandbox, 'acme')
+
+  const stray = path.join(eng, 'context.md')
+  fs.appendFileSync(stray, '\n</private>\nrate card is 1800/day\n')
+  const opener = path.join(eng, 'risks.md')
+  fs.appendFileSync(opener, '\n<private>\nsponsor is being replaced\n')
+
+  const doc = runFde(sandbox, ['doctor'])
+  assert.match(doc.stdout, /context\.md has 1 unmatched <\/private>/)
+  assert.match(doc.stdout, /risks\.md has 1 unclosed <private>/)
+  // Doctor reports the imbalance, never the sealed text.
+  assert.doesNotMatch(doc.stdout, /sponsor is being replaced/)
+})
