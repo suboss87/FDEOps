@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-**Memory + methodology + skills, in one kit.** Skill packs teach your AI agent how to build. None of them remember who the client is, what was decided, or what's safe to ship. FDEOps adds the missing layer: a private fieldbook per engagement (`.fde/`), a field methodology (land → close), and one `@fde` skill that routes it all. 
+**Memory + methodology + skills, in one kit.** Skill packs - BMAD, Spec-Kit, [mattpocock/skills](https://github.com/mattpocock/skills) - teach your AI agent how to *build*. None of them remember who the client is, what you promised them, or who agreed it was delivered. FDEOps adds the missing layer: a private fieldbook per engagement (`.fde/`), a field methodology (land → close), and one `@fde` skill that routes it all. 
 
 Built for Forward Deployed Engineers, and anyone embedded in client work: consultants, agency developers, solutions architects, fractional CTOs. Feels like a second brain; behaves like a defensible record (dated, sourced, yours).
 
@@ -48,19 +48,25 @@ npx fdeops demo
 
 Walks one fake engagement end to end with the **real** commands: messy kickoff notes → proposed updates → you confirm → cold session reload → meeting prep → dated receipts → the fieldbook page. Nothing of yours is read, nothing leaves the machine, and it lives in a throwaway `~/fde-engagements/.demo/` that never appears in your portfolio. Remove it with `npx fdeops demo --clean`.
 
+Or watch it first. One real session below - day 1 kickoff notes, the next morning's cold start, and "when did we agree to that?" six weeks later. Every line is the CLI's own output; only the typing pace is staged, and you can re-record it yourself with [`media/record-session.sh`](media/record-session.sh):
+
+<p align="center"><img alt="A real fdeops session: messy kickoff notes routed into dated memory after you confirm, then a cold session that already knows the client, a grounded sponsor-meeting brief, and dated receipts" src="media/session.gif" width="900" /></p>
+
+Note the two things a chat window cannot do: **nothing is written until you confirm the routing**, and the `<private>` block in those notes lands sealed on disk as `(private - redacted)` - it never appears in `resume`, `prep`, `receipts`, or the dashboard.
+
 ---
 
 ## Quickstart
 
-**1. Install** (pick one)
-
-```bash
-npx skills add suboss87/fdeops          # Cursor, Codex, and skills-compatible agents
-```
+**1. Install.** Claude Code gets session hooks (context loads before you type); everywhere else the same fieldbook loads when you ask.
 
 ```text
 /plugin marketplace add suboss87/fdeops # Claude Code
 /plugin install fdeops@fdeops
+```
+
+```bash
+npx skills add suboss87/fdeops          # Cursor, Codex, and skills-compatible agents
 ```
 
 **2. Bind once** - inside the client workspace (setup only; not a daily habit):
@@ -82,6 +88,8 @@ npx fdeops resume                 # prints a short "where we are" for this clien
 ```
 
 `@fde` routes and updates the fieldbook - you confirm judgment. Full workflow: [docs/USAGE.md](docs/USAGE.md).
+
+**It's working if** `npx fdeops resume` prints this client's phase, trust signal, and next action - and tomorrow's session starts from that instead of a blank chat.
 
 <details>
 <summary><strong>Other install paths</strong> · scan · env</summary>
@@ -133,6 +141,25 @@ Same fieldbook. **Claude Code** gets the fullest ride (session start/stop hooks)
 Overlays for regulated domains (AI, fintech, healthcare, government) activate on signal. Full matrix: [docs/skills.md](docs/skills.md).
 
 </details>
+
+---
+
+## The field methods
+
+You never pick one - you describe the situation and `@fde` routes. They are listed here because the methodology is the product, and it should be readable before you install anything. **37 methods across 6 domains**, each one a method (the thinking, the artifact it drafts, the checkpoint with you), not advice:
+
+| Domain | Methods |
+|--------|---------|
+| **1. Embed & Trust** - first days, access, credibility | [land](skills/fde/references/land.md) · [audit](skills/fde/references/audit.md) · [stakeholder-radar](skills/fde/references/stakeholder-radar.md) · [trust-engineering](skills/fde/references/trust-engineering.md) · [scope-defense](skills/fde/references/scope-defense.md) |
+| **2. Discover & Diagnose** - find the real problem | [discover](skills/fde/references/discover.md) · [assumption-audit](skills/fde/references/assumption-audit.md) · [use-case-scoring](skills/fde/references/use-case-scoring.md) · [sketch](skills/fde/references/sketch.md) |
+| **3. Plan & Align** - sequence it, sell it | [plan](skills/fde/references/plan.md) · [business-case](skills/fde/references/business-case.md) · [options-analysis](skills/fde/references/options-analysis.md) · [initiative-triage](skills/fde/references/initiative-triage.md) |
+| **4. Build & Guard** - the work, and not breaking their business | [build](skills/fde/references/build.md) · [incremental-build](skills/fde/references/incremental-build.md) · [test-on-legacy](skills/fde/references/test-on-legacy.md) · [blast-radius](skills/fde/references/blast-radius.md) · [debug](skills/fde/references/debug.md) · [rescue](skills/fde/references/rescue.md) · [security-audit](skills/fde/references/security-audit.md) · [observability](skills/fde/references/observability.md) |
+| **5. Ship & Verify** - production, with a way back | [ship](skills/fde/references/ship.md) · [review](skills/fde/references/review.md) · [rollback-drill](skills/fde/references/rollback-drill.md) · [qa-live](skills/fde/references/qa-live.md) |
+| **6. Operate & Close** - the part that decides renewals | [status](skills/fde/references/status.md) · [demo-prep](skills/fde/references/demo-prep.md) · [debrief](skills/fde/references/debrief.md) · [exec-narrative](skills/fde/references/exec-narrative.md) · [dashboard](skills/fde/references/dashboard.md) · [multi-customer-ops](skills/fde/references/multi-customer-ops.md) · [close](skills/fde/references/close.md) · [handoff-engineering](skills/fde/references/handoff-engineering.md) · [pattern-extract](skills/fde/references/pattern-extract.md) · [red-team](skills/fde/references/red-team.md) · [ingest](skills/fde/references/ingest.md) · [ingest-connect](skills/fde/references/ingest-connect.md) |
+
+Plus five overlays that activate on signal rather than being chosen - [ai](skills/fde/references/ai.md) · [artifacts](skills/fde/references/artifacts.md) · [fintech](skills/fde/references/fintech.md) · [healthcare](skills/fde/references/healthcare.md) · [gov](skills/fde/references/gov.md) - which add the checks that domain demands to whatever method is already running.
+
+Every method, with the exact phrases that route to it: **[docs/skills-reference.md](docs/skills-reference.md)**.
 
 ---
 
