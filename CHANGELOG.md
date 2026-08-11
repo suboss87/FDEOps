@@ -1,5 +1,27 @@
 # Changelog
 
+## 3.10.0 — 2026-08-04
+
+Everything published since 3.9.20: the installer can no longer touch skills it did not create, `<private>` holds under adversarial input, a first run costs nothing, and the front door shows a real session.
+
+### Added
+- **`fdeops demo`** — the whole land→close loop on a fake client in one command, then `fdeops demo --clean`. Nothing of yours is touched.
+- **Agent Plugins 1.0.0 conformance** — root `plugin.json` + `mcp.json` alongside the existing `.claude-plugin/`, so non-Claude hosts can load the same skill.
+- **Worked examples on 12 field methods** (one Acme thread across land→close), a gaming check per success metric, "measured ≠ accepted" gating on the value ledger enforced by `doctor`, and pre-wire/pre-mortem in `stakeholder-radar`.
+- **`media/session.gif` + `media/session.cast`** — a recorded real session in the README, reproducible via `media/record-session.sh`.
+- **`SECURITY.md`** with a reporting channel that does not depend on a repo setting.
+
+### Fixed
+- **Installer only removes or overwrites skill directories it created** (#8) — verified by a marker, no writing through symlinks, no partial install reporting success.
+- **`<private>` never reaches a model** — redacted from debrief/ingest dry-run previews, HTML comments stripped before routing, apply refuses when the sealed sidecar is gone, an unclosed marker cannot swallow later notes, and MCP results carry no sealed text.
+- **MCP ingest server speaks newline-delimited stdio**, as the transport requires — it could not have worked with any client before.
+- **A typo'd or flag-only `fdeops` command no longer installs** — `fdeops dmeo` exits 1 with a suggestion; `--help`/`--version` answer and touch nothing.
+- **Each logged contact renders once** in the fieldbook LOG, with its trust signal; `doctor` reports unbalanced `<private>` markers.
+- **`media/record-session.sh` is reproducible** — `doctor`'s expected non-zero exit no longer aborts it, `--session` stays in a throwaway workspace, and a missing `gifsicle` is not fatal.
+
+### Changed
+- Advertised method count is gated against `skills/fde/references/`, so docs cannot drift (37 methods + 5 overlays).
+
 ## 3.9.20 — 2026-07-31
 
 Ingest connect UX — wire any source MCP in plain language; recipes + capability check.
