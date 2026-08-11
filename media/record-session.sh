@@ -85,10 +85,11 @@ session() {
 # Every mode runs inside a throwaway workspace and engagements root - including
 # --session, which asciinema spawns as a child (it reuses the parent's sandbox
 # via FDE_RECORD_WORK) and which a human may also run by hand. Only a workspace
-# this script built is reused - anything else gets a fresh one, so a preset
-# FDE_RECORD_WORK cannot point the engagements root at a real directory.
+# carrying this script's own stamp file is reused - anything else gets a fresh
+# one, so a preset FDE_RECORD_WORK cannot aim the engagements root at a real
+# directory just because it happens to hold kickoff notes.
 sandbox() {
-  if [ -n "${FDE_RECORD_WORK:-}" ] && [ -f "${FDE_RECORD_WORK}/kickoff-notes.md" ]; then
+  if [ -n "${FDE_RECORD_WORK:-}" ] && [ -f "${FDE_RECORD_WORK}/.fde-record-sandbox" ]; then
     cd "$FDE_RECORD_WORK"
     export FDEOPS_ENGAGEMENTS_ROOT="$(dirname "$FDE_RECORD_WORK")/fde-engagements"
     return
@@ -96,6 +97,7 @@ sandbox() {
 
   WORK="$(mktemp -d)/acme-payments"
   mkdir -p "$WORK"
+  : > "$WORK/.fde-record-sandbox"
   cat > "$WORK/kickoff-notes.md" <<'NOTES'
 Kickoff call with Acme payments team - Priya (VP Eng, sponsor), Tom (staff eng)
 
