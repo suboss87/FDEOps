@@ -97,6 +97,39 @@ the HTML. Increase Konsole font with `ctrl+shift+equal` a few times before recor
 `export` lines actually took effect (`echo $VAR`) — the first keystrokes sent to a freshly focused
 Konsole window are sometimes dropped.
 
+## Testing `media/record-session.sh` (the recorded-session front door)
+
+The claim to test is "the recording is real and reproducible", so the cheap, dependency-free path is
+`bash media/record-session.sh --play`: it runs the same `session()` function the recorder wraps, in a
+`mktemp -d` workspace with `FDEOPS_ENGAGEMENTS_ROOT` exported to a throwaway dir. Diff its command
+sequence and output shape against the committed `media/session.cast` — a stale cast is exactly the
+drift the gates exist to catch. Parse the cast rather than eyeballing it: it is asciinema v2 (JSON
+header + one `[t,"o",data]` line per chunk), so concatenate the `data` fields, strip ANSI, and pull the
+typed commands with a regex on the prompt string. Assert the count and the order.
+
+Environment notes that have bitten:
+- `asciinema` may only be importable under a specific interpreter — try
+  `PYTHONPATH=/home/ubuntu/.local/lib/python3.10/site-packages python3 -m asciinema --version`.
+- **`agg` (the cast→gif converter) is often absent entirely**, so the no-flag record path cannot
+  regenerate the gif. `--play` needs neither `agg` nor `asciinema`; scope the plan to `--play` and say
+  plainly that full re-recording was not exercised.
+- `gifsicle`/`ffmpeg` are usually present, which means a `set -e` bug in the trailing
+  `command -v gifsicle && gifsicle …` compound will **not** reproduce here. Check tool presence before
+  concluding such a line is fine.
+
+Two traps in the script's own shape, worth checking on any revision:
+- It is `set -eu`, and **`fde doctor` exits 1 whenever hygiene issues exist**. Any scripted session that
+  ends `… run doctor; run dashboard` therefore aborts at `doctor` unless the call tolerates non-zero
+  (`|| true`). A truncated re-record plus a non-zero exit is the symptom.
+- The `--session` branch returns **before** the `FDEOPS_ENGAGEMENTS_ROOT` export and the `cd` into the
+  throwaway workspace, so invoking `--session` directly runs against the **real** `~/fde-engagements`
+  from the current cwd. Only the recorder (which exports first, then spawns `--session`) is safe. Never
+  smoke-test a recorder script via its internal `--session` flag.
+
+Sandbox proof for this area: create a decoy real engagement under `$HOME/fde-engagements` plus a
+`.registry`, snapshot both (`find … -exec sha256sum`), run the script, and re-compare — absence of a
+directory is not proof when the directory did not exist to begin with.
+
 ## Known non-bugs
 
 - `fde doctor` exits 1 whenever it reports hygiene issues.
