@@ -215,8 +215,34 @@ if (read('package.json').includes('postinstall')) {
 }
 
 const readme = read('README.md')
-if (readme.includes('demo.gif')) fail('README must not embed demo.gif (removed for clarity)')
-else ok('README no demo gif')
+// The README shows one recording: media/session.gif, a real CLI session.
+// media/demo.gif is a hand-typed mock kept for history - it must never be embedded,
+// or the front door shows output no command actually produced.
+if (readme.includes('demo.gif')) fail('README must not embed media/demo.gif (staged mock, not real CLI output)')
+else ok('README no staged demo gif')
+
+if (!readme.includes('media/session.gif')) {
+  fail('README must embed media/session.gif (the recorded session is the front door)')
+} else if (!readme.includes('media/record-session.sh')) {
+  fail('README must link media/record-session.sh next to the recording, so it can be re-recorded')
+} else {
+  const gifPath = path.join(root, 'media', 'session.gif')
+  const rec = path.join(root, 'media', 'record-session.sh')
+  if (!fs.existsSync(gifPath) || fs.statSync(gifPath).size < 50000) fail('media/session.gif missing or too small')
+  else if (!fs.existsSync(rec)) fail('media/record-session.sh missing - the recording must be reproducible')
+  else if (!fs.existsSync(path.join(root, 'media', 'session.cast'))) fail('media/session.cast missing - keep the source recording next to the gif')
+  else ok('README recorded session (gif + reproducible recorder + cast)')
+}
+
+// Every repo-relative README link and image must resolve, or the front door 404s.
+const brokenLinks = []
+for (const m of readme.matchAll(/(?:\]\(|src=")([^)"#\s]+)(?:\)|")/g)) {
+  const target = m[1]
+  if (/^(https?:|mailto:|#|\/)/.test(target)) continue
+  if (!fs.existsSync(path.join(root, target))) brokenLinks.push(target)
+}
+if (brokenLinks.length) fail(`README links to missing paths: ${brokenLinks.join(', ')}`)
+else ok('README links all resolve')
 
 for (const section of [
   'How it works',
