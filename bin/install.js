@@ -149,10 +149,20 @@ function installSkillDirs(opts = {}) {
       copyDir(src, dest)
       markManaged(dest)
     } catch (e) {
-      failed.push({ name: entry.name, code: e.code || 'error', path: e.path || dest })
+      failed.push({ name: entry.name, code: e.code || 'error', path: destPathFor(e.path, src, dest) })
     }
   }
   return { skipped, links, failed }
+}
+
+// A failed copy can surface either side of the operation; the user can only fix
+// the destination, so never point them at a path inside the package.
+function destPathFor(failedPath, src, dest) {
+  if (!failedPath) return dest
+  if (failedPath === src || failedPath.startsWith(src + path.sep)) {
+    return path.join(dest, path.relative(src, failedPath))
+  }
+  return failedPath
 }
 
 function reportCollisions(paths, verb) {
@@ -345,19 +355,90 @@ function cmdInstall(opts = {}) {
 // through to the CLI (fde.js reads process.argv itself, so require() is enough).
 const FDE_SUBCOMMANDS = [
   'demo', 'scan', 'resume', 'triage', 'log', 'debrief', 'ingest', 'prep', 'doctor', 'redact',
-  'garden', 'owner', 'receipts', 'capture', 'status', 'dashboard', 'help',
+  'garden', 'owner', 'receipts', 'capture', 'preserve', 'status', 'dashboard', 'help',
 ]
+
+const INSTALL_SUBCOMMANDS = ['init', 'adapters', 'install']
+
+function editDistance(a, b) {
+  let prev = [...Array(b.length + 1).keys()]
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i]
+    for (let j = 1; j <= b.length; j++) {
+      row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1))
+    }
+    prev = row
+  }
+  return prev[b.length]
+}
+
+function nearest(word, known) {
+  const w = word.toLowerCase()
+  let best = null
+  let bestScore = 3
+  for (const k of known) {
+    const d = editDistance(w, k)
+    if (d < bestScore) { best = k; bestScore = d }
+  }
+  return best
+}
 
 const argv = process.argv.slice(2)
 const force = argv.includes('--force')
-const positional = argv.filter(a => a !== '--force')
-const arg = positional[0]
-if (arg === 'init') {
+const positional = argv.filter(a => !a.startsWith('-'))
+const raw = positional[0]
+// `fdeops Demo` is a typo, not a request to rewrite ~/.claude: verbs match
+// case-insensitively, and anything unrecognized fails loudly instead of
+// falling through to a full install. Asking a question (`--help`, `--version`)
+// is not consent to write to the home directory either.
+const known = INSTALL_SUBCOMMANDS.concat(FDE_SUBCOMMANDS)
+const arg = raw ? known.find(k => k === raw.toLowerCase()) : undefined
+const askedHelp = argv.some(a => /^--?(h|help)$/i.test(a))
+const askedVersion = argv.some(a => /^--?(v|version)$/i.test(a))
+
+// Flags before the verb belong to fdeops, so an unknown one is a mistake worth
+// saying out loud - the alternative is honoring `fdeops --all status` by
+// quietly dropping --all.
+const FDEOPS_FLAGS = /^--?(force|h|help|v|version)$/i
+const leading = (raw === undefined ? argv : argv.slice(0, argv.indexOf(raw))).filter(a => !FDEOPS_FLAGS.test(a))
+if (leading.length) {
+  console.error(`  fdeops: unknown option '${leading[0]}'${raw ? ` before '${raw}' - put command options after the command: fdeops ${raw} ${leading[0]}` : ''}`)
+  console.error('  fdeops itself takes only --force, --help and --version.')
+  process.exit(1)
+}
+
+if (raw && !arg) {
+  const guess = nearest(raw, known)
+  console.error(`  fdeops: unknown command '${raw}'${guess ? ` - did you mean '${guess}'?` : ''}`)
+  console.error('  Run `npx fdeops help` for the command list, or `npx fdeops` with no arguments to install.')
+  process.exit(1)
+}
+
+// The verb the user typed may not be argv[0] (`fdeops --force redact ledger`),
+// and fde.js reads process.argv itself - hand it back the positional order it
+// expects with only the verb's case normalized.
+function handOffToCli(verb) {
+  // fde.js reads process.argv itself and takes the verb first, so hand it the
+  // verb (case-normalized) plus everything the user typed after it. A flag
+  // typed BEFORE the verb (`fdeops --force redact ledger`) belongs to fdeops,
+  // not to the command - passing it on would make it part of the command's own
+  // arguments (here: a search term of "--force ledger").
+  const at = raw === undefined ? -1 : argv.indexOf(raw)
+  const rest = at === -1 ? [] : argv.slice(at + 1)
+  process.argv = [process.argv[0], process.argv[1], verb, ...rest]
+  require(path.join(__dirname, 'fde.js'))
+}
+
+if (!raw && askedVersion) {
+  console.log(require(path.join(__dirname, '..', 'package.json')).version)
+} else if (!raw && askedHelp) {
+  handOffToCli('help')
+} else if (arg === 'init') {
   cmdInit(positional[1])
 } else if (arg === 'adapters') {
   cmdAdapters(positional[1], { force })
-} else if (FDE_SUBCOMMANDS.includes(arg)) {
-  require(path.join(__dirname, 'fde.js'))
+} else if (arg && arg !== 'install') {
+  handOffToCli(arg)
 } else {
   cmdInstall({ force })
 }
