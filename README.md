@@ -40,22 +40,6 @@ Same folder every time: `~/fde-engagements/<client>/.fde/`.
 
 ---
 
-## See it
-
-```bash
-npx fdeops demo
-```
-
-Real commands on a fake client: messy notes → you confirm → cold reload → prep → receipts → fieldbook page. Nothing of yours is read. Lives in `~/fde-engagements/.demo/`. Remove with `npx fdeops demo --clean`.
-
-One recorded session — kickoff notes, next morning, “when did we agree?” weeks later. CLI output; typing pace is staged. Re-record: [`media/record-session.sh`](media/record-session.sh).
-
-<p align="center"><img alt="A real fdeops session: messy kickoff notes routed into dated memory after you confirm, then a cold session that already knows the client, a grounded sponsor-meeting brief, and dated receipts" src="media/session.gif" width="900" /></p>
-
-Two things a chat window cannot do: **nothing is written until you confirm**, and `<private>` lands sealed as `(private - redacted)` — never in `resume`, `prep`, `receipts`, or the dashboard.
-
----
-
 ## Quickstart
 
 **1. Install.** Claude Code: session hooks (context before you type). Everywhere else: the same fieldbook, loaded when you ask.
