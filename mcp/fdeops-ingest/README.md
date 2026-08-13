@@ -2,7 +2,9 @@
 
 Thin stdio MCP server for the FDEOps **ingest sink** only: **stage → propose → apply**.
 
-This package shells out to the local `fde` CLI. It never calls SaaS APIs. Source MCPs (Granola, Gmail, Notion, etc.) are **separate** — you add those in your own `mcp.json`.
+This package shells out to the local `fde` CLI. It never calls SaaS APIs. Source MCPs (Granola, Slack, Notion, etc.) are **separate** — you add those in your own `mcp.json`.
+
+**Prefer the CLI when this workspace is bound:** `fde ingest stage|list|propose|apply`. Use this MCP when the host did not start in a bound workspace — then pass `engagement` (path to `.fde/` from `fde resume --bind`) on every tool call.
 
 ## Tools
 
@@ -89,4 +91,4 @@ Sources are pluggable and user-configured. This MCP owns the sink only.
 
 ## Zero dependencies
 
-Hand-rolled MCP over stdio (Content-Length framed JSON-RPC). No `@modelcontextprotocol/sdk` required at runtime.
+Hand-rolled MCP over stdio (newline-delimited JSON-RPC). No `@modelcontextprotocol/sdk` required at runtime.

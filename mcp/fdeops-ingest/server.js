@@ -4,7 +4,8 @@
 /**
  * fdeops-ingest MCP — thin stdio sink for FDEOps ingest.
  * Shells out to local `fde` CLI only. Never calls SaaS.
- * MCP stdio transport: Content-Length framed JSON-RPC 2.0.
+ * MCP stdio transport: newline-delimited JSON-RPC 2.0
+ * (Content-Length frames are accepted on input).
  */
 
 const fs = require('fs')
@@ -15,11 +16,17 @@ const PROTOCOL_VERSION = '2024-11-05'
 const SERVER_NAME = 'fdeops-ingest'
 const SERVER_VERSION = require('./package.json').version
 
+const ENGAGEMENT_PROP = {
+  type: 'string',
+  description:
+    'Path to this client\'s .fde/ folder (from `fde resume --bind`). Optional if FDEOPS_ENGAGEMENT is set or the process cwd is already bound.',
+}
+
 const TOOLS = [
   {
     name: 'ingest_stage',
     description:
-      'Stage raw content into the engagement inbox (.inbox/). Does not write .fde/.',
+      'Stage raw content into the engagement inbox (.inbox/). Does not write .fde/. Prefer the fde ingest CLI when the workspace is already bound.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -29,12 +36,13 @@ const TOOLS = [
         },
         source: {
           type: 'string',
-          description: 'Provenance label (e.g. granola, gmail, manual). Default: manual.',
+          description: 'Provenance label (e.g. granola, slack, notion, file, manual). Default: manual.',
         },
         title: {
           type: 'string',
           description: 'Optional human-readable title for the staged item.',
         },
+        engagement: ENGAGEMENT_PROP,
       },
       required: ['content'],
     },
@@ -42,7 +50,10 @@ const TOOLS = [
   {
     name: 'ingest_list',
     description: 'List staged items in the current engagement inbox.',
-    inputSchema: { type: 'object', properties: {} },
+    inputSchema: {
+      type: 'object',
+      properties: { engagement: ENGAGEMENT_PROP },
+    },
   },
   {
     name: 'ingest_propose',
@@ -55,6 +66,7 @@ const TOOLS = [
           type: 'string',
           description: 'Staged filename or id from ingest_list.',
         },
+        engagement: ENGAGEMENT_PROP,
       },
       required: ['id'],
     },
@@ -63,7 +75,10 @@ const TOOLS = [
     name: 'ingest_apply',
     description:
       'Apply the current debrief proposal into .fde/ memory (requires prior FDE confirm).',
-    inputSchema: { type: 'object', properties: {} },
+    inputSchema: {
+      type: 'object',
+      properties: { engagement: ENGAGEMENT_PROP },
+    },
   },
 ]
 
@@ -128,10 +143,10 @@ function fdeEnv() {
   return env
 }
 
-function runFde(args, stdin) {
+function runFde(args, stdin, extraEnv) {
   const { cmd, prefix } = resolveFde()
   const result = spawnSync(cmd, [...prefix, ...args], {
-    env: fdeEnv(),
+    env: { ...fdeEnv(), ...(extraEnv || {}) },
     input: stdin ?? undefined,
     encoding: 'utf8',
     maxBuffer: 16 * 1024 * 1024,
@@ -142,6 +157,11 @@ function runFde(args, stdin) {
     status: result.status ?? (result.error ? 1 : 0),
     error: result.error ? String(result.error.message || result.error) : null,
   }
+}
+
+function engagementEnv(args) {
+  const p = args && typeof args.engagement === 'string' ? args.engagement.trim() : ''
+  return p ? { FDEOPS_ENGAGEMENT: p } : {}
 }
 
 function cliPayload(out) {
@@ -163,6 +183,7 @@ function toolError(payload) {
 
 function handleToolCall(name, args) {
   args = args || {}
+  const extraEnv = engagementEnv(args)
 
   switch (name) {
     case 'ingest_stage': {
@@ -172,23 +193,23 @@ function handleToolCall(name, args) {
       const source = args.source || 'manual'
       const cliArgs = ['ingest', 'stage', '--source', source]
       if (args.title) cliArgs.push('--title', args.title)
-      const out = runFde(cliArgs, args.content)
+      const out = runFde(cliArgs, args.content, extraEnv)
       const payload = cliPayload(out)
       return out.status === 0 ? toolResult(payload) : toolError(payload)
     }
     case 'ingest_list': {
-      const out = runFde(['ingest', 'list'])
+      const out = runFde(['ingest', 'list'], undefined, extraEnv)
       const payload = cliPayload(out)
       return out.status === 0 ? toolResult(payload) : toolError(payload)
     }
     case 'ingest_propose': {
       if (!args.id) return toolError('Missing required argument: id')
-      const out = runFde(['ingest', 'propose', String(args.id)])
+      const out = runFde(['ingest', 'propose', String(args.id)], undefined, extraEnv)
       const payload = cliPayload(out)
       return out.status === 0 ? toolResult(payload) : toolError(payload)
     }
     case 'ingest_apply': {
-      const out = runFde(['ingest', 'apply'])
+      const out = runFde(['ingest', 'apply'], undefined, extraEnv)
       const payload = cliPayload(out)
       return out.status === 0 ? toolResult(payload) : toolError(payload)
     }

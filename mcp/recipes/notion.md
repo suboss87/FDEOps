@@ -1,13 +1,14 @@
 # Recipe: Notion docs / meeting notes
 
-**Use when:** useful engagement notes live in Notion. FDEOps does not ship a Notion server — use a Notion MCP (or export markdown).
+**Use when:** useful engagement notes live in Notion. FDEOps does not ship a Notion server — use a Notion MCP (or export markdown). We do not write back to Notion.
 
 ## Setup (once)
 
-1. Enable a **Notion MCP** (official or community) with a token that can read the pages you need.
-2. Add **fdeops-ingest** sink — [../fdeops-ingest/README.md](../fdeops-ingest/README.md).
-3. Reload MCP / restart host.
-4. Test: `@fde what can you pull?`
+1. Enable a **Notion MCP** (official or community) with a token that can **read** the pages you need.
+2. Reload MCP / restart host.
+3. Test: `@fde what can you pull?`
+
+The sink is **`fde ingest` in this bound workspace.** `fdeops-ingest` MCP is optional.
 
 ### Example mcp.json shape (illustrative)
 
@@ -19,13 +20,6 @@
       "args": ["-y", "YOUR-NOTION-MCP-PACKAGE"],
       "env": {
         "NOTION_TOKEN": "from-your-secrets"
-      }
-    },
-    "fdeops-ingest": {
-      "command": "node",
-      "args": ["/absolute/path/to/fdeops/mcp/fdeops-ingest/server.js"],
-      "env": {
-        "FDEOPS_ENGAGEMENT": "/Users/you/fde-engagements/acme/.fde"
       }
     }
   }
@@ -42,15 +36,19 @@
 
 ## Agent steps
 
-1. Capability check — Notion tools present?
-2. Fetch page/block text via Notion MCP (ask which page if ambiguous).
-3. Stage with `--source notion`.
-4. Propose → confirm → apply.
+1. Capability check — Notion read tools present?
+2. Fetch page/block text (ask which page if ambiguous).
+3. `fde ingest stage --source notion --title "<short>"` → propose → confirm → apply.
+
+## Never
+
+- Create or edit Notion pages from FDEOps.
+- Ambient-sync a database.
 
 ## Common fails
 
 | Symptom | Fix |
 |---------|-----|
 | 401 / forbidden | Token lacks access to that workspace/page |
-| Huge page dump | Stage full text in `.inbox/`; propose only short dated facts |
-| Wrong engagement | Bind / `FDEOPS_ENGAGEMENT` |
+| Huge page dump | Stage full text in `.inbox/`; apply only short dated facts |
+| Wrong engagement | Bind this workspace before staging |
