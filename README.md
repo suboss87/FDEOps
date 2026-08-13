@@ -116,7 +116,7 @@ Overlays (AI, fintech, healthcare, gov) fire on signal. [docs/skills.md](docs/sk
 You never pick one. You describe the situation; `@fde` routes. **37 methods**, six domains — each a method (thinking, artifact, checkpoint), not a tip sheet. [docs/skills.md](docs/skills.md) · [docs/skills-reference.md](docs/skills-reference.md)
 
 <details>
-<summary>All 37 methods</summary>
+<summary>All 37 Skills</summary>
 
 | Domain | Methods |
 |--------|---------|
