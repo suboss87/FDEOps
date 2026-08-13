@@ -50,6 +50,4 @@ Source MCPs are **not** bundled in fdeops. To add Granola, Gmail, or another pro
 
 FDEOps credentials stay local to the CLI; source MCP credentials stay with that MCP.
 
-## Design reference
-
-See [`docs/plans/2026-07-29-ingest-mcp-design.md`](../docs/plans/2026-07-29-ingest-mcp-design.md) for the approved ingest MCP design.
+**Non-goals:** no bundled OAuth/connectors, no ambient sync, no unreviewed writes to `.fde/`. Method: [`skills/fde/references/ingest.md`](../skills/fde/references/ingest.md).

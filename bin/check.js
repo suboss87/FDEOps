@@ -547,8 +547,10 @@ if (apMcp.$schema !== AP_MCP_SCHEMA) {
     }
   }
   const ingest = apServers['fdeops-ingest']
-  const target = ingest && (ingest.args || []).join(' ').replace('${PLUGIN_ROOT}/', '')
+  const rootArg = ingest && (ingest.args || []).find(a => String(a).startsWith('${PLUGIN_ROOT}/'))
+  const target = rootArg ? String(rootArg).replace('${PLUGIN_ROOT}/', '') : ''
   if (!ingest) fail('mcp.json must declare the fdeops-ingest stdio server')
+  else if (!rootArg) fail('mcp.json fdeops-ingest: args must include a ${PLUGIN_ROOT}-relative server path')
   else if (!fs.existsSync(path.join(root, target))) fail(`mcp.json fdeops-ingest points at missing ${target}`)
   else ok('agent plugins mcp config')
 }

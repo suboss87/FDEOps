@@ -21,6 +21,10 @@ Everything published since 3.9.20: the installer can no longer touch skills it d
 
 ### Changed
 - Advertised method count is gated against `skills/fde/references/`, so docs cannot drift (37 methods + 5 overlays).
+- Launch hygiene: drop `docs/plans/` and the Devin `.agents/` testing skill from the public tree.
+
+### Fixed
+- **mcp.json server-path gate** uses the `${PLUGIN_ROOT}` arg (joining all args was blind on empty args and wrong with extra flags).
 
 ## 3.9.20 — 2026-07-31
 
