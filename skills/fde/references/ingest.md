@@ -2,7 +2,7 @@
 
 **Enter when:** the FDE wants to catch the engagement up from external sources — "make sure Acme is up to date," "pull what's relevant," "grab today's Granola and Denise's last email." Raw transcripts and long emails that are too big to paste usefully.
 
-**Connect / capability (different entry):** "connect a new MCP", "connect Granola/Notion", "what can you pull?" → `references/ingest-connect.md` first. Recipes: `mcp/recipes/` (file, granola, notion).
+**Connect / capability (different entry):** "connect a new MCP", "connect Granola/Slack/Notion", "what can you pull?" → `references/ingest-connect.md` first. Recipes: `mcp/recipes/` (file, granola, slack, notion).
 
 **Read first:** `context.md` (what's already logged, what's stale). Bind the engagement before staging anything.
 
@@ -11,7 +11,8 @@
 ## Honest contract (read once)
 
 - FDEOps owns the **sink only**: stage raw pulls → propose → confirm → apply. Nothing writes `.fde/` unreviewed.
-- **Source MCPs are the FDE's.** Granola, Gmail, Notion, custom — whatever they configured in Cursor/Claude. fdeops does not bundle OAuth, connectors, or ambient sync.
+- **Source MCPs are the FDE's.** Granola, Slack, Notion, Gmail, custom — whatever they configured in Cursor/Claude. fdeops does not bundle OAuth, connectors, or ambient sync, and **does not push** to those tools.
+- Prefer **`fde ingest` in this bound workspace.** Optional `fdeops-ingest` MCP: pass `engagement` (path to `.fde/` from `fde resume --bind`) because MCP cwd often is not the client workspace.
 - The core `fde` CLI stays local (git + file reads). Source credentials live with that MCP; fdeops never stores them.
 - After apply, raw stays in `.inbox/`; the system of record (`.fde/`) stays thin dated facts.
 
@@ -20,7 +21,7 @@
 List what you can actually call **this session**:
 
 1. **Sink** — `ingest_stage` / `fde ingest` available?
-2. **Sources** — which fetch tools exist (Granola-shaped, Notion, Drive, file-only)?
+2. **Sources** — which fetch tools exist (Granola-shaped, Slack, Notion, Drive, file-only)?
 3. Tell the FDE in one line: *I can pull from X; Y is not connected.* If they asked to pull Y and it is missing → switch to `ingest-connect.md`. Never pretend a source exists.
 
 ## Ground loop (you do this work)
@@ -67,6 +68,6 @@ Before apply, read back the 2–3 most consequential captures in one breath — 
 
 ## Principles
 
-- Pull on request, not on a schedule. No auto-poll, no vacuum of inbox or Slack.
+- Pull on request, not on a schedule. No auto-poll, no vacuum of inbox or Slack. No posting back.
 - Staging is not memory. Only `--apply` after confirm writes `.fde/`.
 - Large artifact → ingest stage first; pasted short notes → debrief verb directly (`references/debrief.md`).

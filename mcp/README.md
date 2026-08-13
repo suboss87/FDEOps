@@ -6,7 +6,7 @@ FDEOps MCP servers follow a **pluggable source model**: core owns the **sink**, 
 
 | Role | Owner | Examples |
 |------|-------|----------|
-| **Source** | FDE configures separately | Granola, Gmail, Notion, custom scrapers |
+| **Source** | FDE configures separately | Granola, Slack, Notion, Gmail, file |
 | **Sink** | FDEOps (`fdeops-ingest`) | stage → propose → apply into engagement memory |
 
 Source MCPs fetch raw text from SaaS APIs using credentials the FDE manages. The ingest MCP never stores OAuth tokens or calls external services — it only shells out to the local `fde` CLI.

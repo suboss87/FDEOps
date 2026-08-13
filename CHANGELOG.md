@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.10.1 — 2026-08-13
+
+Launch usability: pull is optional and CLI-first; MCP sink can bind an engagement without env.
+
+### Added
+- **Slack pull recipe** — read a thread as text; never post or sync.
+- **`engagement` argument** on ingest MCP tools — pass the `.fde/` path from `fde resume --bind` when the MCP process is not in a bound workspace.
+
+### Changed
+- Daily path is paste/debrief; connect wires a **source** MCP only. `fde ingest` in the open workspace is the sink.
+- README week table and "won't build" line no longer contradict (pull via your MCP ≠ we ship connectors).
+
 ## 3.10.0 — 2026-08-04
 
 Everything published since 3.9.20: the installer can no longer touch skills it did not create, `<private>` holds under adversarial input, a first run costs nothing, and the front door shows a real session.

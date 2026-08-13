@@ -499,7 +499,7 @@ if (!fs.existsSync(path.join(root, 'mcp', 'fdeops-ingest', 'server.js'))) {
 } else if (!fs.existsSync(path.join(root, 'skills', 'fde', 'references', 'ingest-connect.md'))) {
   fail('skills/fde/references/ingest-connect.md missing')
 } else {
-  for (const recipe of ['file.md', 'granola.md', 'notion.md']) {
+  for (const recipe of ['file.md', 'granola.md', 'slack.md', 'notion.md']) {
     if (!fs.existsSync(path.join(root, 'mcp', 'recipes', recipe))) fail(`mcp/recipes/${recipe} missing`)
   }
   if (!read('README.md').includes('mcp/recipes')) fail('README must point at mcp/recipes for connect clarity')

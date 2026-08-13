@@ -31,7 +31,7 @@ Day to day you only need `@fde` and normal English. No command cheat sheet.
 |------|--------------|--------------|
 | **Start of week** | Open your AI coding agent (nothing to paste) | It already knows where you left off - trust, phase, what's next |
 | **After a meeting** | `@fde` debrief these notes *(paste or attach them)* | Proposed updates to the record - you review, then confirm |
-| **Pull from tools** | `@fde` connect Granola *(once)* · then `@fde` pull today's Acme transcript | Wire any source MCP you choose; FDEOps stages → proposes → you confirm. Recipes: [mcp/recipes/](mcp/recipes/) |
+| **Optional: pull from a tool** | `@fde` connect Granola *(once)* · then `@fde` pull today's Acme transcript | You add that source MCP (Granola, Slack, Notion, …). FDEOps only **pulls** on request — no push, no sync. Recipes: [mcp/recipes/](mcp/recipes/) |
 | **Before a stakeholder meeting** | `@fde` prep me for tomorrow's meeting with the sponsor | A short brief from what you already logged - not a blank chat |
 | **Someone disputes scope** | `@fde` when did we agree to drop that feature? | Dated answers from the record (or a clear gap if nothing was logged) |
 | **End of week** | `@fde` draft the sponsor update from the record | Status grounded in what actually happened |
@@ -110,7 +110,7 @@ npx fdeops resume                 # prints a short "where we are" for this clien
 - **You** describe the situation with `@fde` (or plain language once the skill is loaded)
 - **Session start / end** - small hooks load where you left off and capture what changed (no re-paste)
 - **Local CLI** - memory writes, search, and status with no model tokens; the agent runs it. You do not need to learn it for daily use ([docs/USAGE.md](docs/USAGE.md))
-- **Pluggable pull (ingest)** - FDEOps is the **sink**, not a connector pack. You add any source MCP (Granola, Notion, Drive, …) in Cursor/Claude; say `@fde connect …` for a guided config + recipe, then pull in plain language. Raw text → `.inbox/` → propose → you confirm → `.fde/`. No ambient sync; nothing unreviewed enters the fieldbook. See [mcp/recipes/](mcp/recipes/).
+- **Pluggable pull (optional)** - FDEOps is the **sink**, not a connector pack. Paste is the daily path. To pull, you add a source MCP (Granola, Slack, Notion, …) in Cursor/Claude; `@fde connect …` walks config. We never push, never sync, never store their tokens. Raw text → `.inbox/` → propose → you confirm → `.fde/`. Recipes: [mcp/recipes/](mcp/recipes/).
 
 fdeops complements repo memory: CLAUDE.md holds how the *code* works; the fieldbook holds how the *client engagement* works.
 
@@ -146,7 +146,10 @@ Overlays for regulated domains (AI, fintech, healthcare, government) activate on
 
 ## The field methods
 
-You never pick one - you describe the situation and `@fde` routes. They are listed here because the methodology is the product, and it should be readable before you install anything. **37 methods across 6 domains**, each one a method (the thinking, the artifact it drafts, the checkpoint with you), not advice:
+You never pick one - you describe the situation and `@fde` routes. **37 methods across 6 domains**, each a method (thinking, artifact, checkpoint), not advice. Full matrix: [docs/skills.md](docs/skills.md) · phrases: [docs/skills-reference.md](docs/skills-reference.md).
+
+<details>
+<summary><strong>All 37 methods</strong> (land → close)</summary>
 
 | Domain | Methods |
 |--------|---------|
@@ -157,9 +160,9 @@ You never pick one - you describe the situation and `@fde` routes. They are list
 | **5. Ship & Verify** - production, with a way back | [ship](skills/fde/references/ship.md) · [review](skills/fde/references/review.md) · [rollback-drill](skills/fde/references/rollback-drill.md) · [qa-live](skills/fde/references/qa-live.md) |
 | **6. Operate & Close** - the part that decides renewals | [status](skills/fde/references/status.md) · [demo-prep](skills/fde/references/demo-prep.md) · [debrief](skills/fde/references/debrief.md) · [exec-narrative](skills/fde/references/exec-narrative.md) · [dashboard](skills/fde/references/dashboard.md) · [multi-customer-ops](skills/fde/references/multi-customer-ops.md) · [close](skills/fde/references/close.md) · [handoff-engineering](skills/fde/references/handoff-engineering.md) · [pattern-extract](skills/fde/references/pattern-extract.md) · [red-team](skills/fde/references/red-team.md) · [ingest](skills/fde/references/ingest.md) · [ingest-connect](skills/fde/references/ingest-connect.md) |
 
-Plus five overlays that activate on signal rather than being chosen - [ai](skills/fde/references/ai.md) · [artifacts](skills/fde/references/artifacts.md) · [fintech](skills/fde/references/fintech.md) · [healthcare](skills/fde/references/healthcare.md) · [gov](skills/fde/references/gov.md) - which add the checks that domain demands to whatever method is already running.
+Plus five overlays that activate on signal rather than being chosen - [ai](skills/fde/references/ai.md) · [artifacts](skills/fde/references/artifacts.md) · [fintech](skills/fde/references/fintech.md) · [healthcare](skills/fde/references/healthcare.md) · [gov](skills/fde/references/gov.md).
 
-Every method, with the exact phrases that route to it: **[docs/skills-reference.md](docs/skills-reference.md)**.
+</details>
 
 ---
 
@@ -238,6 +241,6 @@ Built and maintained by **[Subash Natarajan](https://www.linkedin.com/in/subashn
 
 Thanks to builders whose craft helped sharpen the thinking behind this kit, among them [Andrej Karpathy](https://karpathy.ai/)'s engineering guidelines and the [agentic engineering workflow](https://github.com/pawel-cell/micky-podcast-agentic-engineering) notes from David Ondrej / Michael Shimeles. FDEOps itself is handcrafted for field work; any resemblance is inspiration, not a fork.
 
-**What we won't build:** SaaS sync or Slack/Notion connectors inside the CLI, CRM as core, hardware capture, or generic code-craft skill packs (TDD/review already exist elsewhere - FDEOps owns the engagement, not the keyboard). The `fde` CLI stays local-only.
+**What we won't build:** SaaS sync, Slack/Notion/Granola **connectors or push** inside the CLI, CRM as core, hardware capture, or generic code-craft skill packs (TDD/review already exist elsewhere - FDEOps owns the engagement, not the keyboard). You may **pull** from those tools via *your* MCP; the `fde` CLI stays local-only.
 
 [FDE Methodology](FDE-METHODOLOGY.md) - [SECURITY.md](SECURITY.md) - [PRIVACY.md](PRIVACY.md) - [Repo layout](docs/REPO_LAYOUT.md) - [Skills matrix](docs/skills.md) - MIT

@@ -2296,6 +2296,61 @@ test('ingest_propose over MCP keeps <private> content out of the model-facing re
   assert.match(proposeText, /private - redacted/)
 })
 
+test('ingest MCP stage works via engagement argument without FDEOPS_ENGAGEMENT env', async () => {
+  const sandbox = makeSandbox('mcp-eng-arg')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'engarg']).status, 0)
+  const server = path.join(root, 'mcp', 'fdeops-ingest', 'server.js')
+  const proc = spawn(process.execPath, [server], {
+    cwd: root,
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      HOME: sandbox.home,
+      USERPROFILE: sandbox.home,
+    },
+  })
+  const lines = []
+  let buf = ''
+  proc.stdout.on('data', (d) => {
+    buf += d
+    while (buf.includes('\n')) {
+      const line = buf.slice(0, buf.indexOf('\n')).trim()
+      buf = buf.slice(buf.indexOf('\n') + 1)
+      if (line) lines.push(JSON.parse(line))
+    }
+  })
+  const send = (msg) => proc.stdin.write(`${JSON.stringify(msg)}\n`)
+  const waitFor = async (count) => {
+    const deadline = Date.now() + 10000
+    while (lines.length < count && Date.now() < deadline) await new Promise(r => setTimeout(r, 50))
+  }
+
+  send({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } } })
+  send({
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'tools/call',
+    params: {
+      name: 'ingest_stage',
+      arguments: {
+        source: 'slack',
+        title: 'standup',
+        engagement: engagementPath(sandbox, 'engarg'),
+        content: 'decision: freeze scope until Friday\n',
+      },
+    },
+  })
+  await waitFor(2)
+  proc.kill()
+  assert.equal(lines.length, 2, `expected 2 replies, got ${JSON.stringify(lines)}`)
+  assert.equal(lines[1].result.isError, undefined)
+  const text = lines[1].result.content.map(c => c.text).join('\n')
+  assert.match(text, /staged|inbox|standup/i)
+  const inbox = path.join(sandbox.home, 'fde-engagements', 'engarg', '.inbox')
+  const files = fs.readdirSync(inbox).filter(f => f.endsWith('.md'))
+  assert.equal(files.length, 1)
+})
+
 test('ingest MCP server speaks newline-delimited stdio as the MCP transport requires', async () => {
   const server = path.join(root, 'mcp', 'fdeops-ingest', 'server.js')
   const proc = spawn(process.execPath, [server], { cwd: root, stdio: ['pipe', 'pipe', 'pipe'] })

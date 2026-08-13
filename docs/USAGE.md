@@ -60,11 +60,11 @@ Not sure which client a workspace writes to? `fde resume --bind` shows the bindi
 
 ## Ingest: pull large artifacts → same confirm loop
 
-When a transcript or email is too large to paste, or lives in Granola/Gmail/Notion:
+When a transcript or email is too large to paste, or lives in Granola/Slack/Notion:
 
-**Connect once (plain language):** `@fde I want to connect Granola` (or Notion / a new MCP). The agent runs a capability check, emits an `mcp.json` snippet from [mcp/recipes/](../mcp/recipes/), and asks you to save + reload in Cursor/Claude — it cannot silently install host MCPs. Then: `@fde what can you pull?`
+**Daily without MCP:** paste to `@fde` or `fde ingest stage` a file. That is the complete product.
 
-**Pull:** `@fde make sure Acme is up to date — pull what's relevant`. It binds the engagement, uses **your** configured source MCPs to fetch raw text (fdeops does not bundle Gmail/Granola), stages with `fde ingest stage`, proposes with `fde ingest propose`, shows you the routing, and only runs `fde ingest apply` after you confirm. No auto-apply, no background sync.
+**Optional pull:** `@fde I want to connect Granola` (or Slack / Notion). You add **that** source MCP; FDEOps does not bundle it and does not push back. Then `@fde pull today's Acme transcript`. The agent fetches text and runs `fde ingest` in this bound workspace (stage → propose → you confirm → apply).
 
 **Directly (zero tokens, you already have the file):**
 
