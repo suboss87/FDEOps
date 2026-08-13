@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.10.2 — 2026-08-13
+
+Launch README: honest cold start (hooks vs `@fde`), denser front door.
+
+### Changed
+- Week table states Claude Code auto-loads; Cursor/Codex need `@fde` / `resume`. Fieldbook is on disk either way.
+- README tightened: followable, not a tutorial. Method matrix stays behind details.
+
 ## 3.10.1 — 2026-08-13
 
 Launch usability: pull is optional and CLI-first; MCP sink can bind an engagement without env.
