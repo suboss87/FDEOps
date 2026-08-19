@@ -94,13 +94,33 @@ function grepFiles(files, regex, cap) {
 
 // ---------- engagement resolution (zero-ceremony order) ----------
 
+// Registry lines are "<absolute workspace path> <slug>". A hand-edited or
+// truncated file used to parse into nonsense bindings (a line with no space
+// yielded a workspace missing its last character), so every binding a workspace
+// could match on silently disappeared behind "NO ENGAGEMENT". Skip what cannot
+// be a binding and say so once.
+let registryWarned = false
 function readRegistry() {
-  try {
-    return fs.readFileSync(REGISTRY, 'utf8').split('\n').filter(Boolean).map(l => {
-      const i = l.lastIndexOf(' ')
-      return { workspace: l.slice(0, i), slug: l.slice(i + 1) }
-    })
-  } catch (_) { return [] }
+  let raw
+  try { raw = fs.readFileSync(REGISTRY, 'utf8') } catch (_) { return [] }
+  const entries = []
+  let skipped = 0
+  for (const line of raw.split('\n')) {
+    if (!line.trim()) continue
+    const i = line.lastIndexOf(' ')
+    const workspace = i > 0 ? line.slice(0, i) : ''
+    const slug = i > 0 ? line.slice(i + 1).trim() : ''
+    if (!workspace || !slug || !path.isAbsolute(workspace)) { skipped++; continue }
+    entries.push({ workspace, slug })
+  }
+  if (skipped && !registryWarned) {
+    registryWarned = true
+    process.stderr.write(
+      `⚠ ${skipped} unreadable line(s) in ${REGISTRY} ignored - expected "<workspace path> <slug>" per line.\n` +
+      '  re-bind this workspace with: fde resume --init <name>\n'
+    )
+  }
+  return entries
 }
 
 function resolveEngagement(opts = {}) {
@@ -109,11 +129,31 @@ function resolveEngagement(opts = {}) {
   // read-only convenience; writing on a folder-name guess contaminates clients.
   const forWrite = !!opts.forWrite
   const accept = (p) => acceptEngagementPath(p, { forWrite })
-  // 1) explicit env (back-compat: accept old FDEOS_ENGAGEMENT too)
+  // 1) explicit env (back-compat: accept old FDEOS_ENGAGEMENT too). An override
+  // that cannot be honored is never silently ignored: falling through to the
+  // registry would route this client's note into whichever engagement the
+  // workspace happens to be bound to. A bare slug is accepted too - it is what
+  // an FDE types - but only when it resolves under the engagements root.
   const env = (process.env.FDEOPS_ENGAGEMENT || process.env.FDEOS_ENGAGEMENT || '').replace(/^~/, HOME).trim()
   if (env) {
+    // Pointing at the engagement folder instead of its .fde used to create a
+    // second, git-less memory beside the real one - same client, split record.
+    const nested = accept(path.join(env, '.fde'))
+    if (nested) return nested
     const ok = accept(env)
     if (ok) return ok
+    const asSlug = env.includes(path.sep) || env.includes('/')
+      ? null
+      : accept(path.join(ENGAGEMENTS_ROOT, slugify(env), '.fde'))
+    if (asSlug) return asSlug
+    process.stderr.write(
+      `FDEOPS_ENGAGEMENT is set to "${env}" but no engagement memory is there.\n` +
+      `  looked at: ${env}\n` +
+      (env.includes(path.sep) || env.includes('/') ? '' : `  and at:    ${path.join(ENGAGEMENTS_ROOT, slugify(env), '.fde')}\n`) +
+      '  refusing to fall back to another engagement - fix or unset the variable.\n' +
+      '  list what exists: fde status --all\n'
+    )
+    return null
   }
   // 2) workspace registry binding (written by resume --init). Match the cwd OR
   // any ancestor of it - FDEs run commands from src/, packages/api/, etc., not
@@ -1965,6 +2005,18 @@ function collectDoctorIssues(eng) {
   const fresh = !hasDatedWork && (s.phase === '?' || s.phase === 'unset') && !s.openRisks
 
   if (s.memoryWarn) issues.push(s.memoryWarn)
+  // A memory file that is not a regular file (a stray directory, a socket)
+  // reads as empty and rejects every append - doctor used to call that healthy.
+  for (const f of Object.values(LOG_FILES).concat('context.md')) {
+    const abs = path.join(eng, f)
+    let st
+    try { st = fs.lstatSync(abs) } catch (_) { continue }
+    if (st.isSymbolicLink()) {
+      issues.push(`${f} is a symlink - writes are refused; replace it with a real file inside .fde/`)
+    } else if (!st.isFile()) {
+      issues.push(`${f} is not a regular file - reads come back empty and every write fails; remove it and re-run any fde write`)
+    }
+  }
   if (fresh) return issues
 
   if (s.phase === '?' || s.phase === 'unset') {
