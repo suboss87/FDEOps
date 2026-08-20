@@ -221,10 +221,13 @@ const readme = read('README.md')
 if (readme.includes('demo.gif')) fail('README must not embed media/demo.gif (staged mock, not real CLI output)')
 else ok('README no staged demo gif')
 
-if (!readme.includes('media/session.gif')) {
-  fail('README must embed media/session.gif (the recorded session is the front door)')
-} else if (!readme.includes('media/record-session.sh')) {
-  fail('README must link media/record-session.sh next to the recording, so it can be re-recorded')
+// The recording may live on the front door or one click in (docs/USAGE.md), but
+// it must stay reachable and reproducible - an orphaned gif rots silently.
+const recordingHosts = ['README.md', 'docs/USAGE.md'].filter(f => read(f).includes('media/session.gif'))
+if (!recordingHosts.length) {
+  fail('media/session.gif must be embedded in README.md or docs/USAGE.md (the recorded session is the proof)')
+} else if (!recordingHosts.some(f => read(f).includes('media/record-session.sh'))) {
+  fail('link media/record-session.sh next to the recording, so it can be re-recorded')
 } else {
   const gifPath = path.join(root, 'media', 'session.gif')
   const rec = path.join(root, 'media', 'record-session.sh')

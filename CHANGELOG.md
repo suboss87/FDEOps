@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.10.3 — 2026-08-04
+
+Stability pass: an override that cannot be honored now refuses instead of filing the note under another client.
+
+### Fixed
+- **`FDEOPS_ENGAGEMENT` no longer falls through.** A typo'd or stale value silently resolved via the registry, so `fde log` appended to whichever engagement the workspace was bound to. Every verb now refuses, names the value, and says where it looked.
+- **`FDEOPS_ENGAGEMENT` accepts a bare slug and the engagement folder.** Pointing at `~/fde-engagements/<client>` used to create a second, git-less memory beside the real `.fde/` - same client, split record.
+- **Unparseable `.registry` lines are reported, not parsed into nonsense.** A line without a space produced a workspace path missing its last character, so valid bindings vanished behind `NO ENGAGEMENT`. Re-binding rewrites the file without the junk.
+- **`doctor` flags a memory file that is a directory or a symlink** - both read as empty and reject every append, and doctor used to call that healthy.
+
+### Changed
+- The recorded session may live in `README.md` or `docs/USAGE.md`; the gate now enforces reachable-and-reproducible instead of front-door-only (the README lost its embed in 3.10.2, which left `npm run check` red on `Main`).
+
 ## 3.10.2 — 2026-08-13
 
 Launch README: honest cold start (hooks vs `@fde`), denser front door.

@@ -145,9 +145,11 @@ You do **not** need this for normal use - the workspace registry handles engagem
 
 ```bash
 export FDEOPS_ENGAGEMENT=~/fde-engagements/<client-name>/.fde
+export FDEOPS_ENGAGEMENT=<client-name>          # a bare slug works too
+export FDEOPS_ENGAGEMENT=~/fde-engagements/<client-name>   # so does the folder
 ```
 
-When set, it takes precedence over the registry. A `~/.claude/FDEOPS-CLAUDE.md` pointer file and a project `CLAUDE.md` line are equivalent overrides; the resolution order is env var → workspace registry → pointer file → workspace-name match (read-only) → in-repo `.fde/`.
+When set, it takes precedence over the registry. If it points at nothing, every verb **refuses and names the value** rather than falling back to the registry - an override that silently resolved elsewhere would file this client's note in another client's memory. A `~/.claude/FDEOPS-CLAUDE.md` pointer file and a project `CLAUDE.md` line are equivalent overrides; the resolution order is env var → workspace registry → pointer file → workspace-name match (read-only) → in-repo `.fde/`.
 
 **Writes** (`fde log`, `fde debrief`, `fde capture`) require env, registry bind, pointer, or in-repo `.fde/`. A folder-name match alone is not enough — that stops an unbound checkout named like a client from appending into the wrong memory.
 

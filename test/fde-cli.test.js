@@ -2483,3 +2483,78 @@ test('doctor flags unbalanced <private> markers, which change what is public', (
   // Doctor reports the imbalance, never the sealed text.
   assert.doesNotMatch(doc.stdout, /sponsor is being replaced/)
 })
+
+test('an unresolvable FDEOPS_ENGAGEMENT refuses instead of routing the note elsewhere', () => {
+  const sandbox = makeSandbox('envrefuse')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const acme = engagementPath(sandbox, 'acme')
+
+  const write = runFde(sandbox, ['log', 'decision', 'meant for another client'], {
+    env: { FDEOPS_ENGAGEMENT: 'acmee' },
+  })
+  assert.equal(write.status, 2, write.stdout + write.stderr)
+  assert.match(write.stderr, /FDEOPS_ENGAGEMENT is set to "acmee"/)
+  assert.match(write.stderr, /refusing to fall back/)
+  assert.doesNotMatch(fs.readFileSync(path.join(acme, 'decisions.md'), 'utf8'), /meant for another client/)
+
+  // Reads refuse too - a stale override must not print another client's memory.
+  const read = runFde(sandbox, ['resume'], { env: { FDEOPS_ENGAGEMENT: 'acmee' } })
+  assert.equal(read.status, 2, read.stdout + read.stderr)
+  assert.match(read.stderr, /FDEOPS_ENGAGEMENT is set to "acmee"/)
+})
+
+test('FDEOPS_ENGAGEMENT accepts a bare slug and the engagement folder itself', () => {
+  const sandbox = makeSandbox('envslug')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const acme = engagementPath(sandbox, 'acme')
+  const engFolder = path.dirname(acme)
+
+  assert.equal(runFde(sandbox, ['log', 'decision', 'logged by slug'], {
+    env: { FDEOPS_ENGAGEMENT: 'Acme' },
+  }).status, 0)
+  // Pointing at the folder instead of its .fde must not fork a second memory.
+  assert.equal(runFde(sandbox, ['log', 'decision', 'logged by folder'], {
+    env: { FDEOPS_ENGAGEMENT: engFolder },
+  }).status, 0)
+
+  const decisions = fs.readFileSync(path.join(acme, 'decisions.md'), 'utf8')
+  assert.match(decisions, /logged by slug/)
+  assert.match(decisions, /logged by folder/)
+  assert.equal(fs.existsSync(path.join(engFolder, 'decisions.md')), false)
+})
+
+test('a corrupt .registry line is reported, not silently turned into a bad binding', () => {
+  const sandbox = makeSandbox('regcorrupt')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const registry = path.join(sandbox.home, 'fde-engagements', '.registry')
+  const good = fs.readFileSync(registry, 'utf8')
+  fs.writeFileSync(registry, `garbage-with-no-space\n${good}`)
+
+  const resume = runFde(sandbox, ['resume'])
+  assert.equal(resume.status, 0, resume.stderr)
+  assert.match(resume.stderr, /1 unreadable line\(s\)/)
+  // The valid binding beneath the junk still resolves.
+  assert.match(resume.stdout, /TRIAGE/)
+
+  // Re-binding rewrites the registry without the unparseable line.
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  assert.doesNotMatch(fs.readFileSync(registry, 'utf8'), /garbage-with-no-space/)
+})
+
+test('doctor flags a memory file that is a directory or a symlink', () => {
+  const sandbox = makeSandbox('doctorfileshape')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const eng = engagementPath(sandbox, 'acme')
+
+  fs.unlinkSync(path.join(eng, 'decisions.md'))
+  fs.mkdirSync(path.join(eng, 'decisions.md'))
+  const outside = path.join(sandbox.dir, 'outside.md')
+  fs.writeFileSync(outside, 'outside\n')
+  fs.unlinkSync(path.join(eng, 'risks.md'))
+  fs.symlinkSync(outside, path.join(eng, 'risks.md'))
+
+  const doc = runFde(sandbox, ['doctor'])
+  assert.equal(doc.status, 1, doc.stdout)
+  assert.match(doc.stdout, /decisions\.md is not a regular file/)
+  assert.match(doc.stdout, /risks\.md is a symlink/)
+})
