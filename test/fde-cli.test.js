@@ -2558,3 +2558,96 @@ test('doctor flags a memory file that is a directory or a symlink', () => {
   assert.match(doc.stdout, /decisions\.md is not a regular file/)
   assert.match(doc.stdout, /risks\.md is a symlink/)
 })
+
+// --- the hooks layer must refuse exactly like the CLI ---------------------
+// These run the real bash hooks: they resolve the engagement themselves, so a
+// fix in bin/fde.js alone leaves the unattended path misrouting.
+test('hooks refuse an unresolvable FDEOPS_ENGAGEMENT instead of using the bound engagement', () => {
+  const sandbox = makeSandbox('hookrefuse')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Client B']).status, 0)
+  const bound = engagementPath(sandbox, 'client-b')
+  fs.appendFileSync(path.join(bound, 'context.md'), '\nclient-b-secret-context\n')
+  const before = fs.readdirSync(bound).map(f => {
+    const abs = path.join(bound, f)
+    return `${f}:${fs.statSync(abs).isFile() ? fs.readFileSync(abs, 'utf8') : 'dir'}`
+  }).join('\n')
+
+  for (const hook of ['session-start', 'session-stop', 'pre-compact']) {
+    const res = runHook(sandbox, hook, { env: { FDEOPS_ENGAGEMENT: 'client-zzz' } })
+    assert.equal(res.status, 0, `${hook}: ${res.stderr}`)
+    assert.doesNotMatch(res.stdout, /client-b-secret-context/, `${hook} leaked the wrong client`)
+  }
+
+  const after = fs.readdirSync(bound).map(f => {
+    const abs = path.join(bound, f)
+    return `${f}:${fs.statSync(abs).isFile() ? fs.readFileSync(abs, 'utf8') : 'dir'}`
+  }).join('\n')
+  assert.equal(after, before, 'a hook wrote into an engagement the operator did not name')
+})
+
+test('hooks honor a bare slug, so the refusal does not cost the normal path', () => {
+  const sandbox = makeSandbox('hookslug')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const eng = engagementPath(sandbox, 'acme')
+  fs.appendFileSync(path.join(eng, 'context.md'), '\nacme-context-marker\n')
+
+  const res = runHook(sandbox, 'session-start', { env: { FDEOPS_ENGAGEMENT: 'Acme' }, cwd: sandbox.dir })
+  assert.equal(res.status, 0, res.stderr)
+  assert.match(res.stdout, /acme-context-marker/)
+})
+
+test('a relative FDEOPS_ENGAGEMENT is refused rather than resolved against the cwd', () => {
+  const sandbox = makeSandbox('envrelative')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const nested = path.join(sandbox.workspace, 'src')
+  fs.mkdirSync(nested)
+
+  const res = runFde(sandbox, ['log', 'decision', 'relative override'], {
+    cwd: nested,
+    env: { FDEOPS_ENGAGEMENT: '..' },
+  })
+  assert.equal(res.status, 2, res.stdout + res.stderr)
+  assert.match(res.stderr, /must be an absolute path or a bare engagement slug/)
+  assert.equal(fs.existsSync(path.join(sandbox.workspace, '.fde')), false)
+  assert.doesNotMatch(fs.readFileSync(path.join(engagementPath(sandbox, 'acme'), 'decisions.md'), 'utf8'), /relative override/)
+})
+
+test('a fifo in a memory slot is reported, not opened - the CLI never hangs', () => {
+  const sandbox = makeSandbox('fifoslot')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const eng = engagementPath(sandbox, 'acme')
+  fs.unlinkSync(path.join(eng, 'decisions.md'))
+  const mk = spawnSync('mkfifo', [path.join(eng, 'decisions.md')], { encoding: 'utf8' })
+  if (mk.status !== 0) return // no mkfifo on this platform
+
+  const doc = runFde(sandbox, ['doctor'])
+  assert.equal(doc.status, 1, doc.stdout + doc.stderr)
+  assert.match(doc.stdout, /decisions\.md is not a regular file/)
+  const resume = runFde(sandbox, ['resume'])
+  assert.equal(resume.status, 0, resume.stderr)
+})
+
+test('resume --init fails loudly when the workspace cannot be bound', () => {
+  const sandbox = makeSandbox('bindfail')
+  const registry = path.join(sandbox.home, 'fde-engagements', '.registry')
+  fs.mkdirSync(path.dirname(registry), { recursive: true })
+  fs.mkdirSync(registry) // a directory where the registry belongs: unwritable
+
+  const res = runFde(sandbox, ['resume', '--init', 'Acme'])
+  assert.equal(res.status, 1, res.stdout + res.stderr)
+  assert.match(res.stderr, /\.registry/)
+  // never "ready and bound" when nothing was bound
+  assert.doesNotMatch(res.stdout, /bound to workspace/)
+})
+
+test('resume --init does not report a bind it could not make through a symlinked registry', () => {
+  const sandbox = makeSandbox('bindsymlink')
+  const root = path.join(sandbox.home, 'fde-engagements')
+  fs.mkdirSync(root, { recursive: true })
+  fs.symlinkSync(path.join(sandbox.dir, 'elsewhere-registry'), path.join(root, '.registry'))
+
+  const res = runFde(sandbox, ['resume', '--init', 'Acme'])
+  assert.notEqual(res.status, 0, res.stdout + res.stderr)
+  assert.doesNotMatch(res.stdout, /bound to workspace/)
+  assert.equal(fs.existsSync(path.join(sandbox.dir, 'elsewhere-registry')), false)
+})

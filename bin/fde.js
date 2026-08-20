@@ -136,20 +136,39 @@ function resolveEngagement(opts = {}) {
   // an FDE types - but only when it resolves under the engagements root.
   const env = (process.env.FDEOPS_ENGAGEMENT || process.env.FDEOS_ENGAGEMENT || '').replace(/^~/, HOME).trim()
   if (env) {
-    // Pointing at the engagement folder instead of its .fde used to create a
-    // second, git-less memory beside the real one - same client, split record.
-    const nested = accept(path.join(env, '.fde'))
-    if (nested) return nested
-    const ok = accept(env)
-    if (ok) return ok
-    const asSlug = env.includes(path.sep) || env.includes('/')
-      ? null
-      : accept(path.join(ENGAGEMENTS_ROOT, slugify(env), '.fde'))
-    if (asSlug) return asSlug
+    // A relative value resolves against whatever directory the agent happened
+    // to start in - `FDEOPS_ENGAGEMENT=..` accepted the parent folder and put
+    // memory there. Absolute path, ~ path, or bare slug; nothing in between.
+    const looksLikePath = env.includes(path.sep) || env.includes('/') || env.startsWith('.')
+    if (looksLikePath && !path.isAbsolute(env)) {
+      process.stderr.write(
+        `FDEOPS_ENGAGEMENT must be an absolute path or a bare engagement slug - got "${env}".\n` +
+        `  e.g. ${path.join(ENGAGEMENTS_ROOT, '<client>', '.fde')}  or just <client>\n`
+      )
+      return null
+    }
+    if (looksLikePath) {
+      // Pointing at the engagement folder instead of its .fde used to create a
+      // second, git-less memory beside the real one - same client, split record.
+      const nested = accept(path.join(env, '.fde'))
+      if (nested) return nested
+      const ok = accept(env)
+      if (ok) return ok
+    } else {
+      const slugDir = path.join(ENGAGEMENTS_ROOT, slugify(env), '.fde')
+      const asSlug = accept(slugDir)
+      if (asSlug) return asSlug
+      process.stderr.write(
+        `FDEOPS_ENGAGEMENT is set to "${env}" but no engagement memory is there.\n` +
+        `  looked at: ${slugDir}\n` +
+        '  refusing to fall back to another engagement - fix or unset the variable.\n' +
+        '  list what exists: fde status --all\n'
+      )
+      return null
+    }
     process.stderr.write(
       `FDEOPS_ENGAGEMENT is set to "${env}" but no engagement memory is there.\n` +
       `  looked at: ${env}\n` +
-      (env.includes(path.sep) || env.includes('/') ? '' : `  and at:    ${path.join(ENGAGEMENTS_ROOT, slugify(env), '.fde')}\n`) +
       '  refusing to fall back to another engagement - fix or unset the variable.\n' +
       '  list what exists: fde status --all\n'
     )
@@ -235,8 +254,12 @@ function templatesDir() {
 
 // ---------- shared engagement signals (one source of truth) ----------
 
+// Regular files only: a fifo left in a memory slot used to block the whole CLI
+// on open (doctor/resume/triage hung forever), and a directory threw EISDIR.
 function readEng(eng, f) {
-  try { return fs.readFileSync(path.join(eng, f), 'utf8') } catch (_) { return '' }
+  const abs = path.join(eng, f)
+  try { if (!fs.lstatSync(abs).isFile()) return '' } catch (_) { return '' }
+  try { return fs.readFileSync(abs, 'utf8') } catch (_) { return '' }
 }
 
 // Redact private notes and template hints from every model-facing read.
@@ -1123,7 +1146,18 @@ function cmdResume(args) {
     const prev = readRegistry().find(r => r.workspace === cwd)
     const kept = readRegistry().filter(r => r.workspace !== cwd).map(r => `${r.workspace} ${r.slug}`)
     kept.push(`${cwd} ${slug}`)
-    withFileLock(REGISTRY, () => { atomicWriteFile(REGISTRY, kept.join('\n') + '\n') })
+    let bindErr = null
+    try { withFileLock(REGISTRY, () => { atomicWriteFile(REGISTRY, kept.join('\n') + '\n') }) } catch (e) { bindErr = e }
+    if (bindErr || !readRegistry().some(r => r.workspace === cwd && r.slug === slug)) {
+      // Silently unbound is the worst outcome: the memory exists, every later
+      // command says NO ENGAGEMENT, and nothing said why.
+      console.log(`ENGAGEMENT READY: ${fdeDir}`)
+      process.stderr.write(
+        `could not bind this workspace - ${REGISTRY} is not writable${bindErr ? ` (${bindErr.code || bindErr.message})` : ''}.\n` +
+        `  fix the file (it must be a regular file), or work with: export FDEOPS_ENGAGEMENT=${fdeDir}\n`
+      )
+      process.exit(1)
+    }
     console.log(`ENGAGEMENT READY: ${fdeDir}\nbound to workspace: ${cwd}`)
     if (prev && prev.slug !== slug) console.log(`rebound: this workspace previously wrote to "${prev.slug}" - that memory is untouched; sessions here now write to "${slug}"`)
     // NDA surface: engagement notes must not silently leave the machine via file sync

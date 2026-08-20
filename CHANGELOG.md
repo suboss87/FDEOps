@@ -1,6 +1,16 @@
 # Changelog
 
-## 3.10.3 — 2026-08-04
+## 3.10.4 — 2026-08-20
+
+The same refusal in the automatic paths: hooks no longer capture one client's session into another.
+
+### Fixed
+- **The `hooks/` layer honored the refusal only in `bin/fde.js`.** With an unresolvable `FDEOPS_ENGAGEMENT`, `session-start` injected the registry-bound client's context, `session-stop` ran `capture`/`dashboard` and `pre-compact` ran `preserve` against it - unattended, so worse than the manual case 3.10.3 fixed. All three now exit without touching memory, and they accept the same bare-slug / engagement-folder forms as the CLI.
+- **A relative `FDEOPS_ENGAGEMENT` is refused.** `FDEOPS_ENGAGEMENT=..` resolved against whatever directory the agent started in and initialised memory outside the engagements root. Absolute path, `~` path, or bare slug only.
+- **A fifo (or any non-regular file) in a memory slot no longer hangs the CLI.** `doctor`, `resume` and `triage` blocked forever on open; reads now skip anything that is not a regular file, and `doctor` still reports it.
+- **`fde resume --init` fails loudly when it cannot bind.** An unwritable `.registry` left the workspace silently unbound with exit 0, so every later command said `NO ENGAGEMENT` for no stated reason.
+
+## 3.10.3 — 2026-08-20
 
 Stability pass: an override that cannot be honored now refuses instead of filing the note under another client.
 
