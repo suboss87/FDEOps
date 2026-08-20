@@ -136,7 +136,18 @@ function resolveEngagement(opts = {}) {
   // registry would route this client's note into whichever engagement the
   // workspace happens to be bound to. A bare slug is accepted too - it is what
   // an FDE types - but only when it resolves under the engagements root.
-  const env = (process.env.FDEOPS_ENGAGEMENT || process.env.FDEOS_ENGAGEMENT || '').replace(/^~/, HOME).trim()
+  const envRaw = process.env.FDEOPS_ENGAGEMENT || process.env.FDEOS_ENGAGEMENT || ''
+  const env = envRaw.replace(/^~/, HOME).trim()
+  // A value that is all whitespace is a variable someone meant to set - usually
+  // an empty expansion. Treating it as unset filed the note under whichever
+  // engagement the workspace was bound to, silently.
+  if (!env && envRaw) {
+    process.stderr.write(
+      'FDEOPS_ENGAGEMENT is set to whitespace - that names no engagement.\n' +
+      '  set it to an engagement, or unset it to use this workspace\'s binding.\n'
+    )
+    return null
+  }
   if (env) {
     // A relative value resolves against whatever directory the agent happened
     // to start in - `FDEOPS_ENGAGEMENT=..` accepted the parent folder and put

@@ -11,6 +11,7 @@ The same refusal in the automatic paths: hooks no longer capture one client's se
 - **A value that slugifies to nothing no longer names an engagement.** `slugify()` defaults to the literal `engagement`, so `FDEOPS_ENGAGEMENT='???'` resolved onto a client slugged `engagement` - exit 0, no warning, reads and writes both.
 - **Every non-regular memory file is refused on the write side too, and the remaining unguarded reads are closed** (`stakeholders.md` via `stakeholdersMemoryHealth()`, `.registry`, the append target): a fifo in a slot hung `doctor`/`resume`/`triage`/`log` forever.
 - **An unbindable `.registry` explains itself once, whatever its shape,** and no longer leaves a stale `.registry.lock` (the refusal used to `process.exit()` from inside the lock).
+- **A whitespace-only `FDEOPS_ENGAGEMENT` refuses too** - an empty expansion (`export FDEOPS_ENGAGEMENT="$CLIENT"`) read as unset and filed the note under the workspace binding.
 - **`fde resume --init` fails loudly when it cannot bind.** An unwritable `.registry` left the workspace silently unbound with exit 0, so every later command said `NO ENGAGEMENT` for no stated reason.
 
 ## 3.10.3 — 2026-08-20

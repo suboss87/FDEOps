@@ -2723,3 +2723,15 @@ test('an unbindable .registry always explains itself and leaves no lock', () => 
     assert.equal(fs.existsSync(path.join(sandbox.dir, 'elsewhere')), false)
   }
 })
+
+test('a whitespace-only FDEOPS_ENGAGEMENT refuses instead of using the workspace binding', () => {
+  const sandbox = makeSandbox('envwhitespace')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Client B']).status, 0)
+  const bound = engagementPath(sandbox, 'client-b')
+  const before = fs.readFileSync(path.join(bound, 'decisions.md'), 'utf8')
+
+  const res = runFde(sandbox, ['log', 'decision', 'whitespace needle'], { env: { FDEOPS_ENGAGEMENT: '   ' } })
+  assert.equal(res.status, 2, res.stdout + res.stderr)
+  assert.match(res.stderr, /set to whitespace/)
+  assert.equal(fs.readFileSync(path.join(bound, 'decisions.md'), 'utf8'), before)
+})
