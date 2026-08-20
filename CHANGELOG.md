@@ -8,6 +8,9 @@ The same refusal in the automatic paths: hooks no longer capture one client's se
 - **The `hooks/` layer honored the refusal only in `bin/fde.js`.** With an unresolvable `FDEOPS_ENGAGEMENT`, `session-start` injected the registry-bound client's context, `session-stop` ran `capture`/`dashboard` and `pre-compact` ran `preserve` against it - unattended, so worse than the manual case 3.10.3 fixed. All three now exit without touching memory, and they accept the same bare-slug / engagement-folder forms as the CLI.
 - **A relative `FDEOPS_ENGAGEMENT` is refused.** `FDEOPS_ENGAGEMENT=..` resolved against whatever directory the agent started in and initialised memory outside the engagements root. Absolute path, `~` path, or bare slug only.
 - **A fifo (or any non-regular file) in a memory slot no longer hangs the CLI.** `doctor`, `resume` and `triage` blocked forever on open; reads now skip anything that is not a regular file, and `doctor` still reports it.
+- **A value that slugifies to nothing no longer names an engagement.** `slugify()` defaults to the literal `engagement`, so `FDEOPS_ENGAGEMENT='???'` resolved onto a client slugged `engagement` - exit 0, no warning, reads and writes both.
+- **Every non-regular memory file is refused on the write side too, and the remaining unguarded reads are closed** (`stakeholders.md` via `stakeholdersMemoryHealth()`, `.registry`, the append target): a fifo in a slot hung `doctor`/`resume`/`triage`/`log` forever.
+- **An unbindable `.registry` explains itself once, whatever its shape,** and no longer leaves a stale `.registry.lock` (the refusal used to `process.exit()` from inside the lock).
 - **`fde resume --init` fails loudly when it cannot bind.** An unwritable `.registry` left the workspace silently unbound with exit 0, so every later command said `NO ENGAGEMENT` for no stated reason.
 
 ## 3.10.3 — 2026-08-20

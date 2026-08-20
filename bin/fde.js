@@ -102,6 +102,8 @@ function grepFiles(files, regex, cap) {
 let registryWarned = false
 function readRegistry() {
   let raw
+  // Regular files only: a fifo here blocked `fde resume --init` on open.
+  try { if (!fs.lstatSync(REGISTRY).isFile()) return [] } catch (_) { return [] }
   try { raw = fs.readFileSync(REGISTRY, 'utf8') } catch (_) { return [] }
   const entries = []
   let skipped = 0
@@ -155,6 +157,17 @@ function resolveEngagement(opts = {}) {
       const ok = accept(env)
       if (ok) return ok
     } else {
+      // slugify() falls back to the literal "engagement" for a value with no
+      // slug characters at all ("???"), which used to resolve onto a real
+      // engagement nobody named. A name that slugifies to nothing names nothing.
+      if (!/[a-z0-9]/i.test(env)) {
+        process.stderr.write(
+          `FDEOPS_ENGAGEMENT is set to "${env}", which is not an engagement name.\n` +
+          '  refusing to guess - fix or unset the variable.\n' +
+          '  list what exists: fde status --all\n'
+        )
+        return null
+      }
       const slugDir = path.join(ENGAGEMENTS_ROOT, slugify(env), '.fde')
       const asSlug = accept(slugDir)
       if (asSlug) return asSlug
@@ -438,13 +451,17 @@ function failFs(err, action, target) {
   process.exit(1)
 }
 
-// Refuse writes that would follow a symlink out of the engagement tree.
-// Missing path is fine (new file). Soft mode returns the message instead of exiting
-// (session capture must never crash a hook).
+// Refuse writes that would follow a symlink out of the engagement tree, or
+// block forever on something that is not a file (a fifo in a memory slot hung
+// every append). Missing path is fine (new file). Soft mode returns the message
+// instead of exiting (session capture must never crash a hook).
 function refuseSymlinkWrite(p, opts = {}) {
   try {
-    if (fs.lstatSync(p).isSymbolicLink()) {
-      const msg = `refused: ${path.basename(p)} is a symlink - write would leave the engagement tree. Replace it with a real file.`
+    const st = fs.lstatSync(p)
+    if (st.isSymbolicLink() || !st.isFile()) {
+      const msg = st.isSymbolicLink()
+        ? `refused: ${path.basename(p)} is a symlink - write would leave the engagement tree. Replace it with a real file.`
+        : `refused: ${path.basename(p)} is not a regular file - remove it and re-run; every write is refused while it is there.`
       if (opts.soft) return msg
       console.error(msg)
       process.exit(1)
@@ -493,7 +510,7 @@ function withFileLock(targetPath, fn, opts = {}) {
 function atomicWriteFile(p, content, opts = {}) {
   const blocked = refuseSymlinkWrite(p, opts)
   if (blocked) {
-    if (opts.soft) throw Object.assign(new Error(blocked), { code: 'ESYMLINK' })
+    if (opts.soft) throw Object.assign(new Error(blocked), { code: blocked.includes('symlink') ? 'ESYMLINK' : 'EIRREGULAR' })
     return
   }
   const tmp = `${p}.${process.pid}.${Date.now()}.tmp`
@@ -513,7 +530,7 @@ function atomicWriteFile(p, content, opts = {}) {
 function lockedAppendFile(p, text, opts = {}) {
   const blocked = refuseSymlinkWrite(p, opts)
   if (blocked) {
-    if (opts.soft) throw Object.assign(new Error(blocked), { code: 'ESYMLINK' })
+    if (opts.soft) throw Object.assign(new Error(blocked), { code: blocked.includes('symlink') ? 'ESYMLINK' : 'EIRREGULAR' })
     return
   }
   try {
@@ -1147,7 +1164,11 @@ function cmdResume(args) {
     const kept = readRegistry().filter(r => r.workspace !== cwd).map(r => `${r.workspace} ${r.slug}`)
     kept.push(`${cwd} ${slug}`)
     let bindErr = null
-    try { withFileLock(REGISTRY, () => { atomicWriteFile(REGISTRY, kept.join('\n') + '\n') }) } catch (e) { bindErr = e }
+    // soft: an unwritable registry must not process.exit() from inside the lock -
+    // that skipped the finally and left a stale .registry.lock behind.
+    try {
+      withFileLock(REGISTRY, () => { atomicWriteFile(REGISTRY, kept.join('\n') + '\n', { soft: true }) }, { soft: true })
+    } catch (e) { bindErr = e }
     if (bindErr || !readRegistry().some(r => r.workspace === cwd && r.slug === slug)) {
       // Silently unbound is the worst outcome: the memory exists, every later
       // command says NO ENGAGEMENT, and nothing said why.
@@ -1156,6 +1177,7 @@ function cmdResume(args) {
         `could not bind this workspace - ${REGISTRY} is not writable${bindErr ? ` (${bindErr.code || bindErr.message})` : ''}.\n` +
         `  fix the file (it must be a regular file), or work with: export FDEOPS_ENGAGEMENT=${fdeDir}\n`
       )
+      try { fs.unlinkSync(REGISTRY + '.lock') } catch (_) {}
       process.exit(1)
     }
     console.log(`ENGAGEMENT READY: ${fdeDir}\nbound to workspace: ${cwd}`)
@@ -1930,7 +1952,7 @@ function cmdPreserve() {
     ensureMemoryGit(eng)
     const contextPath = path.join(eng, 'context.md')
     const blocked = refuseSymlinkWrite(contextPath, { soft: true })
-    if (blocked) throw Object.assign(new Error(blocked), { code: 'ESYMLINK' })
+    if (blocked) throw Object.assign(new Error(blocked), { code: blocked.includes('symlink') ? 'ESYMLINK' : 'EIRREGULAR' })
     withFileLock(contextPath, () => {
       const context = readEng(eng, 'context.md')
       const preservedToday = context.split('\n')
