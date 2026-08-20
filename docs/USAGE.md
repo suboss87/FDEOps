@@ -10,6 +10,16 @@ Day-to-day reference below.
 
 ---
 
+## See one session end to end
+
+Kickoff notes → you confirm → cold reload → sponsor prep → dated receipts → fieldbook. Real CLI output; only the typing pace is staged. Re-record it yourself with [`media/record-session.sh`](../media/record-session.sh).
+
+<p align="center"><img alt="A real fdeops session: messy kickoff notes routed into dated memory after you confirm, then a cold session that already knows the client, a grounded sponsor-meeting brief, and dated receipts" src="../media/session.gif" width="900" /></p>
+
+`<private>` lands sealed as `(private - redacted)` - never in `resume`, `prep`, `receipts`, or the dashboard.
+
+---
+
 ## New here? (5 minutes)
 
 1. Run `npx fdeops scan` in a repo - recon + the "ASK ON DAY 1" questions, zero config
