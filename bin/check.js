@@ -234,7 +234,7 @@ if (!recordingHosts.length) {
   if (!fs.existsSync(gifPath) || fs.statSync(gifPath).size < 50000) fail('media/session.gif missing or too small')
   else if (!fs.existsSync(rec)) fail('media/record-session.sh missing - the recording must be reproducible')
   else if (!fs.existsSync(path.join(root, 'media', 'session.cast'))) fail('media/session.cast missing - keep the source recording next to the gif')
-  else ok('README recorded session (gif + reproducible recorder + cast)')
+  else ok(`recorded session in ${recordingHosts.join(' + ')} (gif + reproducible recorder + cast)`)
 }
 
 // Every repo-relative README link and image must resolve, or the front door 404s.

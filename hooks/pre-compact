@@ -7,7 +7,23 @@ resolve_engagement_dir() {
   [ -z "$raw" ] && return 1
   # strip surrounding whitespace/quotes only - paths may contain spaces
   raw=$(printf '%s' "$raw" | sed -e 's/^[[:space:]"'"'"']*//' -e 's/[[:space:]"'"'"']*$//' -e "s|^~|$HOME|")
-  [ -d "$raw" ] && printf '%s\n' "$raw" && return 0
+  # Same forms bin/fde.js accepts: an absolute .fde, an absolute engagement
+  # folder, or a bare slug under the engagements root - keep the two in lockstep.
+  # Anything relative is refused: it would resolve against whatever directory
+  # the agent happened to start in.
+  case $raw in
+    /*)
+      [ -d "$raw/.fde" ] && printf '%s\n' "$raw/.fde" && return 0
+      [ -d "$raw" ] && printf '%s\n' "$raw" && return 0
+      return 1
+      ;;
+    */*|.*) return 1 ;;
+  esac
+  local root="${FDEOPS_ENGAGEMENTS_ROOT:-$HOME/fde-engagements}"
+  root="${root/#\~/$HOME}"
+  local slug
+  slug=$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-z0-9]\+/-/g' -e 's/^-//' -e 's/-$//')
+  [ -n "$slug" ] && [ -d "$root/$slug/.fde" ] && printf '%s\n' "$root/$slug/.fde" && return 0
   return 1
 }
 
@@ -56,6 +72,13 @@ resolve_fde() {
 }
 
 ENG_DIR=$(resolve_engagement_dir "${FDEOPS_ENGAGEMENT:-${FDEOS_ENGAGEMENT:-}}")
+
+# An override that cannot be honored is never ignored: falling through to the
+# registry would write this session into whichever engagement the workspace is
+# bound to, and the operator named a different one. bin/fde.js refuses; so do we.
+if [ -z "$ENG_DIR" ] && [ -n "${FDEOPS_ENGAGEMENT:-${FDEOS_ENGAGEMENT:-}}" ]; then
+  exit 0
+fi
 
 if [ -z "$ENG_DIR" ]; then
   ENG_DIR=$(registry_engagement_dir)

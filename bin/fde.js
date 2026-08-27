@@ -102,6 +102,8 @@ function grepFiles(files, regex, cap) {
 let registryWarned = false
 function readRegistry() {
   let raw
+  // Regular files only: a fifo here blocked `fde resume --init` on open.
+  try { if (!fs.lstatSync(REGISTRY).isFile()) return [] } catch (_) { return [] }
   try { raw = fs.readFileSync(REGISTRY, 'utf8') } catch (_) { return [] }
   const entries = []
   let skipped = 0
@@ -134,22 +136,63 @@ function resolveEngagement(opts = {}) {
   // registry would route this client's note into whichever engagement the
   // workspace happens to be bound to. A bare slug is accepted too - it is what
   // an FDE types - but only when it resolves under the engagements root.
-  const env = (process.env.FDEOPS_ENGAGEMENT || process.env.FDEOS_ENGAGEMENT || '').replace(/^~/, HOME).trim()
+  const envRaw = process.env.FDEOPS_ENGAGEMENT || process.env.FDEOS_ENGAGEMENT || ''
+  const env = envRaw.replace(/^~/, HOME).trim()
+  // A value that is all whitespace is a variable someone meant to set - usually
+  // an empty expansion. Treating it as unset filed the note under whichever
+  // engagement the workspace was bound to, silently.
+  if (!env && envRaw) {
+    process.stderr.write(
+      'FDEOPS_ENGAGEMENT is set to whitespace - that names no engagement.\n' +
+      '  set it to an engagement, or unset it to use this workspace\'s binding.\n'
+    )
+    return null
+  }
   if (env) {
-    // Pointing at the engagement folder instead of its .fde used to create a
-    // second, git-less memory beside the real one - same client, split record.
-    const nested = accept(path.join(env, '.fde'))
-    if (nested) return nested
-    const ok = accept(env)
-    if (ok) return ok
-    const asSlug = env.includes(path.sep) || env.includes('/')
-      ? null
-      : accept(path.join(ENGAGEMENTS_ROOT, slugify(env), '.fde'))
-    if (asSlug) return asSlug
+    // A relative value resolves against whatever directory the agent happened
+    // to start in - `FDEOPS_ENGAGEMENT=..` accepted the parent folder and put
+    // memory there. Absolute path, ~ path, or bare slug; nothing in between.
+    const looksLikePath = env.includes(path.sep) || env.includes('/') || env.startsWith('.')
+    if (looksLikePath && !path.isAbsolute(env)) {
+      process.stderr.write(
+        `FDEOPS_ENGAGEMENT must be an absolute path or a bare engagement slug - got "${env}".\n` +
+        `  e.g. ${path.join(ENGAGEMENTS_ROOT, '<client>', '.fde')}  or just <client>\n`
+      )
+      return null
+    }
+    if (looksLikePath) {
+      // Pointing at the engagement folder instead of its .fde used to create a
+      // second, git-less memory beside the real one - same client, split record.
+      const nested = accept(path.join(env, '.fde'))
+      if (nested) return nested
+      const ok = accept(env)
+      if (ok) return ok
+    } else {
+      // slugify() falls back to the literal "engagement" for a value with no
+      // slug characters at all ("???"), which used to resolve onto a real
+      // engagement nobody named. A name that slugifies to nothing names nothing.
+      if (!/[a-z0-9]/i.test(env)) {
+        process.stderr.write(
+          `FDEOPS_ENGAGEMENT is set to "${env}", which is not an engagement name.\n` +
+          '  refusing to guess - fix or unset the variable.\n' +
+          '  list what exists: fde status --all\n'
+        )
+        return null
+      }
+      const slugDir = path.join(ENGAGEMENTS_ROOT, slugify(env), '.fde')
+      const asSlug = accept(slugDir)
+      if (asSlug) return asSlug
+      process.stderr.write(
+        `FDEOPS_ENGAGEMENT is set to "${env}" but no engagement memory is there.\n` +
+        `  looked at: ${slugDir}\n` +
+        '  refusing to fall back to another engagement - fix or unset the variable.\n' +
+        '  list what exists: fde status --all\n'
+      )
+      return null
+    }
     process.stderr.write(
       `FDEOPS_ENGAGEMENT is set to "${env}" but no engagement memory is there.\n` +
       `  looked at: ${env}\n` +
-      (env.includes(path.sep) || env.includes('/') ? '' : `  and at:    ${path.join(ENGAGEMENTS_ROOT, slugify(env), '.fde')}\n`) +
       '  refusing to fall back to another engagement - fix or unset the variable.\n' +
       '  list what exists: fde status --all\n'
     )
@@ -235,8 +278,12 @@ function templatesDir() {
 
 // ---------- shared engagement signals (one source of truth) ----------
 
+// Regular files only: a fifo left in a memory slot used to block the whole CLI
+// on open (doctor/resume/triage hung forever), and a directory threw EISDIR.
 function readEng(eng, f) {
-  try { return fs.readFileSync(path.join(eng, f), 'utf8') } catch (_) { return '' }
+  const abs = path.join(eng, f)
+  try { if (!fs.lstatSync(abs).isFile()) return '' } catch (_) { return '' }
+  try { return fs.readFileSync(abs, 'utf8') } catch (_) { return '' }
 }
 
 // Redact private notes and template hints from every model-facing read.
@@ -415,13 +462,17 @@ function failFs(err, action, target) {
   process.exit(1)
 }
 
-// Refuse writes that would follow a symlink out of the engagement tree.
-// Missing path is fine (new file). Soft mode returns the message instead of exiting
-// (session capture must never crash a hook).
+// Refuse writes that would follow a symlink out of the engagement tree, or
+// block forever on something that is not a file (a fifo in a memory slot hung
+// every append). Missing path is fine (new file). Soft mode returns the message
+// instead of exiting (session capture must never crash a hook).
 function refuseSymlinkWrite(p, opts = {}) {
   try {
-    if (fs.lstatSync(p).isSymbolicLink()) {
-      const msg = `refused: ${path.basename(p)} is a symlink - write would leave the engagement tree. Replace it with a real file.`
+    const st = fs.lstatSync(p)
+    if (st.isSymbolicLink() || !st.isFile()) {
+      const msg = st.isSymbolicLink()
+        ? `refused: ${path.basename(p)} is a symlink - write would leave the engagement tree. Replace it with a real file.`
+        : `refused: ${path.basename(p)} is not a regular file - remove it and re-run; every write is refused while it is there.`
       if (opts.soft) return msg
       console.error(msg)
       process.exit(1)
@@ -470,7 +521,7 @@ function withFileLock(targetPath, fn, opts = {}) {
 function atomicWriteFile(p, content, opts = {}) {
   const blocked = refuseSymlinkWrite(p, opts)
   if (blocked) {
-    if (opts.soft) throw Object.assign(new Error(blocked), { code: 'ESYMLINK' })
+    if (opts.soft) throw Object.assign(new Error(blocked), { code: blocked.includes('symlink') ? 'ESYMLINK' : 'EIRREGULAR' })
     return
   }
   const tmp = `${p}.${process.pid}.${Date.now()}.tmp`
@@ -490,7 +541,7 @@ function atomicWriteFile(p, content, opts = {}) {
 function lockedAppendFile(p, text, opts = {}) {
   const blocked = refuseSymlinkWrite(p, opts)
   if (blocked) {
-    if (opts.soft) throw Object.assign(new Error(blocked), { code: 'ESYMLINK' })
+    if (opts.soft) throw Object.assign(new Error(blocked), { code: blocked.includes('symlink') ? 'ESYMLINK' : 'EIRREGULAR' })
     return
   }
   try {
@@ -1123,7 +1174,23 @@ function cmdResume(args) {
     const prev = readRegistry().find(r => r.workspace === cwd)
     const kept = readRegistry().filter(r => r.workspace !== cwd).map(r => `${r.workspace} ${r.slug}`)
     kept.push(`${cwd} ${slug}`)
-    withFileLock(REGISTRY, () => { atomicWriteFile(REGISTRY, kept.join('\n') + '\n') })
+    let bindErr = null
+    // soft: an unwritable registry must not process.exit() from inside the lock -
+    // that skipped the finally and left a stale .registry.lock behind.
+    try {
+      withFileLock(REGISTRY, () => { atomicWriteFile(REGISTRY, kept.join('\n') + '\n', { soft: true }) }, { soft: true })
+    } catch (e) { bindErr = e }
+    if (bindErr || !readRegistry().some(r => r.workspace === cwd && r.slug === slug)) {
+      // Silently unbound is the worst outcome: the memory exists, every later
+      // command says NO ENGAGEMENT, and nothing said why.
+      console.log(`ENGAGEMENT READY: ${fdeDir}`)
+      process.stderr.write(
+        `could not bind this workspace - ${REGISTRY} is not writable${bindErr ? ` (${bindErr.code || bindErr.message})` : ''}.\n` +
+        `  fix the file (it must be a regular file), or work with: export FDEOPS_ENGAGEMENT=${fdeDir}\n`
+      )
+      try { fs.unlinkSync(REGISTRY + '.lock') } catch (_) {}
+      process.exit(1)
+    }
     console.log(`ENGAGEMENT READY: ${fdeDir}\nbound to workspace: ${cwd}`)
     if (prev && prev.slug !== slug) console.log(`rebound: this workspace previously wrote to "${prev.slug}" - that memory is untouched; sessions here now write to "${slug}"`)
     // NDA surface: engagement notes must not silently leave the machine via file sync
@@ -1896,7 +1963,7 @@ function cmdPreserve() {
     ensureMemoryGit(eng)
     const contextPath = path.join(eng, 'context.md')
     const blocked = refuseSymlinkWrite(contextPath, { soft: true })
-    if (blocked) throw Object.assign(new Error(blocked), { code: 'ESYMLINK' })
+    if (blocked) throw Object.assign(new Error(blocked), { code: blocked.includes('symlink') ? 'ESYMLINK' : 'EIRREGULAR' })
     withFileLock(contextPath, () => {
       const context = readEng(eng, 'context.md')
       const preservedToday = context.split('\n')
