@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.11.1 — 2026-08-27
+
+Adoption: one skill, and the CLI is never missing.
+
+### Fixed
+- **A skill-only install had no hands.** `npx skills add` copies the method but not the CLI, and the router's only fallback was `~/.claude/fdeops/fde.js` - absent on Cursor/Codex/anything that is not a Claude Code install - so the agent dropped to writing `.fde/` by hand and lost the dating, gates and `<private>` redaction the CLI enforces. It now reaches for `npx --yes fdeops <verb>` before any manual path; "CLI unavailable" means no Node or no network, not "not installed".
+- **The advertised install pulled a contributor skill.** A bare `npx skills add suboss87/fdeops` also installs `testing-fieldbook`, which is for people working on this repo. The documented command is `--skill fde`, and a gate keeps it that way.
+
 ## 3.11.0 — 2026-08-27
 
 One window over every client, without a second memory to maintain.

@@ -41,8 +41,10 @@ Nothing to install to see it on a fake client: `npx fdeops demo`.
 ```
 
 ```bash
-npx skills add suboss87/fdeops          # Cursor, Codex, skills-compatible hosts
+npx skills add suboss87/fdeops --skill fde   # Cursor, Codex, skills-compatible hosts
 ```
+
+That is one skill, not a catalogue - `@fde` routes the whole method. The CLI needs no install either: the skill reaches for `npx fdeops` when `fde` is not on the PATH. (Drop `--skill fde` and you also get `testing-fieldbook`, which is for people contributing to this repo, not for field work.)
 
 Claude Code additionally gets session hooks, so context arrives before you type. Everywhere else it is the same fieldbook, loaded when you ask.
 
