@@ -15,7 +15,13 @@ function createTrustApi(deps) {
   function stakeholdersMemoryHealth(eng) {
     // Hostile handoff: binary / unparseable stakeholders must not read as healthy green.
     let buf
-    try { buf = fs.readFileSync(path.join(eng, 'stakeholders.md')) } catch (_) {
+    const abs = path.join(eng, 'stakeholders.md')
+    // Regular files only - opening a fifo here blocked status/triage/doctor
+    // forever. doctor reports the shape separately.
+    try { if (!fs.lstatSync(abs).isFile()) return { ok: true, warn: '' } } catch (_) {
+      return { ok: true, warn: '' }
+    }
+    try { buf = fs.readFileSync(abs) } catch (_) {
       return { ok: true, warn: '' }
     }
     if (buf.includes(0)) {
