@@ -38,6 +38,28 @@ The maintainer may add vetted stories to the README when appropriate.
 
 ---
 
+## Releasing (maintainer)
+
+Publishing is a tag, so the bytes on npm always map to a commit:
+
+```bash
+# 1. bump the four version manifests + CHANGELOG in a PR, merge it
+# 2. from merged Main:
+git pull && git tag v3.11.0 && git push origin v3.11.0
+```
+
+`.github/workflows/release.yml` then runs `npm run check`, refuses a tag that
+disagrees with `package.json` or a version already on the registry, publishes
+with provenance, and confirms the registry serves it. It needs one repository
+secret, `NPM_TOKEN` (an npm **Automation** token - granular, read+write, scoped
+to `fdeops`; automation tokens bypass 2FA, which is why CI can use one).
+
+The four manifests that must agree: `package.json`, `plugin.json`,
+`.claude-plugin/plugin.json`, `mcp/fdeops-ingest/package.json` - `npm run check`
+enforces this.
+
+---
+
 ## Security
 
 Never commit `.fde/` or engagement exports. See [SECURITY.md](SECURITY.md).
