@@ -1,7 +1,7 @@
 {
   "name": "fdeops",
-  "description": "Engagement memory for AI coding agents. One @fde skill routes the client work - land, discover, plan, build, ship, close - and the record of it (sponsor, promise, decision, acceptance, dated) lands in local .fde/ files as you confirm judgment. For Forward Deployed Engineers running several clients at once.",
-  "version": "3.12.0",
+  "description": "Forward deployed engineering skills with memory, for AI coding agents. One @fde skill routes the client work - land, discover, plan, build, ship, close - and the record of it (sponsor, promise, decision, acceptance, dated) lands in local .fde/ files as you confirm judgment. For Forward Deployed Engineers running several clients at once.",
+  "version": "3.12.1",
   "category": "productivity",
   "tags": [
     "community-managed"

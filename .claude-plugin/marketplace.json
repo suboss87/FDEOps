@@ -5,13 +5,13 @@
     "url": "https://github.com/suboss87"
   },
   "metadata": {
-    "description": "Engagement memory for AI coding agents - one @fde skill, phase methods, and local .fde/ client memory."
+    "description": "Forward deployed engineering skills with memory - one @fde skill, phase methods, and local .fde/ client memory."
   },
   "plugins": [
     {
       "name": "fdeops",
       "source": "./",
-      "description": "Engagement memory for AI coding agents. One entry point that routes by situation (land, discover, build, rescue, ship, close), does the phase work, and keeps per-client memory - sponsor, promise, decision, acceptance, dated - in local .fde/ files. For Forward Deployed Engineers running several clients at once; healthcare, fintech, and government overlays included."
+      "description": "Forward deployed engineering skills with memory, for AI coding agents. One entry point that routes by situation (land, discover, build, rescue, ship, close), does the phase work, and keeps per-client memory - sponsor, promise, decision, acceptance, dated - in local .fde/ files. For Forward Deployed Engineers running several clients at once; healthcare, fintech, and government overlays included."
     }
   ]
 }

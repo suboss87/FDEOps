@@ -1,15 +1,15 @@
 # FDEOps
 
-**Your AI coding agent forgets your client every morning. FDEOps remembers.**
+**Forward deployed engineering skills with memory, for AI coding agents.**
 
 [![npm version](https://img.shields.io/npm/v/fdeops.svg)](https://www.npmjs.com/package/fdeops)
 [![CI](https://github.com/suboss87/fdeops/actions/workflows/validate.yml/badge.svg)](https://github.com/suboss87/fdeops/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-**Engagement memory for AI coding agents.** Skill packs teach your agent how to *build*. None of them remember who the client is, what you promised, or who agreed it was delivered - close the window and it is gone. FDEOps adds that missing layer: a private record per client (`.fde/`), a field methodology from land to close, and one skill that routes it.
+Your agent forgets the client every morning - the sponsor, what you promised, who agreed it was delivered. Skill packs teach it how to *build*; none of them remember who you are building for. FDEOps adds the missing layer: a private record per client (`.fde/`), a field method from land to close, and one skill that routes it.
 
-Built for Forward Deployed Engineers and anyone embedded in client work - consultants, agency developers, solutions architects, fractional CTOs. Not notes: a defensible record - dated, sourced, on your laptop.
+For Forward Deployed Engineers and anyone embedded in client work - consultants, agency developers, solutions architects, fractional CTOs - running several engagements at once. Not notes: a defensible record, dated and sourced, on your laptop.
 
 ```
   land      discover      plan      build      ship      close

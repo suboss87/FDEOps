@@ -1,6 +1,13 @@
 # Changelog
 
-## 3.12.0 — 2026-08-27
+## 3.12.1 — 2026-08-27
+
+One line, everywhere. 3.12.0 was tagged but never reached the registry, so this is the first release carrying the vocabulary work.
+
+### Changed
+- **"Forward deployed engineering skills with memory, for AI coding agents"** is now the single positioning line - README, npm, plugin and marketplace manifests. It names the ICP in the first three words, so an FDE self-identifies before reading anything else, and it stops us competing in the crowded "agent skills" category on breadth we do not have. The last "second brain" phrasings went with it.
+
+## 3.12.0 — 2026-08-27 (tagged, unpublished)
 
 Vocabulary: standard words on the outside, so nothing has to be learned before it works.
 
@@ -8,7 +15,7 @@ Vocabulary: standard words on the outside, so nothing has to be learned before i
 - **The skill fires on client work, not on a password.** The frontmatter `description` - the only text a host reads before loading a skill - triggered on `@fde` plus a list of our own nouns ("hygiene", "receipts"), so an FDE who simply talked about their client got no memory. It now names the intents in the standard `Use when …` form: mentioning a client or sponsor, debriefing a meeting, asking what was agreed, prepping a readout, opening a session in a client workspace. `@fde` remains, as one trigger among several rather than the gate.
 - **`fde tidy` is the verb; `fde garden` still works.** "Garden" was a metaphor only we used. Nothing is removed - the old name routes to the same code, and the alias is covered by a test.
 - **`capture` and `preserve` left the human help.** Only hooks call them; listing them invited an FDE to run a snapshot by hand.
-- **"Engagement memory for AI coding agents"** replaces "second brain" in the npm, plugin and marketplace descriptions - the phrase someone would actually search, and an accurate one.
+- **"Second brain" is gone from the npm, plugin and marketplace descriptions** - vague, and taken. Superseded by the 3.12.1 line above.
 
 ### Added
 - **One glossary.** The six words that carry the method (fieldbook, brief vs reality, terrain, trust signal, receipts, vault) are defined once in the README instead of being met scattered and guessed. A gate keeps it in place, and a second gate keeps the description triggering on intent.

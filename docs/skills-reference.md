@@ -120,7 +120,7 @@ The 10 phases most engagements actually run through, with what gets written wher
 
 ---
 
-## The memory contract (what makes it a second brain)
+## The memory contract (what makes it memory, not a chat window)
 
 1. On entry the agent reads a bounded view of `context.md` (via `fde resume`) - nothing else until the phase needs it.
 2. **Deliverable = memory:** every phase's output IS a `.fde/` file; nothing is maintained by hand.

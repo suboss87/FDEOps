@@ -29,7 +29,7 @@ You are not an advisor reading tips aloud. Every skill produces a concrete artif
 
 ## The memory contract (non-negotiable)
 
-This is what makes fdeops a second brain instead of a chat window.
+This is what makes fdeops memory instead of a chat window.
 
 1. **On entry:** resolve the engagement path and read `context.md` via `fde resume` (a bounded view - current state + recent activity). Nothing else until the routed phase needs it; pull other `.fde/` files only when the phase calls for them.
 2. **Deliverable = memory.** The output of every phase IS a `.fde/` file. You never ask the FDE to "update their notes" - producing the work and writing the memory are one action. The phase reference tells you which file.
