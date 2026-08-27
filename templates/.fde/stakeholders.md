@@ -5,7 +5,8 @@
 
 | Name | Role | Stance | Notes |
 |------|------|--------|-------|
-| | | champion / neutral / resistant | |
+
+**Stance:** `champion` · `neutral` · `resistant`
 
 **Trust signal:** green | amber | red  
 **Last trust check:**

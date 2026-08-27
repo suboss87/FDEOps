@@ -13,7 +13,6 @@
 
 | Exception / break | Who notices first | What they do today (workaround) | System of record then | Blast if wrong | Evidence |
 |-------------------|-------------------|---------------------------------|-----------------------|----------------|----------|
-| | | | | | |
 
 **Shadow systems / silent workarounds:**
 **Sacred / untouchable in ops:**
@@ -23,4 +22,3 @@
 
 | Step | Deterministic | Model judgement | Human approve |
 |------|---------------|-----------------|---------------|
-| | | | |
