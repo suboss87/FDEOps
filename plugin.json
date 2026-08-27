@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "fdeops",
-  "version": "3.11.0",
+  "version": "3.11.1",
   "description": "Engagement fieldbook for Forward Deployed Engineers: per-client memory in local .fde/ files, one @fde skill, land to close methodology. Local-only, no network.",
   "author": {
     "name": "Subash Natarajan",

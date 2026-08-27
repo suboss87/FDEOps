@@ -270,6 +270,22 @@ if (!readme.includes('fde-engagements') || !/fdeops.*init.*engagement/i.test(rea
   fail('README must document fde-engagements + init flow')
 } else ok('README engagement path')
 
+// The contributor-only testing skill lives in .agents/skills/, so a bare
+// `skills add` installs it too. The advertised command must name the one skill
+// a field user wants.
+for (const m of readme.match(/^.*npx skills add .*$/gm) || []) {
+  if (!m.includes('--skill fde')) {
+    fail(`README skills-add command must pin --skill fde: ${m.trim()}`)
+  }
+}
+ok('README skills install is one skill')
+
+// A skill-only install has no fde on the PATH; the router must reach npx before
+// falling back to writing memory by hand.
+if (!read('skills/fde/SKILL.md').includes('npx --yes fdeops')) {
+  fail('skills/fde/SKILL.md must fall back to npx --yes fdeops when the CLI is not installed')
+} else ok('SKILL.md npx CLI fallback')
+
 if (!fs.existsSync(path.join(root, 'docs', 'USAGE.md'))) {
   fail('docs/USAGE.md missing')
 } else ok('docs/USAGE.md')
