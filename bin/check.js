@@ -464,7 +464,7 @@ if (!fs.existsSync(path.join(root, 'bin', 'fde.js'))) {
       .map(name => path.join('bin', 'lib', name)),
   ]
   const cliSource = cliFiles.map(read).join('\n')
-  for (const sub of ['cmdScan', 'cmdResume', 'cmdLog', 'cmdDebrief', 'cmdIngest', 'cmdReceipts', 'cmdCapture', 'cmdStatus', 'cmdDashboard']) {
+  for (const sub of ['cmdScan', 'cmdResume', 'cmdLog', 'cmdDebrief', 'cmdIngest', 'cmdReceipts', 'cmdCapture', 'cmdStatus', 'cmdDashboard', 'cmdVault']) {
     if (!cliSource.includes(sub)) fail(`CLI sources missing ${sub}`)
   }
   if (!JSON.parse(read('package.json')).bin.fde) fail('package.json must expose the fde bin')

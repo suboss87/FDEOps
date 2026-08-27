@@ -26,6 +26,7 @@
  *   fde preserve            pre-compaction context snapshot (hook-internal; hooks use this)
  *   fde status [--all]      current engagement (default) or full portfolio (--all)
  *   fde dashboard [--all]   current engagement fieldbook (default) or all (--all)
+ *   fde vault               derived Obsidian vault of the fieldbook (disposable; --redacted)
  */
 const fs = require('fs')
 const path = require('path')
@@ -33,6 +34,7 @@ const os = require('os')
 const { execSync, execFileSync } = require('child_process')
 const { createMemoryApi } = require('./lib/memory')
 const { createTrustApi } = require('./lib/trust')
+const vault = require('./lib/vault')
 
 const HOME = os.homedir()
 // FDEOPS_ENGAGEMENTS_ROOT isolates init/status/dashboard (and the registry) for
@@ -2800,6 +2802,190 @@ function cmdDashboard(args) {
   }
 }
 
+// ---------- vault (a window onto the fieldbook, not a second copy of it) ----------
+// Obsidian skips any path starting with "." - so ~/fde-engagements as a vault shows
+// nothing, because every client's record lives inside .fde/. The answer is a derived
+// vault: generated from .fde/, rebuilt from scratch each run, gitignored, never read
+// back. That is also where redaction belongs (`--redacted` for a shared screen).
+
+// Stamped into the vault so a stale folder is identifiable. Best-effort: a
+// missing package.json must not stop an FDE generating their vault.
+function cliVersion() {
+  try {
+    return String(JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8')).version || '')
+  } catch (_) { return '' }
+}
+
+function valueLedgerRows(eng) {
+  const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger') || '')
+  const table = parseMdTable(ledger)
+  if (!table) return []
+  const sIdx = colIndex(table.headers, /slice/i)
+  const pIdx = colIndex(table.headers, /promis/i)
+  const aIdx = colIndex(table.headers, /accept/i)
+  const rows = []
+  for (const row of table.rows) {
+    const slice = sIdx === -1 ? '' : String(row[sIdx] || '').trim()
+    const promised = pIdx === -1 ? '' : String(row[pIdx] || '').trim()
+    if (!slice && !promised) continue
+    const acceptedRaw = aIdx === -1 ? '' : String(row[aIdx] || '').trim()
+    rows.push({
+      slice, promised,
+      acceptedBy: !acceptedRaw || PENDING_CELL_RE.test(acceptedRaw) ? '' : acceptedRaw,
+    })
+  }
+  return rows
+}
+
+function isInside(child, parent) {
+  const rel = path.relative(parent, child)
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))
+}
+
+// Containment must be judged on the real path: a symlinked parent
+// (ln -s ~/fde-engagements /tmp/l; --out /tmp/l/vault) resolves textually to
+// somewhere harmless while writing inside the engagements root. The vault target
+// usually does not exist yet, so resolve the deepest ancestor that does.
+function realPathish(p) {
+  let cur = p
+  const tail = []
+  for (let i = 0; i < 64; i++) {
+    try {
+      return path.join(fs.realpathSync(cur), ...tail)
+    } catch (e) {
+      if (e.code !== 'ENOENT' && e.code !== 'ENOTDIR') return p
+      const parent = path.dirname(cur)
+      if (parent === cur) return p
+      tail.unshift(path.basename(cur))
+      cur = parent
+    }
+  }
+  return p
+}
+
+// `fde vault` deletes its output directory before rebuilding, so the only
+// acceptable targets are a fresh path or a folder this command wrote before
+// (proved by its stamp file). Never the engagements root, never $HOME.
+function resolveVaultOut(args, redacted) {
+  const outIdx = args.indexOf('--out')
+  const raw = outIdx !== -1 ? String(args[outIdx + 1] || '').trim() : ''
+  if (outIdx !== -1 && !raw) {
+    console.error('--out needs a directory path')
+    process.exit(1)
+  }
+  const out = raw
+    ? path.resolve(raw.replace(/^~(?=$|\/)/, HOME))
+    : path.join(HOME, redacted ? 'fde-vault-redacted' : 'fde-vault')
+
+  const refuse = (why) => {
+    console.error(`refused: will not build the vault at ${out} - ${why}`)
+    process.exit(1)
+  }
+  // The symlink check reads the path as given; every containment check reads it
+  // resolved, so a link cannot smuggle the target past them.
+  try {
+    if (fs.lstatSync(out).isSymbolicLink()) {
+      refuse('it is a symlink - a rebuild would delete whatever it points at')
+    }
+  } catch (e) {
+    if (e.code !== 'ENOENT') failFs(e, 'check', out)
+  }
+  const canon = realPathish(out)
+  const engRoot = realPathish(ENGAGEMENTS_ROOT)
+  const realHome = realPathish(HOME)
+  for (const p of new Set([out, canon])) {
+    if (p === path.parse(p).root) refuse('that is the filesystem root')
+    if (p === HOME || p === realHome) refuse('the vault directory is deleted and rebuilt on every run')
+    if (p.split(path.sep).includes('.fde')) refuse('that is inside a fieldbook; .fde/ is the source of truth')
+    for (const root of new Set([ENGAGEMENTS_ROOT, engRoot])) {
+      if (isInside(p, root) || isInside(root, p)) refuse('it would contain or sit inside your engagements root')
+    }
+  }
+  try {
+    const st = fs.lstatSync(out)
+    if (!st.isDirectory()) refuse('it exists and is not a directory')
+    const entries = fs.readdirSync(out)
+    if (entries.length && !entries.includes(vault.STAMP)) {
+      refuse(`it already holds files fde vault did not write (no ${vault.STAMP}). Pick an empty path with --out`)
+    }
+  } catch (e) {
+    if (e.code !== 'ENOENT') failFs(e, 'check', out)
+  }
+  return out
+}
+
+function cmdVault(args) {
+  const redacted = args.includes('--redacted')
+  const all = !args.includes('--current')
+  const out = resolveVaultOut(args, redacted)
+
+  let engagements
+  if (all) {
+    engagements = gatherEngagements()
+  } else {
+    const eng = resolveEngagement()
+    if (!eng) {
+      console.error('no engagement bound to this workspace.\nrun: fde resume --init <name>   or   fde vault')
+      process.exit(2)
+    }
+    engagements = gatherEngagements({ only: eng })
+  }
+
+  const SECTION_FILES = ['decisions', 'risks', 'delivery', 'stakeholders', 'terrain', 'success', 'trust-profile']
+  const ALWAYS = new Set(['decisions', 'risks', 'delivery'])
+  engagements.forEach(e => {
+    const ctx = readClean(e.dir, 'context.md')
+    e.next = (sectionBody(ctx, 'Next action', { lastNonEmpty: true }).split('\n').find(l => l.trim()) || '').trim()
+    e.brief = firstLine(readClean(e.dir, 'brief.md'), 400)
+    e.reality = firstLine(readClean(e.dir, 'reality.md'), 400)
+    e.overlay = detectOverlay(e.dir)
+    e.days = daysElapsed(e.dir)
+    e.stakeholders = extractStakeholders(e.dir)
+    e.log = extractLog(e.dir)
+    e.valueRows = valueLedgerRows(e.dir)
+    e.pages = {}
+    for (const f of SECTION_FILES) {
+      if (!fs.existsSync(path.join(e.dir, `${f}.md`))) continue
+      // stripTemplateNoise: the instruction comments are for whoever writes the
+      // fieldbook, not for whoever reads it in Obsidian.
+      const body = stripTemplateNoise(readClean(e.dir, `${f}.md`))
+      if (!ALWAYS.has(f) && !render.hasRealContent(body)) continue
+      e.pages[f] = body
+    }
+  })
+
+  const files = vault.buildVaultFiles({
+    engagements,
+    today: render.formatToday(new Date()),
+    redacted,
+    engagementsRoot: ENGAGEMENTS_ROOT,
+    version: cliVersion(),
+  })
+
+  // Fresh every run: a client dropped from the portfolio, or a page that stopped
+  // having content, must not linger as a stale note.
+  rmTreeQuiet(out)
+  try {
+    fs.mkdirSync(out, { recursive: true })
+  } catch (e) {
+    failFs(e, 'create vault', out)
+  }
+  for (const f of files) {
+    const target = path.join(out, f.rel)
+    try {
+      fs.mkdirSync(path.dirname(target), { recursive: true })
+    } catch (e) {
+      failFs(e, 'create vault folder', target)
+    }
+    atomicWriteFile(target, f.content)
+  }
+
+  console.log(`vault → ${out}${redacted ? '  (redacted)' : ''}`)
+  console.log(`${engagements.length} engagement(s) · ${files.length} pages · derived, gitignored, rebuilt on every run`)
+  console.log('open it:  Obsidian → Open folder as vault → this folder, then start at Portfolio')
+  if (!redacted) console.log('sharing a screen with the sponsor?  fde vault --redacted')
+}
+
 // ---------- demo (see the value before touching a real client) ----------
 // Everything below runs the real commands against a throwaway engagement under
 // ~/fde-engagements/.demo/ - the leading dot keeps it out of every portfolio
@@ -2971,6 +3157,7 @@ function printUsage() {
   fde preserve             pre-compaction context snapshot (hook-internal; hooks use this)
   fde status [--all]       current engagement status (pass --all for full portfolio)
   fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
+  fde vault                derived Obsidian vault of every engagement (--current for one, --redacted for a shared screen, --out <dir>)
   env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)
   writes require a workspace bind (or FDEOPS_ENGAGEMENT) - folder-name match is read-only
   .fde/ is git-versioned locally for tamper-evident receipts (no remote, no telemetry)
@@ -2996,6 +3183,7 @@ switch (cmd) {
   case 'preserve': cmdPreserve(); break
   case 'status': cmdStatus(args); break
   case 'dashboard': cmdDashboard(args); break
+  case 'vault': cmdVault(args); break
   case 'help':
   case '-h':
   case '--help':
