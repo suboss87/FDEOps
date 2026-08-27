@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.11.0 — 2026-08-27
+
+One window over every client, without a second memory to maintain.
+
+### Added
+- **`fde vault`** - a derived Obsidian vault of the whole portfolio: a `Portfolio` page across all clients, a page per engagement (phase, trust, next action, timeline, people), a `Questions` page (gone quiet, value nobody accepted, stale signals, no next action), plus frontmatter and `[[wikilinks]]` so search and graph view work in a stock Obsidian with no plugins. Obsidian ignores dot-paths, so `~/fde-engagements` as a vault shows nothing - the record lives inside `.fde/`.
+- **`fde vault --redacted`** - the same vault with the political layer removed (`stakeholders.md`, `trust-profile.md`, people pages, trust signals, contact notes, `[signal:x]`/`[@owner]` tokens), on top of the `<private>` redaction every output already does. The first version of a fieldbook that is safe on a shared screen.
+
+### Notes
+- The vault is **derived and disposable**: `.fde/` stays the only source of truth, the folder is deleted and rebuilt on every run, it is gitignored, and nothing in it is ever parsed back. Authoritative `.fde/` files gain no frontmatter and no wikilinks - they stay plain markdown a client can read.
+- It refuses to build over `$HOME`, the engagements root, anything inside a `.fde/`, a symlink, or any directory it did not write itself (proved by its `.fdeops-vault` stamp). `--out <dir>` for anywhere else.
+
 ## 3.10.4 — 2026-08-20
 
 The same refusal in the automatic paths: hooks no longer capture one client's session into another.

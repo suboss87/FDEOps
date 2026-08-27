@@ -90,6 +90,7 @@ When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FD
 | "Draft the sponsor update" / how are we doing | `fde status` then follow `references/status.md` for the narrative |
 | "Log that they went quiet" / trust signal | `fde log contact "…" --signal amber\|green\|red`. If they already named the color ("log that as amber"), that is the confirm — write it. If they only described the situation, playback the color once, then write. |
 | Want the HTML fieldbook | `fde dashboard` |
+| "Open my clients in Obsidian" / one window over everything / "can I show this to the sponsor?" | `fde vault` (add `--redacted` for a shared screen). Derived and disposable: it is rebuilt from `.fde/` on every run and never read back, so tell them to keep logging to the fieldbook, not to the vault. |
 | "Clean up the fieldbook" / hygiene / memory feels messy | `fde doctor` - walk issues in plain language; propose fixes; never auto-rewrite without confirm. Includes structural gaps: empty operating map (plan+), stakeholder name forks (Denise vs Denise Chen), duplicates, ship/close risks. Contradictions need judgment (brief vs reality) - doctor is structural; you handle meaning. |
 | "Scrub this secret / redact that token" (buried line, not just last write) | `fde redact <term>` preview, then `fde redact <term> --apply` after confirm. Undo is last-write only; redact is for buried lines. Remind them to rotate the real credential. |
 
