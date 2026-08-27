@@ -1573,6 +1573,28 @@ test('triage hygiene: silent on fresh day-1; speaks after real work accrues gaps
   assert.doesNotMatch(clean.stdout, /hygiene:/i, 'hygiene must be silent when doctor is OK')
 })
 
+test('a day-1 risk register counts zero open risks; a legend line is not a risk', () => {
+  const sandbox = makeSandbox('risk-legend')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'legendco']).status, 0)
+  const shipped = runFde(sandbox, ['triage'])
+  assert.equal(shipped.status, 0, shipped.stderr)
+  assert.match(shipped.stdout, /open risks:0/, 'shipped risks.md template must count 0 open risks')
+
+  // "**Status:** open · closed" starts with '*' - it is markdown emphasis, not a bullet.
+  const eng = engagementPath(sandbox, 'legendco')
+  fs.writeFileSync(
+    path.join(eng, 'risks.md'),
+    '# Risk register\n\n| Risk | Status | Owner | Mitigation |\n|------|--------|-------|------------|\n\n' +
+    '**Status:** `open` · `mitigating` · `closed` · `accepted`\n'
+  )
+  const legend = runFde(sandbox, ['triage'])
+  assert.match(legend.stdout, /open risks:0/, 'a status legend must not read as an open risk')
+
+  assert.equal(runFde(sandbox, ['log', 'risk', 'cutover window still unsigned']).status, 0)
+  const real = runFde(sandbox, ['triage'])
+  assert.match(real.stdout, /open risks:1/, 'a logged risk still counts')
+})
+
 test('phase ship/close warns when open risks remain', () => {
   const sandbox = makeSandbox('phase-risk-warn')
   assert.equal(runFde(sandbox, ['resume', '--init', 'phasewarn']).status, 0)
@@ -1627,6 +1649,32 @@ test('doctor ship/close: value bucket required; eval only when AI in scope', () 
   )
   const aiOk = runFde(sandbox, ['doctor'])
   assert.equal(aiOk.status, 0, aiOk.stdout + aiOk.stderr)
+})
+
+test('the shipped delivery.md template cannot satisfy the eval-receipt gate it documents', () => {
+  const sandbox = makeSandbox('eval-gate-template')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'aico']).status, 0)
+  const eng = engagementPath(sandbox, 'aico')
+  fs.appendFileSync(
+    path.join(eng, 'trust-profile.md'),
+    '\n## AI policy\nCustomer approved an LLM-assisted reranker; no PHI may reach the model.\n'
+  )
+  assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
+
+  // delivery.md ships "**Eval receipt:** n/a unless AI touches the slice, else evals.md
+  // pass + the HITL owner" - prose that documents the receipt, not a receipt.
+  const untouched = runFde(sandbox, ['doctor'])
+  assert.notEqual(untouched.status, 0)
+  assert.match(untouched.stdout, /eval receipt/i, 'day-1 template prose must not satisfy the gate')
+
+  // A dated Ship receipts row is a receipt, and still clears it.
+  const del = fs.readFileSync(path.join(eng, 'delivery.md'), 'utf8').replace(
+    /(\| Date \| Slice \| Audit receipt \| Eval receipt \|\n\|[-|]+\|)/,
+    '$1\n| 2026-07-18 | reranker v1 | 2026-07-10 exception path verified with Tom | evals.md 18/18 pass, HITL owner Priya |'
+  )
+  fs.writeFileSync(path.join(eng, 'delivery.md'), del)
+  const receipted = runFde(sandbox, ['doctor'])
+  assert.doesNotMatch(receipted.stdout, /eval receipt/i, 'a dated ship receipt clears the gate')
 })
 
 test('doctor calls out a measured benefit nobody on the customer side accepted', () => {

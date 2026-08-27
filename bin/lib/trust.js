@@ -76,8 +76,10 @@ function createTrustApi(deps) {
       const t = raw.trim()
       if (!t || t.startsWith('<!--') || /^#{1,6}\s/.test(t)) continue
       if (/risk\s*\|\s*status|mitigation/i.test(t) || /^\|?[\s|:-]+$/.test(t)) continue
-      // Bullet risk with substance (skip empty "- " stubs).
-      if (/^[-*]/.test(t)) {
+      // Bullet risk with substance (skip empty "- " stubs). The bullet marker
+      // must be followed by space: "**Status:** open · closed" is a legend, and
+      // counting it as a risk reported one open risk on an empty register.
+      if (/^[-*]\s/.test(t)) {
         if (t.replace(/^[-*]\s+/, '').trim()) n++
         continue
       }

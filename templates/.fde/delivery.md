@@ -6,7 +6,9 @@
 
 | Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |
 |------|-------|--------|----------|----------|-------------|----------|----------|
-| | | *(cost-save / risk-mitigation / revenue-uplift)* | *(what we said it would change)* | *(what actually changed, or pending)* | *(customer-side name + date, or it stays claimed)* | *(who/when/metric)* | |
+
+**Bucket:** `cost-save` · `risk-mitigation` · `revenue-uplift`  
+**Accepted by:** a customer-side name and date - without one the value stays *claimed*, not accepted.
 
 ## Ship receipts
 
@@ -14,7 +16,9 @@
 
 | Date | Slice | Audit receipt | Eval receipt |
 |------|-------|---------------|--------------|
-| | | *(dated cite: exceptions/operating path verified — terrain/reality/audit)* | *(n/a \| evals.md pass + HITL owner)* |
+
+**Audit receipt:** dated cite that the exception/operating path was verified (`terrain.md` / `reality.md`).  
+**Eval receipt:** `n/a` unless AI touches the slice, else `evals.md` pass + the HITL owner.
 
 ## Shipped
 

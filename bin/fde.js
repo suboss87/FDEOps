@@ -2063,10 +2063,11 @@ function findDuplicateOpenRisks(eng) {
 function collectDoctorIssues(eng) {
   const issues = []
   const s = computeSignals(eng)
-  const datedBlob = [
+  // stripTemplateNoise: a dated example inside a template comment is not work.
+  const datedBlob = stripTemplateNoise([
     readEng(eng, 'decisions.md'), readEng(eng, 'delivery.md'),
     readEng(eng, 'risks.md'), readEng(eng, 'stakeholders.md'),
-  ].join('\n')
+  ].join('\n'))
   const hasDatedWork = /\[\d{4}-\d{2}-\d{2}\]/.test(datedBlob)
   // Day-1 empty templates are not hygiene failures - nagging there trains people to ignore doctor.
   const fresh = !hasDatedWork && (s.phase === '?' || s.phase === 'unset') && !s.openRisks
@@ -2249,6 +2250,15 @@ function stripTemplateNoise(md) {
     .replace(/\*\([^)]*\)\*/g, '')
 }
 
+// Drop "**Label:** allowed · values" guidance lines. A receipt is a dated line or a
+// table row - never a bold label - so template prose that *documents* a receipt must
+// not satisfy the gate requiring one. hasOperatingMapContent already skips these.
+function stripLegendLines(md) {
+  return String(md || '').split('\n')
+    .filter(l => !/^\s*\*\*[^*]+:\*\*/.test(l))
+    .join('\n')
+}
+
 const VALUE_BUCKET_RE = /(cost[- ]?save|risk[- ]?mitigat|revenue[- ]?uplift)/i
 
 function hasValueBucket(eng) {
@@ -2257,7 +2267,7 @@ function hasValueBucket(eng) {
   if (bucketLine && VALUE_BUCKET_RE.test(bucketLine[1].trim())) return true
   if (!/\*\*Primary value bucket:\*\*/i.test(success) && VALUE_BUCKET_RE.test(success)) return true
 
-  const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger') || '')
+  const ledger = stripLegendLines(stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger') || ''))
   const table = parseMdTable(ledger)
   if (table) {
     const bIdx = colIndex(table.headers, /bucket/i)
@@ -2322,7 +2332,7 @@ function hasEvalReceipt(eng) {
     if (/\bLast run:\s*\d{4}-\d{2}-\d{2}/i.test(e)) return true
     if (/\|\s*G\d+\s*\|[^|\n]+\|[^|\n]+\|[^|\n]+\|[^|\n]+\|\s*pass\s*\|/i.test(e)) return true
   }
-  const del = stripTemplateNoise(readClean(eng, 'delivery.md'))
+  const del = stripLegendLines(stripTemplateNoise(readClean(eng, 'delivery.md')))
   if (/#{1,6}\s+Eval\b/i.test(del) && /\b(pass|SHIP|\d+\/\d+)\b/i.test(sectionBody(del, 'Eval') || del)) return true
   if (/\beval (pack|receipt)[:\s].*\b(pass|SHIP)\b/i.test(del)) return true
   const receipts = sectionBody(del, 'Ship receipts') || ''
