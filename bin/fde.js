@@ -18,7 +18,7 @@
  *   fde debrief --smart     propose routing from messy notes; --apply commits it
  *   fde prep [label]        grounded walk-in brief from existing .fde/ only
  *   fde doctor              deterministic memory lint (stale signals, gaps)
- *   fde garden [--apply]    propose safe consolidations; apply only with --apply
+ *   fde tidy [--apply]      propose safe consolidations; apply only with --apply (was: garden)
  *   fde ingest …            stage → propose → apply pull sink (.inbox/; never auto-writes .fde/)
  *   fde owner [set …]       who keeps this engagement record
  *   fde receipts <term>     "what did we agree?" - search memory with dates
@@ -2488,18 +2488,18 @@ function cmdGarden(args) {
   // Gardener contract (from Rowboat note_curation): no new facts, no deleted substance,
   // reversible via git when healthy, confirm before apply. Mechanical only - no LLM rewrite.
   if (gitHealth.ok) {
-    console.log('GARDEN (contract: no new facts · no deleted substance · reversible via memory git)')
+    console.log('TIDY (contract: no new facts · no deleted substance · reversible via memory git)')
   } else if (gitHealth.reason === 'broken') {
-    console.log('GARDEN (contract: no new facts · no deleted substance · ⚠ memory git BROKEN — NOT reversible until ledger is repaired)')
+    console.log('TIDY (contract: no new facts · no deleted substance · ⚠ memory git BROKEN — NOT reversible until ledger is repaired)')
   } else {
-    console.log('GARDEN (contract: no new facts · no deleted substance · ⚠ memory not git-versioned — NOT reversible)')
+    console.log('TIDY (contract: no new facts · no deleted substance · ⚠ memory not git-versioned — NOT reversible)')
   }
   console.log(resumeTriage(eng))
   if (!gitHealth.ok) {
     console.log(
       gitHealth.reason === 'broken'
-        ? '\n⚠ ledger is UNVERSIONED (corrupt .git). Repair before trusting garden apply: mv .fde/.git .fde/.git.broken && run any fde write to re-init.'
-        : '\n⚠ no memory git — garden apply cannot create a reversible commit until the ledger exists.'
+        ? '\n⚠ ledger is UNVERSIONED (corrupt .git). Repair before trusting tidy apply: mv .fde/.git .fde/.git.broken && run any fde write to re-init.'
+        : '\n⚠ no memory git — tidy apply cannot create a reversible commit until the ledger exists.'
     )
   }
   const proposals = []
@@ -2539,18 +2539,18 @@ function cmdGarden(args) {
     })
   }
   if (!proposals.length) {
-    console.log('\nNothing to garden.')
+    console.log('\nNothing to tidy.')
     return
   }
   console.log(`\n${proposals.length} proposal(s):`)
   proposals.forEach((p, i) => console.log(`  ${i + 1}. [${p.kind}] ${p.text}`))
   if (!apply) {
-    console.log('\nApply mechanical items only:  fde garden --apply')
+    console.log('\nApply mechanical items only:  fde tidy --apply')
     console.log('Manual items stay yours. Every apply commits to memory git when the ledger is healthy.')
     return
   }
   if (!gitHealth.ok && gitHealth.reason === 'broken') {
-    console.error('refusing garden --apply while memory git is broken - repair the ledger first')
+    console.error('refusing tidy --apply while memory git is broken - repair the ledger first')
     process.exit(1)
   }
   ensureMemoryGit(eng)
@@ -2603,9 +2603,9 @@ function cmdGarden(args) {
     touched.add('context-archive.md')
     console.log(`applied: archived ${p.sessionBlocks.length} old session-end blocks → context-archive.md`)
   }
-  const hash = commitMemory(eng, 'garden', { files: [...touched] })
+  const hash = commitMemory(eng, 'tidy', { files: [...touched] })
   if (!applied) console.log('no mechanical proposals applied (manual items remain)')
-  else console.log(`garden done${hash ? ` @${hash}` : ''}`)
+  else console.log(`tidy done${hash ? ` @${hash}` : ''}`)
 }
 
 // Keep the first open-risk bullet per fingerprint; move later echoes under ## Retired.
@@ -2647,7 +2647,7 @@ function applyRiskDedupe(eng, clusters) {
   const stamp = new Date().toISOString().slice(0, 10)
   const block = retiredLines.map(l => {
     const body = l.trim().replace(/^-\s*/, '')
-    return `- [${stamp}] (garden dedupe) ${body}`
+    return `- [${stamp}] (tidy dedupe) ${body}`
   }).join('\n')
   out = appendUnderSection(out, 'Retired', block)
   withFileLock(p, () => { atomicWriteFile(p, out.endsWith('\n') ? out : out + '\n') })
@@ -3150,14 +3150,13 @@ function printUsage() {
   fde prep [label]         grounded walk-in brief from existing .fde/ only
   fde doctor               lint engagement memory (stale signals, gaps)
   fde redact <term>        preview/remove lines containing a buried term (pass --apply to commit)
-  fde garden [--apply]     propose safe consolidations (contract: no new facts; git-reversible)
+  fde tidy [--apply]       propose safe consolidations (contract: no new facts; git-reversible)
   fde owner [set email]    who keeps this engagement record
   fde receipts <term>      "what did we agree?" with dates
-  fde capture              session-end memory snapshot (hooks use this)
-  fde preserve             pre-compaction context snapshot (hook-internal; hooks use this)
   fde status [--all]       current engagement status (pass --all for full portfolio)
   fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
   fde vault                derived Obsidian vault of every engagement (--current for one, --redacted for a shared screen, --out <dir>)
+  hooks call these; you do not: capture (session-end snapshot), preserve (pre-compaction snapshot)
   env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)
   writes require a workspace bind (or FDEOPS_ENGAGEMENT) - folder-name match is read-only
   .fde/ is git-versioned locally for tamper-evident receipts (no remote, no telemetry)
@@ -3176,6 +3175,8 @@ switch (cmd) {
   case 'prep': cmdPrep(args); break
   case 'doctor': cmdDoctor(); break
   case 'redact': cmdRedact(args); break
+  // `garden` was the name through 3.11.x; it keeps working.
+  case 'tidy':
   case 'garden': cmdGarden(args); break
   case 'owner': cmdOwner(args); break
   case 'receipts': cmdReceipts(args); break

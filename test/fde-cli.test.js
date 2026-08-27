@@ -1931,6 +1931,25 @@ test('garden proposes and applies duplicate open-risk consolidation', () => {
   assert.ok(openBullets.length < 4, `expected fewer open risks after dedupe, got ${openBullets.length}`)
 })
 
+test('tidy is the verb and garden still routes to it', () => {
+  const sandbox = makeSandbox('tidy-alias')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'tidyco']).status, 0)
+  const tidy = runFde(sandbox, ['tidy'])
+  const garden = runFde(sandbox, ['garden'])
+  assert.equal(tidy.status, 0, tidy.stderr)
+  assert.equal(garden.status, 0, garden.stderr)
+  assert.equal(tidy.stdout, garden.stdout)
+  // An unknown verb prints usage and exits 1; the alias must not degrade to that.
+  assert.doesNotMatch(tidy.stdout, /deterministic core of fdeops/)
+
+  const help = runFde(sandbox, ['help'])
+  assert.match(help.stdout, /fde tidy \[--apply\]/)
+  // capture/preserve are hook-internal - listing them as verbs invited an FDE to
+  // run a snapshot by hand and wonder why nothing happened.
+  assert.doesNotMatch(help.stdout, /^\s+fde capture\s{2,}/m)
+  assert.doesNotMatch(help.stdout, /^\s+fde preserve\s{2,}/m)
+})
+
 test('doctor requires operating map from plan onward; silent on discover', () => {
   const sandbox = makeSandbox('opmap-doctor')
   assert.equal(runFde(sandbox, ['resume', '--init', 'opmap']).status, 0)
