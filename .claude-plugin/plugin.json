@@ -1,7 +1,7 @@
 {
   "name": "fdeops",
-  "description": "Second brain for Forward Deployed Engineers. One @fde skill - enter at day one, mid-project, or mid-fire; it routes and does the phase work; engagement memory lands in .fde/ as you confirm judgment.",
-  "version": "3.11.1",
+  "description": "Engagement memory for AI coding agents. One @fde skill routes the client work - land, discover, plan, build, ship, close - and the record of it (sponsor, promise, decision, acceptance, dated) lands in local .fde/ files as you confirm judgment. For Forward Deployed Engineers running several clients at once.",
+  "version": "3.12.0",
   "category": "productivity",
   "tags": [
     "community-managed"
@@ -14,6 +14,8 @@
   "repository": "https://github.com/suboss87/fdeops",
   "license": "MIT",
   "keywords": [
+    "engagement-memory",
+    "agent-memory",
     "fde",
     "forward-deployed",
     "legacy-code",
