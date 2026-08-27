@@ -2783,3 +2783,162 @@ test('a whitespace-only FDEOPS_ENGAGEMENT refuses instead of using the workspace
   assert.match(res.stderr, /set to whitespace/)
   assert.equal(fs.readFileSync(path.join(bound, 'decisions.md'), 'utf8'), before)
 })
+
+// ---------- fde vault (derived Obsidian view) ----------
+
+function vaultDir(sandbox, name = 'fde-vault') {
+  return path.join(sandbox.home, name)
+}
+
+function readVault(sandbox, rel, name = 'fde-vault') {
+  return fs.readFileSync(path.join(vaultDir(sandbox, name), rel), 'utf8')
+}
+
+test('vault renders the portfolio and every engagement, and never the private block', () => {
+  const sandbox = makeSandbox('vault')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme Payments']).status, 0)
+  runFde(sandbox, ['log', 'decision', 'keep the existing Stripe connector'])
+  runFde(sandbox, ['log', 'contact', 'Priya sponsor still backing it', '--signal', 'green'])
+  const eng = engagementPath(sandbox, 'acme-payments')
+  fs.appendFileSync(path.join(eng, 'risks.md'), '\n<private>Tom is about to be managed out</private>\n')
+
+  const second = path.join(sandbox.dir, 'ws2')
+  fs.mkdirSync(second, { recursive: true })
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Beta Bank'], { cwd: second }).status, 0)
+
+  const res = runFde(sandbox, ['vault'])
+  assert.equal(res.status, 0, res.stdout + res.stderr)
+  assert.match(res.stdout, /2 engagement\(s\)/)
+
+  const portfolio = readVault(sandbox, 'Portfolio.md')
+  assert.match(portfolio, /\[\[acme-payments\]\]/)
+  assert.match(portfolio, /\[\[beta-bank\]\]/)
+
+  const hub = readVault(sandbox, path.join('acme-payments', 'acme-payments.md'))
+  assert.match(hub, /^---\nclient: "acme-payments"/)          // frontmatter only in the derived copy
+  assert.match(hub, /\[\[acme-payments\/Decisions\|Decisions\]\]/)
+  assert.match(hub, /keep the existing Stripe connector/)
+  assert.match(readVault(sandbox, path.join('acme-payments', 'People', 'Priya.md')), /signal: "green"/)
+  assert.ok(fs.existsSync(path.join(vaultDir(sandbox), 'Questions.md')))
+
+  // the authoritative fieldbook stays plain markdown - no frontmatter, no wikilinks
+  const source = fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8')
+  assert.equal(source.startsWith('---'), false)
+  assert.equal(/\[\[/.test(source), false)
+
+  for (const file of walkFiles(vaultDir(sandbox))) {
+    const body = fs.readFileSync(file, 'utf8')
+    assert.equal(/managed out/.test(body), false, `private text leaked into ${file}`)
+  }
+})
+
+function walkFiles(dir) {
+  const out = []
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, entry.name)
+    if (entry.isDirectory()) out.push(...walkFiles(p))
+    else out.push(p)
+  }
+  return out
+}
+
+test('vault --redacted drops the political layer and its internal tokens', () => {
+  const sandbox = makeSandbox('vaultredacted')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  runFde(sandbox, ['log', 'contact', 'Priya sponsor still backing it', '--signal', 'amber'])
+  runFde(sandbox, ['log', 'decision', 'ship the reconciliation slice first'])
+
+  const res = runFde(sandbox, ['vault', '--redacted'])
+  assert.equal(res.status, 0, res.stdout + res.stderr)
+  const out = vaultDir(sandbox, 'fde-vault-redacted')
+  assert.ok(fs.existsSync(out))
+  assert.equal(fs.existsSync(path.join(out, 'acme', 'Stakeholders.md')), false)
+  assert.equal(fs.existsSync(path.join(out, 'acme', 'Trust profile.md')), false)
+  assert.equal(fs.existsSync(path.join(out, 'acme', 'People')), false)
+
+  const hub = fs.readFileSync(path.join(out, 'acme', 'acme.md'), 'utf8')
+  assert.match(hub, /ship the reconciliation slice first/)
+  assert.equal(/Priya/.test(hub), false)
+  assert.equal(/trust:/.test(hub), false)
+  assert.equal(/\[signal:/.test(hub), false)
+  assert.equal(/\[@/.test(hub), false)
+  assert.equal(/amber/.test(fs.readFileSync(path.join(out, 'Portfolio.md'), 'utf8')), false)
+})
+
+test('vault is disposable: identical on a rerun, and a dropped engagement disappears', () => {
+  const sandbox = makeSandbox('vaultrebuild')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const second = path.join(sandbox.dir, 'ws2')
+  fs.mkdirSync(second, { recursive: true })
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Gone'], { cwd: second }).status, 0)
+
+  assert.equal(runFde(sandbox, ['vault']).status, 0)
+  const first = walkFiles(vaultDir(sandbox)).map(f => f + '\n' + fs.readFileSync(f, 'utf8')).join('\n')
+  assert.equal(runFde(sandbox, ['vault']).status, 0)
+  const again = walkFiles(vaultDir(sandbox)).map(f => f + '\n' + fs.readFileSync(f, 'utf8')).join('\n')
+  assert.equal(again, first, 'vault output is not deterministic')
+
+  // A hand-typed note in the vault is not memory - the rebuild takes it away.
+  fs.writeFileSync(path.join(vaultDir(sandbox), 'acme', 'scratch.md'), 'typed into the wrong place')
+  fs.rmSync(path.join(sandbox.home, 'fde-engagements', 'gone'), { recursive: true, force: true })
+  assert.equal(runFde(sandbox, ['vault']).status, 0)
+  assert.equal(fs.existsSync(path.join(vaultDir(sandbox), 'acme', 'scratch.md')), false)
+  assert.equal(fs.existsSync(path.join(vaultDir(sandbox), 'gone')), false)
+  assert.equal(/\[\[gone\]\]/.test(readVault(sandbox, 'Portfolio.md')), false)
+})
+
+test('vault refuses any target it would be wrong to delete', () => {
+  const sandbox = makeSandbox('vaultrefuse')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const engRoot = path.join(sandbox.home, 'fde-engagements')
+
+  const mine = path.join(sandbox.dir, 'my-notes')
+  fs.mkdirSync(mine, { recursive: true })
+  fs.writeFileSync(path.join(mine, 'notes.md'), 'ten years of notes')
+  const link = path.join(sandbox.dir, 'link')
+  fs.symlinkSync(mine, link)
+
+  const cases = [
+    [engRoot, /engagements root/],
+    [sandbox.home, /deleted and rebuilt/],
+    [engagementPath(sandbox, 'acme'), /inside a fieldbook/],
+    [mine, /did not write/],
+    [link, /symlink/],
+  ]
+  for (const [target, expected] of cases) {
+    const res = runFde(sandbox, ['vault', '--out', target])
+    assert.equal(res.status, 1, `${target} was not refused: ${res.stdout + res.stderr}`)
+    assert.match(res.stderr, expected)
+  }
+  assert.equal(fs.readFileSync(path.join(mine, 'notes.md'), 'utf8'), 'ten years of notes')
+  assert.equal(runFde(sandbox, ['vault', '--out']).status, 1)
+
+  // a path with spaces is a path, not two arguments
+  const spaced = path.join(sandbox.dir, 'my vault')
+  assert.equal(runFde(sandbox, ['vault', '--out', spaced]).status, 0)
+  assert.ok(fs.existsSync(path.join(spaced, 'Portfolio.md')))
+  assert.ok(fs.existsSync(path.join(spaced, '.gitignore')))
+})
+
+test('an empty portfolio builds a vault that says so instead of failing', () => {
+  const sandbox = makeSandbox('vaultempty')
+  const res = runFde(sandbox, ['vault'])
+  assert.equal(res.status, 0, res.stdout + res.stderr)
+  assert.match(readVault(sandbox, 'Portfolio.md'), /No engagements yet/)
+  assert.equal(runFde(sandbox, ['vault', '--current']).status, 2)
+})
+
+test('vault surfaces value promised with nobody named as accepting it', () => {
+  const sandbox = makeSandbox('vaultquestions')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const eng = engagementPath(sandbox, 'acme')
+  const delivery = fs.readFileSync(path.join(eng, 'delivery.md'), 'utf8')
+    .replace('|------|-------|--------|----------|----------|-------------|----------|----------|',
+      '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+      '| 2026-08-27 | reconciliation | cost-save | 4h/week | 6h/week | pending | run log | flag |')
+  fs.writeFileSync(path.join(eng, 'delivery.md'), delivery)
+
+  assert.equal(runFde(sandbox, ['vault']).status, 0)
+  const questions = readVault(sandbox, 'Questions.md')
+  assert.match(questions, /Value promised but nobody accepted it[\s\S]*reconciliation/)
+})

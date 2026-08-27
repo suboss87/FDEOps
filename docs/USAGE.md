@@ -144,6 +144,7 @@ fde log contact "…" --signal amber
 fde receipts "descope"            # dated agreements (ON RECORD)
 fde dashboard --all               # every client, sorted by trust
 fde status [--all]                # trust-first triage
+fde vault [--redacted] [--out D]  # derived Obsidian vault of the whole portfolio (disposable)
 fde demo                          # the whole loop on a fake client (--clean removes it)
 ```
 
@@ -178,6 +179,24 @@ cd ~/work/client-b && fde resume --init client-b
 ```
 
 One folder per client, one binding per workspace. Never merge contexts. `fde status` triages the whole portfolio (red > amber > green); `fde dashboard` renders it into one offline HTML fieldbook.
+
+---
+
+## One window over every client (Obsidian)
+
+```bash
+fde vault              # → ~/fde-vault, then: Obsidian → Open folder as vault
+fde vault --redacted   # → ~/fde-vault-redacted, safe for a shared screen
+```
+
+Obsidian ignores any path starting with `.`, so pointing it at `~/fde-engagements` shows nothing - every record lives inside `.fde/`. `fde vault` therefore writes a **derived** vault: a `Portfolio` page across all clients, one page per engagement (phase, trust, next action, timeline, people), a `Questions` page (gone quiet, value nobody accepted, stale signals), plus frontmatter and `[[wikilinks]]` so search and graph view work with no plugins installed.
+
+The rules that keep it from becoming a second memory:
+
+- `.fde/` stays the only source of truth. The vault is **never** read back.
+- It is **disposable** - every run deletes and rebuilds it, so anything typed there is lost. Log to the fieldbook instead (`@fde`, or `fde log`).
+- It is gitignored, and it refuses to build over `$HOME`, your engagements root, a `.fde/` folder, a symlink, or any directory it did not write itself.
+- `--redacted` drops `stakeholders.md`, `trust-profile.md`, people pages, trust signals and contact notes - on top of the `<private>` redaction every FDEOps output already does.
 
 ---
 
