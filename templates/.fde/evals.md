@@ -13,13 +13,11 @@
 
 | ID | Input (sanitized) | Expected | Pass rule | Last run | Result |
 |----|-------------------|----------|-----------|----------|--------|
-| G1 | | | | | |
 
 ## Failure modes
 
 | Mode | How it shows up | Detection | Mitigation |
 |------|-----------------|-----------|------------|
-| | | | |
 
 ## Pass / fail (this ship)
 - **Golden:** _/_ pass (threshold: _)
@@ -31,7 +29,6 @@
 
 | Decision / action | Autonomous OK? | Reviewer role | Escalation |
 |-------------------|----------------|---------------|------------|
-| | | | |
 
 **HITL rule for this ship:**
 
@@ -39,4 +36,3 @@
 
 | Date | What changed | Pack re-run? | Notes |
 |------|--------------|--------------|-------|
-| | | | |

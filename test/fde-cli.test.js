@@ -1573,6 +1573,28 @@ test('triage hygiene: silent on fresh day-1; speaks after real work accrues gaps
   assert.doesNotMatch(clean.stdout, /hygiene:/i, 'hygiene must be silent when doctor is OK')
 })
 
+test('a day-1 risk register counts zero open risks; a legend line is not a risk', () => {
+  const sandbox = makeSandbox('risk-legend')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'legendco']).status, 0)
+  const shipped = runFde(sandbox, ['triage'])
+  assert.equal(shipped.status, 0, shipped.stderr)
+  assert.match(shipped.stdout, /open risks:0/, 'shipped risks.md template must count 0 open risks')
+
+  // "**Status:** open · closed" starts with '*' - it is markdown emphasis, not a bullet.
+  const eng = engagementPath(sandbox, 'legendco')
+  fs.writeFileSync(
+    path.join(eng, 'risks.md'),
+    '# Risk register\n\n| Risk | Status | Owner | Mitigation |\n|------|--------|-------|------------|\n\n' +
+    '**Status:** `open` · `mitigating` · `closed` · `accepted`\n'
+  )
+  const legend = runFde(sandbox, ['triage'])
+  assert.match(legend.stdout, /open risks:0/, 'a status legend must not read as an open risk')
+
+  assert.equal(runFde(sandbox, ['log', 'risk', 'cutover window still unsigned']).status, 0)
+  const real = runFde(sandbox, ['triage'])
+  assert.match(real.stdout, /open risks:1/, 'a logged risk still counts')
+})
+
 test('phase ship/close warns when open risks remain', () => {
   const sandbox = makeSandbox('phase-risk-warn')
   assert.equal(runFde(sandbox, ['resume', '--init', 'phasewarn']).status, 0)

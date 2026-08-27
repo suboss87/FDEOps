@@ -35,6 +35,23 @@ After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same rou
 | `risks.md` | Live risk register | plan, build, rescue, `fde debrief` |
 | `delivery.md` | Value ledger (bucket → promised → measured → accepted by → evidence) + ship receipts + status memos | build, ship, status, close, `fde debrief` |
 
+### Decision entries
+
+`fde log decision "<text>"` appends a dated one-liner, which is enough for most
+choices. When the reasoning is the part that has to survive the engagement,
+write the long form under `## Decision log` instead:
+
+```markdown
+### [2026-08-27] Keep the existing Stripe connector
+- Context: what prompted this decision
+- Options considered: what was on the table
+- Decision: what was chosen
+- Rationale: why this over the alternatives
+- Owner: who approved (customer-side name)
+```
+
+The rationale is the line a successor cannot reconstruct from the code.
+
 ## Incidents and handoff
 
 | File | Purpose | Written by |
