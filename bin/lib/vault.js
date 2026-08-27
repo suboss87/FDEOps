@@ -56,12 +56,13 @@ function trustWord(trust) {
 }
 
 // A signal token is internal shorthand; the sponsor view keeps the fact and
-// drops the grading.
+// drops the grading. Whole section bodies pass through here, so only the space
+// the token itself occupied is closed up: a global whitespace collapse ate the
+// newlines, glued headings to prose and broke every table on these pages.
 function stripInternalTokens(text) {
   return String(text || '')
-    .replace(/\[signal:(red|amber|green)\]/gi, '')
-    .replace(/\[@[^\]]+\]/g, '')
-    .replace(/\s{2,}/g, ' ')
+    .replace(/[^\S\n]*\[signal:(red|amber|green)\]/gi, '')
+    .replace(/[^\S\n]*\[@[^\]]+\]/g, '')
     .trim()
 }
 
@@ -95,6 +96,9 @@ function personPage({ eng, person, today }) {
 
 function hubPage({ eng, today, redacted }) {
   const s = eng.signals
+  // Next action / Brief / Reality are free text an FDE types, so they carry the
+  // same internal tokens the timeline does - strip them on the sponsor page too.
+  const plain = (text) => redacted ? stripInternalTokens(text) : String(text || '')
   const links = [
     ['Decisions', 'decisions'],
     ['Risks', 'risks'],
@@ -131,10 +135,10 @@ function hubPage({ eng, today, redacted }) {
     '',
     '## Next action',
     '',
-    eng.next ? eng.next : '*(none recorded - `fde log`/`@fde` writes one)*',
+    eng.next ? plain(eng.next) : '*(none recorded - `fde log`/`@fde` writes one)*',
     '',
-    ...(eng.brief ? ['## Brief', '', eng.brief, ''] : []),
-    ...(eng.reality ? ['## Reality', '', eng.reality, ''] : []),
+    ...(eng.brief ? ['## Brief', '', plain(eng.brief), ''] : []),
+    ...(eng.reality ? ['## Reality', '', plain(eng.reality), ''] : []),
     '## The record',
     '',
     ...links.map(([label, kind]) => `- [[${safeTitle(eng.name)}/${label}|${label}]]`),
@@ -159,7 +163,7 @@ function portfolioPage({ engagements, today, redacted }) {
   const body = rows.map(e => {
     const link = `[[${safeTitle(e.name)}]]`
     const phase = e.signals.phase === '?' ? 'unset' : e.signals.phase
-    const next = cell(e.next) || '-'
+    const next = cell(redacted ? stripInternalTokens(e.next) : e.next) || '-'
     return redacted
       ? `| ${link} | ${phase} | ${e.signals.openRisks} | ${next} |`
       : `| ${link} | ${phase} | ${trustWord(e.signals.trust)}${e.signals.stale ? '?' : ''} | ${e.signals.openRisks} | ${cell(e.signals.updated)} | ${next} |`

@@ -2942,3 +2942,68 @@ test('vault surfaces value promised with nobody named as accepting it', () => {
   const questions = readVault(sandbox, 'Questions.md')
   assert.match(questions, /Value promised but nobody accepted it[\s\S]*reconciliation/)
 })
+
+test('a redacted section page keeps its markdown structure (headings, table rows, blank lines)', () => {
+  const sandbox = makeSandbox('vaultstructure')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  runFde(sandbox, ['log', 'delivery', 'reconciliation slice shipped'])
+  const eng = engagementPath(sandbox, 'acme')
+  const source = fs.readFileSync(path.join(eng, 'delivery.md'), 'utf8')
+
+  assert.equal(runFde(sandbox, ['vault', '--redacted']).status, 0)
+  const page = fs.readFileSync(path.join(sandbox.home, 'fde-vault-redacted', 'acme', 'Delivery.md'), 'utf8')
+  const body = page.split(/\n---\n/).slice(1).join('\n---\n')
+
+  // one heading per line, table rows intact, and the [@owner] token gone
+  for (const heading of source.match(/^#{1,6} .*$/gm) || []) {
+    assert.match(body, new RegExp(`^${heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'm'), `heading collapsed: ${heading}`)
+  }
+  assert.match(body, /^\|------\|-------\|/m, 'table separator row collapsed')
+  assert.match(body, /^- \[\d{4}-\d{2}-\d{2}\] reconciliation slice shipped$/m)
+  assert.equal(/\[@/.test(body), false)
+  assert.ok(body.includes('\n\n'), 'every blank line was collapsed away')
+})
+
+test('a redacted vault strips internal tokens from next action, brief and reality too', () => {
+  const sandbox = makeSandbox('vaulttokens')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const eng = engagementPath(sandbox, 'acme')
+  fs.appendFileSync(path.join(eng, 'context.md'), '\n## Next action\n\nchase the sign-off [@alice] [signal:red]\n')
+  fs.writeFileSync(path.join(eng, 'brief.md'), '# Brief\n\nreplace the batch job [signal:amber]\n')
+  fs.writeFileSync(path.join(eng, 'reality.md'), '# Reality\n\nthe batch job is load-bearing [@bob]\n')
+
+  assert.equal(runFde(sandbox, ['vault', '--redacted']).status, 0)
+  const out = path.join(sandbox.home, 'fde-vault-redacted')
+  for (const rel of ['Portfolio.md', path.join('acme', 'acme.md')]) {
+    const body = fs.readFileSync(path.join(out, rel), 'utf8')
+    assert.equal(/\[signal:/.test(body), false, `signal token leaked into ${rel}`)
+    assert.equal(/\[@/.test(body), false, `owner token leaked into ${rel}`)
+    assert.match(body, /chase the sign-off/)
+  }
+  const hub = fs.readFileSync(path.join(out, 'acme', 'acme.md'), 'utf8')
+  assert.match(hub, /replace the batch job/)
+  assert.match(hub, /the batch job is load-bearing/)
+
+  // the full build keeps them - they are how the CLI reads its own memory
+  assert.equal(runFde(sandbox, ['vault']).status, 0)
+  assert.match(fs.readFileSync(path.join(sandbox.home, 'fde-vault', 'acme', 'acme.md'), 'utf8'), /\[@alice\]/)
+})
+
+test('a symlinked parent cannot smuggle the vault into the engagements root', () => {
+  const sandbox = makeSandbox('vaultsymlinkparent')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Acme']).status, 0)
+  const engRoot = path.join(sandbox.home, 'fde-engagements')
+  const link = path.join(sandbox.dir, 'link')
+  fs.symlinkSync(engRoot, link)
+
+  const res = runFde(sandbox, ['vault', '--out', path.join(link, 'newvault')])
+  assert.equal(res.status, 1, res.stdout + res.stderr)
+  assert.match(res.stderr, /engagements root/)
+  assert.equal(fs.existsSync(path.join(engRoot, 'newvault')), false)
+
+  const homeLink = path.join(sandbox.dir, 'homelink')
+  fs.symlinkSync(sandbox.home, homeLink)
+  const res2 = runFde(sandbox, ['vault', '--out', path.join(homeLink, '..', path.basename(sandbox.home))])
+  assert.equal(res2.status, 1, res2.stdout + res2.stderr)
+  assert.match(res2.stderr, /deleted and rebuilt|engagements root/)
+})

@@ -2842,6 +2842,27 @@ function isInside(child, parent) {
   return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))
 }
 
+// Containment must be judged on the real path: a symlinked parent
+// (ln -s ~/fde-engagements /tmp/l; --out /tmp/l/vault) resolves textually to
+// somewhere harmless while writing inside the engagements root. The vault target
+// usually does not exist yet, so resolve the deepest ancestor that does.
+function realPathish(p) {
+  let cur = p
+  const tail = []
+  for (let i = 0; i < 64; i++) {
+    try {
+      return path.join(fs.realpathSync(cur), ...tail)
+    } catch (e) {
+      if (e.code !== 'ENOENT' && e.code !== 'ENOTDIR') return p
+      const parent = path.dirname(cur)
+      if (parent === cur) return p
+      tail.unshift(path.basename(cur))
+      cur = parent
+    }
+  }
+  return p
+}
+
 // `fde vault` deletes its output directory before rebuilding, so the only
 // acceptable targets are a fresh path or a folder this command wrote before
 // (proved by its stamp file). Never the engagements root, never $HOME.
@@ -2860,15 +2881,28 @@ function resolveVaultOut(args, redacted) {
     console.error(`refused: will not build the vault at ${out} - ${why}`)
     process.exit(1)
   }
-  if (out === path.parse(out).root) refuse('that is the filesystem root')
-  if (out === HOME) refuse('the vault directory is deleted and rebuilt on every run')
-  if (out.split(path.sep).includes('.fde')) refuse('that is inside a fieldbook; .fde/ is the source of truth')
-  if (isInside(out, ENGAGEMENTS_ROOT) || isInside(ENGAGEMENTS_ROOT, out)) {
-    refuse('it would contain or sit inside your engagements root')
+  // The symlink check reads the path as given; every containment check reads it
+  // resolved, so a link cannot smuggle the target past them.
+  try {
+    if (fs.lstatSync(out).isSymbolicLink()) {
+      refuse('it is a symlink - a rebuild would delete whatever it points at')
+    }
+  } catch (e) {
+    if (e.code !== 'ENOENT') failFs(e, 'check', out)
+  }
+  const canon = realPathish(out)
+  const engRoot = realPathish(ENGAGEMENTS_ROOT)
+  const realHome = realPathish(HOME)
+  for (const p of new Set([out, canon])) {
+    if (p === path.parse(p).root) refuse('that is the filesystem root')
+    if (p === HOME || p === realHome) refuse('the vault directory is deleted and rebuilt on every run')
+    if (p.split(path.sep).includes('.fde')) refuse('that is inside a fieldbook; .fde/ is the source of truth')
+    for (const root of new Set([ENGAGEMENTS_ROOT, engRoot])) {
+      if (isInside(p, root) || isInside(root, p)) refuse('it would contain or sit inside your engagements root')
+    }
   }
   try {
     const st = fs.lstatSync(out)
-    if (st.isSymbolicLink()) refuse('it is a symlink - a rebuild would delete whatever it points at')
     if (!st.isDirectory()) refuse('it exists and is not a directory')
     const entries = fs.readdirSync(out)
     if (entries.length && !entries.includes(vault.STAMP)) {
