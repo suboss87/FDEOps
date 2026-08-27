@@ -1,0 +1,60 @@
+name: Publish to npm
+
+# A release is a tag, so the published bytes are always a commit you can point
+# at. The tag must match the version in package.json - a mismatch fails before
+# anything reaches the registry.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (must match package.json, e.g. 3.11.0)"
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: The tag and package.json agree
+        run: |
+          pkg=$(node -p "require('./package.json').version")
+          want="${GITHUB_REF_NAME#v}"
+          [ "${{ github.event_name }}" = "workflow_dispatch" ] && want="${{ inputs.version }}"
+          echo "package.json=$pkg requested=$want"
+          [ "$pkg" = "$want" ] || { echo "refusing: version mismatch"; exit 1; }
+
+      - name: Gates and tests
+        run: npm run check
+
+      - name: This version is not already on the registry
+        run: |
+          pkg=$(node -p "require('./package.json').version")
+          if npm view "fdeops@$pkg" version >/dev/null 2>&1; then
+            echo "refusing: fdeops@$pkg is already published"; exit 1
+          fi
+
+      - name: Publish
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Confirm the registry serves it
+        run: |
+          pkg=$(node -p "require('./package.json').version")
+          for i in $(seq 1 10); do
+            got=$(npm view fdeops version 2>/dev/null || true)
+            [ "$got" = "$pkg" ] && { echo "registry serves $got"; exit 0; }
+            sleep 6
+          done
+          echo "published, but the registry still serves ${got:-unknown}"; exit 1
