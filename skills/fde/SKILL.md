@@ -1,6 +1,6 @@
 ---
 name: fde
-description: Engagement fieldbook for Forward Deployed Engineers. Use when the human says @fde or asks about client memory, debrief, prep, receipts, trust, hygiene, or sponsor status — route and run the local fde CLI; never ask them to type fde commands. Do not use for ordinary code edits, unit tests, refactors, or git commits.
+description: Keeps engagement memory for client work - sponsor, promise, what shipped, who accepted it. Use when the human names a client, customer or stakeholder. Use when they debrief a meeting or paste notes from one. Use when they ask what was agreed, or want dates and receipts. Use when they prep a client meeting or readout, when scope or trust shifts, or when they say @fde. Route the phase and run the local fde CLI (or npx --yes fdeops if it is not installed); never ask them to type commands. Not for ordinary code edits, unit tests, refactors or commits.
 ---
 
 # @fde

@@ -7,9 +7,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-Skill packs teach your AI coding agent how to *build*. None of them remember who the client is, what you promised, or who agreed it was delivered. FDEOps adds that layer: a private fieldbook per engagement (`.fde/`), a field methodology from land to close, and one `@fde` skill that routes it.
+**Engagement memory for AI coding agents.** Skill packs teach your agent how to *build*. None of them remember who the client is, what you promised, or who agreed it was delivered - close the window and it is gone. FDEOps adds that missing layer: a private record per client (`.fde/`), a field methodology from land to close, and one skill that routes it.
 
-Built for Forward Deployed Engineers and anyone embedded in client work - consultants, agency developers, solutions architects, fractional CTOs. Feels like a second brain; behaves like a defensible record: dated, sourced, on your laptop.
+Built for Forward Deployed Engineers and anyone embedded in client work - consultants, agency developers, solutions architects, fractional CTOs. Not notes: a defensible record - dated, sourced, on your laptop.
 
 ```
   land      discover      plan      build      ship      close
@@ -58,8 +58,10 @@ npx fdeops resume                 # where we are
 **3. Work** in plain language:
 
 ```text
-@fde New client. Payments platform. They want it live before the Q3 audit.
+New client, Garvey. Payments platform. They want it live before the Q3 audit.
 ```
+
+No prefix needed - naming a client is enough. Say `@fde` when you want it explicitly.
 
 **It is working if** `npx fdeops resume` prints this client's phase, trust signal, and next action - and prints the same thing tomorrow, from a new session, with no explaining. Full workflow: [docs/USAGE.md](docs/USAGE.md).
 
@@ -79,16 +81,16 @@ npx fdeops resume                 # where we are
 
 ## The week
 
-`@fde` plus English. No cheat sheet.
+**Say what happened, in your words.** There is nothing to memorise - no flags, no cheat sheet. The skill picks it up when you mention a client, debrief a meeting, or ask what was agreed; `@fde` is only the explicit way to summon it.
 
 | When | What you say | What you get |
 |------|--------------|--------------|
 | **Start of week** | `@fde` - or just open Claude Code | Fieldbook on disk either way. **Claude Code** injects trust, phase, next before you type. **Cursor / Codex / others:** say `@fde` or `resume` - nothing auto-loads. |
-| **After a meeting** | `@fde` debrief these notes *(paste or attach)* | Proposed updates. You review, then confirm. |
-| **Optional: pull** | `@fde` connect Granola *(once)* · `@fde` pull today's Acme transcript | You add that source MCP. We **pull** on request - no push, no sync. [mcp/recipes/](mcp/recipes/) |
-| **Before a stakeholder meeting** | `@fde` prep me for tomorrow with the sponsor | Brief from what you already logged. |
-| **Scope dispute** | `@fde` when did we agree to drop that? | Dated answers, or a clear gap. |
-| **End of week** | `@fde` draft the sponsor update from the record | Status grounded in what happened. |
+| **After a meeting** | here are my notes from the Acme call *(paste or attach)* | Proposed updates. You review, then confirm. |
+| **Optional: pull** | connect Granola *(once)* · pull today's Acme transcript | You add that source MCP. We **pull** on request - no push, no sync. [mcp/recipes/](mcp/recipes/) |
+| **Before a stakeholder meeting** | prep me for tomorrow with the sponsor | Brief from what you already logged. |
+| **Scope dispute** | when did we agree to drop that? | Dated answers, or a clear gap. |
+| **End of week** | draft the sponsor update from the record | Status grounded in what happened. |
 
 Same folder every time: `~/fde-engagements/<client>/.fde/`.
 
@@ -148,6 +150,8 @@ One folder per client. Plain markdown, so you can grep it, diff it, copy it into
 | `decisions.md` / `risks.md` / `delivery.md` | Dated choices; live risks; what shipped and how it rolls back |
 
 A day-one fieldbook ships **empty** - headings and allowed values, no invented rows - so anything you read in it is something that actually happened. Schema: [docs/schema.md](docs/schema.md).
+
+**Words used here, once:** *engagement* - one client's body of work, one folder. *Fieldbook* - that folder (`.fde/`), the record itself. *Brief vs reality* - what they said the problem was, and what it turned out to be. *Terrain* - their systems and org as you actually found them. *Trust signal* - green / amber / red on one relationship. *Receipts* - the dated line proving something was agreed. *Vault* - the Obsidian copy `fde vault` generates to read it all in one window.
 
 ---
 

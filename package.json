@@ -1,7 +1,7 @@
 {
   "name": "fdeops",
-  "version": "3.11.1",
-  "description": "Field kit for engineers embedded in client work - a real CLI (recon, memory, portfolio), one @fde skill with field judgment on top, and hooks that make it automatic. Claude Code plugin and any agent that loads skills.",
+  "version": "3.12.0",
+  "description": "Engagement memory for AI coding agents. Your agent forgets the client every morning - the sponsor, the promise, who signed off. FDEOps keeps that as dated markdown on your laptop: one @fde skill routing land-to-close methodology, a deterministic local CLI, and hooks that make it automatic. Claude Code plugin and any agent that loads skills.",
   "bin": {
     "fdeops": "bin/install.js",
     "fde": "bin/fde.js"
@@ -30,6 +30,9 @@
     "ai-agent",
     "skills",
     "plugin",
+    "engagement-memory",
+    "agent-memory",
+    "client-context",
     "fde",
     "forward-deployed",
     "forward-deployed-engineer",

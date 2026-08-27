@@ -286,6 +286,33 @@ if (!read('skills/fde/SKILL.md').includes('npx --yes fdeops')) {
   fail('skills/fde/SKILL.md must fall back to npx --yes fdeops when the CLI is not installed')
 } else ok('SKILL.md npx CLI fallback')
 
+// The frontmatter description is the only text every host reads before deciding
+// to load the skill. If it triggers on "@fde" alone, an FDE who just talks about
+// their client gets no memory - so it must carry natural-intent triggers in the
+// "Use when …" convention, and @fde must be one of several, never the gate.
+{
+  const fm = /^---\n([\s\S]*?)\n---/.exec(read('skills/fde/SKILL.md'))
+  const desc = fm ? (/^description:[^\S\n]*(.*)$/m.exec(fm[1]) || [])[1] || '' : ''
+  const triggers = desc.match(/Use when/g) || []
+  if (triggers.length < 4) {
+    fail(`SKILL.md description needs several "Use when …" triggers so it fires on intent (found ${triggers.length})`)
+  } else if (/Use when the human says @fde or/.test(desc)) {
+    fail('SKILL.md description must not gate on @fde - name the client-work intents first')
+  } else ok('SKILL.md description triggers on intent')
+}
+
+// Six invented words (fieldbook, terrain, reality, trust signal, receipts,
+// vault) carry the method. They were never defined in one place, so a stranger
+// met them scattered through the docs and guessed.
+{
+  const gloss = /Words used here[\s\S]{0,1200}/.exec(readme)
+  const missing = ['fieldbook', 'reality', 'terrain', 'trust signal', 'receipts', 'vault']
+    .filter(w => !gloss || !new RegExp(w, 'i').test(gloss[0]))
+  if (!gloss) fail('README must define its invented words once (a "Words used here" line)')
+  else if (missing.length) fail(`README glossary is missing: ${missing.join(', ')}`)
+  else ok('README defines its own vocabulary')
+}
+
 if (!fs.existsSync(path.join(root, 'docs', 'USAGE.md'))) {
   fail('docs/USAGE.md missing')
 } else ok('docs/USAGE.md')
