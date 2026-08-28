@@ -83,7 +83,7 @@ Score every touched path (or logical hunk):
 
 **Any SPLIT or DROP still in the tree = fix-first.** JUSTIFY without a written sentence = treat as SPLIT. Log a one-line receipt in `delivery.md`: `intent vs diff: KEEP n · JUSTIFY n · SPLIT n · DROP n - <intent>`.
 
-This is **code drift**, not stakeholder "also can you…" (that is `scope-defense`). Same family as review Stage 1 - ship refuses green when the diff outgrew the claim.
+This is **code drift**, not stakeholder "also can you…" (that is `hold-scope`). Same family as review Stage 1 - ship refuses green when the diff outgrew the claim.
 
 ## Pre-blast challenge (before the deploy button)
 

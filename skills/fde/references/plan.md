@@ -2,7 +2,7 @@
 
 **Enter when:** scope is understood and the work needs breaking down - a slice, a phase, or the whole delivery.
 
-**Read first:** `reality.md`, `success.md`, `terrain.md`, `stakeholders.md`. Load `business-case.md` if sketch produced one. Not the full folder.
+**Read first:** `reality.md`, `success.md`, `terrain.md`, `stakeholders.md`. Load `business-case.md` if poc produced one. Not the full folder.
 
 ## Validation gate (confirm understanding, clarify where it elevates)
 
@@ -22,7 +22,7 @@ An FDE plan is not a sprint backlog. The technical sequence is the easy part. Th
 
 ## Method (you do this work)
 
-**0. Lock scope first.** Read `success.md` and `assumptions.md`. If out-of-scope is undefined, define it now with the FDE - a plan on undefined scope accumulates silent commitments. If any CRITICAL assumption is still `OPEN`, stop and run assumption-audit / discover before sequencing work.
+**0. Lock scope first.** Read `success.md` and `assumptions.md`. If out-of-scope is undefined, define it now with the FDE - a plan on undefined scope accumulates silent commitments. If any CRITICAL assumption is still `OPEN`, stop and run test-assumptions / discover before sequencing work.
 
 **1. Work backwards from success.** What's the last thing that must be true before done? And before that? That's the dependency chain - not a wish list.
 
@@ -36,7 +36,7 @@ An FDE plan is not a sprint backlog. The technical sequence is the easy part. Th
 
 **6. Stakeholder touchpoints every 2-3 tasks.** "Show progress to <name from stakeholders.md>." Not ceremony: a customer who sees small wins stays bought in; silence gets filled with doubt.
 
-**7. End with a kill list.** Every plan names what you will **not** do this phase. If everything is "later," you have no plan - you have a wish list. Cap **Now** at 3 slices (same discipline as initiative-triage).
+**7. End with a kill list.** Every plan names what you will **not** do this phase. If everything is "later," you have no plan - you have a wish list. Cap **Now** at 3 slices (same discipline as pick-three).
 
 **Acceptance criteria gate:** no task moves to build without written happy-path AND unhappy-path criteria. Can't write them = the task isn't understood; the open question goes to the customer **before** the task starts. Vague criteria surface later as scope creep and rework.
 

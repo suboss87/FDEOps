@@ -1,4 +1,4 @@
-# initiative-triage - when 20 things are "urgent," pick the 3 that matter
+# pick-three - when 20 things are "urgent," pick the 3 that matter
 
 **Enter when:** a transformation engagement with a long list of initiatives, the customer's roadmap has more items than weeks, competing teams want different things, or the FDE needs to recommend what to do *first* across a complex programme.
 

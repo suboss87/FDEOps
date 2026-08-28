@@ -1,4 +1,4 @@
-# sketch - prototype to kill or confirm a direction
+# poc - kill or confirm a direction in a day
 
 **Enter when:** a direction needs validating before committing real build time - POC, spike, show something, de-risk, pick between use cases. The output is something a sponsor can reject in a room this week, not a polished product.
 

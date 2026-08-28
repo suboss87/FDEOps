@@ -2,7 +2,7 @@
 
 **Enter when:** the FDE wants to catch the engagement up from external sources - "make sure Acme is up to date," "pull what's relevant," "grab today's Granola and Denise's last email." Raw transcripts and long emails that are too big to paste usefully.
 
-**Connect / capability (different entry):** "connect a new MCP", "connect Granola/Slack/Notion", "what can you pull?" → `references/ingest-connect.md` first. Recipes: `mcp/recipes/` (file, granola, slack, notion).
+**Connect / capability (different entry):** "connect a new MCP", "connect Granola/Slack/Notion", "what can you pull?" → `references/connect.md` first. Recipes: `mcp/recipes/` (file, granola, slack, notion).
 
 **Read first:** `context.md` (what's already logged, what's stale). Bind the engagement before staging anything.
 
@@ -22,7 +22,7 @@ List what you can actually call **this session**:
 
 1. **Sink** - `ingest_stage` / `fde ingest` available?
 2. **Sources** - which fetch tools exist (Granola-shaped, Slack, Notion, Drive, file-only)?
-3. Tell the FDE in one line: *I can pull from X; Y is not connected.* If they asked to pull Y and it is missing → switch to `ingest-connect.md`. Never pretend a source exists.
+3. Tell the FDE in one line: *I can pull from X; Y is not connected.* If they asked to pull Y and it is missing → switch to `connect.md`. Never pretend a source exists.
 
 ## Ground loop (you do this work)
 
@@ -60,7 +60,7 @@ When a staged fact came from a named source, carry `via:<source>` on the applied
 
 ## MCP sink + recipes
 
-Optional `mcp/fdeops-ingest` wraps the same verbs over stdio. Source MCPs remain separate - the FDE adds whichever fetch tools they trust. Setup coach: `ingest-connect.md`. Copy-paste recipes: `mcp/recipes/`.
+Optional `mcp/fdeops-ingest` wraps the same verbs over stdio. Source MCPs remain separate - the FDE adds whichever fetch tools they trust. Setup coach: `connect.md`. Copy-paste recipes: `mcp/recipes/`.
 
 ## Checkpoint
 

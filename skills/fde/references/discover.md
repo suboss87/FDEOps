@@ -143,7 +143,7 @@ Score every candidate use case before anything gets prototyped:
 | Complexity | How hard to build safely? (5 = hardest) | |
 | Data readiness | Available, clean, sufficient volume today? | |
 
-**Score = (Value × Data readiness) / Complexity.** Highest score gets prototyped first (hand to `sketch`). A 5-value/1-complexity/5-readiness case scores 25; a 5-value/5-complexity/2-readiness case scores 2 - they look identical on a whiteboard. Never let a technically interesting use case override the score.
+**Score = (Value × Data readiness) / Complexity.** Highest score gets prototyped first (hand to `poc`). A 5-value/1-complexity/5-readiness case scores 25; a 5-value/5-complexity/2-readiness case scores 2 - they look identical on a whiteboard. Never let a technically interesting use case override the score.
 
 ## Artifact (this IS the memory - write it as you work)
 
