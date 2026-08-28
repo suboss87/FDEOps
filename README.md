@@ -1,132 +1,128 @@
 # FDEOps
 
-**Your AI coding agent forgets your client every morning. FDEOps remembers.**
+**The AI coding agent forgets the client. fdeops is the countersigned record — promised, measured, accepted.**
 
 [![npm version](https://img.shields.io/npm/v/fdeops.svg)](https://www.npmjs.com/package/fdeops)
 [![CI](https://github.com/suboss87/fdeops/actions/workflows/validate.yml/badge.svg)](https://github.com/suboss87/fdeops/actions)
+[![skills.sh](https://skills.sh/b/suboss87/fdeops)](https://skills.sh/suboss87/fdeops)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-**Engagement memory for AI coding agents.** Skill packs teach your agent how to *build*. None of them remember who the client is, what you promised, or who agreed it was delivered - close the window and it is gone. FDEOps adds that missing layer: a private record per client (`.fde/`), a field methodology from land to close, and one skill that routes it.
+One `@fde` skill. Four days on an embed:
 
-Built for Forward Deployed Engineers and anyone embedded in client work - consultants, agency developers, solutions architects, fractional CTOs. Not notes: a defensible record - dated, sourced, on your laptop.
+**the brief is wrong · they went quiet · when did we agree · what did they get**
 
-```
-  land      discover      plan      build      ship      close
-    |           |           |         |          |         |
-    +-----------+-----------+---------+----------+---------+
-          the fieldbook (.fde/) - one per engagement
-             written as a side effect of the work
-```
+The host agent still writes the TypeScript, runs the tests, and makes the commits. This skill is the engagement record. Do not ask `@fde` to review a unit test.
+
+Talk in plain language. The AI coding agent runs the plumbing. You confirm anything that enters the record.
 
 ---
 
-## A real session
+## The week
 
-Kickoff notes go in messy. You confirm what enters the record. A cold session the next morning already knows the client, the sponsor brief is grounded in dated facts, and the receipts survive the argument. Real CLI output - only the typing pace is staged, and you can [re-record it yourself](media/record-session.sh).
+`@fde` plus English. No cheat sheet.
 
-<p align="center"><img alt="A real fdeops session: messy kickoff notes routed into dated memory after you confirm, then a cold session that already knows the client, a grounded sponsor-meeting brief, and dated receipts" src="media/session.gif" width="900" /></p>
+| When | What you say | What you get |
+|------|--------------|--------------|
+| **The brief is wrong** | `@fde this is Acme. Brief says they want a portal.` | Real problem, or a gap. First chat: you name the client; the AI coding agent binds. |
+| **They went quiet** | `@fde the sponsor went quiet` | Trust signal in the record — process gap vs trust problem. |
+| **When did we agree?** | `@fde when did we agree to drop that?` | Dated receipts, or a clear gap. |
+| **What did they get?** | `@fde what did they get this week` | Friday ledger: promised → measured → accepted. |
+| **After a meeting** | `@fde` debrief these notes *(paste or attach)* | Proposed updates. You review, then confirm. |
+| **Optional: pull** | `@fde` connect Granola *(once)* · `@fde` pull today's Acme transcript | You add that source MCP. We **pull** on request — no push, no sync. [mcp/recipes/](mcp/recipes/) |
 
-Nothing to install to see it on a fake client: `npx fdeops demo`.
+Same folder every time: `~/fde-engagements/<client>/.fde/`.
+
+**Words used here, once:** *engagement* - one client's body of work, one folder. *Fieldbook* - that folder (`.fde/`), the record itself. *Brief vs reality* - what they said the problem was, and what it turned out to be. *Terrain* - their systems and org as you actually found them. *Trust signal* - green / amber / red on one relationship. *Receipts* - the dated line proving something was agreed. *Vault* - the Obsidian copy `fde vault` generates to read it all in one window.
 
 ---
 
 ## Quickstart
 
-**1. Install** on your machine - never in the customer's repo.
+**1. Install** (30 seconds). Pick one — both copies `@fde` twice.
+
+Claude Code (hooks before you type):
 
 ```text
 /plugin marketplace add suboss87/fdeops
 /plugin install fdeops@fdeops
 ```
 
-```bash
-npx skills add suboss87/fdeops --skill fde   # Cursor, Codex, skills-compatible hosts
-```
-
-That is one skill, not a catalogue - `@fde` routes the whole method. The CLI needs no install either: the skill reaches for `npx fdeops` when `fde` is not on the PATH. (Drop `--skill fde` and you also get `testing-fieldbook`, which is for people contributing to this repo, not for field work.)
-
-Claude Code additionally gets session hooks, so context arrives before you type. Everywhere else it is the same fieldbook, loaded when you ask.
-
-**2. Bind once** in the client workspace:
+Cursor, Codex, and any host that speaks the skills CLI:
 
 ```bash
-npx fdeops resume --init garvey   # ~/fde-engagements/garvey + bind this checkout
-npx fdeops resume                 # where we are
+npx skills add suboss87/fdeops --skill fde
 ```
 
-**3. Work** in plain language:
+**2. One chat.** Name the client. The AI coding agent binds the engagement; you never type the CLI.
 
 ```text
-New client, Garvey. Payments platform. They want it live before the Q3 audit.
+@fde this is Acme
 ```
 
-No prefix needed - naming a client is enough. Say `@fde` when you want it explicitly.
+Paste kickoff notes in the same thread. `@fde` routes; you confirm judgment. Workflow: [docs/USAGE.md](docs/USAGE.md).
 
-**It is working if** `npx fdeops resume` prints this client's phase, trust signal, and next action - and prints the same thing tomorrow, from a new session, with no explaining. Full workflow: [docs/USAGE.md](docs/USAGE.md).
+Claude Code auto-loads the fieldbook at session start. Elsewhere, say `@fde`. Tomorrow the file is still there.
 
 <details>
-<summary>Other install paths · scan · env</summary>
+<summary>Terminal bind · other hosts · env</summary>
 
-- **Adapters:** `npx fdeops adapters .` - [adapters/](adapters/README.md)
-- **Local LLMs:** load `skills/fde/SKILL.md` - [guide](adapters/LOCAL-LLM.md)
+Fallback if the agent cannot bind — creates the engagement under `~/fde-engagements` and points this checkout at it:
+
+```bash
+npx fdeops resume --init acme   # ~/fde-engagements/acme + bind this checkout
+npx fdeops resume               # where we are
+```
+
+- **Adapters** (Cursor rules, Gemini, Copilot): `npx fdeops adapters .` — [adapters/](adapters/README.md)
+- **Local LLMs:** load `skills/fde/SKILL.md` — [guide](adapters/LOCAL-LLM.md)
 - **Air-gapped:** `git clone https://github.com/suboss87/fdeops.git && cd fdeops && node bin/install.js`
 - **No install:** `npx fdeops demo` · `npx fdeops scan` (heuristic recon, not findings)
 - **Requires:** Node.js >= 18
-- **Override:** `FDEOPS_ENGAGEMENT` - [docs/install.md](docs/install.md)
+- **Override:** `FDEOPS_ENGAGEMENT` — [docs/install.md](docs/install.md)
 
 </details>
 
 ---
 
-## The week
+## See it
 
-**Say what happened, in your words.** There is nothing to memorise - no flags, no cheat sheet. The skill picks it up when you mention a client, debrief a meeting, or ask what was agreed; `@fde` is only the explicit way to summon it.
+```bash
+npx fdeops demo
+```
 
-| When | What you say | What you get |
-|------|--------------|--------------|
-| **Start of week** | `@fde` - or just open Claude Code | Fieldbook on disk either way. **Claude Code** injects trust, phase, next before you type. **Cursor / Codex / others:** say `@fde` or `resume` - nothing auto-loads. |
-| **After a meeting** | here are my notes from the Acme call *(paste or attach)* | Proposed updates. You review, then confirm. |
-| **Optional: pull** | connect Granola *(once)* · pull today's Acme transcript | You add that source MCP. We **pull** on request - no push, no sync. [mcp/recipes/](mcp/recipes/) |
-| **Before a stakeholder meeting** | prep me for tomorrow with the sponsor | Brief from what you already logged. |
-| **Scope dispute** | when did we agree to drop that? | Dated answers, or a clear gap. |
-| **End of week** | draft the sponsor update from the record | Status grounded in what happened. |
+Real commands on a fake client: messy notes → you confirm → cold reload → prep → receipts → fieldbook page. Nothing of yours is read. Lives in `~/fde-engagements/.demo/`. Remove with `npx fdeops demo --clean`.
 
-Same folder every time: `~/fde-engagements/<client>/.fde/`.
+One recorded session — kickoff notes, next morning, “when did we agree?” weeks later. CLI output; typing pace is staged. Re-record: [`media/record-session.sh`](media/record-session.sh).
+
+<p align="center"><img alt="A real fdeops session: messy kickoff notes routed into dated memory after you confirm, then a cold session that already knows the client, a grounded sponsor-meeting brief, and dated receipts" src="media/session.gif" width="900" /></p>
+
+Two things a chat window cannot do: **nothing is written until you confirm**, and `<private>` lands sealed as `(private - redacted)` — never in `resume`, `prep`, `receipts`, or the dashboard.
 
 ---
 
 ## How it works
 
-- **You** describe the situation with `@fde`, in plain language.
-- **The AI coding agent** routes to a method, does the work, and drafts the memory.
-- **The CLI** (`bin/fde.js`) does every write, receipt, and status check - git and file reads only, no network, no model tokens. You do not live in the CLI; your agent runs it. [docs/USAGE.md](docs/USAGE.md)
-- **You confirm.** Nothing enters the record unreviewed; `fde debrief --dry-run` shows the routing first.
+- **You** describe the situation with `@fde` (or plain language once the skill is loaded). First chat: you name the client; the AI coding agent runs the bind.
+- **Hooks (Claude Code)** load where you left off and snapshot on the way out. Other hosts: same CLI and files; you call `@fde`.
+- **Local CLI** — writes, receipts, status. Zero model tokens. The AI coding agent runs it; you do not live in the CLI. Friday, `fde status` prints promised → measured → accepted. [docs/USAGE.md](docs/USAGE.md)
+- **Pull (optional)** — FDEOps is the sink. Paste is the daily path. A source MCP you add (Granola, Slack, Notion, …) can fetch text; `@fde connect …` walks config. No push, no sync, no tokens in `.fde/`. [mcp/recipes/](mcp/recipes/)
 
-`CLAUDE.md` is how the *code* works. The fieldbook is how the *engagement* works. It lives at `~/fde-engagements/<client>/.fde/`, not inside any vendor - change hosts, install `@fde` on the new one, keep talking.
+`CLAUDE.md` is how the *code* works. The fieldbook is how the *engagement* works. The record lives at `~/fde-engagements/<client>/.fde/` — not inside any vendor.
 
-### What works where
+### Switch coding agents anytime
 
-Honest boundaries, so nothing here needs a footnote:
-
-| | Claude Code | Cursor · Codex · Copilot · Gemini · local LLMs |
-|---|---|---|
-| Fieldbook, methods, CLI, dashboard | yes | yes |
-| Context loaded before you type | session hooks | you say `@fde` / `resume` |
-| Snapshot on session end | session hooks | `@fde` capture, or `fde capture` |
-| Pull from Granola / Slack / Notion | you add that source MCP; FDEOps only ingests | same |
-
-FDEOps is the sink, never the source: no push, no sync, no third-party tokens in `.fde/`. [mcp/recipes/](mcp/recipes/)
+Change hosts, install `@fde` on the new one, bind if needed, keep talking. The client record does not move.
 
 <details>
-<summary>Phase verbs (land → close)</summary>
+<summary>Engagement verbs</summary>
 
 | Verb | When |
 |------|------|
-| **land** | First days - brief, stakeholders, success |
-| **discover** | The brief is wrong - evidence from the repo |
+| **land** | First days — brief, stakeholders, success |
+| **discover** | The brief is wrong — evidence from the repo |
 | **plan** | Sequence backwards from done, PR-sized |
-| **build** | Blast radius, log what shipped |
+| log delivery | After the host agent codes — what shipped, how it rolls back |
 | **ship** | Pre-flight, canary, rollback |
 | **close** | Handoff, retro, receipts that survive you |
 
@@ -138,50 +134,26 @@ Overlays (AI, fintech, healthcare, gov) fire on signal. [docs/skills.md](docs/sk
 
 ## Engagement memory (`.fde/`)
 
-One folder per client. Plain markdown, so you can grep it, diff it, copy it into a readout, and defend it in a room.
+One folder per client. Plain markdown. Grep it, copy it, defend it.
 
 | File | Holds |
 |------|-------|
 | `context.md` | Where you are |
-| `brief.md` / `success.md` | What they asked; what "done" is and who signs |
+| `brief.md` / `success.md` | What they asked; what “done” is and who signs |
 | `reality.md` / `terrain.md` | The real problem; the map |
 | `stakeholders.md` | `[signal:green\|amber\|red]` |
 | `trust-profile.md` | Sacred data, AI policy, approval chain |
 | `decisions.md` / `risks.md` / `delivery.md` | Dated choices; live risks; what shipped and how it rolls back |
 
-A day-one fieldbook ships **empty** - headings and allowed values, no invented rows - so anything you read in it is something that actually happened. Schema: [docs/schema.md](docs/schema.md).
-
-**Words used here, once:** *engagement* - one client's body of work, one folder. *Fieldbook* - that folder (`.fde/`), the record itself. *Brief vs reality* - what they said the problem was, and what it turned out to be. *Terrain* - their systems and org as you actually found them. *Trust signal* - green / amber / red on one relationship. *Receipts* - the dated line proving something was agreed. *Vault* - the Obsidian copy `fde vault` generates to read it all in one window.
-
----
-
-## The field methods
-
-You never pick one. You describe the situation and `@fde` routes. **37 methods** across six domains, each a method - thinking, artifact, checkpoint - not a tip sheet. [docs/skills.md](docs/skills.md) · [docs/skills-reference.md](docs/skills-reference.md)
-
-<details>
-<summary>All 37 methods</summary>
-
-| Domain | Methods |
-|--------|---------|
-| **1. Embed & Trust** | [land](skills/fde/references/land.md) · [audit](skills/fde/references/audit.md) · [stakeholder-radar](skills/fde/references/stakeholder-radar.md) · [trust-engineering](skills/fde/references/trust-engineering.md) · [scope-defense](skills/fde/references/scope-defense.md) |
-| **2. Discover & Diagnose** | [discover](skills/fde/references/discover.md) · [assumption-audit](skills/fde/references/assumption-audit.md) · [use-case-scoring](skills/fde/references/use-case-scoring.md) · [sketch](skills/fde/references/sketch.md) |
-| **3. Plan & Align** | [plan](skills/fde/references/plan.md) · [business-case](skills/fde/references/business-case.md) · [options-analysis](skills/fde/references/options-analysis.md) · [initiative-triage](skills/fde/references/initiative-triage.md) |
-| **4. Build & Guard** | [build](skills/fde/references/build.md) · [incremental-build](skills/fde/references/incremental-build.md) · [test-on-legacy](skills/fde/references/test-on-legacy.md) · [blast-radius](skills/fde/references/blast-radius.md) · [debug](skills/fde/references/debug.md) · [rescue](skills/fde/references/rescue.md) · [security-audit](skills/fde/references/security-audit.md) · [observability](skills/fde/references/observability.md) |
-| **5. Ship & Verify** | [ship](skills/fde/references/ship.md) · [review](skills/fde/references/review.md) · [rollback-drill](skills/fde/references/rollback-drill.md) · [qa-live](skills/fde/references/qa-live.md) |
-| **6. Operate & Close** | [status](skills/fde/references/status.md) · [demo-prep](skills/fde/references/demo-prep.md) · [debrief](skills/fde/references/debrief.md) · [exec-narrative](skills/fde/references/exec-narrative.md) · [dashboard](skills/fde/references/dashboard.md) · [multi-customer-ops](skills/fde/references/multi-customer-ops.md) · [close](skills/fde/references/close.md) · [handoff-engineering](skills/fde/references/handoff-engineering.md) · [pattern-extract](skills/fde/references/pattern-extract.md) · [red-team](skills/fde/references/red-team.md) · [ingest](skills/fde/references/ingest.md) · [ingest-connect](skills/fde/references/ingest-connect.md) |
-
-Overlays: [ai](skills/fde/references/ai.md) · [artifacts](skills/fde/references/artifacts.md) · [fintech](skills/fde/references/fintech.md) · [healthcare](skills/fde/references/healthcare.md) · [gov](skills/fde/references/gov.md)
-
-</details>
+Schema: [docs/schema.md](docs/schema.md).
 
 ---
 
 ## Fieldbook UI
 
-`@fde` dashboard, or `npx fdeops dashboard` (`--all` for the portfolio): one local HTML file - trust, phase, next action, and the record behind them. Generated on demand, no server.
+Local HTML: trust, phase, next, the record. `@fde` dashboard, or `npx fdeops dashboard` (`--all` for the portfolio).
 
-<p align="center"><img width="1336" height="624" alt="The fdeops Fieldbook dashboard: engagements with trust signal, phase and next action" src="https://github.com/user-attachments/assets/5683614c-7730-4a3a-860d-185053a377eb" /></p>
+<p align="center"><img width="1336" height="624" alt="fdeops Fieldbook in the browser" src="https://github.com/user-attachments/assets/5683614c-7730-4a3a-860d-185053a377eb" /></p>
 
 ---
 
@@ -189,32 +161,35 @@ Overlays: [ai](skills/fde/references/ai.md) · [artifacts](skills/fde/references
 
 | You are | What this is |
 |---------|----------------|
-| **Forward Deployed Engineer** | The job this was built for - first meeting through handoff |
+| **Forward Deployed Engineer** | The job this was built for — first meeting through handoff |
 | **Consultant / contractor on site** | The engagement stops resetting every morning |
 | **Solutions architect** | Politics and architecture in the same record |
-| **Agency, 3-5 clients** | One `.fde/` each - they stop blurring |
+| **Agency, 3–5 clients** | One `.fde/` each — they stop blurring |
 | **Fractional CTO on client work** | System of record for the embed, and the billable trail |
+
+Ordinary TypeScript, unit tests, and git commits stay in the host agent.
 
 ---
 
 ## Your data stays yours
 
 - **Local only.** `git` + files. No network, no telemetry, no account. Air-gapped is fine.
-- **Plain markdown.** No database, no lock-in, nothing to export.
-- **No new data path.** The model sees client code only when you point the AI coding agent at it. `<private>` blocks are redacted from CLI, dashboard, and hook output - do not open raw private blocks with file tools.
-- **Know the sync surface.** `~/fde-engagements` lives in `$HOME`. iCloud or Dropbox is an NDA incident waiting; `resume --init` warns you.
+- **Plain markdown.** No database.
+- **No new data path.** The model sees client code only when you point the AI coding agent at it. `<private>` is redacted from CLI, dashboard, and hooks — do not open raw private blocks with file tools.
+- **Nothing unreviewed.** Draft → you confirm. `fde debrief --dry-run` shows routing first.
+- **Know the sync surface.** `~/fde-engagements` is in `$HOME`. iCloud/Dropbox is an NDA incident waiting. `resume --init` warns. [PRIVACY.md](PRIVACY.md) before the first NDA.
 
-[PRIVACY.md](PRIVACY.md) before the first NDA · [SECURITY.md](SECURITY.md)
+[PRIVACY.md](PRIVACY.md) · [SECURITY.md](SECURITY.md)
 
 ---
 
 ## Principles
 
-- **The artifact is the memory** - producing the work and recording it are one action
-- **Methods, not autonomy** - the kit says what to check; judgment stays yours
-- **Brief is a hypothesis** - discover before building the wrong thing
-- **Evidence on every claim** - these files get defended in the room
-- **One customer, one folder** - context never bleeds
+- **The artifact is the memory** — producing the work and recording it are one action
+- **Methods, not autonomy** — the kit says what to check; judgment stays yours
+- **Brief is a hypothesis** — discover before building the wrong thing
+- **Evidence on every claim** — these files get defended in the room
+- **One customer, one folder** — context never bleeds
 
 ---
 
@@ -228,8 +203,26 @@ Re-run the Quickstart install, or from a clone: `git pull && node bin/install.js
 
 **[Subash Natarajan](https://www.linkedin.com/in/subashn/)**. [Issues](https://github.com/suboss87/fdeops/issues) · [CONTRIBUTING.md](CONTRIBUTING.md)
 
-Thanks to builders whose craft sharpened the thinking, among them [Andrej Karpathy](https://karpathy.ai/)'s engineering guidelines and the [agentic engineering workflow](https://github.com/pawel-cell/micky-podcast-agentic-engineering) notes from David Ondrej / Michael Shimeles.
-
-**What we won't build:** SaaS sync; Slack/Notion/Granola connectors or **push** inside the CLI; CRM as core; hardware capture; generic code-craft packs (TDD and review live elsewhere). You may **pull** via *your* MCP. The `fde` CLI stays local-only.
+**What we won't build:** SaaS sync; Slack/Notion/Granola connectors or **push** inside the CLI; CRM as core; hardware capture; generic code-craft packs. You may **pull** via *your* MCP. The `fde` CLI stays local-only.
 
 [FDE Methodology](FDE-METHODOLOGY.md) · [SECURITY.md](SECURITY.md) · [PRIVACY.md](PRIVACY.md) · [Repo layout](docs/REPO_LAYOUT.md) · [Skills matrix](docs/skills.md) · MIT
+
+---
+
+<details>
+<summary>31 field methods (you never pick one)</summary>
+
+You describe the situation; `@fde` routes. **31 methods**, six domains — each a method (thinking, artifact, checkpoint), not a tip sheet. [docs/skills.md](docs/skills.md) · [docs/skills-reference.md](docs/skills-reference.md)
+
+| Domain | Methods |
+|--------|---------|
+| **1. Embed & Trust** | [land](skills/fde/references/land.md) · [audit](skills/fde/references/audit.md) · [stakeholder-radar](skills/fde/references/stakeholder-radar.md) · [trust-engineering](skills/fde/references/trust-engineering.md) · [scope-defense](skills/fde/references/scope-defense.md) |
+| **2. Discover & Diagnose** | [discover](skills/fde/references/discover.md) · [assumption-audit](skills/fde/references/assumption-audit.md) · [use-case-scoring](skills/fde/references/use-case-scoring.md) · [sketch](skills/fde/references/sketch.md) |
+| **3. Plan & Align** | [plan](skills/fde/references/plan.md) · [business-case](skills/fde/references/business-case.md) · [options-analysis](skills/fde/references/options-analysis.md) · [initiative-triage](skills/fde/references/initiative-triage.md) |
+| **4. Build & Guard** | [incremental-build](skills/fde/references/incremental-build.md) · [blast-radius](skills/fde/references/blast-radius.md) · [rescue](skills/fde/references/rescue.md) |
+| **5. Ship & Verify** | [ship](skills/fde/references/ship.md) · [review](skills/fde/references/review.md) · [rollback-drill](skills/fde/references/rollback-drill.md) |
+| **6. Operate & Close** | [status](skills/fde/references/status.md) · [demo-prep](skills/fde/references/demo-prep.md) · [debrief](skills/fde/references/debrief.md) · [exec-narrative](skills/fde/references/exec-narrative.md) · [dashboard](skills/fde/references/dashboard.md) · [multi-customer-ops](skills/fde/references/multi-customer-ops.md) · [close](skills/fde/references/close.md) · [handoff-engineering](skills/fde/references/handoff-engineering.md) · [pattern-extract](skills/fde/references/pattern-extract.md) · [red-team](skills/fde/references/red-team.md) · [ingest](skills/fde/references/ingest.md) · [ingest-connect](skills/fde/references/ingest-connect.md) |
+
+Overlays: [ai](skills/fde/references/ai.md) · [artifacts](skills/fde/references/artifacts.md) · [fintech](skills/fde/references/fintech.md) · [healthcare](skills/fde/references/healthcare.md) · [gov](skills/fde/references/gov.md)
+
+</details>

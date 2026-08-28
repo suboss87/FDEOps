@@ -4,29 +4,19 @@
 
 **Terminology:** [README § Who this is for](../README.md#who-this-is-for) - **"agent" = AI software, not a human.**
 
-**Start here:** [README](../README.md) (30-second proof → engagement layer → Quickstart).
+**Start here:** [README](../README.md) (four days → 30-second install → one chat).
 
 Day-to-day reference below.
 
 ---
 
-## See one session end to end
-
-Kickoff notes → you confirm → cold reload → sponsor prep → dated receipts → fieldbook. Real CLI output; only the typing pace is staged. Re-record it yourself with [`media/record-session.sh`](../media/record-session.sh).
-
-<p align="center"><img alt="A real fdeops session: messy kickoff notes routed into dated memory after you confirm, then a cold session that already knows the client, a grounded sponsor-meeting brief, and dated receipts" src="../media/session.gif" width="900" /></p>
-
-`<private>` lands sealed as `(private - redacted)` - never in `resume`, `prep`, `receipts`, or the dashboard.
-
----
-
 ## New here? (5 minutes)
 
-1. Run `npx fdeops scan` in a repo - recon + the "ASK ON DAY 1" questions, zero config
-2. Read **Who this is for** and **Without fdeops vs with fdeops** in the README
-3. Bind a workspace: `fde resume --init <client-name>` (the one setup step)
-4. Skim [examples/garvey-payments/](../examples/garvey-payments/) Day 1 → Day 10
-5. In your **AI chat** (not email to a person): `@fde` + your actual situation
+1. Install from the README (plugin or `npx skills add`), then in chat: `@fde this is Acme` — the AI coding agent binds. Terminal fallback: `fde resume --init <client-name>`
+2. Read **The week** and **Who this is for** in the README
+3. Skim [examples/garvey-payments/](../examples/garvey-payments/) Day 1 → Day 10
+4. Optional recon, zero config: `npx fdeops scan` in a repo
+5. Then: `@fde` + the actual situation (brief wrong, they went quiet, when did we agree, what they got)
 
 You do not read the phase methods. **`@fde` routes the AI and loads the right one.**
 
@@ -36,7 +26,7 @@ You do not read the phase methods. **`@fde` routes the AI and loads the right on
 
 | You are… | Example message to the **AI coding agent** |
 |----------|---------------------------------------------|
-| Starting | `@fde New embed. First meeting tomorrow. Brief says: …` |
+| Starting | `@fde this is Acme` (binds) then `@fde New embed. First meeting tomorrow. Brief says: …` |
 | Unsure of real problem | `@fde Workshop done. Ops says they use a spreadsheet nightly.` |
 | Just out of a meeting | `@fde Debrief: <paste your raw notes>` |
 | Ready to code | `@fde Ship smallest slice by Friday in module X.` |
@@ -105,10 +95,10 @@ That writes a `[signal:amber]` token into `stakeholders.md`. The **latest dated 
 
 **You do not need these for daily work.** Chat with `@fde`; the agent runs them. Use the terminal for one-time setup, air-gapped machines, or automation.
 
-**Humans - once / occasional:**
+**Humans - once / occasional** (prefer chat: `@fde this is Acme`):
 
 ```bash
-npx fdeops resume --init <client>   # one-time: create + bind this workspace
+npx fdeops resume --init <client>   # fallback: create + bind this workspace from the terminal
 npx fdeops resume                   # check "where we are"
 npx fdeops scan                     # try day-1 recon with no install
 npx fdeops dashboard                # optional local HTML view of the fieldbook
@@ -143,8 +133,9 @@ fde log decision "…"
 fde log contact "…" --signal amber
 fde receipts "descope"            # dated agreements (ON RECORD)
 fde dashboard --all               # every client, sorted by trust
-fde status [--all]                # trust-first triage
+fde status [--all]                # value ledger, then trust
 fde vault [--redacted] [--out D]  # derived Obsidian vault of the whole portfolio (disposable)
+fde tidy [--apply]                # propose safe consolidations (fde garden still works)
 fde demo                          # the whole loop on a fake client (--clean removes it)
 ```
 
@@ -178,7 +169,7 @@ cd ~/work/client-a && fde resume --init client-a
 cd ~/work/client-b && fde resume --init client-b
 ```
 
-One folder per client, one binding per workspace. Never merge contexts. `fde status` triages the whole portfolio (red > amber > green); `fde dashboard` renders it into one offline HTML fieldbook.
+One folder per client, one binding per workspace. Never merge contexts. `fde status` prints the value ledger (promised → measured → accepted), then trust; `fde dashboard` renders it into one offline HTML fieldbook.
 
 ---
 

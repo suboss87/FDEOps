@@ -458,6 +458,81 @@ test('status defaults to the bound engagement; --all shows the portfolio', () =>
   assert.equal(all.status, 0, all.stderr)
   assert.match(all.stdout, /alpha/)
   assert.match(all.stdout, /beta/)
+  assert.match(all.stdout, /value: none yet/, 'portfolio path must also print the ledger')
+})
+
+test('status leads with the value ledger, not trust hygiene', () => {
+  const sandbox = makeSandbox('status-value')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'kesterman']).status, 0)
+  const eng = engagementPath(sandbox, 'kesterman')
+  const empty = runFde(sandbox, ['status'])
+  assert.equal(empty.status, 0, empty.stderr)
+  assert.match(empty.stdout, /value first, then trust/)
+  assert.match(empty.stdout, /value: none yet/)
+  const emptyValueAt = empty.stdout.indexOf('value: none yet')
+  const emptyTrustAt = empty.stdout.indexOf('[')
+  assert.ok(emptyValueAt !== -1 && emptyValueAt < emptyTrustAt, 'empty ledger still prints before the trust line')
+
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n' +
+      '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
+      '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+      '| 2026-08-14 | Invoice cycle | cost-save | 6 days → 2 days | 2 days | Denise Chen, Aug 14 | ops | n/a |\n' +
+      '| 2026-08-20 | Payment retry | risk-mitigation | 340 failures/wk → 12 | 12 | | pager | n/a |\n'
+  )
+  const s = runFde(sandbox, ['status'])
+  assert.equal(s.status, 0, s.stderr)
+  assert.match(s.stdout, /Invoice cycle: 6 days → 2 days · accepted by Denise Chen, Aug 14/)
+  assert.match(s.stdout, /Payment retry: 340 failures\/wk → 12 · claimed, not yet accepted/)
+  const acceptedAt = s.stdout.indexOf('Invoice cycle:')
+  const trustAt = s.stdout.indexOf('[')
+  assert.ok(acceptedAt !== -1 && acceptedAt < trustAt, 'value lines must print before the trust row')
+
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n' +
+      '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
+      '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+      '| 2026-08-14 | rate card | cost-save | trim spend | <private>SEALED-4242 saved</private> | Denise, Aug 14 | invoice | n/a |\n'
+  )
+  const priv = runFde(sandbox, ['status'])
+  assert.equal(priv.status, 0, priv.stderr)
+  assert.doesNotMatch(priv.stdout, /SEALED-4242/, 'status must not print a <private> measured cell')
+  assert.match(priv.stdout, /private - redacted/)
+
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n' +
+      '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
+      '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+      '| | | *(cost-save / risk-mitigation / revenue-uplift)* | *(what we said it would change)* | *(pending)* | *(claimed)* | | |\n' +
+      '\n**Bucket:** `cost-save` · `risk-mitigation` · `revenue-uplift`\n' +
+      '**Accepted by:** a customer-side name and date - without one the value stays *claimed*, not accepted.\n'
+  )
+  const legend = runFde(sandbox, ['status'])
+  assert.equal(legend.status, 0, legend.stderr)
+  assert.match(legend.stdout, /value: none yet/)
+  assert.doesNotMatch(legend.stdout, /Bucket:/)
+  assert.doesNotMatch(legend.stdout, /customer-side name/)
+
+  fs.writeFileSync(
+    path.join(eng, 'delivery.md'),
+    '# Delivery\n## Value ledger\n' +
+      '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
+      '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
+      '| 2026-08-14 | Invoice cycle | cost-save | 6 days → 2 days | 2 days | Denise Chen, Aug 14 | ops | n/a |\n' +
+      '| 2026-08-20 | Payment retry | risk-mitigation | 340 failures/wk → 12 | 12 | | pager | n/a |\n'
+  )
+  const ws2 = path.join(sandbox.dir, 'workspace-b')
+  fs.mkdirSync(ws2, { recursive: true })
+  const sandboxB = { ...sandbox, workspace: fs.realpathSync(ws2) }
+  assert.equal(runFde(sandboxB, ['resume', '--init', 'acme'], { cwd: sandboxB.workspace }).status, 0)
+  const portfolio = runFde(sandbox, ['status', '--all'])
+  assert.equal(portfolio.status, 0, portfolio.stderr)
+  assert.match(portfolio.stdout, /Invoice cycle: 6 days → 2 days · accepted by Denise Chen, Aug 14/)
+  assert.match(portfolio.stdout, /… 1 more in delivery.md/, 'portfolio caps rows per client')
+  assert.doesNotMatch(portfolio.stdout, /Payment retry:.*claimed/)
 })
 
 test('debrief refuses binary notes files', () => {

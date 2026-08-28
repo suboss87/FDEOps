@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.13.0 — 2026-08-28
+
+Four-day front: the skill is the engagement record, not a land-to-close operating system.
+
+### Changed
+- **Four days first** — the brief is wrong, they went quiet, when did we agree, what did they get. `@fde` leads with those moments; the six-domain router stays behind them.
+- **First chat binds** — name the client (`@fde this is Acme`); the agent runs `fde resume --init`. The FDE never types the CLI. Terminal `--init` remains the fallback.
+- **Generic SDLC left the router** — `build`, `debug`, `observability`, `qa-live`, `security-audit`, and `test-on-legacy` live in `skills/fde/archive/sdlc/`. Routed count is 31 methods + 5 overlays. Coding, tests, and commits stay in the host agent.
+- **Friday status leads with the value ledger** — promised → measured → accepted, then trust. A number nobody signed is claimed, not delivered.
+- **README** teaches the job, then a 30-second install (plugin or `npx skills add --skill fde`). Method catalog is a details block.
+
 ## 3.12.0 — 2026-08-27
 
 Vocabulary: standard words on the outside, so nothing has to be learned before it works.

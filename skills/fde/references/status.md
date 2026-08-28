@@ -6,6 +6,8 @@
 
 ## Method (you do this work)
 
+**First:** run `fde status`. It prints the value ledger before trust — promised → measured → accepted by, or `claimed, not yet accepted`. Those lines are the Situation. Do not invent a number the CLI did not print.
+
 **Always draft in SCQA.** One page maximum. No other shape.
 
 | Block | What to write | Source |

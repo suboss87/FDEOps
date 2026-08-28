@@ -2,7 +2,7 @@
 
 **One brain, thin adapters.** fdeops has a single source of truth - the `@fde` skill at `skills/fde/SKILL.md` and the `fde` CLI. Each AI coding tool discovers it through a small pointer file in the place that tool already looks. No forked logic, no five copies to maintain - every adapter says the same thing: *route via `@fde`, read/write `.fde/` memory, talk like a peer, never touch what isn't yours.*
 
-**Switching tools:** the fieldbook does not live in the agent. It lives at `~/fde-engagements/<client>/.fde/`. Point a new tool at a bound workspace, drop adapters (or install the skill/plugin for that tool), and the same client record opens. Auto session hooks are Claude Code–first; elsewhere load via `@fde` / `fde resume`. See [README § What works where](../README.md#what-works-where).
+**Switching tools:** the fieldbook does not live in the agent. It lives at `~/fde-engagements/<client>/.fde/`. Point a new tool at a bound workspace, drop adapters (or install the skill/plugin for that tool), and the same client record opens. Auto session hooks are Claude Code–first; elsewhere load via `@fde` / `fde resume`. See [README § Switch coding agents](../README.md#switch-coding-agents-anytime).
 
 ## What goes where
 
@@ -31,4 +31,4 @@ Defaults to the current directory if no path is given. Existing files are never 
 
 ## The principle
 
-The adapter only tells the tool **where the brain is and how to behave**. All the method - the 37 methods, the overlays, the memory contract - lives once in `skills/fde/SKILL.md`. Update the brain, every platform gets it. That's why fdeops feels native in whatever the FDE already uses, without five things to keep in sync.
+The adapter only tells the tool **where the brain is and how to behave**. All the method - the 31 methods, the overlays, the memory contract - lives once in `skills/fde/SKILL.md`. Update the brain, every platform gets it. That's why fdeops feels native in whatever the FDE already uses, without five things to keep in sync.
