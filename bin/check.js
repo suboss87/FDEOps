@@ -57,7 +57,7 @@ for (const dir of fs.readdirSync(path.join(root, 'skills'))) {
 ok('skills structure')
 
 if (fs.existsSync(path.join(root, 'skills', 'fde', 'archive'))) {
-  fail('skills/fde/archive must not exist — unrouted methods are dead code')
+  fail('skills/fde/archive must not exist — unrouted skills are dead code')
 } else ok('no archived skill dump')
 
 // v3: one skill + phase references (progressive disclosure)
@@ -201,7 +201,7 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
 
   const refDir = path.join(root, 'skills', 'fde', 'references')
   const extra = fs.readdirSync(refDir).filter(f => f.endsWith('.md') && !mentioned.includes(f))
-  if (extra.length) fail(`unrouted reference file(s) — dead method: ${extra.join(', ')}`)
+  if (extra.length) fail(`unrouted reference file(s) — dead skill: ${extra.join(', ')}`)
   else ok('no unrouted reference files')
 }
 
