@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.15.0 — 2026-08-28
+
+Production front door: command map, 30-second install, method catalog (Use when), then why it exists. README is text — no gif. Stages are LAND → CLOSE everywhere. Unused SDLC archive and staged mock media removed. Leftover `build` phase name aliases to `ship`. Coding stays in the host agent.
+
 ## 3.14.1 — 2026-08-28
 
 ### Changed

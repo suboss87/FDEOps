@@ -3,7 +3,6 @@
 | Path | Purpose |
 |------|---------|
 | `skills/fde/` | **The one skill** - router (`SKILL.md`) + 31 routed methods, 5 overlays, and AI companion `eval-pack` under `references/` |
-| `skills/fde/archive/sdlc/` | Archived SDLC methods — kept for history, **not routed** |
 | `.claude/commands/` | Slash commands: `/brief` `/discover` `/plan` `/ship` `/got` `/close` plus `/debrief` `/prep` `/quiet` `/agreed` `/status` — method cards that load `@fde` |
 | `adapters/` | Thin per-tool pointers (Codex/`AGENTS.md`, Gemini, Cursor, Copilot, local LLMs) - `node bin/install.js adapters <dir>` |
 | `templates/.fde/` | Core memory templates for `fde resume --init` (phase artifacts are created by phases on demand; `evals.md` is optional) |

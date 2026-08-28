@@ -48,16 +48,16 @@ The difference between a 5-year FDE and a 15-year FDE is not talent - it's encod
 | **Repeatable?** | Applies to a class of situations, not just this one | Only worked because of a unique circumstance |
 | **Falsifiable?** | You can tell when the pattern is working or not | No way to measure whether applying it helped |
 
-**4. Classify by domain.** Patterns sort into the same domains as the skills:
+**4. Classify by stage.** Patterns sort into the same stages as the methods:
 
-| Domain | Pattern type | Example |
+| Stage | Pattern type | Example |
 |--------|-------------|---------|
-| **Embed & Trust** | Political / relational | "The passed-over team warm-up protocol" |
-| **Discover & Diagnose** | Investigative / analytical | "The cron-job discovery checklist for legacy systems" |
-| **Plan & Align** | Structural / strategic | "The three-option presentation for nervous sponsors" |
-| **Build & Guard** | Technical / safety | "The Strangler Fig on financial transaction code" |
-| **Ship & Verify** | Operational / process | "The regulated-environment change-approval timeline buffer" |
-| **Operate & Close** | Knowledge / handoff | "The 2am document format that actually gets used" |
+| **Land** | Political / relational | "The passed-over team warm-up protocol" |
+| **Discover** | Investigative / analytical | "The cron-job discovery checklist for legacy systems" |
+| **Plan** | Structural / strategic | "The three-option presentation for nervous sponsors" |
+| **Ship** | Technical / safety | "The Strangler Fig on financial transaction code" |
+| **Prove** | Operational / process | "The regulated-environment change-approval timeline buffer" |
+| **Close** | Knowledge / handoff | "The 2am document format that actually gets used" |
 
 **5. Version and evolve.** Patterns are living documents:
 
@@ -76,7 +76,7 @@ A pattern learned twice is a process failure. Encoding it prevents the third tim
 
 ## Artifact
 
-**`patterns.md`** - the pattern library, growing across engagements. Each pattern in the format above. Indexed by domain and situation trigger.
+**`patterns.md`** - the pattern library, growing across engagements. Each pattern in the format above. Indexed by stage and situation trigger.
 
 **`retrospectives/YYYY-MM-DD-<engagement>.md`** - reference to which patterns were extracted from this engagement.
 

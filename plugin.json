@@ -1,13 +1,13 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "fdeops",
-  "version": "3.14.1",
+  "version": "3.15.0",
   "description": "Forward deployed engineering skills for AI coding agents: per-client memory in local .fde/ files, one @fde skill. Local-only, no network.",
   "author": {
     "name": "Subash Natarajan",
     "url": "https://github.com/suboss87"
   },
-  "homepage": "https://fdeops.io/",
+  "homepage": "https://github.com/suboss87/fdeops",
   "repository": "https://github.com/suboss87/FDEOps",
   "license": "MIT",
   "keywords": [

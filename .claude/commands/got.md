@@ -2,7 +2,7 @@
 description: What did they get? — promised, measured, accepted
 ---
 
-Load `@fde` (`skills/fde/SKILL.md`). Situation: **what did they get?**
+Load `@fde` (`skills/fde/SKILL.md`). Stage: **prove**.
 
 If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI.
 
