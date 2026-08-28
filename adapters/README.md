@@ -31,4 +31,4 @@ Defaults to the current directory if no path is given. Existing files are never 
 
 ## The principle
 
-The adapter only tells the tool **where the brain is and how to behave**. All the method - the 31 methods, the overlays, the memory contract - lives once in `skills/fde/SKILL.md`. Update the brain, every platform gets it. That's why fdeops feels native in whatever the FDE already uses, without five things to keep in sync.
+The adapter only tells the tool **where the brain is and how to behave**. All 31 skills, the overlays, and the memory contract live once in `skills/fde/SKILL.md`. Update the brain, every platform gets it. That's why fdeops feels native in whatever the FDE already uses, without five things to keep in sync.

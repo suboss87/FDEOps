@@ -1,14 +1,14 @@
 # One skill, three layers
 
-One skill (`@fde`) routes by situation - you never pick a method by name. Three layers:
+One skill (`@fde`) routes by situation - you never pick a skill by name. Three layers:
 
 1. **Daily** - prep, debrief, receipts, status, triage / doctor
-2. **Engagement** - brief wrong, they went quiet, when did we agree, what they got — plus the methods below
+2. **Engagement** - brief wrong, they went quiet, when did we agree, what they got — plus the skills below
 3. **Overlays** - ai / fintech / healthcare / gov / artifacts (plus eval-pack as an AI companion)
 
-The full map is below; per-method details live in [skills-reference.md](./skills-reference.md).
+The full map is below; per-skill details live in [skills-reference.md](./skills-reference.md).
 
-## Engagement methods (31 methods across 6 stages)
+## Engagement skills (31 skills across 6 stages)
 
 | Stage | Skills | What it covers |
 |--------|--------|---------------|
@@ -19,9 +19,9 @@ The full map is below; per-method details live in [skills-reference.md](./skills
 | **Prove** | status, demo-prep, debrief, exec-narrative, dashboard, ingest, ingest-connect | What they got; pulling from source MCPs |
 | **Close** | close, handoff-engineering, multi-customer-ops, pattern-extract, red-team | They can run it without you |
 
-Each skill is a **method, not advice**: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.
+Each skill is a workflow, not advice: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.
 
-**Field judgment (blended into methods, not separate skills):** land/discover use **brief interrogation** when the brief is thin; `@fde` enforces **anti-invention gates**; ship/red-team run a **pre-blast challenge** before irreversible moves.
+**Field judgment (blended into skills, not a separate pack):** land/discover use **brief interrogation** when the brief is thin; `@fde` enforces **anti-invention gates**; ship/red-team run a **pre-blast challenge** before irreversible moves.
 
 ## 5 overlays (activate automatically on signal)
 
@@ -39,6 +39,6 @@ Overlays layer domain judgment onto whatever skill is running - the agent activa
 
 ## See also
 
-- [skills-reference.md](./skills-reference.md) - what each method does, phase by phase
-- [schema.md](./schema.md) - the `.fde/` files the methods write
+- [skills-reference.md](./skills-reference.md) - what each skill does, stage by stage
+- [schema.md](./schema.md) - the `.fde/` files the skills write
 - [USAGE.md](./USAGE.md) - what to type, day to day

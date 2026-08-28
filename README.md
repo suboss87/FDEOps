@@ -17,9 +17,9 @@ Skills encode the workflows, quality gates, and judgment Forward Deployed Engine
 
 ## Commands
 
-6 slash commands that map to the engagement. Each one loads `@fde`. You never pick a method.
+6 slash commands that map to the engagement. Each one activates `@fde`.
 
-| What you're doing | Command | Principle |
+| What you're doing | Command | Key principle |
 |-------------------|---------|-----------|
 | Land the embed | `/brief` | Brief and trust before code |
 | Find the real problem | `/discover` | Brief is a hypothesis |
@@ -30,7 +30,7 @@ Skills encode the workflows, quality gates, and judgment Forward Deployed Engine
 
 Also: `/debrief` (after a meeting) · `/prep` (walk-in) · `/quiet` (sponsor silent) · `/agreed` (scope dispute) · `/status` (Friday readout).
 
-`@fde` plus English activates the same skill automatically. Ordinary TypeScript, unit tests, and git commits stay in the host agent.
+Skills also activate automatically based on what you're doing — naming a client, debriefing a meeting, or asking what was agreed triggers `@fde`. Ordinary TypeScript, unit tests, and git commits stay in the host agent.
 
 ---
 
@@ -92,13 +92,13 @@ Requires Node.js >= 18. Override: `FDEOPS_ENGAGEMENT` — [docs/install.md](docs
 
 ---
 
-## All 31 Methods
+## All 31 Skills
 
-The commands above are the entry points. One `@fde` skill routes to these 31 methods — each a structured workflow with an artifact and a checkpoint. You never pick a method by name. Full detail: [docs/skills-reference.md](docs/skills-reference.md).
+The commands above are the entry points. Under the hood, `@fde` activates these 31 skills — each a structured workflow with steps, an artifact, and a checkpoint. You never pick one by name. Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 
-### Land
+### Land - Brief and trust
 
-| Method | What it does | Use when |
+| Skill | What It Does | Use When |
 |--------|--------------|----------|
 | [land](skills/fde/references/land.md) | Interrogate the brief, map stakeholders, define success | New client, first meeting, just got the brief |
 | [audit](skills/fde/references/audit.md) | Verify claims, find the load-bearing wall | Taking over, previous consultant left |
@@ -106,27 +106,27 @@ The commands above are the entry points. One `@fde` skill routes to these 31 met
 | [trust-engineering](skills/fde/references/trust-engineering.md) | Observer → trusted; navigate AI policy | Need access or credibility |
 | [scope-defense](skills/fde/references/scope-defense.md) | Scope receipts; the accumulation conversation | "Also can you…", timeline unchanged |
 
-### Discover
+### Discover - Find the real problem
 
-| Method | What it does | Use when |
+| Skill | What It Does | Use When |
 |--------|--------------|----------|
 | [discover](skills/fde/references/discover.md) | Repo + workaround + the real problem | Brief feels wrong, shadow processes |
 | [assumption-audit](skills/fde/references/assumption-audit.md) | Untested assumptions by blast radius | Brief feels too neat |
 | [use-case-scoring](skills/fde/references/use-case-scoring.md) | Value × urgency × alignment / complexity | Everything is P0 |
 | [sketch](skills/fde/references/sketch.md) | Kill the killer assumption in a day | Need to de-risk a direction |
 
-### Plan
+### Plan - Sequence the work
 
-| Method | What it does | Use when |
+| Skill | What It Does | Use When |
 |--------|--------------|----------|
 | [plan](skills/fde/references/plan.md) | Backwards from done, PR-sized | What order, what is done |
 | [business-case](skills/fde/references/business-case.md) | Cost of nothing → investment → return | Defend budget or timeline |
 | [options-analysis](skills/fde/references/options-analysis.md) | Three genuine options | "What should we do?" |
 | [initiative-triage](skills/fde/references/initiative-triage.md) | Pick three from twenty urgents | Everything is urgent |
 
-### Ship
+### Ship - Go live
 
-| Method | What it does | Use when |
+| Skill | What It Does | Use When |
 |--------|--------------|----------|
 | [incremental-build](skills/fde/references/incremental-build.md) | Vertical slices, visible every 2–3 days | Large feature on their codebase |
 | [blast-radius](skills/fde/references/blast-radius.md) | Impact from contained → irreversible | Touching shared infrastructure |
@@ -135,9 +135,9 @@ The commands above are the entry points. One `@fde` skill routes to these 31 met
 | [review](skills/fde/references/review.md) | Did we only build what we agreed | Before merge, scope creep |
 | [rollback-drill](skills/fde/references/rollback-drill.md) | Test the escape route before 2am | "We can always revert" |
 
-### Prove
+### Prove - What they got
 
-| Method | What it does | Use when |
+| Skill | What It Does | Use When |
 |--------|--------------|----------|
 | [status](skills/fde/references/status.md) | Promised → measured → accepted | Friday, sponsor update |
 | [demo-prep](skills/fde/references/demo-prep.md) | One number, five hard questions | Demo or exec walkthrough |
@@ -147,9 +147,9 @@ The commands above are the entry points. One `@fde` skill routes to these 31 met
 | [ingest](skills/fde/references/ingest.md) | Pull text you confirm | Transcript, Notion, Slack |
 | [ingest-connect](skills/fde/references/ingest-connect.md) | Wire a source MCP | Connect Granola |
 
-### Close
+### Close - They run it
 
-| Method | What it does | Use when |
+| Skill | What It Does | Use When |
 |--------|--------------|----------|
 | [close](skills/fde/references/close.md) | Handoff that survives you | Wrapping up |
 | [handoff-engineering](skills/fde/references/handoff-engineering.md) | Runbook, confidence scoring | They must operate without you |
@@ -163,9 +163,9 @@ Optional pull: you add the source MCP; we **pull** on request. [mcp/recipes/](mc
 
 ---
 
-## How it works
+## How Skills Work
 
-Every method follows the same anatomy:
+Every skill follows a consistent anatomy:
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -181,18 +181,16 @@ Every method follows the same anatomy:
 └─────────────────────────────────────────────┘
          │
          ▼
-  references/<method>.md     fde CLI (local)
+  references/<skill>.md      fde CLI (local)
   one file, then stop        dating, gates, redaction
 ```
 
-- **Process, not prose.** Methods are workflows with an artifact and a checkpoint.
+- **Process, not prose.** Skills are workflows with an artifact and a checkpoint, not tip sheets.
 - **You confirm.** Nothing is written until you say so.
-- **Progressive disclosure.** `SKILL.md` is the entry point. One `references/*.md` loads when routed.
-- **Local CLI.** Writes, receipts, status. Zero model tokens. The AI coding agent runs it.
+- **Progressive disclosure.** The `SKILL.md` is the entry point. One `references/*.md` loads when routed.
+- **Local CLI.** Writes, status, dated agreements. Zero model tokens. The AI coding agent runs it.
 
 The record lives at `~/fde-engagements/<client>/.fde/` — not inside any vendor. Change hosts, install `@fde` on the new one, bind if needed, keep talking.
-
-**Words used here, once:** *engagement* - one client's body of work, one folder. *Fieldbook* - that folder (`.fde/`), the record itself. *Brief vs reality* - what they said the problem was, and what it turned out to be. *Terrain* - their systems and org as you actually found them. *Trust signal* - green / amber / red on one relationship. *Receipts* - the dated line proving something was agreed. *Vault* - the Obsidian copy `fde vault` generates to read it all in one window.
 
 ---
 
@@ -202,7 +200,7 @@ The record lives at `~/fde-engagements/<client>/.fde/` — not inside any vendor
 fdeops/
 ├── skills/fde/                 # the one skill
 │   ├── SKILL.md                #   router
-│   └── references/             #   31 methods + overlays
+│   └── references/             #   31 skills + overlays
 ├── .claude/commands/           # slash commands (each loads @fde)
 ├── bin/fde.js                  # local CLI — git + files, no network
 ├── hooks/                      # session-start / session-stop / pre-compact
@@ -213,7 +211,7 @@ fdeops/
 
 ---
 
-## Why this exists
+## Why FDEOps?
 
 ### 1. The brief is wrong
 
@@ -273,7 +271,7 @@ Local only — `git` + files, no network, no telemetry. Plain markdown. The mode
 ## Principles
 
 - **The artifact is the memory** — producing the work and recording it are one action
-- **Methods, not autonomy** — the kit says what to check; judgment stays yours
+- **Skills, not autonomy** — the kit says what to check; judgment stays yours
 - **Brief is a hypothesis** — discover before building the wrong thing
 - **Evidence on every claim** — these files get defended in the room
 - **One customer, one folder** — context never bleeds
@@ -284,7 +282,7 @@ Local only — `git` + files, no network, no telemetry. Plain markdown. The mode
 
 **[Subash Natarajan](https://www.linkedin.com/in/subashn/)**. [Issues](https://github.com/suboss87/fdeops/issues) · [CONTRIBUTING.md](CONTRIBUTING.md)
 
-Methods should be **specific** (actionable steps), **verifiable** (an artifact in `.fde/`), and **minimal**. The `fde` CLI stays local-only.
+Skills should be **specific** (actionable steps), **verifiable** (an artifact in `.fde/`), and **minimal**. The `fde` CLI stays local-only.
 
 ## License
 

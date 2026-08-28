@@ -1,8 +1,8 @@
-# fdeops Reference - one skill, 31 methods across 6 stages
+# fdeops Reference - one skill, 31 skills across 6 stages
 
-v3 ships **one skill**: `@fde` ([skills/fde/SKILL.md](../skills/fde/SKILL.md)). You describe the situation; it routes to a phase and follows that phase's method from [skills/fde/references/](../skills/fde/references/). Engagement memory lives in `~/fde-engagements/<name>/.fde/` (one folder per customer).
+v3 ships **one skill**: `@fde` ([skills/fde/SKILL.md](../skills/fde/SKILL.md)). You describe the situation; it routes to a phase and follows that phase's skill from [skills/fde/references/](../skills/fde/references/). Engagement memory lives in `~/fde-engagements/<name>/.fde/` (one folder per customer).
 
-Each reference is a **method, not advice**: the thinking the agent does, the artifact it drafts, and the checkpoint with the human FDE. The **Use when** column below is what the router actually matches on - the phrases in `skills/fde/SKILL.md` that send you to that skill, not a paraphrase.
+Each reference is a **skill, not advice**: the thinking the agent does, the artifact it drafts, and the checkpoint with the human FDE. The **Use When** column below is what the router actually matches on - the phrases in `skills/fde/SKILL.md` that send you to that skill, not a paraphrase.
 
 ---
 
@@ -91,7 +91,7 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 
 ## Engagement phases (quick reference)
 
-The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 31. Generic SDLC (build, debug, tests, commits) stays in the host agent — not routed here.
+The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 31 skills. Generic SDLC (build, debug, tests, commits) stays in the host agent — not routed here.
 
 | Phase | Enter when | Method highlights | Writes |
 |-------|-----------|-------------------|--------|
