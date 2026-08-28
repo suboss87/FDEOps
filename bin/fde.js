@@ -24,7 +24,7 @@
  *   fde receipts <term>     "what did we agree?" - search memory with dates
  *   fde capture             session-end snapshot → context.md (hooks use this)
  *   fde preserve            pre-compaction context snapshot (hook-internal; hooks use this)
- *   fde status [--all]      current engagement (default) or full portfolio (--all)
+ *   fde status [--all]      value ledger first, then trust (pass --all for portfolio)
  *   fde dashboard [--all]   current engagement fieldbook (default) or all (--all)
  *   fde vault               derived Obsidian vault of the fieldbook (disposable; --redacted)
  */
@@ -2295,21 +2295,59 @@ function hasValueBucket(eng) {
 const PENDING_CELL_RE =
   /^(?:pending|tbd|to ?be ?(?:measured|confirmed|determined)|n\s*\/\s*a|na|none|unknown|not measured|\?+|\.{2,}|…|-+|—+|–+)(?:[^\w].*)?$/i
 
-function claimedValueRows(eng) {
+function parseValueLedger(eng) {
   const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger') || '')
   const table = parseMdTable(ledger)
-  if (!table) return { claimed: 0, columnMissing: false }
-  const mIdx = colIndex(table.headers, /measured/i)
-  if (mIdx === -1) return { claimed: 0, columnMissing: false }
-  const aIdx = colIndex(table.headers, /accept/i)
-  let claimed = 0
-  for (const row of table.rows) {
-    const measured = String(row[mIdx] || '').trim()
-    if (!measured || PENDING_CELL_RE.test(measured)) continue
-    const accepted = aIdx === -1 ? '' : String(row[aIdx] || '').trim()
-    if (!accepted || PENDING_CELL_RE.test(accepted)) claimed++
+  if (!table) return { rows: [], columnMissing: false }
+  const idx = {
+    slice: colIndex(table.headers, /slice/i),
+    promised: colIndex(table.headers, /promised/i),
+    measured: colIndex(table.headers, /measured/i),
+    accepted: colIndex(table.headers, /accept/i),
   }
-  return { claimed, columnMissing: aIdx === -1 }
+  const cell = (row, i) => (i === -1 ? '' : String(row[i] || '').trim())
+  const rows = []
+  for (const row of table.rows) {
+    const slice = cell(row, idx.slice)
+    const promised = cell(row, idx.promised)
+    const measured = cell(row, idx.measured)
+    const accepted = cell(row, idx.accepted)
+    if (!slice && !promised && !measured) continue
+    const measuredPending = !measured || PENDING_CELL_RE.test(measured)
+    const acceptedPending = idx.accepted === -1 || !accepted || PENDING_CELL_RE.test(accepted)
+    let state = 'unmeasured'
+    if (!measuredPending && acceptedPending) state = 'claimed'
+    else if (!measuredPending) state = 'accepted'
+    rows.push({ slice, promised, measured, accepted, state })
+  }
+  return { rows, columnMissing: idx.accepted === -1 }
+}
+
+function claimedValueRows(eng) {
+  const { rows, columnMissing } = parseValueLedger(eng)
+  return { claimed: rows.filter(r => r.state === 'claimed').length, columnMissing }
+}
+
+function formatValueLedgerLine(r) {
+  const name = r.slice || 'value'
+  let body = r.promised || ''
+  if (r.state !== 'unmeasured' && r.measured) {
+    if (!body) body = r.measured
+    else if (!body.includes(r.measured)) body = `${body} → ${r.measured}`
+  }
+  const head = body ? `${name}: ${body}` : name
+  if (r.state === 'accepted') return `${head} · accepted by ${r.accepted}`
+  if (r.state === 'claimed') return `${head} · claimed, not yet accepted`
+  return `${head} · not yet measured`
+}
+
+function valueLedgerStatusLines(eng, opts = {}) {
+  const { rows } = parseValueLedger(eng)
+  if (!rows.length) return ['    value: none yet']
+  const cap = opts.compact ? 1 : 8
+  const lines = rows.slice(0, cap).map(r => `    ${formatValueLedgerLine(r)}`)
+  if (rows.length > cap) lines.push(`    … ${rows.length - cap} more in delivery.md`)
+  return lines
 }
 
 // AI in scope for ship/close hygiene — delivery/decisions/trust evidence only.
@@ -2669,7 +2707,7 @@ function cmdStatus(args) {
       if (!fs.existsSync(eng)) continue
       const s = computeSignals(eng)
       const note = [s.memoryWarn, (s.dirtyFiles && s.dirtyFiles.length) ? `dirty:${s.dirtyFiles.length}` : '', s.reason || s.topRisk].filter(Boolean).join(' · ').slice(0, 70)
-      rows.push({ name: d, phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: note, memoryWarn: s.memoryWarn, dirtyFiles: s.dirtyFiles })
+      rows.push({ name: d, phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: note, memoryWarn: s.memoryWarn, dirtyFiles: s.dirtyFiles, valueLines: valueLedgerStatusLines(eng, { compact: true }) })
     }
   } else {
     const eng = resolveEngagement()
@@ -2679,13 +2717,14 @@ function cmdStatus(args) {
     }
     const s = computeSignals(eng)
     const note = [s.memoryWarn, (s.dirtyFiles && s.dirtyFiles.length) ? `dirty:${s.dirtyFiles.length}` : '', s.reason || s.topRisk].filter(Boolean).join(' · ').slice(0, 70)
-    rows.push({ name: engagementSlugFromPath(eng), phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: note, memoryWarn: s.memoryWarn, dirtyFiles: s.dirtyFiles })
+    rows.push({ name: engagementSlugFromPath(eng), phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: note, memoryWarn: s.memoryWarn, dirtyFiles: s.dirtyFiles, valueLines: valueLedgerStatusLines(eng) })
   }
   if (!rows.length) { console.log('no engagements yet'); return }
   const order = { RED: 0, amber: 1, green: 2 }
   rows.sort((a, b) => order[a.trust] - order[b.trust])
-  console.log((all ? 'FDE PORTFOLIO' : 'FDE STATUS') + ' - trust-first triage (heuristic: red > amber > green)\n')
+  console.log((all ? 'FDE PORTFOLIO' : 'FDE STATUS') + ' - value first, then trust\n')
   for (const r of rows) {
+    for (const line of r.valueLines) console.log(line)
     // "amber?" = structured signal went stale (>21d) - reconfirm before trusting it
     const label = r.trust + (r.stale ? '?' : '')
     const sig = r.signalAge != null ? `signal ${r.signalAge}d old${r.stale ? ' (STALE - reconfirm)' : ''}  ` : ''
@@ -3153,7 +3192,7 @@ function printUsage() {
   fde tidy [--apply]       propose safe consolidations (contract: no new facts; git-reversible)
   fde owner [set email]    who keeps this engagement record
   fde receipts <term>      "what did we agree?" with dates
-  fde status [--all]       current engagement status (pass --all for full portfolio)
+  fde status [--all]       value ledger, then trust (pass --all for full portfolio)
   fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
   fde vault                derived Obsidian vault of every engagement (--current for one, --redacted for a shared screen, --out <dir>)
   hooks call these; you do not: capture (session-end snapshot), preserve (pre-compaction snapshot)

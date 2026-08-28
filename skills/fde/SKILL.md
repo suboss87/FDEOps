@@ -87,7 +87,7 @@ When NOT to interrogate or challenge: unambiguous one-liners, mechanical ops, FD
 | "Connect a new MCP" / "connect Granola/Slack/Notion" / "what can you pull?" | Follow `references/ingest-connect.md`: source MCP only; sink is `fde ingest` here. They save/reload; you cannot silent-install. Paste still works with no MCP. |
 | "Prep me for the meeting with …" / walk-in brief | `fde prep "<short label>"` - present the brief in plain language; do not invent facts missing from `.fde/` |
 | "When did we agree…?" / scope dispute | `fde receipts <term>` - answer with dates; no hit = gap, not proof |
-| "Draft the sponsor update" / how are we doing | `fde status` then follow `references/status.md` for the narrative |
+| "Draft the sponsor update" / how are we doing | `fde status` (value ledger first) then follow `references/status.md` |
 | "Log that they went quiet" / trust signal | `fde log contact "…" --signal amber\|green\|red`. If they already named the color ("log that as amber"), that is the confirm — write it. If they only described the situation, playback the color once, then write. |
 | Want the HTML fieldbook | `fde dashboard` |
 | "Open my clients in Obsidian" / one window over everything / "can I show this to the sponsor?" | `fde vault` (add `--redacted` for a shared screen). Derived and disposable: it is rebuilt from `.fde/` on every run and never read back, so tell them to keep logging to the fieldbook, not to the vault. |
