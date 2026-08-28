@@ -14,4 +14,4 @@ Confirm before any write to `.fde/`.
 
 Done when: order, slices, and “done” are on the record and the human agrees.
 
-Not for TypeScript errors, unit tests, refactors, or git commits - those stay in the host agent.
+Not for a one-line typo in an unbound file. A client slice, POC, eval, or go-live stays on `@fde`.

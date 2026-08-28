@@ -95,8 +95,8 @@ if (descMatch) {
 
 const lines = skill.split(/\n/).length
 if (lines > 500) {
-  gaps.push(`SKILL.md is ${lines} lines (Philip: keep under ~500; lean on references)`)
-  console.log(`⚠  SKILL.md is ${lines} lines (over ~500 lean guideline - prefer references)`)
+  gaps.push(`SKILL.md is ${lines} lines (keep under ~500; lean on references)`)
+    console.log(`⚠  SKILL.md is ${lines} lines (over ~500 lean guideline - prefer references)`)
 }
 
 if (printLive || fail === 0) {

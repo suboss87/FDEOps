@@ -2,7 +2,7 @@
 
 **Forward deployed engineering skills for AI coding agents.**
 
-Skills encode the workflows, quality gates, and judgment Forward Deployed Engineers use on someone else's site. Packaged so an AI coding agent follows them, and writes a dated client record you can defend. The host agent still writes the TypeScript. The kit is everything around the code that makes an embed defensible.
+Skills encode the workflows, quality gates, and judgment Forward Deployed Engineers use on someone else's site. Packaged so an AI coding agent can run the embed end-to-end: discovery, POC, slice, on-site proof, eval, signed outcome. The workspace still compiles and commits. `@fde` does not leave.
 
 ```text
   LAND              DISCOVER           PLAN              SHIP               PROVE              CLOSE
@@ -37,7 +37,7 @@ Four tells the map does not cover:
 | After a meeting | `/debrief` | Notes into the record |
 | Walk-in / Friday | `/prep` `/status` | One page, then the ledger |
 
-Skills also activate on English: naming a client, debriefing a meeting, or asking what was agreed. Ordinary TypeScript, unit tests, and git commits stay in the host agent.
+Skills also activate on English: naming a client, running a POC, slicing a feature, asking what was agreed. A throwaway one-liner in an unbound repo can skip `@fde`. A client slice cannot.
 
 ---
 
@@ -120,7 +120,7 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 | [discover](skills/fde/references/discover.md) | Repo + workaround + the real problem | Brief feels wrong, shadow processes |
 | [assumption-audit](skills/fde/references/assumption-audit.md) | Untested assumptions by blast radius | Brief feels too neat |
 | [use-case-scoring](skills/fde/references/use-case-scoring.md) | Value × urgency × alignment / complexity | Everything is P0 |
-| [sketch](skills/fde/references/sketch.md) | Kill the killer assumption in a day | Need to de-risk a direction |
+| [sketch](skills/fde/references/sketch.md) | Kill the killer assumption in a day | POC, spike, need to de-risk |
 
 ### Plan - Sequence the work
 
@@ -135,7 +135,7 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
-| [incremental-build](skills/fde/references/incremental-build.md) | Vertical slices, visible every 2-3 days | Large feature on their codebase |
+| [incremental-build](skills/fde/references/incremental-build.md) | Vertical slices, on-site proof | Building on their codebase |
 | [blast-radius](skills/fde/references/blast-radius.md) | Impact from contained → irreversible | Touching shared infrastructure |
 | [rescue](skills/fde/references/rescue.md) | Production fire or trust fire | Down, or they went quiet |
 | [ship](skills/fde/references/ship.md) | Intent vs diff, pre-flight, rollback | Going live |
@@ -191,6 +191,7 @@ One skill. One reference file per situation. One folder per client.
 ```
 
 - **Process, not prose.** Each reference is a workflow with an artifact and a checkpoint, not a tip sheet.
+- **Ground loop.** Name → characterise → prove where they live → log. The workspace compiles; `@fde` stays.
 - **You confirm.** Nothing is written until you say so.
 - **Progressive disclosure.** `SKILL.md` is the entry point. One `references/*.md` loads when routed.
 - **Local CLI.** Writes and status cost zero model tokens. The AI coding agent runs it.
@@ -272,7 +273,7 @@ fdeops/
 
 AI coding agents are built for a repo, not for a client. They forget the sponsor, the promise, who can say yes, and whether anyone accepted the number. Monday morning they start from the ticket again.
 
-FDEOps is the engagement record those agents load first. One `@fde` skill routes the work. A local CLI dates every decision. `.fde/` is markdown on your laptop. You confirm; then it is on the record. Coding skill packs cover specs, tests, and review. This kit covers the embed around that code.
+FDEOps is what you take on site. One `@fde` skill runs the embed from discovery to signed outcome: POC, slice, on-site proof, eval when a model judges, promised → measured → accepted. A local CLI dates every decision. `.fde/` is markdown on your laptop. You confirm; then it is on the record.
 
 ---
 
@@ -295,9 +296,9 @@ Schema: [docs/schema.md](docs/schema.md). Local HTML: `npx fdeops dashboard`.
 
 ## Who this is for
 
-You embed with a customer and an AI coding agent. The record has to survive Monday, a sponsor change, and the readout. One `.fde/` per client so they do not blur.
+You embed with a customer and an AI coding agent. Take this on the ground. Discovery through signed outcome lives in `@fde`. One `.fde/` per client so they do not blur.
 
-If you only write code in your own repo, this is the wrong pack. Use a coding skill pack for specs, tests, and review. Use this when the work is on someone else's site.
+If you only write code in your own repo with no client record to defend, you do not need this kit.
 
 ---
 
@@ -312,6 +313,7 @@ Local only - `git` + files, no network, no telemetry. Plain markdown. The model 
 ## Principles
 
 - **The artifact is the memory** - producing the work and recording it are one action
+- **Ground loop** - name the slice, characterise their code, prove it where they live, log the outcome
 - **Skills, not autonomy** - the kit says what to check; judgment stays yours
 - **Brief is a hypothesis** - discover before building the wrong thing
 - **Evidence on every claim** - these files get defended in the room

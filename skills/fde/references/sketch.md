@@ -1,6 +1,6 @@
 # sketch - prototype to kill or confirm a direction
 
-**Enter when:** a direction needs validating before committing real build time - show something, de-risk, pick between use cases.
+**Enter when:** a direction needs validating before committing real build time - POC, spike, show something, de-risk, pick between use cases. The output is something a sponsor can reject in a room this week, not a polished product.
 
 **Read first:** `context.md`, `reality.md`. Load `terrain.md` only if the prototype touches the existing codebase.
 
@@ -10,7 +10,7 @@
 
 **1. Pick by score when several use cases compete.** Use the scoring model from `discover.md` - (Value × Data readiness) / Complexity. If discover already scored, reuse; never re-score independently.
 
-**2. Build the minimum that tests the assumption.** No error handling, no tests, no polish. Same-day demo if possible. Rough is honest - polish tricks people into believing it's further along than it is.
+**2. Build the minimum that tests the assumption.** No error handling, no polish. Same-day demo if possible. Rough is honest. The POC is done when the person who can say no has seen it and reacted, not when the code looks finished.
 
 **3. AI directions - test these before anything else:**
 - Data: available, clean, sufficient volume? Synthetic-data prototypes say nothing about production behaviour.

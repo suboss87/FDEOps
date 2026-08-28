@@ -1,13 +1,13 @@
 ---
 name: fde
-description: Keeps engagement memory for client work - sponsor, promise, what shipped, who accepted it. Use when the human names a client, customer or stakeholder. Use when they debrief a meeting or paste notes from one. Use when they ask what was agreed, or want dates and receipts. Use when they prep a client meeting or readout, when scope or trust shifts, or when they say @fde. Route the phase and run the local fde CLI (or npx --yes fdeops if it is not installed); never ask them to type commands. Not for ordinary code edits, unit tests, refactors or commits.
+description: Keeps the engagement record for client work. Use when they name a client or stakeholder. Use when they debrief a meeting or paste notes. Use when they ask what was agreed. Use when they run a POC, slice a feature on the client's codebase, prove it on their staging, or need evals before a model acts. Use when they prep a readout, when trust shifts, or they say @fde. Route and run the local fde CLI (or npx --yes fdeops). Never ask them to type commands. Not for ordinary code edits in an unbound repo.
 ---
 
 # @fde
 
 ## Purpose
 
-The **engagement record** for one client. One skill; six stages (land → close). You route; they never pick a skill. Confirm, then write `.fde/`. The host agent writes the TypeScript. This skill is the embed around that code.
+The **engagement record** for one client, from first meeting to signed outcome. One skill; six stages (land → close). You route; they never pick a skill. Confirm, then write `.fde/`. The workspace still compiles and commits. `@fde` does not leave.
 
 ## When to use
 
@@ -17,7 +17,7 @@ The **engagement record** for one client. One skill; six stages (land → close)
 
 ## When NOT to use
 
-TypeScript errors, unit tests, refactors, git commits, generic debug: **host agent**. Agreed slice + code: implement in the host, then `fde log delivery`.
+A one-line typo or compile error in a file that will not ship. On a bound client: stay here for POC, slice, characterisation, eval, go-live, rollback, and acceptance.
 
 ## Use these first
 
@@ -29,6 +29,18 @@ TypeScript errors, unit tests, refactors, git commits, generic debug: **host age
 | **What's the outcome?** | A number nobody signed is claimed, not delivered. | `fde status` | `references/status.md` |
 
 After a meeting: `fde debrief --smart` → confirm → `--apply`. Walk-in: `fde prep`. Friday: `fde status`.
+
+## Ground loop
+
+On someone else's site the work is not "write code, remember later." Every slice stays on `@fde`:
+
+1. **Name it** in `decisions.md` (plan) or kill it in a day (sketch).
+2. **Characterise their code** before you change it (incremental-build). Their tests, their runner.
+3. **Prove it where they live.** Staging they operate, a screen the signer in `success.md` can reject.
+4. **If a model judges:** `evals.md` Verdict SHIP before the slice is done (eval-pack).
+5. **Log delivery.** Outcome is promised → measured → accepted, not a green CI.
+
+A throwaway file can skip the loop. A client slice cannot.
 
 ## Human surface vs agent plumbing
 
@@ -120,7 +132,7 @@ Read **one** reference and follow it. Do not improvise from memory.
 | Don't know the real problem, brief feels wrong, shadow processes | discover | `references/discover.md` |
 | The brief feels too neat, assumptions untested, "we just need…" | assumption-audit | `references/assumption-audit.md` |
 | Multiple use cases competing, "we want to do everything" | use-case-scoring | `references/use-case-scoring.md` |
-| Need to validate a direction, prototype, demo to de-risk | sketch | `references/sketch.md` |
+| Need to validate a direction, prototype, demo to de-risk, **POC**, spike, killer assumption | sketch | `references/sketch.md` |
 
 ### Plan
 
@@ -135,7 +147,7 @@ Read **one** reference and follow it. Do not improvise from memory.
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| Large feature, need visible progress every 2-3 days | incremental-build | `references/incremental-build.md` |
+| Large feature, need visible progress every 2-3 days, slice it, characterise their tests, POC follow-through | incremental-build | `references/incremental-build.md` |
 | What could go wrong, touching shared infrastructure, need to assess impact | blast-radius | `references/blast-radius.md` |
 | Production down, urgent - OR stakeholder gone quiet, trust slipping | rescue | `references/rescue.md` |
 | Ready to deploy, going live, pre-flight check | ship | `references/ship.md` |
@@ -173,7 +185,7 @@ Read **one** reference and follow it. Do not improvise from memory.
 | Signal | Overlay |
 |--------|---------|
 | AI, ML, LLM, model, embeddings, RAG, agents, fine-tuning, inference, drift | `references/ai.md` |
-| Golden set, eval suite, eval pack, pass/fail before AI ship, HITL gate for model | `references/eval-pack.md` (+ `ai.md`) |
+| Golden set, eval suite, eval pack, pass/fail before AI ship, HITL gate for model, POC the model | `references/eval-pack.md` (+ `ai.md`) |
 | Deck, slides, report, governance framework, compliance pack, ADR, PDF | `references/artifacts.md` |
 | Patient data, PHI, HIPAA, EHR, clinical | `references/healthcare.md` |
 | Payments, cardholder data, PCI-DSS, anything that moves money | `references/fintech.md` |
@@ -184,6 +196,7 @@ Ready to build with no `terrain.md` / plan: discover or plan first. Takeover wit
 ## Principles
 
 - Never ask the FDE to pick a phase. That's your job.
+- Ground loop on a bound client: name → characterise → prove where they live → log. Do not hand the slice to a generic coding pack.
 - Read `context.md` before speaking. One sharp question - never a barrage.
 - Never invent people, meetings, or numbers - `unknown - ask:` beats a polished lie.
 - Every phase ends with its artifact written. No artifact, no "done."

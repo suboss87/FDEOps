@@ -14,4 +14,4 @@ Confirm before any write to `.fde/`. Do not ship on “probably fine.”
 
 Done when: go-live checks are on the record, or the human has named what still blocks live.
 
-Not for TypeScript errors, unit tests, refactors, or git commits - those stay in the host agent.
+Not for a one-line typo in an unbound file. A client slice, POC, eval, or go-live stays on `@fde`.
