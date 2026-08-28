@@ -93,8 +93,8 @@ Each reference is a **skill, not advice**: the thinking the agent does, the arti
 
 The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 31 skills. Generic SDLC (build, debug, tests, commits) stays in the host agent - not routed here.
 
-| Phase | Enter when | Method highlights | Writes |
-|-------|-----------|-------------------|--------|
+| Phase | Enter when | Skill highlights | Writes |
+|-------|-----------|------------------|--------|
 | [land](../skills/fde/references/land.md) | New customer, first meeting | Interrogates the brief for what's missing; coaches the sponsor conversation; maps stakeholders and sacred data | `brief.md` `success.md` `stakeholders.md` `trust-profile.md` |
 | [discover](../skills/fde/references/discover.md) | Brief feels wrong, real problem unclear | Runs churn/test-gap/"temporary"-archaeology/AI-component scans; hunts the workaround; scores use cases | `reality.md` `terrain.md` |
 | [audit](../skills/fde/references/audit.md) | Taking over half-done work | Reads everything, tests every "this works" claim, finds tribal-knowledge holes via git authorship | `audit.md` `terrain.md` `reality.md` `context.md` |
