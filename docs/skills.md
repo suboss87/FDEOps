@@ -3,7 +3,7 @@
 One skill (`@fde`) routes by situation - you never pick a method by name. Three layers:
 
 1. **Daily** - prep, debrief, receipts, status, triage / doctor
-2. **Engagement** - four days (brief wrong, they went quiet, when did we agree, what they got) plus the methods below
+2. **Engagement** - brief wrong, they went quiet, when did we agree, what they got — plus the methods below
 3. **Overlays** - ai / fintech / healthcare / gov / artifacts (plus eval-pack as an AI companion)
 
 The full map is below; per-method details live in [skills-reference.md](./skills-reference.md).

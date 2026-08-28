@@ -8,40 +8,32 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-One `@fde` skill. Four days on an embed:
-
-**the brief is wrong · they went quiet · when did we agree · what did they get**
-
-The host agent still writes the TypeScript, runs the tests, and makes the commits. This skill is the engagement record. Do not ask `@fde` to review a unit test.
-
-Talk in plain language. The AI coding agent runs the plumbing. You confirm anything that enters the record.
+One `@fde` skill. Say what is happening: the brief is wrong, they went quiet, when did we agree, what did they get. The host agent still writes the TypeScript. This skill is the engagement record.
 
 ---
 
 ## The week
 
-`@fde` plus English. No cheat sheet.
+What you are doing. `@fde` plus English — no cheat sheet. Claude Code also gets slash commands that load the same skill.
 
-| When | What you say | What you get |
-|------|--------------|--------------|
-| **The brief is wrong** | `@fde this is Acme. Brief says they want a portal.` | Real problem, or a gap. First chat: you name the client; the AI coding agent binds. |
-| **They went quiet** | `@fde the sponsor went quiet` | Trust signal in the record — process gap vs trust problem. |
-| **When did we agree?** | `@fde when did we agree to drop that?` | Dated receipts, or a clear gap. |
-| **What did they get?** | `@fde what did they get this week` | Friday ledger: promised → measured → accepted. |
-| **After a meeting** | `@fde` debrief these notes *(paste or attach)* | Proposed updates. You review, then confirm. |
-| **Optional: pull** | `@fde` connect Granola *(once)* · `@fde` pull today's Acme transcript | You add that source MCP. We **pull** on request — no push, no sync. [mcp/recipes/](mcp/recipes/) |
+| What you're doing | Command | Principle |
+|-------------------|---------|-----------|
+| **The brief is wrong** | `@fde this is Acme. Brief says they want a portal.` · `/brief` | Real problem before more code |
+| **They went quiet** | `@fde the sponsor went quiet` · `/quiet` | Process gap vs trust problem |
+| **When did we agree?** | `@fde when did we agree to drop that?` · `/agreed` | Dated receipts, or a gap |
+| **What did they get?** | `@fde what did they get this week` · `/got` | Promised → measured → accepted |
+| **After a meeting** | `@fde` debrief these notes *(paste)* · `/debrief` | Proposed updates. You confirm. |
+| **Optional: pull** | `@fde` connect Granola · `@fde` pull today's transcript | You add that source MCP. We **pull** on request. [mcp/recipes/](mcp/recipes/) |
 
-Same folder every time: `~/fde-engagements/<client>/.fde/`.
-
-**Words used here, once:** *engagement* - one client's body of work, one folder. *Fieldbook* - that folder (`.fde/`), the record itself. *Brief vs reality* - what they said the problem was, and what it turned out to be. *Terrain* - their systems and org as you actually found them. *Trust signal* - green / amber / red on one relationship. *Receipts* - the dated line proving something was agreed. *Vault* - the Obsidian copy `fde vault` generates to read it all in one window.
+First chat: you name the client; the AI coding agent binds. Same folder every time: `~/fde-engagements/<client>/.fde/`.
 
 ---
 
 ## Quickstart
 
-**1. Install** (30 seconds). Pick one — both copies `@fde` twice.
+**30-second setup.** Pick one — both copies `@fde` twice.
 
-Claude Code (hooks before you type):
+Claude Code (hooks before you type; slash commands `/brief` `/quiet` `/agreed` `/got` `/debrief`):
 
 ```text
 /plugin marketplace add suboss87/fdeops
@@ -54,7 +46,7 @@ Cursor, Codex, and any host that speaks the skills CLI:
 npx skills add suboss87/fdeops --skill fde
 ```
 
-**2. One chat.** Name the client. The AI coding agent binds the engagement; you never type the CLI.
+**Then one chat.** Name the client. The AI coding agent binds the engagement; you never type the CLI.
 
 ```text
 @fde this is Acme
@@ -85,6 +77,28 @@ npx fdeops resume               # where we are
 
 ---
 
+## Why this exists
+
+### 1. The brief is wrong
+
+The most common failure on an embed is building the portal they asked for. Ops has been running a spreadsheet for two years. `/brief` — one question: who in their company would have to agree it worked?
+
+### 2. They went quiet
+
+A sponsor who stops answering is not a Jira gap. It is a trust color. `/quiet` — process vs trust, then a dated signal in the record.
+
+### 3. When did we agree?
+
+Arguments from memory lose. `/agreed` searches dated receipts. No hit is a gap, not proof.
+
+### 4. What did they get?
+
+A number only you agree with is claimed, not delivered. `/got` reads promised → measured → accepted out loud.
+
+Ordinary TypeScript, unit tests, and git commits stay in the host agent. Do not ask `@fde` to review a unit test.
+
+---
+
 ## See it
 
 ```bash
@@ -103,32 +117,18 @@ Two things a chat window cannot do: **nothing is written until you confirm**, an
 
 ## How it works
 
-- **You** describe the situation with `@fde` (or plain language once the skill is loaded). First chat: you name the client; the AI coding agent runs the bind.
+- **You** describe the situation with `@fde` (or `/brief` `/quiet` `/agreed` `/got` `/debrief` on Claude Code). First chat: you name the client; the AI coding agent runs the bind.
 - **Hooks (Claude Code)** load where you left off and snapshot on the way out. Other hosts: same CLI and files; you call `@fde`.
 - **Local CLI** — writes, receipts, status. Zero model tokens. The AI coding agent runs it; you do not live in the CLI. Friday, `fde status` prints promised → measured → accepted. [docs/USAGE.md](docs/USAGE.md)
 - **Pull (optional)** — FDEOps is the sink. Paste is the daily path. A source MCP you add (Granola, Slack, Notion, …) can fetch text; `@fde connect …` walks config. No push, no sync, no tokens in `.fde/`. [mcp/recipes/](mcp/recipes/)
 
 `CLAUDE.md` is how the *code* works. The fieldbook is how the *engagement* works. The record lives at `~/fde-engagements/<client>/.fde/` — not inside any vendor.
 
+**Words used here, once:** *engagement* - one client's body of work, one folder. *Fieldbook* - that folder (`.fde/`), the record itself. *Brief vs reality* - what they said the problem was, and what it turned out to be. *Terrain* - their systems and org as you actually found them. *Trust signal* - green / amber / red on one relationship. *Receipts* - the dated line proving something was agreed. *Vault* - the Obsidian copy `fde vault` generates to read it all in one window.
+
 ### Switch coding agents anytime
 
 Change hosts, install `@fde` on the new one, bind if needed, keep talking. The client record does not move.
-
-<details>
-<summary>Engagement verbs</summary>
-
-| Verb | When |
-|------|------|
-| **land** | First days — brief, stakeholders, success |
-| **discover** | The brief is wrong — evidence from the repo |
-| **plan** | Sequence backwards from done, PR-sized |
-| log delivery | After the host agent codes — what shipped, how it rolls back |
-| **ship** | Pre-flight, canary, rollback |
-| **close** | Handoff, retro, receipts that survive you |
-
-Overlays (AI, fintech, healthcare, gov) fire on signal. [docs/skills.md](docs/skills.md)
-
-</details>
 
 ---
 
@@ -161,7 +161,7 @@ Local HTML: trust, phase, next, the record. `@fde` dashboard, or `npx fdeops das
 
 | You are | What this is |
 |---------|----------------|
-| **Forward Deployed Engineer** | The job this was built for — first meeting through handoff |
+| **Forward Deployed Engineer** | The job this was built for — client work that has to survive Monday morning |
 | **Consultant / contractor on site** | The engagement stops resetting every morning |
 | **Solutions architect** | Politics and architecture in the same record |
 | **Agency, 3–5 clients** | One `.fde/` each — they stop blurring |
