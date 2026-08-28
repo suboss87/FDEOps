@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+Front door: Why is the product reason (agents forget the client), not four anecdotes. Commands carry the tells. How Skills Work is the router, not a fake 24-skill anatomy. Project Structure lists every reference and slash command.
+
 `/got` is now `/outcome` (promised, measured, accepted). Em dashes removed from copy.
 
 ## 3.15.1 - 2026-08-28

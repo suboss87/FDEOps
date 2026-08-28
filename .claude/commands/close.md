@@ -1,5 +1,5 @@
 ---
-description: Close the embed - they can run it without you
+description: Close the embed. They run it without you.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **close**.

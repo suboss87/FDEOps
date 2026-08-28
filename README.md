@@ -2,7 +2,7 @@
 
 **Forward deployed engineering skills for AI coding agents.**
 
-Skills encode the workflows, quality gates, and judgment Forward Deployed Engineers use on someone else's site. Packaged so an AI coding agent follows them consistently, and writes a dated record you can defend. The host agent still writes the TypeScript.
+Skills encode the workflows, quality gates, and judgment Forward Deployed Engineers use on someone else's site. Packaged so an AI coding agent follows them, and writes a dated client record you can defend. The host agent still writes the TypeScript. The kit is everything around the code that makes an embed defensible.
 
 ```text
   LAND              DISCOVER           PLAN              SHIP               PROVE              CLOSE
@@ -17,20 +17,27 @@ Skills encode the workflows, quality gates, and judgment Forward Deployed Engine
 
 ## Commands
 
-6 slash commands that map to the engagement. Each one activates `@fde`.
+Each command loads the same `@fde` skill. You never pick from 31 names.
 
 | What you're doing | Command | Key principle |
 |-------------------|---------|-----------|
-| Land the embed | `/brief` | Brief and trust before code |
+| Land the embed | `/brief` | Who signs done |
 | Find the real problem | `/discover` | Brief is a hypothesis |
 | Plan the sequence | `/plan` | Backwards from done |
-| Ship a slice | `/ship` | Pre-flight, then live |
-| Prove the outcome | `/outcome` | Promised → measured → accepted |
-| Close the embed | `/close` | They can run it without you |
+| Ship a slice | `/ship` | Live with a rollback |
+| Prove the outcome | `/outcome` | Promised, measured, accepted |
+| Close the embed | `/close` | They run it without you |
 
-Also: `/debrief` (after a meeting) · `/prep` (walk-in) · `/quiet` (sponsor silent) · `/agreed` (scope dispute) · `/status` (Friday readout).
+Four tells the map does not cover:
 
-Skills also activate automatically based on what you're doing: naming a client, debriefing a meeting, or asking what was agreed triggers `@fde`. Ordinary TypeScript, unit tests, and git commits stay in the host agent.
+| What you're doing | Command | Key principle |
+|-------------------|---------|-----------|
+| Sponsor went silent | `/quiet` | Process or trust |
+| Scope dispute | `/agreed` | Dated receipts, or a gap |
+| After a meeting | `/debrief` | Notes into the record |
+| Walk-in / Friday | `/prep` `/status` | One page, then the ledger |
+
+Skills also activate on English: naming a client, debriefing a meeting, or asking what was agreed. Ordinary TypeScript, unit tests, and git commits stay in the host agent.
 
 ---
 
@@ -165,32 +172,30 @@ Optional pull: you add the source MCP; we **pull** on request. [mcp/recipes/](mc
 
 ## How Skills Work
 
-Every skill follows a consistent anatomy:
+One skill. One reference file per situation. One folder per client.
 
 ```
-┌─────────────────────────────────────────────┐
-│  @fde  (one skill)                          │
-│                                             │
-│  ┌─ Frontmatter ─────────────────────────┐  │
-│  │ name: fde                             │  │
-│  │ description: Use when [client work]   │  │
-│  └───────────────────────────────────────┘  │
-│                                             │
-│  Commands load it. English loads it.        │
-│  You confirm. Then .fde/ is written.        │
-└─────────────────────────────────────────────┘
-         │
-         ▼
-  references/<skill>.md      fde CLI (local)
-  one file, then stop        dating, gates, redaction
+  /brief   or   "@fde this is Acme"
+           │
+           ▼
+  skills/fde/SKILL.md          hosts load this one file
+           │  routes. you never pick a skill by name
+           ▼
+  references/land.md           one workflow, then stop
+           │
+           ▼
+  fde CLI (local)              dates, gates, redacts. no network
+           │  after you confirm
+           ▼
+  ~/fde-engagements/<client>/.fde/
 ```
 
-- **Process, not prose.** Skills are workflows with an artifact and a checkpoint, not tip sheets.
+- **Process, not prose.** Each reference is a workflow with an artifact and a checkpoint, not a tip sheet.
 - **You confirm.** Nothing is written until you say so.
-- **Progressive disclosure.** The `SKILL.md` is the entry point. One `references/*.md` loads when routed.
-- **Local CLI.** Writes, status, dated agreements. Zero model tokens. The AI coding agent runs it.
+- **Progressive disclosure.** `SKILL.md` is the entry point. One `references/*.md` loads when routed.
+- **Local CLI.** Writes and status cost zero model tokens. The AI coding agent runs it.
 
-The record lives at `~/fde-engagements/<client>/.fde/` - not inside any vendor. Change hosts, install `@fde` on the new one, bind if needed, keep talking.
+Change hosts, install `@fde` on the new one, bind if needed, keep talking. The record is not inside any vendor.
 
 ---
 
@@ -198,41 +203,76 @@ The record lives at `~/fde-engagements/<client>/.fde/` - not inside any vendor. 
 
 ```
 fdeops/
-├── skills/fde/                 # the one skill
-│   ├── SKILL.md                #   router
-│   └── references/             #   31 skills + overlays
-├── .claude/commands/           # slash commands (each loads @fde)
-├── .claude-plugin/             # Claude Code marketplace
-├── bin/                        # local CLI - git + files, no network
-├── hooks/                      # session-start / session-stop / pre-compact
-├── adapters/                   # Cursor, Gemini, Copilot, Codex pointers
-├── templates/.fde/             # memory files created on bind
-├── examples/                   # fictional walkthroughs
-├── mcp/                        # optional ingest + source recipes
-├── evals/                      # routing checks + CLI attack notes
-├── media/                      # recorded session (docs/USAGE.md)
-└── docs/                       # usage, schema, install, methodology
+├── skills/fde/                            # the one skill hosts load
+│   ├── SKILL.md                           #   router
+│   └── references/                        #   31 skills + overlays (you never pick)
+│       ├── land.md                        #   Land
+│       ├── audit.md
+│       ├── stakeholder-radar.md
+│       ├── trust-engineering.md
+│       ├── scope-defense.md
+│       ├── discover.md                    #   Discover
+│       ├── assumption-audit.md
+│       ├── use-case-scoring.md
+│       ├── sketch.md
+│       ├── plan.md                        #   Plan
+│       ├── business-case.md
+│       ├── options-analysis.md
+│       ├── initiative-triage.md
+│       ├── incremental-build.md           #   Ship
+│       ├── blast-radius.md
+│       ├── rescue.md
+│       ├── ship.md
+│       ├── review.md
+│       ├── rollback-drill.md
+│       ├── status.md                      #   Prove
+│       ├── demo-prep.md
+│       ├── debrief.md
+│       ├── exec-narrative.md
+│       ├── dashboard.md
+│       ├── ingest.md
+│       ├── ingest-connect.md
+│       ├── close.md                       #   Close
+│       ├── handoff-engineering.md
+│       ├── multi-customer-ops.md
+│       ├── pattern-extract.md
+│       ├── red-team.md
+│       ├── ai.md                          #   overlays (on signal)
+│       ├── artifacts.md
+│       ├── eval-pack.md
+│       ├── fintech.md
+│       ├── healthcare.md
+│       └── gov.md
+├── .claude/commands/                      # slash commands (each loads @fde)
+│   ├── brief.md
+│   ├── discover.md
+│   ├── plan.md
+│   ├── ship.md
+│   ├── outcome.md
+│   ├── close.md
+│   ├── quiet.md
+│   ├── agreed.md
+│   ├── debrief.md
+│   ├── prep.md
+│   └── status.md
+├── .claude-plugin/                        # Claude Code marketplace
+├── bin/                                   # local CLI: git + files, no network
+├── hooks/                                 # session-start / session-stop / pre-compact
+├── adapters/                              # Cursor, Gemini, Copilot, Codex pointers
+├── templates/.fde/                        # memory files created on bind
+├── examples/                              # fictional walkthroughs
+├── mcp/                                   # optional ingest + source recipes
+├── evals/                                 # routing checks
+└── docs/                                  # usage, schema, install
 ```
 
 ---
 
 ## Why FDEOps?
 
-### 1. The brief is wrong
+AI coding agents are built for a repo, not for a client. They forget the sponsor, the promise, who can say yes, and whether anyone accepted the number. Monday morning they start from the ticket again.
 
-The most common failure on an embed is building the portal they asked for. Ops has been running a spreadsheet for two years. `/brief` then `/discover`. Who in their company would have to agree it worked?
-
-### 2. They went quiet
-
-A sponsor who stops answering is not a Jira gap. It is a trust color. `/quiet`. Process vs trust, then a dated signal in the record.
-
-### 3. When did we agree?
-
-Arguments from memory lose. `/agreed` searches dated receipts. No hit is a gap, not proof.
-
-### 4. What's the outcome?
-
-A number only you agree with is claimed, not delivered. `/outcome` reads promised → measured → accepted out loud.
+FDEOps is the engagement record those agents load first. One `@fde` skill routes the work. A local CLI dates every decision. `.fde/` is markdown on your laptop. You confirm; then it is on the record. Coding skill packs cover specs, tests, and review. This kit covers the embed around that code.
 
 ---
 
@@ -255,13 +295,9 @@ Schema: [docs/schema.md](docs/schema.md). Local HTML: `npx fdeops dashboard`.
 
 ## Who this is for
 
-| You are | What this is |
-|---------|----------------|
-| **Forward Deployed Engineer** | Client work that has to survive Monday morning |
-| **Consultant / contractor on site** | The engagement stops resetting every morning |
-| **Solutions architect** | Politics and architecture in the same record |
-| **Agency, 3-5 clients** | One `.fde/` each - they stop blurring |
-| **Fractional CTO on client work** | System of record for the embed, and the billable trail |
+You embed with a customer and an AI coding agent. The record has to survive Monday, a sponsor change, and the readout. One `.fde/` per client so they do not blur.
+
+If you only write code in your own repo, this is the wrong pack. Use a coding skill pack for specs, tests, and review. Use this when the work is on someone else's site.
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: Plan the sequence - backwards from done
+description: Plan the sequence. Backwards from done.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **plan**.

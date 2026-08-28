@@ -1,5 +1,5 @@
 ---
-description: Walk-in prep - plain-language readout from the record
+description: Walk-in prep. One page from the record.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Situation: **prep for a meeting or readout**.

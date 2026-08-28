@@ -7,7 +7,7 @@ description: Keeps engagement memory for client work - sponsor, promise, what sh
 
 ## Purpose
 
-The **engagement record** for one client. One skill; six stages (land → close). You pick the method; they never pick a skill. Confirm, then write `.fde/`. The host agent writes the TypeScript; you log the outcome. The artifact is the memory.
+The **engagement record** for one client. One skill; six stages (land → close). You route; they never pick a skill. Confirm, then write `.fde/`. The host agent writes the TypeScript. This skill is the embed around that code.
 
 ## When to use
 

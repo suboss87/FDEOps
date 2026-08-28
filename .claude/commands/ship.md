@@ -1,5 +1,5 @@
 ---
-description: Ship a slice - pre-flight, then live
+description: Ship a slice. Live with a rollback.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **ship**.

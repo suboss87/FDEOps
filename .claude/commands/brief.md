@@ -1,5 +1,5 @@
 ---
-description: Land the embed - brief and trust before code
+description: Land the embed. Who signs done.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **land**.
