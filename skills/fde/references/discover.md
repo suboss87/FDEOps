@@ -22,16 +22,16 @@ State your read, let the FDE correct, then discover.
 
 Use when the "problem" is unfalsifiable, success is undefined, or you cannot name the decision discovery informs. Skip when `reality.md` / `terrain.md` already pin a testable claim and the FDE is ready to dig.
 
-Same format as land — one Q + GUESS, no checklist:
+Same format as land - one Q + GUESS, no checklist:
 
 ```
 READ: <the real problem you think exists, in one sentence>
-CONFIDENCE: ~NN% — missing: <what would falsify or confirm it>
+CONFIDENCE: ~NN% - missing: <what would falsify or confirm it>
 Q: <one question that changes where you dig>
 GUESS: <your answer, so they can correct it>
 ```
 
-Stop when you can write the decision sentence under **Frame the decision first**. If a name, quote, or metric is still missing, write `unknown - ask:` — never invent ops folklore to make the map look complete.
+Stop when you can write the decision sentence under **Frame the decision first**. If a name, quote, or metric is still missing, write `unknown - ask:` - never invent ops folklore to make the map look complete.
 
 ## Frame the decision first
 
@@ -92,7 +92,7 @@ The real spec is what people **do** when the system fails - not what the slide d
 - **The hesitation.** When someone says "well, there's also this other thing we do…" - stop them, ask them to finish. The main story is what they're comfortable explaining; the hesitation is the real problem.
 - **"Which part of the codebase do you least want to touch?"** The answer is unanimous and it's the load-bearing wall. Check it against your churn scan - when the human answer and the churn data agree, that's your first map landmark.
 - **Shadow AI.** Someone pasting data into ChatGPT to cope = a real unmet need + an uncontrolled data risk. Note both.
-- **Exception-led operating map.** For each real break (not the slide-deck process): what fails, who notices first, what they do today, and which artifact is trusted in that moment. Prefer exceptions over happy-path swimlanes — the workaround is the operating system. Write rows under `terrain.md` → `## Operating map (exception-led)`. If the section is missing on an older engagement, add it; never regenerate the rest of terrain. When AI is in play, also fill `## Intelligence placement` (deterministic vs LLM judgement vs human approve). **`fde doctor` requires at least one filled exception row before plan/build/ship/close** — empty map after discover is a hygiene fail, not optional polish.
+- **Exception-led operating map.** For each real break (not the slide-deck process): what fails, who notices first, what they do today, and which artifact is trusted in that moment. Prefer exceptions over happy-path swimlanes - the workaround is the operating system. Write rows under `terrain.md` → `## Operating map (exception-led)`. If the section is missing on an older engagement, add it; never regenerate the rest of terrain. When AI is in play, also fill `## Intelligence placement` (deterministic vs LLM judgement vs human approve). **`fde doctor` requires at least one filled exception row before plan/build/ship/close** - empty map after discover is a hygiene fail, not optional polish.
 
 ## Method - part 3: workshop facilitation
 
@@ -137,7 +137,7 @@ A use case that depends on a "Blocker" source doesn't get scored - it gets a dat
 
 Score every candidate use case before anything gets prototyped:
 
-| Dimension | Question | 1–5 |
+| Dimension | Question | 1-5 |
 |---|---|---|
 | Business value | What does it cost them unsolved? | |
 | Complexity | How hard to build safely? (5 = hardest) | |
@@ -196,9 +196,9 @@ Stop. Don't form a fourth hypothesis. Three disproven reads means the brief is a
 
 Acme's brief blamed missing monitoring. Discovery goes to the workaround first.
 
-`git log` shows the reconciliation module at 47 commits/90d with no tests, all from one author who left in February. Marco (ops lead) turns out to keep a spreadsheet: every morning he re-runs the job manually and eyeballs the totals — a habit nobody mentioned because to him it is just the job. That spreadsheet is the system of record when the job fails, which is the actual finding.
+`git log` shows the reconciliation module at 47 commits/90d with no tests, all from one author who left in February. Marco (ops lead) turns out to keep a spreadsheet: every morning he re-runs the job manually and eyeballs the totals - a habit nobody mentioned because to him it is just the job. That spreadsheet is the system of record when the job fails, which is the actual finding.
 
-`reality.md`: **Confirmed:** the job has no owner, and the manual re-run masks failures for a day (evidence: Marco's sheet, Day 5; two silent failures since March, finance escalation Mar 14). **Stated brief was wrong because:** alerting existed last year and was disabled — adding it again without an owner reproduces the same outcome. `terrain.md` gets the hotspot row and an operating-map row: `job fails silently → Marco notices next morning → re-runs by hand → spreadsheet is truth → LOAD-BEARING (Marco, Day 5)`.
+`reality.md`: **Confirmed:** the job has no owner, and the manual re-run masks failures for a day (evidence: Marco's sheet, Day 5; two silent failures since March, finance escalation Mar 14). **Stated brief was wrong because:** alerting existed last year and was disabled - adding it again without an owner reproduces the same outcome. `terrain.md` gets the hotspot row and an operating-map row: `job fails silently → Marco notices next morning → re-runs by hand → spreadsheet is truth → LOAD-BEARING (Marco, Day 5)`.
 
 Checkpoint to the FDE names the sponsor decision this creates: fund ownership, or fund alerting and accept the same failure in six months.
 

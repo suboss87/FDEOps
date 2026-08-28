@@ -29,15 +29,15 @@ Notice: every stakeholder's initiative is P0 or P1. That's the problem this skil
 | **Dependency** | How many other initiatives are blocked waiting for this? | 0 (standalone) → 5 (critical path for 3+ others) |
 | **Cost of delay** | What happens each week this doesn't ship? | 1 (nothing) → 5 (measurable loss or regulatory exposure) |
 
-**Triage score = Impact + Dependency + Cost of delay** (simple sum, 3–15 range).
+**Triage score = Impact + Dependency + Cost of delay** (simple sum, 3-15 range).
 
 **3. Sort into three lanes:**
 
 | Lane | Score | Action |
 |------|-------|--------|
-| **Now** (max 3) | 11–15 | Active work this phase. FDE and team capacity allocated. |
-| **Next** (max 5) | 7–10 | Sequenced for the following phase. Dependencies tracked but not started. |
-| **Later** (unlimited) | 3–6 | Captured, not committed. Revisit at next triage. |
+| **Now** (max 3) | 11-15 | Active work this phase. FDE and team capacity allocated. |
+| **Next** (max 5) | 7-10 | Sequenced for the following phase. Dependencies tracked but not started. |
+| **Later** (unlimited) | 3-6 | Captured, not committed. Revisit at next triage. |
 
 **The cap matters.** "Now" has exactly 3 slots. Not 4, not "3 plus this small one." Discipline is the product.
 
@@ -51,8 +51,8 @@ Notice: every stakeholder's initiative is P0 or P1. That's the problem this skil
 
 | Engagement type | Triage frequency | Trigger for emergency re-triage |
 |----------------|-----------------|-------------------------------|
-| Sprint (1–2 weeks) | Once, at plan | Crisis or sponsor change |
-| Standard (1–4 weeks) | Weekly | New P0 from sponsor |
+| Sprint (1-2 weeks) | Once, at plan | Crisis or sponsor change |
+| Standard (1-4 weeks) | Weekly | New P0 from sponsor |
 | Programme (months) | Bi-weekly | Quarterly review, team change, market shift |
 
 **6. Communicate the triage result.** The output is not just a priority list - it's a commitment:

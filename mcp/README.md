@@ -9,7 +9,7 @@ FDEOps MCP servers follow a **pluggable source model**: core owns the **sink**, 
 | **Source** | FDE configures separately | Granola, Slack, Notion, Gmail, file |
 | **Sink** | FDEOps (`fdeops-ingest`) | stage → propose → apply into engagement memory |
 
-Source MCPs fetch raw text from SaaS APIs using credentials the FDE manages. The ingest MCP never stores OAuth tokens or calls external services — it only shells out to the local `fde` CLI.
+Source MCPs fetch raw text from SaaS APIs using credentials the FDE manages. The ingest MCP never stores OAuth tokens or calls external services - it only shells out to the local `fde` CLI.
 
 ## Ground loop
 
@@ -28,7 +28,7 @@ Source MCP(s)          fdeops-ingest MCP           fde CLI
 1. Agent pulls from whichever source MCPs are configured.
 2. Agent stages raw content via `ingest_stage` (with `source` provenance).
 3. Agent proposes routing via `ingest_propose`; FDE confirms.
-4. Agent applies via `ingest_apply` — nothing writes `.fde/` unreviewed.
+4. Agent applies via `ingest_apply` - nothing writes `.fde/` unreviewed.
 
 ## Packages
 

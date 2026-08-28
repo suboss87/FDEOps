@@ -12,7 +12,7 @@
 
 - The `fde` CLI is **local, deterministic, no AI**. `--smart` is a **gate + writer**, not a brain.
 - It keeps lines that already have `decision:` / `risk:` / `delivery:` / `contact:` / `next:` prefixes, plus a thin keyword pass (e.g. "we agreed", person+verb lines, "open question").
-- Real messy notes without prefixes often route **0 useful lines** — everything else lands as a context dump. That is expected. **You are the router:** rewrite `.debrief-propose` with type prefixes, then `--apply`.
+- Real messy notes without prefixes often route **0 useful lines** - everything else lands as a context dump. That is expected. **You are the router:** rewrite `.debrief-propose` with type prefixes, then `--apply`.
 - `.debrief-propose` is raw lines only (no routing annotations). "Edit if mis-routed" means **rewrite the line with the right prefix**, not leave a comment in the file.
 
 ## Method (you do this work)
@@ -22,7 +22,7 @@
 1. Save the FDE's notes to a temp `.md` file in the workspace (or pipe stdin).
 2. Run `fde debrief --smart <notes.md>` (or `npx fdeops debrief --smart …`).
 3. Open `.debrief-propose`. If lines lack type prefixes, **rewrite them** before showing the FDE, e.g.:
-   - `decision: agreed chargebacks stay phase 2 — Priya`
+   - `decision: agreed chargebacks stay phase 2 - Priya`
    - `risk: legal may reopen scope if we slip the SOW date`
    - `contact: Priya pushed hard on Friday deck [signal:amber]`
    - `next: send one-pager before Thursday 9am`

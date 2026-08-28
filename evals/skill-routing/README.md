@@ -19,11 +19,11 @@ npm run test:skill-routing                 # both
 
 Latest automated + agent trial notes: [RESULTS.md](RESULTS.md).
 
-## Live trial (15–20 min)
+## Live trial (15-20 min)
 
 1. Bind a throwaway engagement in a scratch repo.
-2. Paste each HAPPY prompt with `@fde` — agent should run the listed CLI (or equivalent), not hand you the command.
-3. Paste each NEG prompt **without** forcing `@fde` — agent should code, not load `land.md` / run `fde doctor`.
+2. Paste each HAPPY prompt with `@fde` - agent should run the listed CLI (or equivalent), not hand you the command.
+3. Paste each NEG prompt **without** forcing `@fde` - agent should code, not load `land.md` / run `fde doctor`.
 4. Note fails in an issue or beside the case id. Fix SKILL.md, re-run.
 
 Do **not** block merges on LLM-as-judge. Re-run the live pack when you change the routing table or CLI verbs.

@@ -58,13 +58,13 @@ Rollback: <exact command and expected time>
 
 | Session | Focus | Attendees | Duration | Output |
 |---------|-------|-----------|----------|--------|
-| **Architecture walkthrough** | Why, not what. The decisions, the trade-offs, the things that almost went wrong. | Full team | 60–90 min | Recording + Q&A log |
+| **Architecture walkthrough** | Why, not what. The decisions, the trade-offs, the things that almost went wrong. | Full team | 60-90 min | Recording + Q&A log |
 | **Operational drill** | Deploy, rollback, incident response. They do it, you watch. | On-call team | 60 min | Drill report with confidence level |
 | **Edge-case handover** | The things that aren't in any document. The workarounds, the fragile spots, the "ask Sarah because she's the only one who knows." | Team lead + 1 | 30 min | Additions to `handoff.md` |
 
 **4. The confidence check.** After the knowledge transfer, score the team's readiness:
 
-| Area | Confidence (1–5) | Evidence |
+| Area | Confidence (1-5) | Evidence |
 |------|------------------|----------|
 | Daily operations | | Can they deploy and rollback without help? |
 | Incident response | | Did they complete the drill within acceptable time? |

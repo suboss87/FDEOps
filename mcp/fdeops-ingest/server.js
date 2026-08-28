@@ -2,7 +2,7 @@
 'use strict'
 
 /**
- * fdeops-ingest MCP — thin stdio sink for FDEOps ingest.
+ * fdeops-ingest MCP - thin stdio sink for FDEOps ingest.
  * Shells out to local `fde` CLI only. Never calls SaaS.
  * MCP stdio transport: newline-delimited JSON-RPC 2.0
  * (Content-Length frames are accepted on input).

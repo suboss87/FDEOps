@@ -1,6 +1,6 @@
 # Recipe: Notion docs / meeting notes
 
-**Use when:** useful engagement notes live in Notion. FDEOps does not ship a Notion server — use a Notion MCP (or export markdown). We do not write back to Notion.
+**Use when:** useful engagement notes live in Notion. FDEOps does not ship a Notion server - use a Notion MCP (or export markdown). We do not write back to Notion.
 
 ## Setup (once)
 
@@ -36,7 +36,7 @@ The sink is **`fde ingest` in this bound workspace.** `fdeops-ingest` MCP is opt
 
 ## Agent steps
 
-1. Capability check — Notion read tools present?
+1. Capability check - Notion read tools present?
 2. Fetch page/block text (ask which page if ambiguous).
 3. `fde ingest stage --source notion --title "<short>"` → propose → confirm → apply.
 

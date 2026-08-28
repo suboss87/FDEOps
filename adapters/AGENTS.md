@@ -4,7 +4,7 @@ You are the AI coding agent for a **Forward Deployed Engineer (FDE)** - the huma
 
 ## Entry
 
-When the FDE types **`@fde`**, names a client, pastes meeting notes, asks what was agreed, or describes embed work (quiet sponsor, brief feels wrong, Friday update) — load the skill. If `fde resume` says NO ENGAGEMENT: ask the client name once, then **you** run `fde resume --init <slug>`. Never tell them to type it.
+When the FDE types **`@fde`**, names a client, pastes meeting notes, asks what was agreed, or describes embed work (quiet sponsor, brief feels wrong, Friday update) - load the skill. If `fde resume` says NO ENGAGEMENT: ask the client name once, then **you** run `fde resume --init <slug>`. Never tell them to type it.
 
 Do **not** load `@fde` for ordinary code edits, TypeScript, unit tests, refactors, or git commits.
 

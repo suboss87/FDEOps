@@ -29,7 +29,7 @@ Never start with the most powerful model. Start with the cheapest that meets the
 4. **Does it need fine-tuning?** Only when: you have 500+ high-quality examples, the base model fails consistently on your domain, and the cost of inference at scale justifies the training cost.
 
 **Evaluation method (before choosing):**
-- Build a test set: 50–100 representative inputs with expected outputs.
+- Build a test set: 50-100 representative inputs with expected outputs.
 - Run every candidate model against the test set.
 - Score: accuracy, latency, cost per call, failure modes.
 - The cheapest model that scores above the quality threshold wins.
@@ -38,14 +38,14 @@ Write model selection rationale to `decisions.md`. Include: models tested, test 
 
 ## Engagement eval pack (before AI ships)
 
-When any slice touches a model, embeddings, RAG, or an agent: create or update `.fde/evals.md` **before** ship. Full method: `references/eval-pack.md`. This is the engagement-local test set — not unit tests.
+When any slice touches a model, embeddings, RAG, or an agent: create or update `.fde/evals.md` **before** ship. Full method: `references/eval-pack.md`. This is the engagement-local test set - not unit tests.
 
 **Minimum pack (do not grow until the minimum exists):**
-1. **Component + quality bar** — one sentence each; kill switch / fallback named.
-2. **Golden cases** — 5–20 representative inputs with expected outputs and a pass rule. Prefer real production-shaped data (sanitized).
-3. **Failure modes** — at least the silent ones: hallucination/ungrounded, retrieval miss (if RAG), drift, cost runaway.
-4. **Pass/fail** — dated run; Verdict **SHIP** or **NO-SHIP**; critical fails must be 0.
-5. **HITL gate** — which decisions need human review before action (align with `trust-profile.md`). Empty when policy requires review → NO-SHIP.
+1. **Component + quality bar** - one sentence each; kill switch / fallback named.
+2. **Golden cases** - 5-20 representative inputs with expected outputs and a pass rule. Prefer real production-shaped data (sanitized).
+3. **Failure modes** - at least the silent ones: hallucination/ungrounded, retrieval miss (if RAG), drift, cost runaway.
+4. **Pass/fail** - dated run; Verdict **SHIP** or **NO-SHIP**; critical fails must be 0.
+5. **HITL gate** - which decisions need human review before action (align with `trust-profile.md`). Empty when policy requires review → NO-SHIP.
 
 **When to write:** plan seeds the pack; sketch/build grows goldens; ship requires Verdict SHIP and a receipt in `delivery.md` → `## Ship receipts`. Non-AI work skips this file entirely.
 
@@ -59,7 +59,7 @@ When the AI needs to answer questions about the client's data:
 3. **Generate** - chunks + query → LLM → answer with citations
 
 **Common failure modes:**
-- **Chunk size wrong.** Too small = lost context. Too large = noise drowns signal. Start at 500–1000 tokens with 100-token overlap.
+- **Chunk size wrong.** Too small = lost context. Too large = noise drowns signal. Start at 500-1000 tokens with 100-token overlap.
 - **No citation/grounding.** If the model can't point to where it found the answer, you can't verify it. Always require source attribution.
 - **Stale index.** Documents update, embeddings don't. Define the refresh cadence. Real-time for critical data, daily for reference docs.
 - **Retrieval miss.** The right document exists but wasn't retrieved. Test with known-answer queries where the answer IS in the corpus - if retrieval misses these, the embedding model or chunking strategy needs work.

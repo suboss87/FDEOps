@@ -152,7 +152,7 @@ function createMemoryApi(deps) {
   }
 
   // True only when .git exists AND can resolve HEAD. A corrupt ledger (broken
-  // HEAD / missing objects) still has a .git directory — existsSync alone lied.
+  // HEAD / missing objects) still has a .git directory - existsSync alone lied.
   function memoryGitHealthy(eng) {
     if (!eng) return { ok: false, reason: 'missing' }
     if (!fs.existsSync(path.join(eng, '.git'))) return { ok: false, reason: 'missing' }

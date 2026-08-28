@@ -1134,7 +1134,7 @@ function cmdResume(args) {
     const fdeDir = path.join(engRoot, '.fde')
     const existed = fs.existsSync(fdeDir)
 
-    // Optional stubs (AI eval pack, …) stay in templates/ for copy-on-use — not day-1 scaffold.
+    // Optional stubs (AI eval pack, …) stay in templates/ for copy-on-use - not day-1 scaffold.
     const SKIP_INIT_TEMPLATES = new Set(['evals.md'])
     const fillTemplates = (destFde) => {
       for (const f of fs.readdirSync(tpl)) {
@@ -1381,7 +1381,7 @@ function setContextPhase(eng, phase) {
 // as one dated debrief block. contact: lines may carry an inline [signal:x]
 // token anywhere in the text - preserved verbatim so computeSignals can trust it.
 // --smart: thin heuristic propose (existing prefixes + light keywords). Not a
-// brain — the agent rewrites .debrief-propose with prefixes; --apply commits.
+// brain - the agent rewrites .debrief-propose with prefixes; --apply commits.
 // --dry-run prints the routing without writing anything.
 function inferContactSignal(text) {
   const t = String(text)
@@ -1392,7 +1392,7 @@ function inferContactSignal(text) {
 }
 
 function looksLikePersonLine(text) {
-  // "Denise …" / "Randy opened…" — capitalized subject + field verb.
+  // "Denise …" / "Randy opened…" - capitalized subject + field verb.
   return /^[A-Z][a-z]{1,20}\b/.test(text) &&
     /\b(helping|quiet|skipped|said|will|opened|resistant|champion|warm|cold|unresponsive|demo|sheet|slack)\b/i.test(text)
 }
@@ -1688,7 +1688,7 @@ function cmdDebrief(args) {
 
 // Pull sink: stage raw artifacts outside the memory ledger, then reuse debrief
 // propose/apply. Never writes .fde/ until the FDE confirms apply. Source SaaS
-// (Granola/Gmail/…) is not here — only staging + the existing confirm gate.
+// (Granola/Gmail/…) is not here - only staging + the existing confirm gate.
 function inboxDir(eng) {
   return path.join(path.dirname(eng), '.inbox')
 }
@@ -1863,7 +1863,7 @@ function cmdIngest(args) {
   console.log(`staged → ${dest}`)
   console.log(`id: ${id}`)
   console.log('next:   fde ingest propose ' + id)
-  console.log('(does not write .fde/ — confirm via propose → apply)')
+  console.log('(does not write .fde/ - confirm via propose → apply)')
 }
 
 function cmdReceipts(args) {
@@ -2157,7 +2157,7 @@ function collectDoctorIssues(eng) {
     }
     if (engagementTouchesAI(eng) && !hasEvalReceipt(eng)) {
       issues.push(
-        `phase is ${s.phase} with AI in scope but no eval receipt (evals.md Verdict or delivery Eval / Ship receipts) — required before green ship/close`
+        `phase is ${s.phase} with AI in scope but no eval receipt (evals.md Verdict or delivery Eval / Ship receipts) - required before green ship/close`
       )
     }
   }
@@ -2302,7 +2302,7 @@ function hasValueBucket(eng) {
 // "pending review", "TBD.", "n/a (blocked)" and "..." are all the same thing an
 // FDE means by an empty cell - nagging about them teaches people to ignore doctor.
 const PENDING_CELL_RE =
-  /^(?:pending|tbd|to ?be ?(?:measured|confirmed|determined)|n\s*\/\s*a|na|none|unknown|not measured|\?+|\.{2,}|…|-+|—+|–+)(?:[^\w].*)?$/i
+  /^(?:pending|tbd|to ?be ?(?:measured|confirmed|determined)|n\s*\/\s*a|na|none|unknown|not measured|\?+|\.{2,}|…|-+|-+|-+)(?:[^\w].*)?$/i
 
 function parseValueLedger(eng) {
   const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger') || '')
@@ -2359,7 +2359,7 @@ function valueLedgerStatusLines(eng, opts = {}) {
   return lines
 }
 
-// AI in scope for ship/close hygiene — delivery/decisions/trust evidence only.
+// AI in scope for ship/close hygiene - delivery/decisions/trust evidence only.
 // Do not scan terrain.md: its template headers mention LLM and would false-positive every ship.
 function engagementTouchesAI(eng) {
   const trust = readClean(eng, 'trust-profile.md')
@@ -2376,7 +2376,7 @@ function hasEvalReceipt(eng) {
   const evalsPath = path.join(eng, 'evals.md')
   if (fs.existsSync(evalsPath)) {
     const e = stripTemplateNoise(readClean(eng, 'evals.md'))
-    // Empty G1 stub + "Pass / fail" heading is not a receipt — need a real verdict/run/result.
+    // Empty G1 stub + "Pass / fail" heading is not a receipt - need a real verdict/run/result.
     if (/\*\*Verdict:\*\*\s*SHIP\b/i.test(e) || /(?:^|\n)\s*-\s*\*\*Verdict:\*\*\s*SHIP\b/i.test(e)) return true
     if (/\bLast run:\s*\d{4}-\d{2}-\d{2}/i.test(e)) return true
     if (/\|\s*G\d+\s*\|[^|\n]+\|[^|\n]+\|[^|\n]+\|[^|\n]+\|\s*pass\s*\|/i.test(e)) return true
@@ -2397,7 +2397,7 @@ function hygieneTriageLines(eng) {
   if (!issues.length) return []
   const top = issues[0].replace(/\s+/g, ' ').trim().slice(0, 72)
   return [
-    `  hygiene: ${issues.length} issue(s) — ${top}${issues[0].length > 72 ? '…' : ''}`,
+    `  hygiene: ${issues.length} issue(s) - ${top}${issues[0].length > 72 ? '…' : ''}`,
     '    → say "@fde clean up the fieldbook" when ready (agent runs fde doctor; nothing auto-rewrites)',
   ]
 }
@@ -2494,7 +2494,7 @@ function cmdPrep(args) {
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
   const label = args.join(' ').trim() || 'next meeting'
   // Grounded brief: only text already in .fde/. No invention (Rowboat meeting-prep rule).
-  console.log(`MEETING PREP — ${label}`)
+  console.log(`MEETING PREP - ${label}`)
   console.log('(grounded in local .fde/ only - if a fact is missing, it is missing)\n')
   console.log(resumeTriage(eng))
   const owner = readOwner(eng)
@@ -2504,7 +2504,7 @@ function cmdPrep(args) {
   const people = extractStakeholders(eng).slice(0, 8)
   console.log('\nStakeholders (table + signal history)')
   if (!people.length) console.log('  (none yet - log contacts with --signal)')
-  else people.forEach(p => console.log(`  [${p.signal}] ${p.name}${p.role ? ` — ${p.role}` : ''}${p.note ? ` · ${p.note.slice(0, 60)}` : ''}`))
+  else people.forEach(p => console.log(`  [${p.signal}] ${p.name}${p.role ? ` - ${p.role}` : ''}${p.note ? ` · ${p.note.slice(0, 60)}` : ''}`))
 
   const risks = extractRisks(eng).slice(0, 5)
   console.log('\nOpen risks (table + dated bullets)')
@@ -2537,16 +2537,16 @@ function cmdGarden(args) {
   if (gitHealth.ok) {
     console.log('TIDY (contract: no new facts · no deleted substance · reversible via memory git)')
   } else if (gitHealth.reason === 'broken') {
-    console.log('TIDY (contract: no new facts · no deleted substance · ⚠ memory git BROKEN — NOT reversible until ledger is repaired)')
+    console.log('TIDY (contract: no new facts · no deleted substance · ⚠ memory git BROKEN - NOT reversible until ledger is repaired)')
   } else {
-    console.log('TIDY (contract: no new facts · no deleted substance · ⚠ memory not git-versioned — NOT reversible)')
+    console.log('TIDY (contract: no new facts · no deleted substance · ⚠ memory not git-versioned - NOT reversible)')
   }
   console.log(resumeTriage(eng))
   if (!gitHealth.ok) {
     console.log(
       gitHealth.reason === 'broken'
         ? '\n⚠ ledger is UNVERSIONED (corrupt .git). Repair before trusting tidy apply: mv .fde/.git .fde/.git.broken && run any fde write to re-init.'
-        : '\n⚠ no memory git — tidy apply cannot create a reversible commit until the ledger exists.'
+        : '\n⚠ no memory git - tidy apply cannot create a reversible commit until the ledger exists.'
     )
   }
   const proposals = []
@@ -2564,7 +2564,7 @@ function cmdGarden(args) {
     proposals.push({
       id: 'dedupe-risks',
       kind: 'apply',
-      text: `Consolidate ${dupes.length} duplicate open-risk cluster(s) (e.g. "${sample}${sample.length >= 50 ? '…' : ''}") — keep first, retire echoes`,
+      text: `Consolidate ${dupes.length} duplicate open-risk cluster(s) (e.g. "${sample}${sample.length >= 50 ? '…' : ''}") - keep first, retire echoes`,
       clusters: dupes,
     })
   }

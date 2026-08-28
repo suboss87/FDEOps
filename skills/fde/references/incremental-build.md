@@ -1,6 +1,6 @@
 # incremental-build - thin slices on someone else's codebase
 
-**Enter when:** the build task is larger than a single PR, multiple files or systems are involved, or the FDE needs to show visible progress to a stakeholder every 2–3 days.
+**Enter when:** the build task is larger than a single PR, multiple files or systems are involved, or the FDE needs to show visible progress to a stakeholder every 2-3 days.
 
 **Read first:** `decisions.md` (the plan), `terrain.md` (the danger zones), `context.md`. This skill works *inside* the build phase - it's the execution discipline that makes large features safe on codebases you don't own.
 
@@ -50,14 +50,14 @@ Read existing code in the area (search before creating)
 
 | Metric | Target | Why |
 |--------|--------|-----|
-| Lines changed | 100–300 | Reviewable in one sitting |
-| Time to implement | 30–90 minutes | Testable before context decays |
-| Files touched | 1–5 | Blast radius stays containable |
+| Lines changed | 100-300 | Reviewable in one sitting |
+| Time to implement | 30-90 minutes | Testable before context decays |
+| Files touched | 1-5 | Blast radius stays containable |
 | Tests added | ≥1 per new behaviour | Proves the slice works; guards against regression |
 
 A slice larger than 300 lines → split before implementing. "It's all connected" means the design needs work, not the slice limit.
 
-**5. Stakeholder visibility rhythm.** Every 2–3 slices, something the customer can see:
+**5. Stakeholder visibility rhythm.** Every 2-3 slices, something the customer can see:
 
 - A working endpoint they can hit
 - A UI change they can click
@@ -80,12 +80,12 @@ Technical progress invisible to stakeholders is trust decay. `delivery.md` gets 
 
 ## Checkpoint
 
-After each slice: tests pass (state the command and result), acceptance criteria met, blast radius as declared. After every 2–3 slices: stakeholder visibility confirmed - what did they see, and what's their signal?
+After each slice: tests pass (state the command and result), acceptance criteria met, blast radius as declared. After every 2-3 slices: stakeholder visibility confirmed - what did they see, and what's their signal?
 
 ## Principles
 
 - Vertical slices, always. Horizontal layers are untestable until assembled.
-- 100–300 lines per slice. Larger means split first.
+- 100-300 lines per slice. Larger means split first.
 - Every slice is independently revertible. If it isn't, the design is coupled.
-- Visible progress every 2–3 slices. Technical progress alone is trust decay.
+- Visible progress every 2-3 slices. Technical progress alone is trust decay.
 - The ugly code outside your slice stays ugly. That's discipline, not laziness.

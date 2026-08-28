@@ -1,5 +1,5 @@
 ---
-description: When did we agree? — dated receipts, not memory
+description: When did we agree? - dated receipts, not memory
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Situation: **when did we agree?**
@@ -8,7 +8,7 @@ If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once
 
 Do not argue from chat memory. Search the record.
 
-Run `fde receipts <term>` (fallback: `npx --yes fdeops receipts <term>`). Use the term the human named — topic, person, deliverable, or date window.
+Run `fde receipts <term>` (fallback: `npx --yes fdeops receipts <term>`). Use the term the human named - topic, person, deliverable, or date window.
 
 Answer with dated receipts: who said it, when, and where it lives in `.fde/`. No reference file needed unless the hit spans multiple files.
 
@@ -18,4 +18,4 @@ Do not invent meetings, quotes, or commitments. If the record is silent, the ans
 
 Done when: you have cited dated receipts for the term or named the specific gap to fill.
 
-Not for TypeScript errors, unit tests, refactors, or git commits — those stay in the host agent.
+Not for TypeScript errors, unit tests, refactors, or git commits - those stay in the host agent.

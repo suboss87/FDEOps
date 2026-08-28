@@ -2,7 +2,7 @@
 
 **One brain, thin adapters.** fdeops has a single source of truth - the `@fde` skill at `skills/fde/SKILL.md` and the `fde` CLI. Each AI coding tool discovers it through a small pointer file in the place that tool already looks. No forked logic, no five copies to maintain - every adapter says the same thing: *route via `@fde`, read/write `.fde/` memory, talk like a peer, never touch what isn't yours.*
 
-**Switching tools:** the fieldbook does not live in the agent. It lives at `~/fde-engagements/<client>/.fde/`. Point a new tool at a bound workspace, drop adapters (or install the skill/plugin for that tool), and the same client record opens. Auto session hooks are Claude Code–first; elsewhere load via `@fde` / `fde resume`. See [README § How it works](../README.md#how-it-works).
+**Switching tools:** the fieldbook does not live in the agent. It lives at `~/fde-engagements/<client>/.fde/`. Point a new tool at a bound workspace, drop adapters (or install the skill/plugin for that tool), and the same client record opens. Auto session hooks are Claude Code-first; elsewhere load via `@fde` / `fde resume`. See [README § How it works](../README.md#how-it-works).
 
 ## What goes where
 

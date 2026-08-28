@@ -438,7 +438,7 @@ function todayViewHtml({ today, total, attentionCount, highRiskTotal, todayQueue
 <h1 class="fb-h1">Today</h1>
 <div class="fb-meta-line">${escapeHtml(today)} &middot; ${total} engagement${total === 1 ? '' : 's'} &middot; ${attentionCount} need you &middot; ${highRiskTotal} high risk${highRiskTotal === 1 ? '' : 's'} open</div>
 <div class="fb-block">
-<div class="fb-sec">Queue — next action per client, worst first</div>
+<div class="fb-sec">Queue - next action per client, worst first</div>
 ${todayQueue}
 </div>
 ${flagsHtml ? `<div class="fb-block">

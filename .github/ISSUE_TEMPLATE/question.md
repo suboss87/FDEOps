@@ -1,6 +1,6 @@
 ---
 name: Question
-about: Fit, workflow, or how to use fdeops — not a bug
+about: Fit, workflow, or how to use fdeops - not a bug
 labels: question
 ---
 

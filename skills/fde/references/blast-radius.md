@@ -26,7 +26,7 @@ CONTAINED  → Only the module you're changing is affected
              Rollback: revert the PR
              Example: changing a utility function with no external callers
 
-ADJACENT   → 2–5 callers or one downstream system affected
+ADJACENT   → 2-5 callers or one downstream system affected
              Rollback: revert the PR + verify downstream
              Example: changing an API response format used by the frontend
 

@@ -17,11 +17,11 @@ fdeops is local tooling. No fdeops-operated backend, telemetry, or accounts.
 
 ## Ingest (optional MCP sink)
 
-The optional ingest MCP (`mcp/fdeops-ingest`) and `fde ingest` CLI verbs **stage local files only** — raw pulls land in `<engagement>/.inbox/` beside the fieldbook. Third-party **source** MCPs (Gmail, Granola, Notion, custom) are **user-configured** in your AI tool; they are outside fdeops and carry their own credentials and privacy terms. fdeops never stores those credentials and does not call those services from the core CLI.
+The optional ingest MCP (`mcp/fdeops-ingest`) and `fde ingest` CLI verbs **stage local files only** - raw pulls land in `<engagement>/.inbox/` beside the fieldbook. Third-party **source** MCPs (Gmail, Granola, Notion, custom) are **user-configured** in your AI tool; they are outside fdeops and carry their own credentials and privacy terms. fdeops never stores those credentials and does not call those services from the core CLI.
 
 Nothing enters `.fde/` without your confirm step (`fde ingest apply`). There is no ambient sync: pulls happen when you (or your agent on your instruction) fetch and stage.
 
-**`.inbox/` is NDA surface** — same home tree as `~/fde-engagements/<name>/.fde/`. Cloud sync, backup, and permissions guidance above applies to staged raw artifacts too.
+**`.inbox/` is NDA surface** - same home tree as `~/fde-engagements/<name>/.fde/`. Cloud sync, backup, and permissions guidance above applies to staged raw artifacts too.
 
 ## Your data
 

@@ -47,7 +47,7 @@ Score each dimension green/amber/red. This is the gate, not a suggestion:
 | Dimension | Green | Amber | Red |
 |-----------|-------|-------|-----|
 | **Value bucket** | `success.md` names primary bucket (`cost-save` \| `risk-mitigation` \| `revenue-uplift`) and a baseline→target metric; this slice’s value-ledger row has **Bucket** + **Promised** | Bucket named; **Measured** still `pending` with a pulse date | No bucket, or Promised empty / ticket-theater only |
-| **Audit receipt** | Dated line in `delivery.md` (`## Ship receipts` or ledger Evidence) proving exceptions/operating path were walked — cite `terrain.md` / `reality.md` / `audit.md` | Path described, not verified this ship | No audit receipt for this slice |
+| **Audit receipt** | Dated line in `delivery.md` (`## Ship receipts` or ledger Evidence) proving exceptions/operating path were walked - cite `terrain.md` / `reality.md` / `audit.md` | Path described, not verified this ship | No audit receipt for this slice |
 | **Eval receipt** | **n/a** (no AI on this slice) **or** `evals.md` Verdict SHIP with dated golden run + HITL gate named | Eval pack exists; known fails open with owner + date | AI in scope and no eval receipt |
 | **AI eval pack** | `.fde/evals.md` Verdict SHIP; goldens run this change; critical fails 0; HITL filled if policy requires | Pack exists; run stale vs change log | AI-touching deploy and pack missing / NO-SHIP / HITL required but empty |
 
@@ -59,13 +59,13 @@ Score each dimension green/amber/red. This is the gate, not a suggestion:
 2. If Verdict is not **SHIP**, or Last run is older than the latest change-log row → **RED.**
 3. If `trust-profile.md` requires human-in-the-loop and the HITL gate has no reviewer → **RED.**
 4. Log in `delivery.md` → `## Ship receipts` before deploy: audit cite + eval receipt.
-5. Non-AI deploys: Eval = **n/a** — do not invent an empty pack.
+5. Non-AI deploys: Eval = **n/a** - do not invent an empty pack.
 
 Write the readiness score (including value + receipts) to `delivery.md` before deploying. The score is the evidence if anything goes wrong.
 
 ## Intent vs diff (before pre-blast)
 
-Ship the change you intended — not the drift that snuck in. Run this on the deploy branch against the **one-line intent** from `decisions.md` / `success.md` (the slice you said you were building).
+Ship the change you intended - not the drift that snuck in. Run this on the deploy branch against the **one-line intent** from `decisions.md` / `success.md` (the slice you said you were building).
 
 ```bash
 git diff <base>...HEAD --stat
@@ -77,22 +77,22 @@ Score every touched path (or logical hunk):
 | Path / change | Verdict | Rule |
 |---------------|---------|------|
 | | **KEEP** | Directly required for the stated intent |
-| | **JUSTIFY** | Adjacent but load-bearing — one sentence why it must ship *now*, or split |
-| | **SPLIT** | Real work, wrong PR — park in `decisions.md` kill/Next; do not deploy with this slice |
-| | **DROP** | Noise (format-only, drive-by rename, unrelated tidy) — revert before ship |
+| | **JUSTIFY** | Adjacent but load-bearing - one sentence why it must ship *now*, or split |
+| | **SPLIT** | Real work, wrong PR - park in `decisions.md` kill/Next; do not deploy with this slice |
+| | **DROP** | Noise (format-only, drive-by rename, unrelated tidy) - revert before ship |
 
-**Any SPLIT or DROP still in the tree = fix-first.** JUSTIFY without a written sentence = treat as SPLIT. Log a one-line receipt in `delivery.md`: `intent vs diff: KEEP n · JUSTIFY n · SPLIT n · DROP n — <intent>`.
+**Any SPLIT or DROP still in the tree = fix-first.** JUSTIFY without a written sentence = treat as SPLIT. Log a one-line receipt in `delivery.md`: `intent vs diff: KEEP n · JUSTIFY n · SPLIT n · DROP n - <intent>`.
 
-This is **code drift**, not stakeholder "also can you…" (that is `scope-defense`). Same family as review Stage 1 — ship refuses green when the diff outgrew the claim.
+This is **code drift**, not stakeholder "also can you…" (that is `scope-defense`). Same family as review Stage 1 - ship refuses green when the diff outgrew the claim.
 
 ## Pre-blast challenge (before the deploy button)
 
-For any non-trivial go-live (shared infra, regulated data, irreversible migration, or first prod touch), run this once before canary — not as theater, as a stop-the-line check:
+For any non-trivial go-live (shared infra, regulated data, irreversible migration, or first prod touch), run this once before canary - not as theater, as a stop-the-line check:
 
 ```
 CLAIM: <what you are about to ship, in one sentence>
 WHY IT MATTERS: <blast radius / who feels pain if wrong>
-CHALLENGE: <the strongest argument this is not ready — grounded in delivery.md / risks.md / trust-profile.md>
+CHALLENGE: <the strongest argument this is not ready - grounded in delivery.md / risks.md / trust-profile.md>
 VERDICT: proceed | fix-first | sponsor conversation
 ```
 
@@ -116,11 +116,11 @@ grep -rnE "(api[_-]?key|secret|password|token)\s*[:=]\s*['\"][^'\"]{8,}" \
 
 ## Method - the deploy
 
-**Canary:** 1–5% of traffic, ≥10 minutes. Watch error rate, latency, and **the business metric this change affects**. Anything looks wrong → roll back immediately; investigate safely; redeploy when confident. Never investigate during the canary. Then stage up: 5% → 25% → 100%, each confirmed stable.
+**Canary:** 1-5% of traffic, ≥10 minutes. Watch error rate, latency, and **the business metric this change affects**. Anything looks wrong → roll back immediately; investigate safely; redeploy when confident. Never investigate during the canary. Then stage up: 5% → 25% → 100%, each confirmed stable.
 
 **Programme-scale rollout (transformations)** - different problem from one service:
 1. **Pilot** - one team, one use case; success metrics defined *before* it starts (after = fitting metrics to results).
-2. **Limited release** - 3–5 teams, real load; this is where the failure modes the pilot hid show up.
+2. **Limited release** - 3-5 teams, real load; this is where the failure modes the pilot hid show up.
 3. **Broad release** - self-serve onboarding; if teams still need the FDE to start, onboarding isn't finished.
 4. **Enterprise standard** - the FDE is no longer needed for this use case. That's the end state.
 Straight from pilot to standard = a high-profile failure at scale.
@@ -156,7 +156,7 @@ AI components: also define what *normal output* looks like and check a weekly sa
 
 **The scale sequence:**
 1. **Pilot** (1 team, controlled) → prove value, find failure modes
-2. **Limited** (3–5 teams, real load) → prove operability, find scale bugs
+2. **Limited** (3-5 teams, real load) → prove operability, find scale bugs
 3. **Broad** (self-serve onboarding) → prove the team doesn't need the FDE
 4. **Standard** (enterprise default) → the FDE exits this workstream
 
@@ -172,7 +172,7 @@ Adoption isn't a handoff-stage problem - it starts during build. Software that l
 - **Resistance signals.** Watch for: workaround creation (they built a spreadsheet instead of using the tool), drop-off after day 3 (onboarding fails), vocal detractors (one influential skeptic can kill adoption). Address these DURING build, not after launch.
 
 **At launch:**
-- **Champion network.** Identify 2–3 power users per team who adopt early. Support them intensely - they become your multiplier.
+- **Champion network.** Identify 2-3 power users per team who adopt early. Support them intensely - they become your multiplier.
 - **30-60-90 adoption targets.** Week 1: 20% of target users try it. Week 4: 50% use it weekly. Week 12: 80% can't imagine working without it. If week 1 misses → the onboarding is broken. If week 4 misses → the value proposition is wrong.
 - **The "switching cost" test.** If users can still do it the old way, they will. Adoption requires either: the old way is removed, the new way is dramatically better, or management mandates the switch. Know which lever applies.
 
@@ -190,9 +190,9 @@ Before 100%: canary clean, business metric verified, pulse written into `deliver
 
 Acme, shipping the failure-routing slice into a payments environment on a Thursday.
 
-Readiness scoring catches two things the diff does not. The audit receipt is missing: the operating map says Marco's manual re-run is the fallback, and nobody has checked whether the new page fires *before* his morning run or after — if after, the alert changes nothing. That gets walked and cited before deploy. Second, the intent-vs-diff read shows the PR also touches the settlement retry that was deferred in build; it comes out.
+Readiness scoring catches two things the diff does not. The audit receipt is missing: the operating map says Marco's manual re-run is the fallback, and nobody has checked whether the new page fires *before* his morning run or after - if after, the alert changes nothing. That gets walked and cited before deploy. Second, the intent-vs-diff read shows the PR also touches the settlement retry that was deferred in build; it comes out.
 
-Pre-blast challenge: "what does this break if it fires at 3am and nobody acks?" Answer: nothing breaks, but the rota is not yet agreed — so the deploy waits on a name, not on code. That is a one-day slip that prevents a fake green.
+Pre-blast challenge: "what does this break if it fires at 3am and nobody acks?" Answer: nothing breaks, but the rota is not yet agreed - so the deploy waits on a name, not on code. That is a one-day slip that prevents a fake green.
 
 After deploy: `delivery.md` ship receipt with the audit cite, the kill test evidence, and the rollback line. Eval receipt: n/a, no AI in this path.
 

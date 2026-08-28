@@ -20,18 +20,18 @@ State your read, let the FDE correct, then land.
 
 ## Brief interrogation (only when the brief is thin)
 
-Use this when the ask is conventional or underspecified — missing who decides, why now, what success looks like, or the binding constraint. **Do not** run it when the FDE already gave a clear brief, is mid-flow, or asked for speed over verification.
+Use this when the ask is conventional or underspecified - missing who decides, why now, what success looks like, or the binding constraint. **Do not** run it when the FDE already gave a clear brief, is mid-flow, or asked for speed over verification.
 
-Format — one question at a time, with a guess the FDE can correct:
+Format - one question at a time, with a guess the FDE can correct:
 
 ```
-READ: <one sentence — what you think they actually need>
-CONFIDENCE: ~NN% — missing: <what still blocks a safe start>
+READ: <one sentence - what you think they actually need>
+CONFIDENCE: ~NN% - missing: <what still blocks a safe start>
 Q: <one focused question>
 GUESS: <your best answer, so they can push back fast>
 ```
 
-Wait for the reaction before the next question. Stop when confidence is high enough to write `success.md` without inventing names, or when the FDE says move on. Every answer that is still unknown stays `unknown - ask:` in the artifact — never fill the gap with a plausible stakeholder.
+Wait for the reaction before the next question. Stop when confidence is high enough to write `success.md` without inventing names, or when the FDE says move on. Every answer that is still unknown stays `unknown - ask:` in the artifact - never fill the gap with a plausible stakeholder.
 
 ## Method - part 1: interrogate the brief (you do this work)
 
@@ -65,7 +65,7 @@ Let silence sit. If their fear doesn't match the written brief, the brief is wro
 - **The previous attempt** - "we tried something similar last year" is the most important sentence in the first meeting. Who was involved? Still there and protective, or gone because of it?
 - **The passed-over internal team** - they know exactly what's wrong, and they resent the FDE's presence. Find them before the first standup, ask what they tried, use their language in every meeting. Make them look right and they protect you; ignore them and they wait for the mistake.
 - **The sacred thing** - "Is there anything in this environment I should treat as untouchable?" The hesitation before the answer is the answer.
-- **Exception path (operating map seed)** - "When the happy path breaks this week, what do people actually do — who do they call, what spreadsheet opens, what do they skip?" Capture the break → workaround → who owns it. Do not build a full map on day 1; seed rows later in `terrain.md` → `## Operating map (exception-led)` during discover. Unknowns stay `unknown - ask:`.
+- **Exception path (operating map seed)** - "When the happy path breaks this week, what do people actually do - who do they call, what spreadsheet opens, what do they skip?" Capture the break → workaround → who owns it. Do not build a full map on day 1; seed rows later in `terrain.md` → `## Operating map (exception-led)` during discover. Unknowns stay `unknown - ask:`.
 - **AI posture and policy** - tools already in use (sanctioned or shadow), and: "Does your organisation have a policy on AI-generated code? Are there decisions where you would not be comfortable with AI involvement?"
 - **Boundaries in multi-vendor rooms** - who owns what surface, who signs off before a change crosses it.
 
@@ -119,9 +119,9 @@ If remote: trust-building takes ~40% longer - push for a short video call before
 
 Kickoff at Acme payments. Priya (VP Eng) sponsors; the brief says "add monitoring to the reconciliation service."
 
-Asking what happens the week after a perfect delivery gets: "I stop hearing about it from finance." That is the real success statement — not monitoring. The previous attempt surfaces too: the platform team built alerting last year, it was turned off. Raj, who built it, is still there and was not in the kickoff — the passed-over team, found on day 1 rather than at the first standup.
+Asking what happens the week after a perfect delivery gets: "I stop hearing about it from finance." That is the real success statement - not monitoring. The previous attempt surfaces too: the platform team built alerting last year, it was turned off. Raj, who built it, is still there and was not in the kickoff - the passed-over team, found on day 1 rather than at the first standup.
 
-What gets written: `success.md` with bucket `risk-mitigation`, `reconciliation failures reach a named owner within 15 min (baseline: 4h, found by finance)`, gaming check `alerting on everything so nobody reads them` → guard `≤2 alerts/week, acked by name`, sign-off Priya. `brief.md` carries the gap list and the hypothesis: *the job is not unmonitored, it is unowned*. `assumptions.md` seeds `"finance would act on an alert" — CRITICAL — OPEN — (stated, unverified)`. `trust-profile.md` records the sacred thing Priya hesitated before naming.
+What gets written: `success.md` with bucket `risk-mitigation`, `reconciliation failures reach a named owner within 15 min (baseline: 4h, found by finance)`, gaming check `alerting on everything so nobody reads them` → guard `≤2 alerts/week, acked by name`, sign-off Priya. `brief.md` carries the gap list and the hypothesis: *the job is not unmonitored, it is unowned*. `assumptions.md` seeds `"finance would act on an alert" - CRITICAL - OPEN - (stated, unverified)`. `trust-profile.md` records the sacred thing Priya hesitated before naming.
 
 Day-1 deliverable: fix the log line that swallows the job's exit code. Small, visible, in their environment.
 
