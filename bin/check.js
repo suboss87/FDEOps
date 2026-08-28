@@ -221,9 +221,15 @@ if (read('package.json').includes('postinstall')) {
 }
 
 const readme = read('README.md')
-if (/session\.gif|demo\.gif|<img /i.test(readme)) {
-  fail('README must not embed images - front door is text; the recording lives in docs/USAGE.md')
-} else ok('README is text (no gif)')
+// One poster is allowed. A recording is not: it belongs in docs/USAGE.md, where it can be reproduced.
+const readmeImages = [...readme.matchAll(/<img |!\[/g)].length
+if (/\.gif\b/i.test(readme)) {
+  fail('README must not embed a recording - the gif lives in docs/USAGE.md, next to its recorder')
+} else if (readmeImages > 1) {
+  fail(`README must carry at most one poster image (found ${readmeImages}) - the rest of the front door is text`)
+} else if (/(?:<img[^>]*src="|!\[[^\]]*\]\()https?:/i.test(readme)) {
+  fail('the poster must live in the repo (media/), not on a URL that can disappear')
+} else ok('README front door is text plus at most one repo-hosted poster')
 
 const usage = read('docs/USAGE.md')
 if (!usage.includes('media/session.gif') || !usage.includes('media/record-session.sh')) {
@@ -268,10 +274,17 @@ for (const cmd of ['/brief', '/discover', '/plan', '/ship', '/outcome', '/close'
 if (/(^|[^\w/])\/got\b/.test(readme)) fail('README must use /outcome, not /got')
 ok('README slash commands documented')
 
-// Front-door map is the embed left-to-right (LAND → CLOSE), not a pile of situations.
-if (!readme.slice(0, 4000).includes('LAND') || !readme.slice(0, 4000).includes('/discover')) {
-  fail('README must include the LAND→CLOSE command-map diagram near the top')
-} else ok('README command-map diagram')
+// The front door reads left to right through the embed: the commands near the top, the stages in order below.
+const stages = ['Land', 'Discover', 'Plan', 'Ship', 'Prove', 'Close']
+const stageAt = stages.map(s => readme.indexOf(`### ${s} `))
+if (!readme.slice(0, 4000).includes('/discover')) {
+  fail('README must show the command map near the top')
+} else if (stageAt.some(i => i < 0)) {
+  const missing = stages.filter((s, i) => stageAt[i] < 0)
+  fail(`README must name every stage of the embed: missing ${missing.join(', ')}`)
+} else if (stageAt.some((i, n) => n > 0 && i < stageAt[n - 1])) {
+  fail(`README stages must run ${stages.join(' → ')} in order`)
+} else ok('README front door runs the embed in order')
 
 if (readme.includes('your-client-repo')) {
   fail('README must not instruct install in customer repo (your-client-repo)')
@@ -653,7 +666,8 @@ function findUnicodeDashes(dir, acc = []) {
     if (e.name === '.git' || e.name === 'node_modules' || e.name === '.agents') continue
     const p = path.join(dir, e.name)
     if (e.isDirectory()) findUnicodeDashes(p, acc)
-    else if (e.name === 'session.cast' || e.name === 'session.gif') continue
+    // Copy is text. Binaries carry the same bytes by coincidence, and are not copy.
+    else if (/\.(cast|gif|png|jpg|jpeg|webp|mp4|ico|woff2?)$/i.test(e.name)) continue
     else {
       let t
       try { t = fs.readFileSync(p, 'utf8') } catch { continue }
