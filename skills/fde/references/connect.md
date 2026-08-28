@@ -1,4 +1,4 @@
-# ingest-connect - wire a source MCP in plain language
+# connect - wire a source MCP in plain language
 
 **Enter when:** the FDE says "I want to connect a new MCP", "connect Granola / Slack / Notion", "how do I pull from …", or a pull request fails because no source tools exist.
 

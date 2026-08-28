@@ -1,4 +1,4 @@
-# handoff-engineering - making yourself replaceable is the goal
+# runbook - making yourself replaceable is the goal
 
 **Enter when:** the engagement is entering its final phase, the customer team needs to operate without the FDE, a new FDE is taking over, or the sponsor asks "what happens when you leave?"
 
@@ -103,9 +103,9 @@ Rollback: <exact command and expected time>
 - [ ] All access returned or transferred (repos, environments, admin panels)
 - [ ] No personal credentials left in the system (API keys, tokens, SSH keys)
 - [ ] `.fde/` folder handed to the successor or archived with the team
-- [ ] Final status sent to sponsor (see `status.md`)
+- [ ] Final status sent to sponsor (see `readout.md`)
 - [ ] Retrospective completed (see `close.md`)
-- [ ] Patterns extracted (see `pattern-extract.md`)
+- [ ] Patterns extracted (see `encode-pattern.md`)
 
 ## Artifact
 

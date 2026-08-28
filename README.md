@@ -28,14 +28,15 @@ Each command loads the same `@fde` skill. You never pick from 31 names.
 | Prove the outcome | `/outcome` | Promised, measured, accepted |
 | Close the embed | `/close` | They run it without you |
 
-Four tells the map does not cover:
+Also:
 
 | What you're doing | Command | Key principle |
 |-------------------|---------|-----------|
-| Sponsor went silent | `/quiet` | Process or trust |
-| Scope dispute | `/agreed` | Dated receipts, or a gap |
+| Sponsor went silent | `/trust` | Process or trust |
+| Scope dispute | `/receipts` | Dated, or a gap |
 | After a meeting | `/debrief` | Notes into the record |
-| Walk-in / Friday | `/prep` `/status` | One page, then the ledger |
+| Walk-in | `/prep` | One page from the record |
+| Friday readout | `/readout` | Promised, measured, accepted |
 
 Skills also activate on English: naming a client, running a POC, slicing a feature, asking what was agreed. A throwaway one-liner in an unbound repo can skip `@fde`. A client slice cannot.
 
@@ -109,18 +110,18 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 |--------|--------------|----------|
 | [land](skills/fde/references/land.md) | Interrogate the brief, map stakeholders, define success | New client, first meeting, just got the brief |
 | [audit](skills/fde/references/audit.md) | Verify claims, find the load-bearing wall | Taking over, previous consultant left |
-| [stakeholder-radar](skills/fde/references/stakeholder-radar.md) | Who decides, who blocks, who escalates | Need to know who matters |
-| [trust-engineering](skills/fde/references/trust-engineering.md) | Observer → trusted; navigate AI policy | Need access or credibility |
-| [scope-defense](skills/fde/references/scope-defense.md) | Scope receipts; the accumulation conversation | "Also can you…", timeline unchanged |
+| [who-decides](skills/fde/references/who-decides.md) | Who decides, who blocks, who escalates | Need to know who matters |
+| [earn-trust](skills/fde/references/earn-trust.md) | Observer → trusted; navigate AI policy | Need access or credibility |
+| [hold-scope](skills/fde/references/hold-scope.md) | Scope receipts; the accumulation conversation | "Also can you…", timeline unchanged |
 
 ### Discover - Find the real problem
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
 | [discover](skills/fde/references/discover.md) | Repo + workaround + the real problem | Brief feels wrong, shadow processes |
-| [assumption-audit](skills/fde/references/assumption-audit.md) | Untested assumptions by blast radius | Brief feels too neat |
-| [use-case-scoring](skills/fde/references/use-case-scoring.md) | Value × urgency × alignment / complexity | Everything is P0 |
-| [sketch](skills/fde/references/sketch.md) | Kill the killer assumption in a day | POC, spike, need to de-risk |
+| [test-assumptions](skills/fde/references/test-assumptions.md) | Untested assumptions by blast radius | Brief feels too neat |
+| [score-use-cases](skills/fde/references/score-use-cases.md) | Value × urgency × alignment / complexity | Everything is P0 |
+| [poc](skills/fde/references/poc.md) | Kill the killer assumption in a day | POC, spike, need to de-risk |
 
 ### Plan - Sequence the work
 
@@ -128,40 +129,40 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 |--------|--------------|----------|
 | [plan](skills/fde/references/plan.md) | Backwards from done, PR-sized | What order, what is done |
 | [business-case](skills/fde/references/business-case.md) | Cost of nothing → investment → return | Defend budget or timeline |
-| [options-analysis](skills/fde/references/options-analysis.md) | Three genuine options | "What should we do?" |
-| [initiative-triage](skills/fde/references/initiative-triage.md) | Pick three from twenty urgents | Everything is urgent |
+| [three-options](skills/fde/references/three-options.md) | Three genuine options | "What should we do?" |
+| [pick-three](skills/fde/references/pick-three.md) | Pick three from twenty urgents | Everything is urgent |
 
 ### Ship - Go live
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
-| [incremental-build](skills/fde/references/incremental-build.md) | Vertical slices, on-site proof | Building on their codebase |
-| [blast-radius](skills/fde/references/blast-radius.md) | Impact from contained → irreversible | Touching shared infrastructure |
+| [thin-slices](skills/fde/references/thin-slices.md) | Vertical slices, on-site proof | Building on their codebase |
+| [what-breaks](skills/fde/references/what-breaks.md) | Impact from contained → irreversible | Touching shared infrastructure |
 | [rescue](skills/fde/references/rescue.md) | Production fire or trust fire | Down, or they went quiet |
 | [ship](skills/fde/references/ship.md) | Intent vs diff, pre-flight, rollback | Going live |
 | [review](skills/fde/references/review.md) | Did we only build what we agreed | Before merge, scope creep |
-| [rollback-drill](skills/fde/references/rollback-drill.md) | Test the escape route before 2am | "We can always revert" |
+| [rollback](skills/fde/references/rollback.md) | Test the escape route before 2am | "We can always revert" |
 
 ### Prove - Outcome
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
-| [status](skills/fde/references/status.md) | Promised → measured → accepted | Friday, sponsor update |
+| [readout](skills/fde/references/readout.md) | Promised → measured → accepted | Friday, sponsor update |
 | [demo-prep](skills/fde/references/demo-prep.md) | One number, five hard questions | Demo or exec walkthrough |
 | [debrief](skills/fde/references/debrief.md) | Meeting notes into the record | Just left a meeting |
-| [exec-narrative](skills/fde/references/exec-narrative.md) | Board / sponsor's boss | Justify continued investment |
+| [board-memo](skills/fde/references/board-memo.md) | Board / sponsor's boss | Justify continued investment |
 | [dashboard](skills/fde/references/dashboard.md) | Portfolio, trust-ordered | All my customers |
 | [ingest](skills/fde/references/ingest.md) | Pull text you confirm | Transcript, Notion, Slack |
-| [ingest-connect](skills/fde/references/ingest-connect.md) | Wire a source MCP | Connect Granola |
+| [connect](skills/fde/references/connect.md) | Wire a source MCP | Connect Granola |
 
 ### Close - They run it
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
 | [close](skills/fde/references/close.md) | Handoff that survives you | Wrapping up |
-| [handoff-engineering](skills/fde/references/handoff-engineering.md) | Runbook, confidence scoring | They must operate without you |
-| [multi-customer-ops](skills/fde/references/multi-customer-ops.md) | Switch without bleed | 2+ clients |
-| [pattern-extract](skills/fde/references/pattern-extract.md) | If you did it twice, encode it | It will apply again |
+| [runbook](skills/fde/references/runbook.md) | Runbook, confidence scoring | They must operate without you |
+| [switch-clients](skills/fde/references/switch-clients.md) | Switch without bleed | 2+ clients |
+| [encode-pattern](skills/fde/references/encode-pattern.md) | If you did it twice, encode it | It will apply again |
 | [red-team](skills/fde/references/red-team.md) | Stress-test before they do | "Poke holes in this" |
 
 Overlays (on signal, not on request): [ai](skills/fde/references/ai.md) · [artifacts](skills/fde/references/artifacts.md) · [fintech](skills/fde/references/fintech.md) · [healthcare](skills/fde/references/healthcare.md) · [gov](skills/fde/references/gov.md) · [eval-pack](skills/fde/references/eval-pack.md)
@@ -209,34 +210,34 @@ fdeops/
 │   └── references/                        #   31 skills + overlays (you never pick)
 │       ├── land.md                        #   Land
 │       ├── audit.md
-│       ├── stakeholder-radar.md
-│       ├── trust-engineering.md
-│       ├── scope-defense.md
+│       ├── who-decides.md
+│       ├── earn-trust.md
+│       ├── hold-scope.md
 │       ├── discover.md                    #   Discover
-│       ├── assumption-audit.md
-│       ├── use-case-scoring.md
-│       ├── sketch.md
+│       ├── test-assumptions.md
+│       ├── score-use-cases.md
+│       ├── poc.md
 │       ├── plan.md                        #   Plan
 │       ├── business-case.md
-│       ├── options-analysis.md
-│       ├── initiative-triage.md
-│       ├── incremental-build.md           #   Ship
-│       ├── blast-radius.md
+│       ├── three-options.md
+│       ├── pick-three.md
+│       ├── thin-slices.md                 #   Ship
+│       ├── what-breaks.md
 │       ├── rescue.md
 │       ├── ship.md
 │       ├── review.md
-│       ├── rollback-drill.md
-│       ├── status.md                      #   Prove
+│       ├── rollback.md
+│       ├── readout.md                      #   Prove
 │       ├── demo-prep.md
 │       ├── debrief.md
-│       ├── exec-narrative.md
+│       ├── board-memo.md
 │       ├── dashboard.md
 │       ├── ingest.md
-│       ├── ingest-connect.md
+│       ├── connect.md
 │       ├── close.md                       #   Close
-│       ├── handoff-engineering.md
-│       ├── multi-customer-ops.md
-│       ├── pattern-extract.md
+│       ├── runbook.md
+│       ├── switch-clients.md
+│       ├── encode-pattern.md
 │       ├── red-team.md
 │       ├── ai.md                          #   overlays (on signal)
 │       ├── artifacts.md
@@ -251,11 +252,11 @@ fdeops/
 │   ├── ship.md
 │   ├── outcome.md
 │   ├── close.md
-│   ├── quiet.md
-│   ├── agreed.md
+│   ├── trust.md
+│   ├── receipts.md
 │   ├── debrief.md
 │   ├── prep.md
-│   └── status.md
+│   └── readout.md
 ├── .claude-plugin/                        # Claude Code marketplace
 ├── bin/                                   # local CLI: git + files, no network
 ├── hooks/                                 # session-start / session-stop / pre-compact

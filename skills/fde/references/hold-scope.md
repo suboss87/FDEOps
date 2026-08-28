@@ -1,4 +1,4 @@
-# scope-defense - holding the line without losing the relationship
+# hold-scope - holding the line without losing the relationship
 
 **Enter when:** "also can you…" mid-build, a stakeholder adds requirements without adjusting timeline, the FDE feels scope creeping but can't name it, or `success.md` no longer matches what's being asked.
 
@@ -67,7 +67,7 @@ Acme, week 5. Nothing has been formally added, and the slice is a week late.
 
 The pattern shows in three receipts, not one argument: a "quick" finance CSV export (Jun 20, half a day, from Denise directly), retry-logic cleanup asked for mid-build (Jun 24, one day, Tom), and a dashboard tile "while you're in there" (Jun 27, half a day). Each was individually reasonable; together they are the slip.
 
-Three-bucket response, applied at the moment of the third ask rather than in a retrospective: the CSV export goes to Next with an accepted trade (it displaces the runbook polish), the retry cleanup goes to the kill list in `decisions.md` with the blast-radius reason, and the tile is absorbed because it is genuinely twenty minutes - logged anyway, since an unlogged absorption is the one that gets forgotten in the accumulation conversation.
+Three-bucket response, applied at the moment of the third ask rather than in a retrospective: the CSV export goes to Next with an accepted trade (it displaces the runbook polish), the retry cleanup goes to the kill list in `decisions.md` with the what-breaks reason, and the tile is absorbed because it is genuinely twenty minutes - logged anyway, since an unlogged absorption is the one that gets forgotten in the accumulation conversation.
 
 That conversation happens with Priya at three receipts, with the dates on screen: "these are the four asks, here is the two days, here is what moved." Not a complaint - a decision she gets to make, with evidence, before the deadline makes it for her.
 

@@ -26,7 +26,7 @@ A one-line typo or compile error in a file that will not ship. On a bound client
 | **The brief is wrong** | "If this works, who in their company would have to agree that it worked?" | `fde resume` then discover | `references/discover.md` |
 | **They went quiet** | "Is this a process gap, or a trust problem?" | `fde log contact "…" --signal amber\|red\|green` | `references/rescue.md` |
 | **When did we agree?** | Don't argue from memory. Search the record. | `fde receipts <term>` | - |
-| **What's the outcome?** | A number nobody signed is claimed, not delivered. | `fde status` | `references/status.md` |
+| **What's the outcome?** | A number nobody signed is claimed, not delivered. | `fde status` | `references/readout.md` |
 
 After a meeting: `fde debrief --smart` → confirm → `--apply`. Walk-in: `fde prep`. Friday: `fde status`.
 
@@ -34,8 +34,8 @@ After a meeting: `fde debrief --smart` → confirm → `--apply`. Walk-in: `fde 
 
 On someone else's site the work is not "write code, remember later." Every slice stays on `@fde`:
 
-1. **Name it** in `decisions.md` (plan) or kill it in a day (sketch).
-2. **Characterise their code** before you change it (incremental-build). Their tests, their runner.
+1. **Name it** in `decisions.md` (plan) or kill it in a day (poc).
+2. **Characterise their code** before you change it (thin-slices). Their tests, their runner.
 3. **Prove it where they live.** Staging they operate, a screen the signer in `success.md` can reject.
 4. **If a model judges:** `evals.md` Verdict SHIP before the slice is done (eval-pack).
 5. **Log delivery.** Outcome is promised → measured → accepted, not a green CI.
@@ -44,7 +44,7 @@ A throwaway file can skip the loop. A client slice cannot.
 
 ## Human surface vs agent plumbing
 
-**FDE (human):** `@fde` + English, or `/brief` `/discover` `/plan` `/ship` `/outcome` `/close` `/debrief` `/prep` `/quiet` `/agreed` `/status`. Never a skill catalog.
+**FDE (human):** `@fde` + English, or `/brief` `/discover` `/plan` `/ship` `/outcome` `/close` `/debrief` `/prep` `/trust` `/receipts` `/readout`. Never a skill catalog.
 
 **You (agent):** run the CLI. **Never tell the FDE to type** `fde …`. If unbound, you run `fde resume --init` after one question. Never ask them to run the CLI.
 
@@ -72,7 +72,7 @@ Writes need a bind (`FDEOPS_ENGAGEMENT` or registry). Never install fdeops on in
 | clean up the fieldbook | `fde doctor` - never auto-rewrite |
 | scrub a secret | `fde redact <term>` then `--apply` after confirm |
 | pull Granola/Slack/transcript | capability check → `fde ingest stage` → confirm → apply. Never auto-apply. `references/ingest.md` |
-| connect an MCP | `references/ingest-connect.md` |
+| connect an MCP | `references/connect.md` |
 | Obsidian / one window | `fde vault` (`--redacted` for a shared screen) |
 
 ## The memory contract
@@ -121,18 +121,18 @@ Read **one** reference and follow it. Do not improvise from memory.
 |----------|-------|-----------|
 | Starting fresh, new customer, first meeting, just got the brief | land | `references/land.md` |
 | Taking over, previous consultant left, joining mid-project | audit | `references/audit.md` |
-| Need to understand who matters, who decides, who blocks quietly | stakeholder-radar | `references/stakeholder-radar.md` |
-| Need to earn access, navigate AI policy, build credibility | trust-engineering | `references/trust-engineering.md` |
-| "Also can you…", scope expanding, timeline unchanged | scope-defense | `references/scope-defense.md` |
+| Need to understand who matters, who decides, who blocks quietly | who-decides | `references/who-decides.md` |
+| Need to earn access, navigate AI policy, build credibility | earn-trust | `references/earn-trust.md` |
+| "Also can you…", scope expanding, timeline unchanged | hold-scope | `references/hold-scope.md` |
 
 ### Discover
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
 | Don't know the real problem, brief feels wrong, shadow processes | discover | `references/discover.md` |
-| The brief feels too neat, assumptions untested, "we just need…" | assumption-audit | `references/assumption-audit.md` |
-| Multiple use cases competing, "we want to do everything" | use-case-scoring | `references/use-case-scoring.md` |
-| Need to validate a direction, prototype, demo to de-risk, **POC**, spike, killer assumption | sketch | `references/sketch.md` |
+| The brief feels too neat, assumptions untested, "we just need…" | test-assumptions | `references/test-assumptions.md` |
+| Multiple use cases competing, "we want to do everything" | score-use-cases | `references/score-use-cases.md` |
+| Need to validate a direction, prototype, demo to de-risk, **POC**, spike, killer assumption | poc | `references/poc.md` |
 
 ### Plan
 
@@ -140,43 +140,43 @@ Read **one** reference and follow it. Do not improvise from memory.
 |----------|-------|-----------|
 | Break this down, what order, sequence the build | plan | `references/plan.md` |
 | Sponsor needs justification, need to defend budget or timeline | business-case | `references/business-case.md` |
-| Significant decision, multiple approaches, "what should we do?" | options-analysis | `references/options-analysis.md` |
-| 20 things are "urgent," need to pick the 3 that matter | initiative-triage | `references/initiative-triage.md` |
+| Significant decision, multiple approaches, "what should we do?" | three-options | `references/three-options.md` |
+| 20 things are "urgent," need to pick the 3 that matter | pick-three | `references/pick-three.md` |
 
 ### Ship
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| Large feature, need visible progress every 2-3 days, slice it, characterise their tests, POC follow-through | incremental-build | `references/incremental-build.md` |
-| What could go wrong, touching shared infrastructure, need to assess impact | blast-radius | `references/blast-radius.md` |
+| Large feature, need visible progress every 2-3 days, slice it, characterise their tests, POC follow-through | thin-slices | `references/thin-slices.md` |
+| What could go wrong, touching shared infrastructure, need to assess impact | what-breaks | `references/what-breaks.md` |
 | Production down, urgent - OR stakeholder gone quiet, trust slipping | rescue | `references/rescue.md` |
 | Ready to deploy, going live, pre-flight check | ship | `references/ship.md` |
 | Review this change, is it safe, does it match what we agreed | review | `references/review.md` |
 | Diff grew / scope creep in the PR / "did we only build what we said" / KEEP JUSTIFY SPLIT DROP | review (+ ship if going live) | `references/review.md` Stage 1 · `references/ship.md` Intent vs diff |
 | Wrap the session / share the thinking / catch teammates up / before I open the PR | (memory contract - session digest) | SKILL.md **On exit** - write TL;DR + decisions/why into `.fde/`; no transcript sync |
-| "We can always revert" - need to actually test the escape route | rollback-drill | `references/rollback-drill.md` |
+| "We can always revert" - need to actually test the escape route | rollback | `references/rollback.md` |
 
 ### Prove
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| Weekly update due, "need to send the sponsor something" | status | `references/status.md` |
+| Weekly update due, "need to send the sponsor something" | readout | `references/readout.md` |
 | Demo coming up, show-and-tell, exec walkthrough | demo-prep | `references/demo-prep.md` |
 | Just out of a meeting, raw notes, "they said…", "debrief" | debrief | the debrief verb (above) + `references/debrief.md` |
 | Make sure we're up to date, pull what's relevant, fetch from Granola/Slack/Gmail/transcript | ingest | `references/ingest.md` (capability check → stage → propose → confirm → apply) |
-| Connect a new MCP / connect Granola Slack or Notion / what can you pull | ingest-connect | `references/ingest-connect.md` (+ `mcp/recipes/`) |
+| Connect a new MCP / connect Granola Slack or Notion / what can you pull | connect | `references/connect.md` (+ `mcp/recipes/`) |
 | Prep me for a meeting / walk-in brief / "what should I know before I talk to…" | - | run `fde prep "<label>"`, present in plain language |
-| Sponsor's boss needs a summary, board update, justify continued investment | exec-narrative | `references/exec-narrative.md` |
+| Sponsor's boss needs a summary, board update, justify continued investment | board-memo | `references/board-memo.md` |
 | Status across all my customers | dashboard | `references/dashboard.md` |
 
 ### Close
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| Juggling 2+ customers, losing track, context-switching | multi-customer-ops | `references/multi-customer-ops.md` |
+| Juggling 2+ customers, losing track, context-switching | switch-clients | `references/switch-clients.md` |
 | Wrapping up, handoff, making yourself replaceable | close | `references/close.md` |
-| Engagement ending, team needs to operate without you | handoff-engineering | `references/handoff-engineering.md` |
-| Something worked well and will apply to future engagements | pattern-extract | `references/pattern-extract.md` |
+| Engagement ending, team needs to operate without you | runbook | `references/runbook.md` |
+| Something worked well and will apply to future engagements | encode-pattern | `references/encode-pattern.md` |
 | "Red-team this," "stress-test my plan," poke holes, what am I missing | red-team | `references/red-team.md` |
 | "What did we agree about X?", scope dispute, receipts | - | run `fde receipts <term>`, answer with dates |
 

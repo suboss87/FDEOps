@@ -13,4 +13,4 @@ FDEOps does **not** bundle Granola / Slack / Notion OAuth and does **not** push 
 | [slack.md](./slack.md) | Pull a thread/channel as text - never post |
 | [notion.md](./notion.md) | Read a Notion page (or export markdown) |
 
-**Natural language:** `@fde I want to connect Granola` (or Slack / Notion) → `skills/fde/references/ingest-connect.md`.
+**Natural language:** `@fde I want to connect Granola` (or Slack / Notion) → `skills/fde/references/connect.md`.

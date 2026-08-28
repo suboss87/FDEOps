@@ -43,7 +43,7 @@
       "id": "happy-status",
       "kind": "happy",
       "prompt": "@fde draft the sponsor update from the record",
-      "expect": { "cli": ["status"], "reference_hint": "status" }
+      "expect": { "cli": ["status"], "reference_hint": "readout" }
     },
     {
       "id": "happy-signal",
@@ -69,7 +69,7 @@
       "prompt": "@fde did this PR stay in scope - any scope creep in the diff?",
       "expect": {
         "reference_hint": "review",
-        "must_not_load_reference": ["land.md", "discover.md", "scope-defense.md"]
+        "must_not_load_reference": ["land.md", "discover.md", "hold-scope.md"]
       }
     },
     {
@@ -120,7 +120,7 @@
       "prompt": "Explain what this function does",
       "expect": {
         "must_not_cli": ["debrief", "doctor", "scan", "receipts", "prep"],
-        "must_not_load_reference": ["land.md", "exec-narrative.md"]
+        "must_not_load_reference": ["land.md", "board-memo.md"]
       }
     },
     {

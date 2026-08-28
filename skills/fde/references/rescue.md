@@ -46,7 +46,7 @@ Customers remember who told them the truth before it cost them money.
 
 ## D. Pivot - the whole direction changed
 
-Not scope-defense (that's someone adding). This is: budget cut, new CTO arrives, strategic priority shift, acquisition changes everything, "we've decided to go a different direction." The engagement's foundation moved.
+Not hold-scope (that's someone adding). This is: budget cut, new CTO arrives, strategic priority shift, acquisition changes everything, "we've decided to go a different direction." The engagement's foundation moved.
 
 **Signals:** new leadership asks "why are we doing this?", the sponsor's boss questions ROI, a competing initiative gets the resources, the quarterly priorities deck doesn't mention your project, the team you're embedded in gets reorganized.
 

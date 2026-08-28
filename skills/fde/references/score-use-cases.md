@@ -1,8 +1,8 @@
-# use-case-scoring - pick the right battle, not the interesting one
+# score-use-cases - pick the right battle, not the interesting one
 
 **Enter when:** multiple potential use cases compete for attention, the customer says "we want to do everything," a transformation engagement needs a starting point, or the FDE needs to recommend which problem to solve first.
 
-**Read first:** `reality.md`, `brief.md`, `terrain.md`, `context.md`. If `business-case.md` or `prototype-log.md` exist from sketch, load those - they carry forward.
+**Read first:** `reality.md`, `brief.md`, `terrain.md`, `context.md`. If `business-case.md` or `prototype-log.md` exist from poc, load those - they carry forward.
 
 The most dangerous moment in a multi-use-case engagement is when the technically interesting problem wins over the high-value problem. Scoring replaces opinion with arithmetic. The arithmetic is wrong - all models are - but it's *visibly* wrong, which means it can be debated and corrected. Opinion can't.
 
@@ -59,7 +59,7 @@ Why this formula:
 
 ## Checkpoint
 
-Walk the FDE through the top 3 scores and the recommendation. One question: "Does the sponsor have a strong preference that overrides the scoring?" If yes, log it. If no, proceed with the highest score to sketch or plan.
+Walk the FDE through the top 3 scores and the recommendation. One question: "Does the sponsor have a strong preference that overrides the scoring?" If yes, log it. If no, proceed with the highest score to poc or plan.
 
 ## Principles
 

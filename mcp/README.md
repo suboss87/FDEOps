@@ -38,7 +38,7 @@ Source MCP(s)          fdeops-ingest MCP           fde CLI
 
 ## Recipes (copy-paste connect)
 
-See [`recipes/`](./recipes/) for file, Granola-shaped, and Notion-shaped setup. In chat: `@fde I want to connect Granola` → skill `ingest-connect` walks the FDE through config + reload + verify.
+See [`recipes/`](./recipes/) for file, Granola-shaped, and Notion-shaped setup. In chat: `@fde I want to connect Granola` → skill `connect` walks the FDE through config + reload + verify.
 
 ## Adding a source MCP
 

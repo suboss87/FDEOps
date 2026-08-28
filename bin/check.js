@@ -63,8 +63,8 @@ if (fs.existsSync(path.join(root, 'skills', 'fde', 'archive'))) {
 // v3: one skill + phase references (progressive disclosure)
 const requiredReferences = [
   'land.md', 'discover.md', 'audit.md', 'plan.md', 'review.md',
-  'rescue.md', 'ship.md', 'sketch.md', 'close.md', 'dashboard.md',
-  'debrief.md', 'status.md', 'demo-prep.md',
+  'rescue.md', 'ship.md', 'poc.md', 'close.md', 'dashboard.md',
+  'debrief.md', 'readout.md', 'demo-prep.md',
   'healthcare.md', 'fintech.md', 'gov.md',
   'ai.md', 'eval-pack.md',
 ]
@@ -84,8 +84,8 @@ ok('phase references')
 // file the work lands in. Prose-only guidance drifts into advice nobody can apply.
 const exampleReferences = [
   'land.md', 'discover.md', 'plan.md', 'ship.md', 'close.md',
-  'status.md', 'stakeholder-radar.md', 'options-analysis.md', 'business-case.md',
-  'assumption-audit.md', 'scope-defense.md',
+  'readout.md', 'who-decides.md', 'three-options.md', 'business-case.md',
+  'test-assumptions.md', 'hold-scope.md',
 ]
 for (const f of exampleReferences) {
   const p = path.join(root, 'skills', 'fde', 'references', f)
@@ -115,7 +115,7 @@ for (const refFile of mentioned) {
 ok(`router dispatch (${mentioned.length} reference targets verified) + memory contract`)
 
 // Public claims must match the router. The docs advertise a method count and a
-// per-domain list; both drifted from SKILL.md once (ingest / ingest-connect
+// per-domain list; both drifted from SKILL.md once (ingest / connect
 // routed but undocumented), and a number nobody can verify is worse than none.
 {
   // Every routing row must parse. A row this misses is a method that could go
@@ -186,7 +186,7 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   }
   for (const rel of ['docs/skills.md', 'docs/skills-reference.md']) {
     const body = read(rel)
-    // `-` is a word boundary, so \bingest\b matches inside `ingest-connect`:
+    // `-` is a word boundary, so \bscore\b matches inside `score-use-cases`:
     // a method could disappear from the docs behind a hyphenated sibling.
     const absent = [...documented].filter(name => !new RegExp(`(?<![\\w-])${name}(?![\\w-])`).test(body))
     if (absent.length) fail(`${rel} does not list skill(s): ${absent.join(', ')}`)
@@ -262,7 +262,7 @@ if (!readme.includes('AI coding agent')) {
 }
 ok('README clarity sections')
 
-for (const cmd of ['/brief', '/discover', '/plan', '/ship', '/outcome', '/close', '/debrief', '/prep', '/quiet', '/agreed', '/status']) {
+for (const cmd of ['/brief', '/discover', '/plan', '/ship', '/outcome', '/close', '/debrief', '/prep', '/trust', '/receipts', '/readout']) {
   if (!readme.includes(cmd)) fail(`README must document slash command ${cmd}`)
 }
 if (/(^|[^\w/])\/got\b/.test(readme)) fail('README must use /outcome, not /got')
@@ -536,7 +536,7 @@ if (pkg.version !== plugin.version) {
 if (plugin.commands !== './.claude/commands' || plugin.skills !== './skills') {
   fail('.claude-plugin/plugin.json must declare skills and commands')
 } else {
-  for (const cmd of ['brief', 'discover', 'plan', 'ship', 'outcome', 'close', 'debrief', 'prep', 'quiet', 'agreed', 'status']) {
+  for (const cmd of ['brief', 'discover', 'plan', 'ship', 'outcome', 'close', 'debrief', 'prep', 'trust', 'receipts', 'readout']) {
     const rel = `.claude/commands/${cmd}.md`
     if (!fs.existsSync(path.join(root, rel))) fail(`${rel} missing`)
     else if (!read(rel).includes('@fde')) fail(`${rel} must load @fde`)
@@ -550,8 +550,8 @@ if (!fs.existsSync(path.join(root, 'mcp', 'fdeops-ingest', 'server.js'))) {
   fail('ingest MCP must expose ingest_stage')
 } else if (!read('skills/fde/references/ingest.md').includes('stage')) {
   fail('skills/fde/references/ingest.md missing stage contract')
-} else if (!fs.existsSync(path.join(root, 'skills', 'fde', 'references', 'ingest-connect.md'))) {
-  fail('skills/fde/references/ingest-connect.md missing')
+} else if (!fs.existsSync(path.join(root, 'skills', 'fde', 'references', 'connect.md'))) {
+  fail('skills/fde/references/connect.md missing')
 } else {
   for (const recipe of ['file.md', 'granola.md', 'slack.md', 'notion.md']) {
     if (!fs.existsSync(path.join(root, 'mcp', 'recipes', recipe))) fail(`mcp/recipes/${recipe} missing`)

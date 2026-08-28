@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.0 - 2026-08-28
+
+Skill and command names are the job, in the language of the embed. You can read the filename and know what it is: `who-decides`, `hold-scope`, `thin-slices`, `readout`. Slash tells match how you ask: `/trust` `/receipts` `/readout`. CLI verbs stay (`fde status`, `fde receipts`).
+
 ## 3.15.2 - 2026-08-28
 
 `/got` is now `/outcome`. Why is the product reason: agents forget the client; this is the record you take on site. Commands carry the tells. How Skills Work is the router. Project Structure lists every reference and slash command. Em dashes removed from copy.

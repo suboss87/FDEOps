@@ -66,9 +66,9 @@ The methodology is detailed (31 skills, routing logic, evidence format, memory c
 
 | Model class | Experience |
 |-------------|-----------|
-| **7-8B** (Llama 3.1 8B, Mistral 7B, Qwen 2.5 7B) | Handles individual skills (status, log, land). May struggle with complex routing or multi-skill sessions. Good for the CLI-heavy workflow where you invoke skills explicitly. |
+| **7-8B** (Llama 3.1 8B, Mistral 7B, Qwen 2.5 7B) | Handles individual skills (readout, log, land). May struggle with complex routing or multi-skill sessions. Good for the CLI-heavy workflow where you invoke skills explicitly. |
 | **13-34B** (Llama 3.1 13B, Mixtral 8x7B, Qwen 2.5 32B, DeepSeek-R1 32B) | Good across all domains. Routes correctly, follows memory contract, writes structured artifacts. Recommended minimum for full methodology use. |
-| **70B+** (Llama 3.1 405B, DeepSeek V3, Qwen 2.5 72B) | Full capability. Handles regulated overlays, multi-customer ops, exec-narrative pyramid structure, complex handoff engineering. |
+| **70B+** (Llama 3.1 405B, DeepSeek V3, Qwen 2.5 72B) | Full capability. Handles regulated overlays, switch-clients, board-memo pyramid, runbook handoff. |
 
 ## The CLI works without ANY model
 
@@ -107,4 +107,4 @@ ollama run my-fde-model --system "$(cat skills/fde/SKILL.md)"
 - **Context window matters.** SKILL.md + references can be large. Use a model with at least 8K context; 32K+ is ideal for loading skill references on demand.
 - **Temperature 0.2-0.4 works best.** The methodology is structured - lower temperature keeps routing accurate and artifacts consistent.
 - **Use the CLI for mechanics.** Don't ask the model to do what the CLI already does deterministically. Use `fde scan` for repo recon, `fde log` for memory writes, `fde receipts` for searching. Let the model handle judgment, routing, and artifact drafting.
-- **Explicit skill invocation.** If a smaller model struggles with routing, you can invoke skills directly: "@fde run the discover phase" or "@fde use scope-defense." The model skips routing and goes straight to the method.
+- **Explicit skill invocation.** If a smaller model struggles with routing, you can invoke skills directly: "@fde run the discover phase" or "@fde use hold-scope." The model skips routing and goes straight to the method.
