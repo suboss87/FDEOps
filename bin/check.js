@@ -41,12 +41,11 @@ for (const f of requiredTemplates) {
   else ok(`template ${f}`)
 }
 
-const gif = path.join(root, 'media', 'demo.gif')
-if (!fs.existsSync(gif) || fs.statSync(gif).size < 1000) {
-  fail('media/demo.gif missing or too small')
-} else {
-  ok('media/demo.gif')
+const deadMedia = ['demo.gif', 'demo.sh', 'demo.tape', 'terminal-demo.svg', 'fieldbook-dashboard.png', 'fieldbook-detail.png', 'fieldbook-walkthrough.gif']
+for (const name of deadMedia) {
+  if (fs.existsSync(path.join(root, 'media', name))) fail(`dead media/${name} must not ship — the recorded session is session.gif`)
 }
+ok('no staged mock media')
 
 for (const dir of fs.readdirSync(path.join(root, 'skills'))) {
   const skill = path.join(root, 'skills', dir, 'SKILL.md')
@@ -224,26 +223,20 @@ if (read('package.json').includes('postinstall')) {
 }
 
 const readme = read('README.md')
-// The README shows one recording: media/session.gif, a real CLI session.
-// media/demo.gif is a hand-typed mock kept for history - it must never be embedded,
-// or the front door shows output no command actually produced.
-if (readme.includes('demo.gif')) fail('README must not embed media/demo.gif (staged mock, not real CLI output)')
-else ok('README no staged demo gif')
+if (/session\.gif|demo\.gif|<img /i.test(readme)) {
+  fail('README must not embed images — front door is text; the recording lives in docs/USAGE.md')
+} else ok('README is text (no gif)')
 
-// The recording may live on the front door or one click in (docs/USAGE.md), but
-// it must stay reachable and reproducible - an orphaned gif rots silently.
-const recordingHosts = ['README.md', 'docs/USAGE.md'].filter(f => read(f).includes('media/session.gif'))
-if (!recordingHosts.length) {
-  fail('media/session.gif must be embedded in README.md or docs/USAGE.md (the recorded session is the proof)')
-} else if (!recordingHosts.some(f => read(f).includes('media/record-session.sh'))) {
-  fail('link media/record-session.sh next to the recording, so it can be re-recorded')
+const usage = read('docs/USAGE.md')
+if (!usage.includes('media/session.gif') || !usage.includes('media/record-session.sh')) {
+  fail('docs/USAGE.md must embed media/session.gif and link media/record-session.sh')
 } else {
   const gifPath = path.join(root, 'media', 'session.gif')
   const rec = path.join(root, 'media', 'record-session.sh')
   if (!fs.existsSync(gifPath) || fs.statSync(gifPath).size < 50000) fail('media/session.gif missing or too small')
   else if (!fs.existsSync(rec)) fail('media/record-session.sh missing - the recording must be reproducible')
   else if (!fs.existsSync(path.join(root, 'media', 'session.cast'))) fail('media/session.cast missing - keep the source recording next to the gif')
-  else ok(`recorded session in ${recordingHosts.join(' + ')} (gif + reproducible recorder + cast)`)
+  else ok('recorded session in docs/USAGE.md (gif + reproducible recorder + cast)')
 }
 
 // Every repo-relative README link and image must resolve, or the front door 404s.

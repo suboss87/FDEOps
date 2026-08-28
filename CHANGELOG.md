@@ -2,7 +2,7 @@
 
 ## 3.15.0 — 2026-08-28
 
-Production front door in the same shape as a public skill pack: command map, 30-second install (any agent + Claude Code), why it exists, then the method catalog (Use when). Stages are LAND → CLOSE everywhere — README, router, CLI, docs. Unused SDLC archive removed; leftover `build` phase name aliases to `ship`. Coding stays in the host agent.
+Production front door: command map, 30-second install, method catalog (Use when), then why it exists. README is text — no gif. Stages are LAND → CLOSE everywhere. Unused SDLC archive and staged mock media removed. Leftover `build` phase name aliases to `ship`. Coding stays in the host agent.
 
 ## 3.14.1 — 2026-08-28
 
