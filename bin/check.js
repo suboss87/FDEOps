@@ -535,6 +535,16 @@ const plugin = JSON.parse(read('.claude-plugin/plugin.json'))
 if (pkg.version !== plugin.version) {
   fail(`version mismatch package.json ${pkg.version} vs plugin ${plugin.version}`)
 } else ok('plugin version aligned')
+if (plugin.commands !== './.claude/commands' || plugin.skills !== './skills') {
+  fail('.claude-plugin/plugin.json must declare skills and commands')
+} else {
+  for (const cmd of ['brief', 'quiet', 'agreed', 'got', 'debrief']) {
+    const rel = `.claude/commands/${cmd}.md`
+    if (!fs.existsSync(path.join(root, rel))) fail(`${rel} missing`)
+    else if (!read(rel).includes('@fde')) fail(`${rel} must load @fde`)
+  }
+  ok('slash commands load @fde')
+}
 
 if (!fs.existsSync(path.join(root, 'mcp', 'fdeops-ingest', 'server.js'))) {
   fail('mcp/fdeops-ingest/server.js missing (ingest MCP sink)')

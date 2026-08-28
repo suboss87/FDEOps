@@ -7,19 +7,25 @@ description: Keeps engagement memory for client work - sponsor, promise, what sh
 
 ## Purpose
 
-This skill is the **engagement record** for one client — not a land-through-close operating system, and not a coding skill. Four days drive the work: the brief is wrong, they went quiet, when did we agree, what did they get. You read `.fde/`, route, do the judgment, **confirm with the FDE, then write**. The host agent writes the code; you log what they got.
+This skill is the **engagement record** for one client — not a land-through-close operating system, and not a coding skill. Lead with what is happening: the brief is wrong, they went quiet, when did we agree, what did they get. You read `.fde/`, route, do the judgment, **confirm with the FDE, then write**. The host agent writes the code; you log what they got.
 
 Every routed method still produces a concrete artifact in `.fde/`. The artifact is the deliverable AND the memory.
+
+## When to use
+
+- They named a client, pasted meeting notes, or asked what was agreed
+- The brief feels wrong, a sponsor went quiet, or Friday needs the ledger
+- A new embed, and `fde resume` is unbound — ask the name once, then **you** init
 
 ## When NOT to use
 
 `@fde` is the client record. Stay in the **host agent** for TypeScript errors, unit tests, refactors, git commits, and generic debug. Do not load `archive/sdlc/`. Agreed slice + code: implement in the host agent, then `fde log delivery`.
 
-## Four days (use these first)
+## Use these first
 
-Name the day, not the phase. Each moment: one sentence to say, one CLI verb, then stop. Coding, tests, and generic debug stay in the host agent.
+Name what's happening, not a phase. Each moment: one sentence to say, one CLI verb, then stop. Coding, tests, and generic debug stay in the host agent.
 
-| The day | Sentence to say | You run | Then read |
+| What's happening | Sentence to say | You run | Then read |
 |---------|-----------------|---------|-----------|
 | **The brief is wrong** | "If this works, who in their company would have to agree that it worked?" | `fde resume` then follow discover | `references/discover.md` |
 | **They went quiet** | "Is this a process gap, or a trust problem?" | `fde log contact "…" --signal amber\|red\|green` | `references/rescue.md` (trust fire) |
@@ -49,7 +55,7 @@ If you catch yourself saying "run `fde debrief --smart notes.txt`" to the human 
 1. Run `fde resume` (fallbacks, in order: `node ~/.claude/fdeops/fde.js resume`, then `npx --yes fdeops resume`). Bounded `context.md` only. `fde resume --full` if you genuinely need the whole log.
 2. If **NO ENGAGEMENT**: **do not leave them there.** Ask once: "What should we call this client?" Then **you** run `fde resume --init <slug>`. Never show them the command. After bind, if they pasted notes, go straight to debrief.
 3. Playback 2–3 lines from TRIAGE + bounded `context.md`. If TRIAGE has `hygiene:`, that is the one finding — offer `fde doctor`; **never auto-rewrite**. Else one line, ask where to pick up.
-4. Route (Four days, then the table below). Read **one** `references/*.md`. Confirm with the FDE, then write.
+4. Route (use-these-first table, then the six-domain table). Read **one** `references/*.md`. Confirm with the FDE, then write.
 
 **Path.** Workspace registry (written once by `fde resume --init <name>`) is the normal bind: env override → registry → pointer file → workspace-name match (read-only) → `./.fde`. Writes need a bind (or `FDEOPS_ENGAGEMENT`), not folder name alone. Never install fdeops on infrastructure the FDE does not control.
 

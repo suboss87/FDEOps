@@ -4,7 +4,7 @@
 
 **Terminology:** [README § Who this is for](../README.md#who-this-is-for) - **"agent" = AI software, not a human.**
 
-**Start here:** [README](../README.md) (four days → 30-second install → one chat).
+**Start here:** [README](../README.md) (what is happening → 30-second install → one chat).
 
 Day-to-day reference below.
 

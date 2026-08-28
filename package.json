@@ -1,7 +1,7 @@
 {
   "name": "fdeops",
-  "version": "3.13.0",
-  "description": "Engagement memory for AI coding agents. Your agent forgets the client every morning - the sponsor, the promise, who signed off. FDEOps keeps that as dated markdown on your laptop: one @fde skill for the four days of an embed, a deterministic local CLI, and hooks that make it automatic. Claude Code plugin and any agent that loads skills.",
+  "version": "3.13.1",
+  "description": "Engagement memory for AI coding agents. Your agent forgets the client every morning - the sponsor, the promise, who signed off. FDEOps keeps that as dated markdown on your laptop: one @fde skill, a deterministic local CLI, and hooks that make it automatic. Claude Code plugin and any agent that loads skills.",
   "bin": {
     "fdeops": "bin/install.js",
     "fde": "bin/fde.js"
