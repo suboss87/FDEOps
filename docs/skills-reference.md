@@ -1,8 +1,8 @@
-# fdeops Reference - one skill, 31 methods across 6 domains
+# fdeops Reference - one install, 31 skills across 6 domains
 
-v3 ships **one skill**: `@fde` ([skills/fde/SKILL.md](../skills/fde/SKILL.md)). You describe the situation; it routes to a phase and follows that phase's method from [skills/fde/references/](../skills/fde/references/). Engagement memory lives in `~/fde-engagements/<name>/.fde/` (one folder per customer).
+v3 ships **one skill**: `@fde` ([skills/fde/SKILL.md](../skills/fde/SKILL.md)). You describe the situation; it routes to a phase and follows that phase's skill from [skills/fde/references/](../skills/fde/references/). Engagement memory lives in `~/fde-engagements/<name>/.fde/` (one folder per customer).
 
-Each reference is a **method, not advice**: the thinking the agent does, the artifact it drafts, and the checkpoint with the human FDE. The **Use when** column below is what the router actually matches on - the phrases in `skills/fde/SKILL.md` that send you to that skill, not a paraphrase.
+Each skill is a **method, not advice**: the thinking the agent does, the artifact it drafts, and the checkpoint with the human FDE. The **Use when** column below is what the router actually matches on - the phrases in `skills/fde/SKILL.md` that send you to that skill, not a paraphrase.
 
 ---
 
@@ -93,7 +93,7 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 
 The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 31. Generic SDLC (`build`, `debug`, `observability`, `qa-live`, `security-audit`, `test-on-legacy`) lives in [`skills/fde/archive/sdlc/`](../skills/fde/archive/sdlc/) and is **not routed**.
 
-| Phase | Enter when | Method highlights | Writes |
+| Phase | Enter when | Skill highlights | Writes |
 |-------|-----------|-------------------|--------|
 | [land](../skills/fde/references/land.md) | New customer, first meeting | Interrogates the brief for what's missing; coaches the sponsor conversation; maps stakeholders and sacred data | `brief.md` `success.md` `stakeholders.md` `trust-profile.md` |
 | [discover](../skills/fde/references/discover.md) | Brief feels wrong, real problem unclear | Runs churn/test-gap/"temporary"-archaeology/AI-component scans; hunts the workaround; scores use cases | `reality.md` `terrain.md` |

@@ -169,34 +169,34 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
     }
   }
   if (documented.size !== documentedRows) {
-    fail(`docs/skills-reference.md lists ${documentedRows} method rows for ${documented.size} methods - a duplicate row inflates the count`)
+    fail(`docs/skills-reference.md lists ${documentedRows} skill rows for ${documented.size} skills - a duplicate row inflates the count`)
   }
   const undocumented = [...routed].filter(name => !documented.has(name))
   if (undocumented.length) {
     fail(`SKILL.md routes skill(s) missing from docs/skills-reference.md: ${undocumented.join(', ')}`)
   }
-  // and the other direction: a documented method nothing routes to is a method
+  // and the other direction: a documented skill nothing routes to is a skill
   // the agent can never reach, advertised anyway.
   const unrouted = [...documented].filter(name => !routed.has(name))
   if (unrouted.length) {
-    fail(`docs/skills-reference.md documents method(s) SKILL.md never routes to: ${unrouted.join(', ')}`)
+    fail(`docs/skills-reference.md documents skill(s) SKILL.md never routes to: ${unrouted.join(', ')}`)
   }
   for (const rel of ['docs/skills.md', 'docs/skills-reference.md']) {
     const body = read(rel)
     // `-` is a word boundary, so \bingest\b matches inside `ingest-connect`:
-    // a method could disappear from the docs behind a hyphenated sibling.
+    // a skill could disappear from the docs behind a hyphenated sibling.
     const absent = [...documented].filter(name => !new RegExp(`(?<![\\w-])${name}(?![\\w-])`).test(body))
-    if (absent.length) fail(`${rel} does not list method(s): ${absent.join(', ')}`)
+    if (absent.length) fail(`${rel} does not list skill(s): ${absent.join(', ')}`)
     // every count claim, not just the first: an earlier sentence must not shadow
     // a stale headline (or the reverse).
-    const claims = [...body.matchAll(/(\d+)\s+methods/g)].map(m => Number(m[1]))
-    if (!claims.length) fail(`${rel} must state how many methods it documents`)
+    const claims = [...body.matchAll(/(\d+)\s+skills/g)].map(m => Number(m[1]))
+    if (!claims.length) fail(`${rel} must state how many skills it documents`)
     const wrong = [...new Set(claims.filter(n => n !== documented.size))]
     if (wrong.length) {
-      fail(`${rel} claims ${wrong.join('/')} methods; ${documented.size} are documented`)
+      fail(`${rel} claims ${wrong.join('/')} skills; ${documented.size} are documented`)
     }
   }
-  ok(`public method count is verifiable (${documented.size} documented, ${routed.size} routed)`)
+  ok(`public skill count is verifiable (${documented.size} documented, ${routed.size} routed)`)
 }
 
 const install = read('bin/install.js')

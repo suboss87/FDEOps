@@ -3,7 +3,8 @@
 ## 3.14.0 — 2026-08-28
 
 ### Changed
-- **Command map on the front door** — four situations as a map, then slash commands as method cards. `/prep` and `/status` added. The 31 methods stay in a details block.
+- **Command map on the front door** — four situations as a map, then slash commands as skill cards. `/prep` and `/status` added. The 31 skills stay in a details block.
+- **"Skills", not "methods", in public copy** — the category line says skills, so the docs and the count gate now say it too (README, `docs/skills.md`, `docs/skills-reference.md`, `bin/check.js`). Nothing is renamed on disk and nothing is separately installable: `@fde` is still the one skill a host loads, and the 31 remain references it routes to. "Method" survives only where it describes what a skill *is* — thinking, artifact, checkpoint, not advice.
 
 ## 3.13.2 — 2026-08-28
 

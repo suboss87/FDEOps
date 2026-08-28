@@ -23,7 +23,7 @@ The AI coding agent forgets the client. fdeops is the countersigned record — p
 
 ## Commands
 
-What you are doing. Each command is a full procedure that loads `@fde`. One skill; you never pick a method. These four are situations, not a sequence.
+What you are doing. Each command is a full procedure that loads `@fde`. One skill; you never pick a skill by name. These four are situations, not a sequence.
 
 | What you're doing | Command | Principle |
 |-------------------|---------|-----------|
@@ -90,7 +90,7 @@ npx fdeops resume               # where we are
 
 ## Use when
 
-Eight moments on an embed. One `@fde` skill routes each — you never pick a method.
+Eight moments on an embed. One `@fde` skill routes each — you never pick one by name.
 
 | Moment | What it does | Use when | Command |
 |--------|--------------|----------|---------|
@@ -214,7 +214,7 @@ Ordinary TypeScript, unit tests, and git commits stay in the host agent.
 ## Principles
 
 - **The artifact is the memory** — producing the work and recording it are one action
-- **Methods, not autonomy** — the kit says what to check; judgment stays yours
+- **Skills, not autonomy** — the kit says what to check; judgment stays yours
 - **Brief is a hypothesis** — discover before building the wrong thing
 - **Evidence on every claim** — these files get defended in the room
 - **One customer, one folder** — context never bleeds
@@ -238,11 +238,11 @@ Re-run the Quickstart install, or from a clone: `git pull && node bin/install.js
 ---
 
 <details>
-<summary>31 field methods (you never pick one)</summary>
+<summary>31 field skills (you never pick one)</summary>
 
-You describe the situation; `@fde` routes. **31 methods**, six domains — each a method (thinking, artifact, checkpoint), not a tip sheet. [docs/skills.md](docs/skills.md) · [docs/skills-reference.md](docs/skills-reference.md)
+You describe the situation; `@fde` routes. **31 skills**, six domains — each one thinking, artifact and checkpoint, not a tip sheet. [docs/skills.md](docs/skills.md) · [docs/skills-reference.md](docs/skills-reference.md)
 
-| Domain | Methods |
+| Domain | Skills |
 |--------|---------|
 | **1. Embed & Trust** | [land](skills/fde/references/land.md) · [audit](skills/fde/references/audit.md) · [stakeholder-radar](skills/fde/references/stakeholder-radar.md) · [trust-engineering](skills/fde/references/trust-engineering.md) · [scope-defense](skills/fde/references/scope-defense.md) |
 | **2. Discover & Diagnose** | [discover](skills/fde/references/discover.md) · [assumption-audit](skills/fde/references/assumption-audit.md) · [use-case-scoring](skills/fde/references/use-case-scoring.md) · [sketch](skills/fde/references/sketch.md) |
