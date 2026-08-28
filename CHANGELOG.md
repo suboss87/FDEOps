@@ -1,9 +1,10 @@
 # Changelog
 
-## Unreleased
+## 3.13.2 — 2026-08-28
 
 ### Changed
 - **Category line** — Forward deployed engineering skills for AI coding agents.
+- **One skill, tighter router** — `@fde` is the brain; slash commands are the menu; methods stay references. The human never picks a skill.
 
 ## 3.13.1 — 2026-08-28
 

@@ -10,13 +10,13 @@ The AI coding agent forgets the client. fdeops is the countersigned record — p
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-One `@fde` skill. Say what is happening: the brief is wrong, they went quiet, when did we agree, what did they get. The host agent still writes the TypeScript. This skill is the engagement record.
+One `@fde` skill. The AI coding agent picks the method. You confirm the record. The host agent still writes the TypeScript.
 
 ---
 
 ## The week
 
-What you are doing. `@fde` plus English — no cheat sheet. Claude Code also gets slash commands that load the same skill.
+What you are doing. English, or a slash command. One skill — you never pick a method.
 
 | What you're doing | Command | Principle |
 |-------------------|---------|-----------|
