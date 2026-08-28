@@ -11,30 +11,32 @@ The AI coding agent forgets the client. fdeops is the countersigned record — p
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
 ```text
-  BRIEF WRONG         THEY WENT QUIET        WHEN DID WE AGREE        WHAT DID THEY GET
- ┌────────────┐      ┌──────────────┐      ┌───────────────┐      ┌─────────────────┐
- │ real       │      │ process vs   │      │ dated         │      │ promised →      │
- │ problem    │      │ trust        │      │ receipts      │      │ accepted        │
- └────────────┘      └──────────────┘      └───────────────┘      └─────────────────┘
-    /brief               /quiet                /agreed                  /got
+  LAND              DISCOVER           PLAN              SHIP               PROVE              CLOSE
+ ┌────────┐      ┌────────┐      ┌────────┐      ┌────────┐      ┌────────┐      ┌────────┐
+ │  Brief │ ───▶ │ Reality│ ───▶ │ Sequence│───▶ │  Live  │ ───▶ │ Signed │ ───▶ │  They  │
+ │  Trust │      │ Terrain│      │  Align │      │  slice │      │   off  │      │   run  │
+ └────────┘      └────────┘      └────────┘      └────────┘      └────────┘      └────────┘
+  /brief           /discover          /plan             /ship              /got              /close
 ```
 
 ---
 
 ## Commands
 
-What you are doing. Each command is a full procedure that loads `@fde`. One skill; you never pick a skill by name. These four are situations, not a sequence.
+The embed, left to right. Each command loads `@fde` and runs that stage. One skill; you never pick one by name.
 
 | What you're doing | Command | Principle |
 |-------------------|---------|-----------|
-| **The brief is wrong** | `/brief` · `@fde this is Acme. Brief says they want a portal.` | Real problem before more code |
-| **They went quiet** | `/quiet` · `@fde the sponsor went quiet` | Process gap vs trust problem |
-| **When did we agree?** | `/agreed` · `@fde when did we agree to drop that?` | Dated receipts, or a gap |
-| **What did they get?** | `/got` · `@fde what did they get this week` | Promised → measured → accepted |
-| **After a meeting** | `/debrief` · `@fde` debrief these notes *(paste)* | Proposed updates. You confirm. |
-| **Walk-in tomorrow** | `/prep` · `@fde prep me for the sponsor` | Brief from the record, nothing invented |
-| **Friday ledger** | `/status` · `@fde draft the sponsor update` | Promised → measured → accepted |
-| **Optional: pull** | `@fde` connect Granola · `@fde` pull today's transcript | You add that source MCP. We **pull** on request. [mcp/recipes/](mcp/recipes/) |
+| Land the embed | `/brief` | Brief and trust before code |
+| Find the real problem | `/discover` | Brief is a hypothesis |
+| Plan the sequence | `/plan` | Backwards from done |
+| Ship a slice | `/ship` | Pre-flight, then live |
+| Prove what they got | `/got` | Promised → measured → accepted |
+| Close the embed | `/close` | They can run it without you |
+| After a meeting | `/debrief` | Proposed updates. You confirm. |
+| Walk-in tomorrow | `/prep` | From the record, nothing invented |
+
+Also: `/quiet` (sponsor went silent) · `/agreed` (scope dispute) · `/status` (Friday readout) · `@fde` connect / pull ([mcp/recipes/](mcp/recipes/))
 
 First chat: you name the client; the AI coding agent binds. Same folder every time: `~/fde-engagements/<client>/.fde/`.
 
@@ -44,7 +46,7 @@ First chat: you name the client; the AI coding agent binds. Same folder every ti
 
 **30-second setup.** Pick one — both copies `@fde` twice.
 
-Claude Code (hooks before you type; slash commands `/brief` `/quiet` `/agreed` `/got` `/debrief` `/prep` `/status`):
+Claude Code (hooks before you type; slash commands `/brief` `/discover` `/plan` `/ship` `/got` `/close` `/debrief` `/prep`):
 
 ```text
 /plugin marketplace add suboss87/fdeops
@@ -90,18 +92,18 @@ npx fdeops resume               # where we are
 
 ## Use when
 
-Eight moments on an embed. One `@fde` skill routes each — you never pick one by name.
+One `@fde` skill. Commands follow the embed. You never pick one by name.
 
-| Moment | What it does | Use when | Command |
-|--------|--------------|----------|---------|
-| **The brief is wrong** | Surfaces the real problem before more code | Kickoff notes don't match what ops actually runs | `/brief` |
-| **They went quiet** | Separates process gap from trust problem; logs a dated signal | The sponsor stops answering | `/quiet` |
-| **When did we agree?** | Searches dated receipts — no hit is a gap, not proof | Someone remembers a commitment differently | `/agreed` |
-| **What did they get?** | Reads promised → measured → accepted out loud | Friday, or anyone asks what shipped | `/got` |
-| **After a meeting** | Routes notes into proposed `.fde/` updates | You paste debrief notes from a call | `/debrief` |
-| **Walk-in tomorrow** | Brief from the record — nothing invented | Sponsor meeting in the morning | `/prep` |
-| **Friday ledger** | Draft sponsor update from the countersigned record | End of week status | `/status` |
-| **Optional: pull** | Fetch transcript or thread via a source MCP you add | You want Granola, Slack, or Notion text pulled on request | `@fde` connect · `@fde` pull |
+| Stage | What it does | Use when | Command |
+|-------|--------------|----------|---------|
+| **Land** | Brief, access, who decides | First days, new client, just got the SOW | `/brief` |
+| **Discover** | The real problem vs the slide | The brief does not match what ops runs | `/discover` |
+| **Plan** | Sequence backwards from done | Need order, PRs, what “done” is | `/plan` |
+| **Ship** | Pre-flight, live, rollback | Going to production | `/ship` |
+| **Prove** | Promised → measured → accepted | Anyone asks what they got | `/got` |
+| **Close** | Handoff they can run | You are leaving | `/close` |
+| **Debrief** | Notes into the record | You just left a meeting | `/debrief` |
+| **Prep** | Walk-in brief from the files | Meeting in the morning | `/prep` |
 
 ---
 
