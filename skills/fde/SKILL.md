@@ -17,7 +17,7 @@ The **engagement record** for one client. Not a coding skill. Not a land-through
 
 ## When NOT to use
 
-TypeScript errors, unit tests, refactors, git commits, generic debug: **host agent**. Do not load `archive/sdlc/`. Agreed slice + code: implement in the host, then `fde log delivery`.
+TypeScript errors, unit tests, refactors, git commits, generic debug: **host agent**. Agreed slice + code: implement in the host, then `fde log delivery`.
 
 ## Use these first
 

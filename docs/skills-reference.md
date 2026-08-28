@@ -91,7 +91,7 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 
 ## Engagement phases (quick reference)
 
-The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 31. Generic SDLC (`build`, `debug`, `observability`, `qa-live`, `security-audit`, `test-on-legacy`) lives in [`skills/fde/archive/sdlc/`](../skills/fde/archive/sdlc/) and is **not routed**.
+The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 31. Generic SDLC (build, debug, tests, commits) stays in the host agent — not routed here.
 
 | Phase | Enter when | Method highlights | Writes |
 |-------|-----------|-------------------|--------|

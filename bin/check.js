@@ -249,7 +249,7 @@ else ok('README links all resolve')
 
 for (const section of [
   'How it works',
-  'Quickstart',
+  'Quick Start',
   'Engagement memory',
   'Who this is for',
   'Commands',

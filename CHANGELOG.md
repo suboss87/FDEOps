@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.15.0 — 2026-08-28
+
+Production front door: command map, then 30-second install, then why it exists, then the method catalog (Use when). Unused SDLC archive removed; coding stays in the host agent.
+
 ## 3.14.1 — 2026-08-28
 
 ### Changed
