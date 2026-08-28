@@ -1,8 +1,8 @@
 # business-case - the economics that get the sponsor to say yes
 
-**Enter when:** the sponsor needs justification for the next phase, the FDE needs to defend budget or timeline, a feature decision needs cost/benefit evidence, or sketch produced a direction that needs funding.
+**Enter when:** the sponsor needs justification for the next phase, the FDE needs to defend budget or timeline, a feature decision needs cost/benefit evidence, or poc produced a direction that needs funding.
 
-**Read first:** `reality.md`, `success.md`, `delivery.md`, `context.md`. Load `business-case.md` from sketch if it exists - extend it, don't restart.
+**Read first:** `reality.md`, `success.md`, `delivery.md`, `context.md`. Load `business-case.md` from poc if it exists - extend it, don't restart.
 
 Technical FDEs lose engagements by shipping good code without business justification. The sponsor's boss doesn't ask "is the code clean?" - they ask "what did we get for the money?" A business case translates technical work into the language that keeps the engagement alive.
 

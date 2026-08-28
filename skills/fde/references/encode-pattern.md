@@ -1,4 +1,4 @@
-# pattern-extract - if you did it twice, encode it
+# encode-pattern - if you did it twice, encode it
 
 **Enter when:** the engagement is closing and reusable patterns exist, a technique worked well and will apply to future clients, the FDE notices themselves doing the same thing on a second engagement, or close identified a pattern worth preserving.
 

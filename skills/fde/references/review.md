@@ -34,7 +34,7 @@ Also check:
 
 **Stage 1 fails → stop** if any SPLIT/DROP remains, or JUSTIFY lacks a written sentence. Quality review on out-of-scope code is wasted work. Record the mismatch (and the KEEP/JUSTIFY/SPLIT/DROP tally) in `decisions.md`.
 
-Stakeholder "also can you…" mid-build is `scope-defense` - different axis. This stage is **code vs claim**.
+Stakeholder "also can you…" mid-build is `hold-scope` - different axis. This stage is **code vs claim**.
 
 ## Stage 2 - is it safe to live with?
 

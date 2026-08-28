@@ -12,7 +12,7 @@ Run `fde status` (fallback: `npx --yes fdeops status`). Read the ledger out loud
 
 Call out gaps: promised but not measured, measured but not accepted, accepted without a named signer. Do not smooth over missing acceptance.
 
-Read `references/status.md` and follow it for how to present the ledger and what to offer next.
+Read `references/readout.md` and follow it for how to present the ledger and what to offer next.
 
 Do not invent metrics or sign-off. Numbers without a source in `.fde/` stay `unknown - ask: <question>`.
 

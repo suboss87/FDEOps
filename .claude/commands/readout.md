@@ -10,7 +10,7 @@ This is for the sponsor-facing update - not a standup or a code review.
 
 Run `fde status` (fallback: `npx --yes fdeops status`). Lead with the **value ledger**: promised → measured → accepted. That is what the sponsor cares about first.
 
-Read `references/status.md` and follow it for update shape, gaps to call out, and what to offer next.
+Read `references/readout.md` and follow it for update shape, gaps to call out, and what to offer next.
 
 Name what is delivered vs still claimed. Flag acceptance missing a named signer. Surface one trust or scope signal if the record shows amber or red.
 

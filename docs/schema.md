@@ -20,7 +20,7 @@ After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same rou
 |------|---------|------------|
 | `context.md` | Compact state; loaded every session; dated debrief blocks | every phase + the `session-stop` hook (auto-capture) + `fde debrief` |
 | `brief.md` | Stated problem (hypothesis) | land |
-| `assumptions.md` | Brief claims under test: OPEN / CONFIRMED / DISPROVED | land (seed), assumption-audit, discover |
+| `assumptions.md` | Brief claims under test: OPEN / CONFIRMED / DISPROVED | land (seed), test-assumptions, discover |
 | `success.md` | Definition of done + primary value bucket + out of scope | land |
 | `stakeholders.md` | Champions, resistance, `[signal:green\|amber\|red]` trust tokens | land (updated continuously), `fde log contact --signal`, `fde debrief` |
 | `trust-profile.md` | Sacred data, AI policy (`<private>` tags) | land, overlays |
@@ -31,7 +31,7 @@ After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same rou
 |------|---------|------------|
 | `reality.md` | Actual problem vs brief | discover |
 | `terrain.md` | Codebase map, hotspots, test gaps, exception-led operating map (doctor requires ≥1 row from plan+) | discover, audit |
-| `decisions.md` | Plan + kill list + technical choices + reviews | plan, initiative-triage, build, review, `fde debrief` |
+| `decisions.md` | Plan + kill list + technical choices + reviews | plan, pick-three, build, review, `fde debrief` |
 | `risks.md` | Live risk register | plan, build, rescue, `fde debrief` |
 | `delivery.md` | Value ledger (bucket → promised → measured → accepted by → evidence) + ship receipts + status memos | build, ship, status, close, `fde debrief` |
 
@@ -66,8 +66,8 @@ The rationale is the line a successor cannot reconstruct from the code.
 
 | File | Purpose |
 |------|---------|
-| `business-case.md` | Scored use case / pitch (sketch) |
-| `prototype-log.md` | Prototype learnings (sketch) |
+| `business-case.md` | Scored use case / pitch (poc) |
+| `prototype-log.md` | Prototype learnings (poc) |
 | `evals.md` | AI-touching eval pack: goldens, failure modes, SHIP/NO-SHIP, HITL (not required for non-AI) |
 
 ## Rules

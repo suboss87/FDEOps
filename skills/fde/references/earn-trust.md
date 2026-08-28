@@ -1,4 +1,4 @@
-# trust-engineering - earning commit access one move at a time
+# earn-trust - earning commit access one move at a time
 
 **Enter when:** new engagement where you don't have full access yet, trust is thin, the customer said "let's start small," or you need to navigate "we don't trust AI-generated code."
 

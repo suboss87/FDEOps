@@ -12,12 +12,12 @@ The full map is below; per-skill details live in [skills-reference.md](./skills-
 
 | Stage | Skills | What it covers |
 |--------|--------|---------------|
-| **Land** | land, audit, stakeholder-radar, trust-engineering, scope-defense | First days: access, credibility, scope |
-| **Discover** | discover, assumption-audit, use-case-scoring, sketch | Finding the real problem behind the brief |
-| **Plan** | plan, business-case, options-analysis, initiative-triage | Sequencing work, getting sponsor alignment |
-| **Ship** | incremental-build, blast-radius, rescue, ship, review, rollback-drill | Visible slices, go-live, rollback - not generic debug/build |
-| **Prove** | status, demo-prep, debrief, exec-narrative, dashboard, ingest, ingest-connect | The outcome; pulling from source MCPs |
-| **Close** | close, handoff-engineering, multi-customer-ops, pattern-extract, red-team | They can run it without you |
+| **Land** | land, audit, who-decides, earn-trust, hold-scope | First days: access, credibility, scope |
+| **Discover** | discover, test-assumptions, score-use-cases, poc | Finding the real problem behind the brief |
+| **Plan** | plan, business-case, three-options, pick-three | Sequencing work, getting sponsor alignment |
+| **Ship** | thin-slices, what-breaks, rescue, ship, review, rollback | Visible slices, go-live, rollback - not generic debug/build |
+| **Prove** | readout, demo-prep, debrief, board-memo, dashboard, ingest, connect | The outcome; pulling from source MCPs |
+| **Close** | close, runbook, switch-clients, encode-pattern, red-team | They can run it without you |
 
 Each skill is a workflow, not advice: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.
 

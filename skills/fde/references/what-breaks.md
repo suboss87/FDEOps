@@ -1,4 +1,4 @@
-# blast-radius - know what breaks before you touch it
+# what-breaks - know what breaks before you touch it
 
 **Enter when:** about to make a change on a system you don't fully understand, touching a high-churn module from `terrain.md`, modifying shared infrastructure (auth, database, messaging), or the FDE asks "what could go wrong?"
 
@@ -38,7 +38,7 @@ IRREVERSIBLE → Cannot be rolled back without data loss or manual intervention
                Example: data migration, dropping a column, changing encryption keys
 ```
 
-**3. The blast-radius declaration.** Before writing any code, state it explicitly in `decisions.md`:
+**3. The what-breaks declaration.** Before writing any code, state it explicitly in `decisions.md`:
 
 ```markdown
 ## Blast radius: <change name>
@@ -72,7 +72,7 @@ Time to detect: <5 minutes via error rate alert
 
 ## Artifact
 
-**`decisions.md`** - the blast-radius declaration, filed before the change starts. Updated if the blast radius grew during implementation.
+**`decisions.md`** - the what-breaks declaration, filed before the change starts. Updated if the blast radius grew during implementation.
 
 **`risks.md`** - new risks discovered during the trace (the invisible integrations, the midnight cron job).
 

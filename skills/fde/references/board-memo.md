@@ -1,4 +1,4 @@
-# exec-narrative - the story that gets the next phase funded
+# board-memo - the story that gets the next phase funded
 
 **Enter when:** the sponsor's boss needs a summary, a board update mentions the engagement, the FDE needs to justify continued investment, or a quarterly review is approaching.
 

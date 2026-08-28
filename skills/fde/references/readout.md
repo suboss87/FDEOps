@@ -1,4 +1,4 @@
-# status - the sponsor update that keeps the engagement alive
+# readout - the sponsor update that keeps the engagement alive
 
 **Enter when:** the weekly update is due, an exec asks "where are we," or the FDE says "I need to send Dana something." This artifact decides renewals; engineers underinvest in it.
 
@@ -24,7 +24,7 @@ Then add, still on the same page:
 
 Exec voice: no jargon, no hedging, every claim traceable (`(shipped Tue, delivery.md)`). Draft in the **FDE's voice, for the FDE to send** - never send anything yourself.
 
-For board / renewal / sponsor's boss (longer pyramid): use `exec-narrative.md`. Do not invent a second weekly format.
+For board / renewal / sponsor's boss (longer pyramid): use `board-memo.md`. Do not invent a second weekly format.
 
 ## Artifact
 

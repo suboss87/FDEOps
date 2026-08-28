@@ -1,4 +1,4 @@
-# incremental-build - thin slices on someone else's codebase
+# thin-slices - thin slices on someone else's codebase
 
 **Enter when:** the build task is larger than a single PR, multiple files or systems are involved, or the FDE needs to show visible progress to a stakeholder every 2-3 days.
 
@@ -78,7 +78,7 @@ Technical progress invisible to stakeholders is trust decay. `delivery.md` gets 
 **6. The scope trap.** Mid-slice discoveries - "this module also needs updating," "I should refactor this while I'm here":
 
 - If it's in `decisions.md`: do it as a separate slice.
-- If it's NOT in `decisions.md`: log it as a scope receipt (see `scope-defense.md`), don't touch it.
+- If it's NOT in `decisions.md`: log it as a scope receipt (see `hold-scope.md`), don't touch it.
 - The hardest discipline: leaving ugly code alone when it's not in your slice.
 
 ## Artifact
