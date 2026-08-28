@@ -647,4 +647,35 @@ if (!fs.existsSync(path.join(root, '.github', 'ISSUE_TEMPLATE', 'bug_report.yml'
   fail('GitHub issue template missing')
 } else ok('issue templates')
 
+if (!fs.existsSync(path.join(root, 'CODE_OF_CONDUCT.md'))) {
+  fail('CODE_OF_CONDUCT.md missing — GitHub community profile needs it')
+} else ok('CODE_OF_CONDUCT.md')
+
+if (!fs.existsSync(path.join(root, '.github', 'PULL_REQUEST_TEMPLATE.md'))) {
+  fail('.github/PULL_REQUEST_TEMPLATE.md missing — GitHub community profile needs it')
+} else ok('pull request template')
+
+if (!fs.existsSync(path.join(root, '.github', 'ISSUE_TEMPLATE', 'question.md'))) {
+  fail('.github/ISSUE_TEMPLATE/question.md missing — community profile needs a markdown template with name/about')
+} else {
+  const q = read('.github/ISSUE_TEMPLATE/question.md')
+  if (!/^---[\s\S]*\nname:/m.test(q) || !/^---[\s\S]*\nabout:/m.test(q)) {
+    fail('question.md must have YAML name: and about: so GitHub ticks issue templates')
+  } else ok('markdown issue template (name + about)')
+}
+
+{
+  const mktPath = path.join(root, '.claude-plugin', 'marketplace.json')
+  if (!fs.existsSync(mktPath)) fail('.claude-plugin/marketplace.json missing — /plugin marketplace add needs it')
+  else {
+    const mkt = JSON.parse(read('.claude-plugin/marketplace.json'))
+    const plug = (mkt.plugins || [])[0]
+    if (mkt.name !== 'fdeops' || !plug || plug.source !== './') {
+      fail('marketplace.json must name fdeops and list source ./')
+    } else if (!mkt.description && !(mkt.metadata && mkt.metadata.description)) {
+      fail('marketplace.json needs a description for the plugin directory')
+    } else ok('claude marketplace.json')
+  }
+}
+
 process.exit(failed)

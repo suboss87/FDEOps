@@ -13,7 +13,7 @@ This repository reflects one operator’s field kit - open-sourced for other FDE
 | [GitHub Issues](https://github.com/suboss87/fdeops/issues) | Bugs, gaps (“situation X isn’t covered”), anonymized patterns that worked |
 | [Discussions](https://github.com/suboss87/fdeops/discussions) | Questions about fit on an engagement type, workflow ideas, show-and-tell |
 
-**Do not** open PRs with client-identifying data, `.fde/` exports, or screenshots containing real names.
+Participation is covered by the [Code of Conduct](CODE_OF_CONDUCT.md). **Do not** open PRs or issues with client-identifying data, `.fde/` exports, or screenshots containing real names.
 
 ---
 
