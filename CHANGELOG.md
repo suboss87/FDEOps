@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- **Category line** — Forward deployed engineering skills for AI coding agents.
+
 ## 3.13.1 — 2026-08-28
 
 Slash commands for the four situations, and the nickname “four days” is gone from the front door.
