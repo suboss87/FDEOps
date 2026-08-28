@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.14.1 — 2026-08-28
+
+### Changed
+- **Front-door map is the embed** — LAND → DISCOVER → PLAN → SHIP → PROVE → CLOSE, with `/brief` `/discover` `/plan` `/ship` `/got` `/close` under the boxes. Commands table is the job, left to right.
+
 ## 3.14.0 — 2026-08-28
 
 ### Changed
