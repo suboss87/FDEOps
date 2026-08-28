@@ -227,7 +227,9 @@ if (/\.gif\b/i.test(readme)) {
   fail('README must not embed a recording - the gif lives in docs/USAGE.md, next to its recorder')
 } else if (readmeImages > 1) {
   fail(`README must carry at most one poster image (found ${readmeImages}) - the rest of the front door is text`)
-} else ok('README front door is text plus at most one poster')
+} else if (/(?:<img[^>]*src="|!\[[^\]]*\]\()https?:/i.test(readme)) {
+  fail('the poster must live in the repo (media/), not on a URL that can disappear')
+} else ok('README front door is text plus at most one repo-hosted poster')
 
 const usage = read('docs/USAGE.md')
 if (!usage.includes('media/session.gif') || !usage.includes('media/record-session.sh')) {
@@ -664,7 +666,8 @@ function findUnicodeDashes(dir, acc = []) {
     if (e.name === '.git' || e.name === 'node_modules' || e.name === '.agents') continue
     const p = path.join(dir, e.name)
     if (e.isDirectory()) findUnicodeDashes(p, acc)
-    else if (e.name === 'session.cast' || e.name === 'session.gif') continue
+    // Copy is text. Binaries carry the same bytes by coincidence, and are not copy.
+    else if (/\.(cast|gif|png|jpg|jpeg|webp|mp4|ico|woff2?)$/i.test(e.name)) continue
     else {
       let t
       try { t = fs.readFileSync(p, 'utf8') } catch { continue }
