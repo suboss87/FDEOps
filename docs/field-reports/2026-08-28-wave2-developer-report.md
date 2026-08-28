@@ -23,7 +23,7 @@ All three would take it to a client on Monday. All three taped a rule to the mon
 
 The method is the product and it is genuinely strong: `@fde` routed to the right reference unprompted in
 **48 of 51** exercised cases (misses: `fintech` needed the word "payments"; `encode-pattern` and the
-adapters needed naming). References changed what the FDE actually *did* — not just what they wrote down —
+adapters needed naming). References changed what the FDE actually *did* - not just what they wrote down - 
 at least six times per run: `review.md` stage 2 caught a real `nil []string` → JSON `null` bug in run B's
 own change that stage 1 had passed; `what-breaks.md`'s who-notices column reframed run B's entire
 engagement; `score-use-cases` demoted the sponsor's pet chatbot to 10/375 and gave run A a number to hold
@@ -45,9 +45,9 @@ Verification of #71's test plan: **4 PASS / 5 PARTIAL / 0 FAIL** (comment on #71
 
 | Fix | Reported case | Class |
 |---|---|---|
-| Person-keyed signals | **fixed** — Marcus Hale resolves across bullets, RED clears | **open** — a bullet naming nobody still mints a stakeholder |
-| Redact commit subject | **fixed** — subject is `redact 1 line(s)` | **open** — `.fde/.last-write` retains the secret verbatim after `--apply` (run C) |
-| Dashboard fail-loud | **fixed** — half-filled `reality.md` prints `UNREADABLE …` | **open** — empty, or right-headings-with-empty-bodies, warns nothing |
+| Person-keyed signals | **fixed** - Marcus Hale resolves across bullets, RED clears | **open** - a bullet naming nobody still mints a stakeholder |
+| Redact commit subject | **fixed** - subject is `redact 1 line(s)` | **open** - `.fde/.last-write` retains the secret verbatim after `--apply` (run C) |
+| Dashboard fail-loud | **fixed** - half-filled `reality.md` prints `UNREADABLE …` | **open** - empty, or right-headings-with-empty-bodies, warns nothing |
 
 Signal extraction, reproduced by me on `a1d1ec1`:
 
@@ -61,7 +61,7 @@ $ fde prep
 A stakeholder named `batch` still pins the engagement RED. Across the three runs the keys minted were
 `batch`, `still`, `Friday`, `Dr`, `pinged`, `Zo` (from `Zoë Ngô`), `the` (a team line), and a
 first-name-only line created a **second** entry for a person already in the table. Two people sharing a
-first name (`Will` and `Will Chen`) collapse to one key — so **one Will's green clears the other's amber**.
+first name (`Will` and `Will Chen`) collapse to one key - so **one Will's green clears the other's amber**.
 A two-person bullet resolves the first and **silently drops the second**. Also: `doctor`'s
 identity-cluster lint does not cluster `Ingrid Halvorsen` / `ingrid h` / `I. Halvorsen`, and when it does
 fire it never names the offending strings, so it is unactionable.
@@ -78,7 +78,7 @@ Severity is "in front of a paying client". Items marked **(reproduced)** I ran m
 ### Blockers
 
 **1. `receipts` says "nothing was ever logged" about an entry that is on disk. (reproduced)**
-Same class as the wave-1 bugs — the tool volunteers a false statement, and this one lands in the middle of
+Same class as the wave-1 bugs - the tool volunteers a false statement, and this one lands in the middle of
 an audit conversation. An unclosed `<private>` seals everything after it, including entries added later.
 `doctor` knows; `receipts` does not caveat:
 
@@ -94,7 +94,7 @@ $ fde doctor
 ```
 
 `receipts` must warn when a file it searched has a sealed tail. It should also search `business-case.md`,
-which run A found it skips, and it matches literal substrings only — no stemming, so "idempotent" misses
+which run A found it skips, and it matches literal substrings only - no stemming, so "idempotent" misses
 "idempotency".
 
 **2. `--help` executes the verb. 14 of 20 verbs. (reproduced)**
@@ -124,7 +124,7 @@ idea; it is the naming and the risks/decisions prose that make it dangerous.
 
 **4. The gates are attendance-taking, not judgment.** The single highest-value change in this report.
 Run B built a real 20-case eval pack from the client's log shapes, ran it, got 7 false approves and wrote
-`Verdict: NO-SHIP` dated today — then shipped and closed with `doctor` clean, because `hasEvalReceipt`
+`Verdict: NO-SHIP` dated today - then shipped and closed with `doctor` clean, because `hasEvalReceipt`
 accepts any dated run or one `| pass |` row regardless of verdict. `close` with 3 open risks warns and
 proceeds. `phase` never blocks. If FDEOps' pitch is that it stops an FDE from telling a sponsor something
 untrue, **`doctor` at ship/close must fail on `NO-SHIP` and on open risks**, and the exit code has to mean
@@ -154,11 +154,11 @@ does not ask it. At minimum warn on SSN/MRN/DOB shapes when the engagement is he
 
 **7. `log --undo` can delete the wrong write.** After run B applied a 36-line debrief, `--undo` removed a
 stakeholder line **from a previous debrief**. It is single-level, it leaves sealed private notes behind,
-and `phase`, `risk --retire` and `owner set` cannot be undone at all — with no upfront warning that they
+and `phase`, `risk --retire` and `owner set` cannot be undone at all - with no upfront warning that they
 are permanent. For an FDE who is not git-fluent this is silent data loss; run B recovered only by
 `git revert` inside `.fde/.git`.
 
-**8. `adapters/LOCAL-LLM.md` does not work as written** — the never-tested adapter. Step 1's verb
+**8. `adapters/LOCAL-LLM.md` does not work as written** - the never-tested adapter. Step 1's verb
 `npx fdeops init` does not exist; the documented `ollama run --system` flag does not exist on Ollama
 0.33.1; and the doc never says the routed reference must be loaded into the model, which is the whole
 mechanism. Run B got a working loop via `fde resume --init` + `/api/chat`, then found the deeper problem:
@@ -172,26 +172,26 @@ which does not exist after the README's own install.
 - **Cross-engagement writes are silent.** Run C logged a Meridian Rail stakeholder into Aldergate's
   `stakeholders.md` @`298986d` with no warning; `FDEOPS_ENGAGEMENT` silently overrides the cwd bind; run A
   hit the same thing from an unbound cwd resolving to the registry's current engagement. Two clients, one
-  laptop, and gov/PHI separation obligations — this needs to print the engagement name on every write.
+  laptop, and gov/PHI separation obligations - this needs to print the engagement name on every write.
 - **`.fde/.git` deletion is silent.** The next write re-inits a fresh repo; `doctor` and `receipts` say
   nothing. A tamper-evident ledger must notice its own history being destroyed.
 - **`tidy --apply` false success.** Prints `applied: bless retrospectives/`, makes an empty commit, file
   stays untracked, and repeat runs re-claim success.
 - **Delivery ledger format is undocumented.** `help` says `a|b|c`; the parser wants 7 cells. A 3-field row
   writes blank columns, and misuse rendered `measured · not yet measured` in `status` while the dashboard
-  showed the row verbatim — two surfaces disagreeing about the same file. Both runs found this only by
+  showed the row verbatim - two surfaces disagreeing about the same file. Both runs found this only by
   reading `bin/fde.js`.
 - **`doctor`'s `reality.md`/`terrain.md` error text does not match the parser.** Run A followed the error
-  exactly, wrote `## Working theory`, and stayed UNREADABLE — the parser wants bold-inline
+  exactly, wrote `## Working theory`, and stayed UNREADABLE - the parser wants bold-inline
   `**Working theory:**` and literally `Differs from brief how:`, and `terrain.md`'s empty template heading
   shadows a filled one below.
 - **`--smart` still is not.** With the vocabulary now printed: 0/9 structural on run B's unprefixed notes,
-  4/8 on mine, 4/9 on run C — and it never splits a multi-fact note, so a 295-char rush note became one
+  4/8 on mine, 4/9 on run C - and it never splits a multi-fact note, so a 295-char rush note became one
   `risks.md` blob and a clear decision inside a voicenote stayed in `context.md`. It is a preview gate, and
   a good one; consider not calling it `--smart`.
-- **`scan` noise persists** — run B measured ~50% false positives in the TEMPORARY section (it flags the
+- **`scan` noise persists** - run B measured ~50% false positives in the TEMPORARY section (it flags the
   `ErrTemporary` sentinel's own definition). Still worth running on day 1, per all three FDEs.
-- **`ingest` on docs floods `context.md`** — 36 bullet lines from repo documentation. It is a
+- **`ingest` on docs floods `context.md`** - 36 bullet lines from repo documentation. It is a
   meeting-note tool; say so.
 - **Adapters write 5 files into a client repo** (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`,
   `.github/copilot-instructions.md`, `.cursor/rules/fde.mdc`) plus `$HOME/.claude/*`, with no dirty-tree
@@ -213,12 +213,12 @@ discards the first un-applied proposal; `garden` is an undocumented alias of `ti
 
 **References: 37/37 assigned, 36 exercised.** `ai.md` and `eval-pack.md` were skipped by run A (honest
 skip: the BAA gate held, so no AI feature shipped) but were fully exercised by run B. `connect.md` was
-exercised as a capability check by A and read-only by B — no MCP host on either box. Per-reference
+exercised as a capability check by A and read-only by B - no MCP host on either box. Per-reference
 artifacts and send / edit-first / never verdicts are in the three run reports.
 
-Client-deliverable verdicts, aggregated: **send as-is** — `three-options`, `business-case`, `readout`,
+Client-deliverable verdicts, aggregated: **send as-is** - `three-options`, `business-case`, `readout`,
 `review`, `runbook`, `close`, `encode-pattern`, `thin-slices`, `hold-scope`, `fintech`, `ingest`,
-`connect`. **Edit first** — most of the rest. **Never** — `who-decides`, `earn-trust`, `red-team`,
+`connect`. **Edit first** - most of the rest. **Never** - `who-decides`, `earn-trust`, `red-team`,
 `healthcare` trust-profile, `dashboard`, `switch-clients`, `rescue`. That last group is the useful signal:
 **seven references produce artifacts that are actively unsafe to show the client**, and nothing in the
 tool marks them as internal-only. A `<private>`-by-default convention for those, or an explicit
@@ -226,7 +226,7 @@ internal/external tag per artifact, would remove a whole category of accident.
 
 Two references are worth a second look on content, not tooling: `red-team.md` is written for red-teaming
 *plans*, so it gave run C nothing for attacking software (the five-angles/kill-list part is excellent for
-pre-meeting prep); and `rescue.md` has no silent-degradation mode — its opening move
+pre-meeting prep); and `rescue.md` has no silent-degradation mode - its opening move
 `git log --since='6 hours ago'` is empty and irrelevant for a job that stopped producing output two days
 ago, and half the checklist presumes visible breakage. `plan.md` and `thin-slices.md` overlap ~30%.
 
@@ -235,7 +235,7 @@ hook-driven `capture`/`preserve` (exercised directly; no agent host on the boxes
 as a path distinct from `debrief --apply`.
 
 **Adapters:** Claude, AGENTS, Cursor, Copilot, Gemini, LOCAL-LLM all exercised. LOCAL-LLM driven with a
-real local model (Ollama `qwen2.5:1.5b`) for the first time — see defect 8.
+real local model (Ollama `qwen2.5:1.5b`) for the first time - see defect 8.
 
 ---
 
@@ -265,11 +265,11 @@ that actually yields a runnable `fde` on the patched version.
 
 ## Is it ready for a paying client?
 
-For the engineering half and the commercial half both — yes, with the rules the three FDEs wrote down
+For the engineering half and the commercial half both - yes, with the rules the three FDEs wrote down
 themselves: never type `--help`, never screen-share `vault --redacted`, run `doctor` before any `receipts`
 demo in front of a stakeholder, sweep for PHI before `ingest`, and read every gate as advice. That is a
 short list of mechanical, non-architectural defects in front of a method that is better than what most
-consultancies run on. Fix the eight above and the rules come off the monitor — at which point the honest
+consultancies run on. Fix the eight above and the rules come off the monitor - at which point the honest
 claim is not "a fieldbook for FDEs" but the only tool that makes an FDE's record defensible in front of
 an auditor.
 
