@@ -32,7 +32,7 @@ After a meeting: `fde debrief --smart` → confirm → `--apply`. Walk-in: `fde 
 
 ## Human surface vs agent plumbing
 
-**FDE (human):** `@fde` + English, or `/brief` `/quiet` `/agreed` `/got` `/debrief`. Never a skill catalog.
+**FDE (human):** `@fde` + English, or `/brief` `/quiet` `/agreed` `/got` `/debrief` `/prep` `/status`. Never a skill catalog.
 
 **You (agent):** run the CLI. **Never tell the FDE to type** `fde …`. If unbound, you run `fde resume --init` after one question. Never ask them to run the CLI.
 
