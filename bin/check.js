@@ -59,8 +59,8 @@ ok('skills structure')
 
 // v3: one skill + phase references (progressive disclosure)
 const requiredReferences = [
-  'land.md', 'discover.md', 'audit.md', 'plan.md', 'build.md', 'review.md',
-  'debug.md', 'rescue.md', 'ship.md', 'sketch.md', 'close.md', 'dashboard.md',
+  'land.md', 'discover.md', 'audit.md', 'plan.md', 'review.md',
+  'rescue.md', 'ship.md', 'sketch.md', 'close.md', 'dashboard.md',
   'debrief.md', 'status.md', 'demo-prep.md',
   'healthcare.md', 'fintech.md', 'gov.md',
   'ai.md', 'eval-pack.md',
@@ -80,7 +80,7 @@ ok('phase references')
 // every judgment-heavy reference carries a worked example that names the memory
 // file the work lands in. Prose-only guidance drifts into advice nobody can apply.
 const exampleReferences = [
-  'land.md', 'discover.md', 'plan.md', 'build.md', 'ship.md', 'close.md',
+  'land.md', 'discover.md', 'plan.md', 'ship.md', 'close.md',
   'status.md', 'stakeholder-radar.md', 'options-analysis.md', 'business-case.md',
   'assumption-audit.md', 'scope-defense.md',
 ]

@@ -2,7 +2,8 @@
 
 | Path | Purpose |
 |------|---------|
-| `skills/fde/` | **The one skill** - router (`SKILL.md`) + 37 methods, 5 overlays, and AI companion `eval-pack` under `references/` - installed to `~/.claude/skills/` |
+| `skills/fde/` | **The one skill** - router (`SKILL.md`) + 31 routed methods, 5 overlays, and AI companion `eval-pack` under `references/` - installed to `~/.claude/skills/` |
+| `skills/fde/archive/sdlc/` | Archived SDLC methods (`build`, `debug`, `observability`, `qa-live`, `security-audit`, `test-on-legacy`) - kept for history, **not routed** |
 | `adapters/` | Thin per-tool pointers (Codex/`AGENTS.md`, Gemini, Cursor, Copilot, local LLMs) - `node bin/install.js adapters <dir>` |
 | `templates/.fde/` | Core memory templates for `fde resume --init` (phase artifacts are created by phases on demand; `evals.md` is optional) |
 | `examples/` | Fictional walkthroughs with sample `.fde/` files |
