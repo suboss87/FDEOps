@@ -8,7 +8,7 @@ You add whatever Slack MCP your host already supports. We only accept **text you
 
 1. Enable a **Slack MCP** (official or community) with read access to the threads you need.
 2. Reload MCP / restart the host.
-3. Test: `@fde what can you pull?` — Slack fetch tools should appear. The FDEOps **CLI** (`fde ingest`) is the sink if this workspace is bound; you do not need `fdeops-ingest` MCP for daily use.
+3. Test: `@fde what can you pull?` - Slack fetch tools should appear. The FDEOps **CLI** (`fde ingest`) is the sink if this workspace is bound; you do not need `fdeops-ingest` MCP for daily use.
 
 ### Example mcp.json shape (illustrative)
 
@@ -40,10 +40,10 @@ Optional sink MCP (only if you are not running `fde ingest` from this workspace)
 
 ## Agent steps
 
-1. Capability check — Slack **read** tools present? If not → this recipe, then stop.
+1. Capability check - Slack **read** tools present? If not → this recipe, then stop.
 2. Fetch the thread/channel as **text** (ask which channel/thread if ambiguous).
 3. `fde ingest stage --source slack --title "<short>"` (CLI in this bound workspace).
-4. Propose → FDE confirms → apply. Extract decisions/risks/asks — do not dump the thread into `.fde/`.
+4. Propose → FDE confirms → apply. Extract decisions/risks/asks - do not dump the thread into `.fde/`.
 
 ## Never
 
@@ -55,7 +55,7 @@ Optional sink MCP (only if you are not running `fde ingest` from this workspace)
 
 | Symptom | Fix |
 |---------|-----|
-| No Slack tools | Source MCP not loaded — they save + reload; we cannot silent-install |
-| Missing channel | Token/scopes cannot read that workspace — their Slack admin, not FDEOps |
+| No Slack tools | Source MCP not loaded - they save + reload; we cannot silent-install |
+| Missing channel | Token/scopes cannot read that workspace - their Slack admin, not FDEOps |
 | Huge dump | Stage full text in `.inbox/`; apply only short dated facts |
 | Wrong client | Bind this workspace (`fde resume`) before staging |

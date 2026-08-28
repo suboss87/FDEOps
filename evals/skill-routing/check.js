@@ -29,7 +29,7 @@ function hasCliRoute(verb) {
   return re.test(skill)
 }
 
-console.log(`skill-routing contract — ${pack.cases.length} cases against skills/fde/SKILL.md\n`)
+console.log(`skill-routing contract - ${pack.cases.length} cases against skills/fde/SKILL.md\n`)
 
 for (const c of pack.cases) {
   if (c.kind === 'happy') {
@@ -38,7 +38,7 @@ for (const c of pack.cases) {
     if (missing.length) {
       if (c.expect.optional) {
         gaps.push(`${c.id}: optional CLI not documented yet: ${missing.join(', ')}`)
-        console.log(`⚠  ${c.id}  optional gap — skill has no \`fde ${missing.join('|')}\` route`)
+        console.log(`⚠  ${c.id}  optional gap - skill has no \`fde ${missing.join('|')}\` route`)
       } else {
         fail++
         console.log(`✖  ${c.id}  missing CLI route in SKILL.md: ${missing.map(v => 'fde ' + v).join(', ')}`)
@@ -67,8 +67,8 @@ for (const c of pack.cases) {
       }
     }
   } else if (c.kind === 'negative') {
-    // Negatives cannot be proven statically — skill must stay engagement-scoped in description.
-    console.log(`·  ${c.id}  live-only (negative) — ${c.prompt.slice(0, 56)}…`)
+    // Negatives cannot be proven statically - skill must stay engagement-scoped in description.
+    console.log(`·  ${c.id}  live-only (negative) - ${c.prompt.slice(0, 56)}…`)
   }
 }
 
@@ -78,7 +78,7 @@ if (descMatch) {
   const desc = descMatch[1]
   const words = desc.trim().split(/\s+/).length
   if (words > 100) {
-    gaps.push(`frontmatter description is long (${words} words) — trim when/why only`)
+    gaps.push(`frontmatter description is long (${words} words) - trim when/why only`)
     console.log(`\n⚠  description ~${words} words (prefer lean when/why)`)
   } else {
     console.log(`\n✔  description present (${words} words)`)
@@ -96,7 +96,7 @@ if (descMatch) {
 const lines = skill.split(/\n/).length
 if (lines > 500) {
   gaps.push(`SKILL.md is ${lines} lines (Philip: keep under ~500; lean on references)`)
-  console.log(`⚠  SKILL.md is ${lines} lines (over ~500 lean guideline — prefer references)`)
+  console.log(`⚠  SKILL.md is ${lines} lines (over ~500 lean guideline - prefer references)`)
 }
 
 if (printLive || fail === 0) {

@@ -30,11 +30,11 @@ An FDE plan is not a sprint backlog. The technical sequence is the easy part. Th
 
 **3. Slice vertically.** Each task delivers something visible and testable end to end ("user submits form, sees it saved"), never a horizontal layer ("build the database layer").
 
-**4. Size to 30–90 minutes, PR-sized.** Longer = two tasks. Each task implementable, testable, reviewable without a thousand-line diff.
+**4. Size to 30-90 minutes, PR-sized.** Longer = two tasks. Each task implementable, testable, reviewable without a thousand-line diff.
 
 **5. AI components get explicit eval tasks.** "Output validated on 50 real production examples," "fallback tested under model unavailability," "inputs/outputs logging to <destination>" - these are pre-conditions of shipping, in the plan before build starts.
 
-**6. Stakeholder touchpoints every 2–3 tasks.** "Show progress to <name from stakeholders.md>." Not ceremony: a customer who sees small wins stays bought in; silence gets filled with doubt.
+**6. Stakeholder touchpoints every 2-3 tasks.** "Show progress to <name from stakeholders.md>." Not ceremony: a customer who sees small wins stays bought in; silence gets filled with doubt.
 
 **7. End with a kill list.** Every plan names what you will **not** do this phase. If everything is "later," you have no plan - you have a wish list. Cap **Now** at 3 slices (same discipline as initiative-triage).
 
@@ -83,7 +83,7 @@ Every FDE gets asked this in week one. The honest answer is a range, not a numbe
 2. **Expected case** - normal friction: one discovery changes the plan, one integration takes longer, one approval cycle stalls. This is what to plan against.
 3. **Worst case** - a major unknown surfaces, a dependency fails, a key person is unavailable. This is what to protect against.
 
-**Present as:** "2–4 weeks expected, could stretch to 6 if [named risk]." Never give one number.
+**Present as:** "2-4 weeks expected, could stretch to 6 if [named risk]." Never give one number.
 
 **The sizing table:**
 
@@ -135,9 +135,9 @@ Never quietly update tasks. Name the reset: update `reality.md` and `success.md`
 
 Acme, after discover: the reconciliation job is unowned, Marco's spreadsheet is the real fallback.
 
-**Now** is three tasks, not eight. Task 1 is *failures reach a named human* — delivers a page to a rota, accepts "kill the job mid-run → the on-call is paged within 15 min", touches the job wrapper and the alert config, rollback is re-disable the route, verify by killing it in staging. Value promised: `risk-mitigation — a silent failure becomes a 15-minute one`.
+**Now** is three tasks, not eight. Task 1 is *failures reach a named human* - delivers a page to a rota, accepts "kill the job mid-run → the on-call is paged within 15 min", touches the job wrapper and the alert config, rollback is re-disable the route, verify by killing it in staging. Value promised: `risk-mitigation - a silent failure becomes a 15-minute one`.
 
-The kill list in `decisions.md` is where the plan earns its keep: the rewrite of the reconciliation service that Tom keeps proposing goes there — *deferred, the failure mode is ownership not architecture (Priya accepted, Jun 12)* — along with the finance dashboard finance asked for directly. Both stay visible so the same argument is not re-litigated in week 4 without a receipt.
+The kill list in `decisions.md` is where the plan earns its keep: the rewrite of the reconciliation service that Tom keeps proposing goes there - *deferred, the failure mode is ownership not architecture (Priya accepted, Jun 12)* - along with the finance dashboard finance asked for directly. Both stay visible so the same argument is not re-litigated in week 4 without a receipt.
 
 First visible slice goes to Marco, not Priya: he is the one whose morning changes, and his confirmation is what makes the sponsor update true.
 
@@ -145,7 +145,7 @@ First visible slice goes to Marco, not Priya: he is the one whose morning change
 
 - Plan from success backwards, not from today forwards.
 - Fragile zones early. Fail fast.
-- Every 2–3 tasks, a stakeholder touchpoint. Trust decays without visibility.
+- Every 2-3 tasks, a stakeholder touchpoint. Trust decays without visibility.
 - No written acceptance criteria, no build.
 - No kill list, no finished plan.
 - Estimates are ranges, not promises. Name the assumptions.

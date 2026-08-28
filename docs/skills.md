@@ -3,7 +3,7 @@
 One skill (`@fde`) routes by situation - you never pick a skill by name. Three layers:
 
 1. **Daily** - prep, debrief, receipts, status, triage / doctor
-2. **Engagement** - brief wrong, they went quiet, when did we agree, what they got — plus the skills below
+2. **Engagement** - brief wrong, they went quiet, when did we agree, what's the outcome - plus the skills below
 3. **Overlays** - ai / fintech / healthcare / gov / artifacts (plus eval-pack as an AI companion)
 
 The full map is below; per-skill details live in [skills-reference.md](./skills-reference.md).
@@ -15,8 +15,8 @@ The full map is below; per-skill details live in [skills-reference.md](./skills-
 | **Land** | land, audit, stakeholder-radar, trust-engineering, scope-defense | First days: access, credibility, scope |
 | **Discover** | discover, assumption-audit, use-case-scoring, sketch | Finding the real problem behind the brief |
 | **Plan** | plan, business-case, options-analysis, initiative-triage | Sequencing work, getting sponsor alignment |
-| **Ship** | incremental-build, blast-radius, rescue, ship, review, rollback-drill | Visible slices, go-live, rollback — not generic debug/build |
-| **Prove** | status, demo-prep, debrief, exec-narrative, dashboard, ingest, ingest-connect | What they got; pulling from source MCPs |
+| **Ship** | incremental-build, blast-radius, rescue, ship, review, rollback-drill | Visible slices, go-live, rollback - not generic debug/build |
+| **Prove** | status, demo-prep, debrief, exec-narrative, dashboard, ingest, ingest-connect | The outcome; pulling from source MCPs |
 | **Close** | close, handoff-engineering, multi-customer-ops, pattern-extract, red-team | They can run it without you |
 
 Each skill is a workflow, not advice: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.

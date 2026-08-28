@@ -79,7 +79,7 @@ for (const c of happy) {
     r = fdeRun(['receipts', 'reporting'])
   } else if (verb === 'doctor') {
     r = fdeRun(['doctor'])
-    // doctor exits 1 when issues remain — still a successful invoke
+    // doctor exits 1 when issues remain - still a successful invoke
     assert(c.id, r.status === 0 || /FDE DOCTOR|issue/i.test(r.stdout + r.stderr), `fde doctor rc=${r.status}`)
     continue
   } else if (verb === 'scan') {

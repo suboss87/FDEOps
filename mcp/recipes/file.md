@@ -1,6 +1,6 @@
 # Recipe: local file / paste (no source MCP)
 
-**Use when:** you already have a transcript, `.eml`, or export on disk — or you paste into chat. This is the default FDE path.
+**Use when:** you already have a transcript, `.eml`, or export on disk - or you paste into chat. This is the default FDE path.
 
 ## Setup
 

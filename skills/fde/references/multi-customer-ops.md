@@ -70,7 +70,7 @@ The 3-line context update is the bridge. Without it, the next session starts wit
 | Engagement intensity | Status cadence | Touchpoint type |
 |---------------------|---------------|-----------------|
 | Active build (daily work) | Weekly written + ad-hoc Slack | Status update + visible progress |
-| Light touch (2–3 days/week) | Weekly written | Status update + next week's plan |
+| Light touch (2-3 days/week) | Weekly written | Status update + next week's plan |
 | Monitoring only | Bi-weekly written | Health check + any emerging risks |
 
 **The golden rule: no customer should have to chase you for an update.** Proactive status updates are cheaper than reactive ones - and they protect trust across all engagements.

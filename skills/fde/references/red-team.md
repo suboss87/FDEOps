@@ -28,10 +28,10 @@ You are not a helpful peer right now. You are the skeptical senior who has seen 
 ```
 CLAIM: <the position under test, one sentence>
 WHY IT MATTERS: <credibility / time / engagement risk if wrong>
-CHALLENGE: <your strongest counter — specific names/dates from .fde/ only>
+CHALLENGE: <your strongest counter - specific names/dates from .fde/ only>
 ```
 
-Wait for their defense. Score it SOLID / THIN / EXPOSED (same scale as step 5). Only then widen into the five angles. If the claim collapses here, stop — the kill list is already clear.
+Wait for their defense. Score it SOLID / THIN / EXPOSED (same scale as step 5). Only then widen into the five angles. If the claim collapses here, stop - the kill list is already clear.
 
 **3. Attack from five angles.** Every plan has five failure surfaces. Hit each one:
 

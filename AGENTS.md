@@ -1,6 +1,6 @@
 # AGENTS.md - working in the fdeops repository
 
-This repository **is** fdeops — the engagement record for Forward Deployed Engineers. One `@fde` skill, the `fde` CLI for deterministic work, and per-customer memory in `.fde/` as a side effect of the work (you still confirm judgment).
+This repository **is** fdeops - the engagement record for Forward Deployed Engineers. One `@fde` skill, the `fde` CLI for deterministic work, and per-customer memory in `.fde/` as a side effect of the work (you still confirm judgment).
 
 ## If you are helping use fdeops in an engagement
 
