@@ -467,10 +467,10 @@ ${e.lastSession ? `<div class="fb-now-session">${inlineMd(e.lastSession)}</div>`
   // needed vs what's actually true. Squeezed onto one truncated line, that
   // contrast disappears. Each gets its own line, its own room to finish a
   // thought, not a race to fit before an ellipsis.
-  const whyBlock = (e.brief || e.reality) ? `<div class="fb-block">
+  const whyBlock = (e.brief || e.reality || e.realityMissing) ? `<div class="fb-block">
 <div class="fb-sec">Why</div>
 ${e.brief ? `<p class="fb-why"><span class="t-faint">What they asked for:</span> ${inlineMd(e.brief)}</p>` : ''}
-${e.reality ? `<p class="fb-why fb-why-reality"><span class="fb-accent-label">What's actually true:</span> ${inlineMd(e.reality)}</p>` : ''}
+${e.realityMissing ? `<p class="fb-why fb-why-missing"><span class="fb-accent-label">What's actually true:</span> ${escapeHtml(e.realityMissing)}</p>` : e.reality ? `<p class="fb-why fb-why-reality"><span class="fb-accent-label">What's actually true:</span> ${inlineMd(e.reality)}</p>` : ''}
 </div>` : ''
 
   // Vitals: a fixed field-facing gut-check panel, not a Movement block that
