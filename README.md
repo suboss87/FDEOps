@@ -1,6 +1,8 @@
 # FDEOps
 
-**The AI coding agent forgets the client. fdeops is the countersigned record — promised, measured, accepted.**
+**Forward deployed engineering skills for AI coding agents.**
+
+The AI coding agent forgets the client. fdeops is the countersigned record — promised, measured, accepted.
 
 [![npm version](https://img.shields.io/npm/v/fdeops.svg)](https://www.npmjs.com/package/fdeops)
 [![CI](https://github.com/suboss87/fdeops/actions/workflows/validate.yml/badge.svg)](https://github.com/suboss87/fdeops/actions)
