@@ -1,5 +1,5 @@
 ---
-description: Ship a slice — pre-flight, then live
+description: Ship a slice - pre-flight, then live
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **ship**.
@@ -14,4 +14,4 @@ Confirm before any write to `.fde/`. Do not ship on “probably fine.”
 
 Done when: go-live checks are on the record, or the human has named what still blocks live.
 
-Not for TypeScript errors, unit tests, refactors, or git commits — those stay in the host agent.
+Not for TypeScript errors, unit tests, refactors, or git commits - those stay in the host agent.

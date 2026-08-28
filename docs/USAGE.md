@@ -16,11 +16,11 @@ Day-to-day reference below.
 
 ## New here? (5 minutes)
 
-1. Install from the README (plugin or `npx skills add suboss87/fdeops --skill fde`), then in chat: `@fde this is Acme` — the AI coding agent binds. Terminal fallback: `fde resume --init <client-name>`
+1. Install from the README (plugin or `npx skills add suboss87/fdeops --skill fde`), then in chat: `@fde this is Acme` - the AI coding agent binds. Terminal fallback: `fde resume --init <client-name>`
 2. Read **Commands** and **Who this is for** in the README
 3. Skim [examples/garvey-payments/](../examples/garvey-payments/) Day 1 → Day 10
 4. Optional recon, zero config: `npx fdeops scan` in a repo
-5. Then: `@fde` + the actual situation (brief wrong, they went quiet, when did we agree, what they got)
+5. Then: `@fde` + the actual situation (brief wrong, they went quiet, when did we agree, what's the outcome)
 
 You do not read the phase methods. **`@fde` routes the AI and loads the right one.**
 
@@ -76,7 +76,7 @@ When a transcript or email is too large to paste, or lives in Granola/Slack/Noti
 fde ingest stage --source granola --title "Sponsor sync 2026-07-29" transcript.txt
 fde ingest list
 fde ingest propose <id-or-filename>   # → .debrief-propose (same as debrief --smart)
-fde ingest apply                      # after you review — same as debrief --apply
+fde ingest apply                      # after you review - same as debrief --apply
 ```
 
 Raw stays in `~/fde-engagements/<client>/.inbox/`; dated facts land in `.fde/` with optional `via:<source>` provenance. Optional MCP wrapper: `mcp/fdeops-ingest` (stdio tools mirror the verbs). Method detail: [skills/fde/references/ingest.md](../skills/fde/references/ingest.md).
@@ -119,7 +119,7 @@ npx fdeops dashboard                # optional local HTML view of the fieldbook
 | When did we agree to drop that? | `fde receipts …` |
 | Draft the sponsor update | `fde status` (+ judgment in chat) |
 | Log that the sponsor went quiet | `fde log contact "…" --signal amber` |
-| Wrap the session / share the thinking / before the PR | Session digest into `.fde/` (TL;DR, decisions & why) — not transcript sync |
+| Wrap the session / share the thinking / before the PR | Session digest into `.fde/` (TL;DR, decisions & why) - not transcript sync |
 
 **Full command list** (power users / scripts):
 
@@ -130,7 +130,7 @@ fde debrief --smart notes.md      # heuristic propose (not AI); agent prefixes �
 fde ingest stage [--source NAME] [--title TEXT] [file|-]  # raw pull → .inbox/
 fde ingest list                   # staged items
 fde ingest propose <id>           # → .debrief-propose (same smart path)
-fde ingest apply                  # after confirm — same as debrief --apply
+fde ingest apply                  # after confirm - same as debrief --apply
 fde doctor                        # check the fieldbook for gaps
 fde prep "sponsor sync"           # walk-in brief from existing memory
 fde log decision "…"

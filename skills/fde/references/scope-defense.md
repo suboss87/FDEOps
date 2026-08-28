@@ -38,7 +38,7 @@ Log via `fde log decision "scope change: <summary> - requested by <who>, impact:
 
 **The key phrase: "Let me place it."** Not "that's out of scope" (adversarial) or "sure" (absorbed). "Let me place it" signals you're taking it seriously while buying time to assess the real cost.
 
-**4. The accumulation conversation.** When the scope receipts show a pattern - typically 3–5 absorbed changes - the FDE needs a conversation with the sponsor:
+**4. The accumulation conversation.** When the scope receipts show a pattern - typically 3-5 absorbed changes - the FDE needs a conversation with the sponsor:
 
 Frame it as **protection, not complaint:**
 > "We've absorbed five changes since the original agreement. Each one made sense individually. Together, they've added roughly two weeks. I want to make sure the timeline expectation still matches - should we adjust the delivery date, or reprioritise to keep the original date?"
@@ -67,9 +67,9 @@ Acme, week 5. Nothing has been formally added, and the slice is a week late.
 
 The pattern shows in three receipts, not one argument: a "quick" finance CSV export (Jun 20, half a day, from Denise directly), retry-logic cleanup asked for mid-build (Jun 24, one day, Tom), and a dashboard tile "while you're in there" (Jun 27, half a day). Each was individually reasonable; together they are the slip.
 
-Three-bucket response, applied at the moment of the third ask rather than in a retrospective: the CSV export goes to Next with an accepted trade (it displaces the runbook polish), the retry cleanup goes to the kill list in `decisions.md` with the blast-radius reason, and the tile is absorbed because it is genuinely twenty minutes — logged anyway, since an unlogged absorption is the one that gets forgotten in the accumulation conversation.
+Three-bucket response, applied at the moment of the third ask rather than in a retrospective: the CSV export goes to Next with an accepted trade (it displaces the runbook polish), the retry cleanup goes to the kill list in `decisions.md` with the blast-radius reason, and the tile is absorbed because it is genuinely twenty minutes - logged anyway, since an unlogged absorption is the one that gets forgotten in the accumulation conversation.
 
-That conversation happens with Priya at three receipts, with the dates on screen: "these are the four asks, here is the two days, here is what moved." Not a complaint — a decision she gets to make, with evidence, before the deadline makes it for her.
+That conversation happens with Priya at three receipts, with the dates on screen: "these are the four asks, here is the two days, here is what moved." Not a complaint - a decision she gets to make, with evidence, before the deadline makes it for her.
 
 ## Principles
 

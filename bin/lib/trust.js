@@ -95,7 +95,7 @@ function createTrustApi(deps) {
 
   function nextActionLine(ctx) {
     // lastNonEmpty: template ships an empty ## Next action; agents often append a
-    // second heading with the real bullet — first-match would report "(none set)".
+    // second heading with the real bullet - first-match would report "(none set)".
     const body = sectionBody(ctx, 'Next action', { lastNonEmpty: true })
     for (const raw of body.split('\n')) {
       const t = raw.trim().replace(/^[-*]\s+/, '')

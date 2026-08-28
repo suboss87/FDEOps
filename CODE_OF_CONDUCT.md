@@ -68,7 +68,7 @@ promptly and fairly.
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
 
-Security vulnerabilities are a different channel — see [SECURITY.md](SECURITY.md).
+Security vulnerabilities are a different channel - see [SECURITY.md](SECURITY.md).
 
 ## Enforcement Guidelines
 

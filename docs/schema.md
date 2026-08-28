@@ -12,7 +12,7 @@ Beside each engagement folder, **`~/fde-engagements/<name>/.inbox/`** holds raw 
 |------|---------|------------|
 | `.inbox/<staged-files>` | Raw artifacts before review | `fde ingest stage` (agent fetches via user-configured source MCPs) |
 
-After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same routing as `fde debrief --apply`). Raw files remain in `.inbox/` for audit. Optional `via:<source>` provenance on applied lines. NDA surface — same home-tree privacy rules as `.fde/`.
+After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same routing as `fde debrief --apply`). Raw files remain in `.inbox/` for audit. Optional `via:<source>` provenance on applied lines. NDA surface - same home-tree privacy rules as `.fde/`.
 
 ## Core files (start here)
 

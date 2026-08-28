@@ -20,7 +20,7 @@
 
 **4. Kill it immediately if:** the assumption is disproven · the customer ignores it (indifference is a signal, not neutrality) · 3 iterations and feedback isn't converging · it works but the customer can't explain or trust the output (unexplainable AI in a high-stakes context is not a solution). When killed: write down what was *learned*, not what was built. The learning is the asset.
 
-**5. Translate to business language** once validated: problem solved, cost of inaction, success in numbers, 2–3 trade-offs. Three sentences max for the stakeholder - can't say it in three, don't understand it yet.
+**5. Translate to business language** once validated: problem solved, cost of inaction, success in numbers, 2-3 trade-offs. Three sentences max for the stakeholder - can't say it in three, don't understand it yet.
 
 ## Artifact
 
