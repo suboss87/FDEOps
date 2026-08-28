@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.13.1 — 2026-08-28
+
+Slash commands for the four situations, and the nickname “four days” is gone from the front door.
+
+### Added
+- **Claude Code slash commands** — `/brief` `/quiet` `/agreed` `/got` `/debrief` load `@fde`. Same skill; a menu, not a second method pack.
+
+### Changed
+- **README week table** names the situation, the chat, and the slash command. “Why this exists” is four numbered problems, not land→build→close.
+- **Plugin** declares `skills` + `commands` in `.claude-plugin/plugin.json`.
+- **Dropped the “four days” nickname** on the public surface. The product is still those four situations; we just say them.
+
 ## 3.13.0 — 2026-08-28
 
 Four-day front: the skill is the engagement record, not a land-to-close operating system.
