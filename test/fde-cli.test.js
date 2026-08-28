@@ -1193,7 +1193,7 @@ test('session-start injects TRIAGE + pointer, not the full SKILL.md body', () =>
   assert.match(out, /Engagement context/)
   // Full skill markers must not appear (progressive disclosure L1).
   assert.doesNotMatch(out, /## Purpose/)
-  assert.doesNotMatch(out, /## Routing - 6 domains/)
+  assert.doesNotMatch(out, /## Routing/)
   assert.doesNotMatch(out, /## Anti-invention gates/)
 })
 

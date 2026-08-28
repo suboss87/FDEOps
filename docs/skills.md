@@ -8,16 +8,16 @@ One skill (`@fde`) routes by situation - you never pick one by name. Three layer
 
 The full map is below; per-skill details live in [skills-reference.md](./skills-reference.md).
 
-## Engagement skills (31 skills across 6 domains)
+## Engagement skills (31 skills across 6 stages)
 
-| Domain | Skills | What it covers |
+| Stage | Skills | What it covers |
 |--------|--------|---------------|
-| **Embed & Trust** | land, audit, stakeholder-radar, trust-engineering, scope-defense | First days: access, credibility, scope |
-| **Discover & Diagnose** | discover, assumption-audit, use-case-scoring, sketch | Finding the real problem behind the brief |
-| **Plan & Align** | plan, business-case, options-analysis, initiative-triage | Sequencing work, getting sponsor alignment |
-| **Build & Guard** | incremental-build, blast-radius, rescue | Visible slices, blast radius, production/trust fire — not generic debug/build |
-| **Ship & Verify** | ship, review, rollback-drill | Intent vs agreed scope, go-live, rollback drill |
-| **Operate & Close** | status, demo-prep, debrief, exec-narrative, dashboard, multi-customer-ops, close, handoff-engineering, pattern-extract, red-team, ingest, ingest-connect | Running and ending the engagement well; pulling from source MCPs |
+| **Land** | land, audit, stakeholder-radar, trust-engineering, scope-defense | First days: access, credibility, scope |
+| **Discover** | discover, assumption-audit, use-case-scoring, sketch | Finding the real problem behind the brief |
+| **Plan** | plan, business-case, options-analysis, initiative-triage | Sequencing work, getting sponsor alignment |
+| **Ship** | incremental-build, blast-radius, rescue, ship, review, rollback-drill | Visible slices, go-live, rollback — not generic debug/build |
+| **Prove** | status, demo-prep, debrief, exec-narrative, dashboard, ingest, ingest-connect | What they got; pulling from source MCPs |
+| **Close** | close, handoff-engineering, multi-customer-ops, pattern-extract, red-team | They can run it without you |
 
 Each skill is a **method, not advice**: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.
 

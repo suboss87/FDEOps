@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.15.0 — 2026-08-28
+
+Production front door: command map, 30-second install, skill catalog (Use when), then why it exists. README is text — no gif. Stages are LAND → CLOSE everywhere. Unused SDLC archive and staged mock media removed. Leftover `build` phase name aliases to `ship`. Coding stays in the host agent.
+
+### Changed
+- **"Skills", not "methods", in public copy** — the category line says skills, so the docs and the count gate now say it too (README, `docs/skills.md`, `docs/skills-reference.md`, `bin/check.js`). Nothing is renamed on disk and nothing is separately installable: `@fde` is still the one skill a host loads, and the 31 remain references it routes to. "Method" survives only where it describes what a skill *is* — thinking, artifact, checkpoint, not advice.
+
 ## 3.14.1 — 2026-08-28
 
 ### Changed
@@ -8,8 +15,7 @@
 ## 3.14.0 — 2026-08-28
 
 ### Changed
-- **Command map on the front door** — four situations as a map, then slash commands as skill cards. `/prep` and `/status` added. The 31 skills stay in a details block.
-- **"Skills", not "methods", in public copy** — the category line says skills, so the docs and the count gate now say it too (README, `docs/skills.md`, `docs/skills-reference.md`, `bin/check.js`). Nothing is renamed on disk and nothing is separately installable: `@fde` is still the one skill a host loads, and the 31 remain references it routes to. "Method" survives only where it describes what a skill *is* — thinking, artifact, checkpoint, not advice.
+- **Command map on the front door** — four situations as a map, then slash commands as method cards. `/prep` and `/status` added. The 31 methods stay in a details block.
 
 ## 3.13.2 — 2026-08-28
 

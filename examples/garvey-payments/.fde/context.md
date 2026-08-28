@@ -2,7 +2,7 @@
 
 **Engagement:** garvey-payments  
 **Customer:** Garvey Payment Systems (fictional)  
-**Phase:** build  
+**Phase:** ship  
 **Last updated:** 2026-05-30
 
 ## Current state

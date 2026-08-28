@@ -738,11 +738,20 @@ function appendLogEntry(eng, type, entry, opts = {}) {
 // degrading to "nothing found" rather than guessing when the shape does not
 // match. Never fabricate a number, a name, or a signal that is not in the text.
 
+const PHASES = ['land', 'discover', 'plan', 'ship', 'prove', 'close']
+const PHASE_ALIASES = { build: 'ship' } // legacy SDLC name; public map is ship
 const PHASE_LABELS = {
-  land: 'Embed & Trust', discover: 'Discover & Diagnose', plan: 'Plan & Align',
-  build: 'Build & Guard', ship: 'Ship & Verify', close: 'Operate & Close',
+  land: 'Land', discover: 'Discover', plan: 'Plan',
+  ship: 'Ship', prove: 'Prove', close: 'Close',
 }
-function phaseLabel(phase) { return PHASE_LABELS[String(phase).toLowerCase()] || phase }
+function canonicalPhase(phase) {
+  const p = String(phase).toLowerCase()
+  return PHASE_ALIASES[p] || p
+}
+function phaseLabel(phase) {
+  const p = canonicalPhase(phase)
+  return PHASE_LABELS[p] || phase
+}
 
 // First real (non-blank, non-heading) line of a prose file, bold-label prefix
 // stripped ("**Confirmed:** text..." -> "text...") - same spirit as the
@@ -1312,11 +1321,11 @@ function cmdLog(args) {
   const eng = resolveEngagement({ forWrite: true })
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
 
-  // fde log phase <land|discover|plan|build|ship|close> - advances portfolio phase
+  // fde log phase <land|discover|plan|ship|prove|close> - advances portfolio phase
   if (type === 'phase') {
-    const phase = (text || '').toLowerCase().trim()
-    if (!['land', 'discover', 'plan', 'build', 'ship', 'close'].includes(phase)) {
-      console.error('usage: fde log phase <land|discover|plan|build|ship|close>')
+    const phase = canonicalPhase((text || '').toLowerCase().trim())
+    if (!PHASES.includes(phase)) {
+      console.error(`usage: fde log phase <${PHASES.join('|')}>`)
       process.exit(1)
     }
     const hash = setContextPhase(eng, phase)
@@ -1324,7 +1333,7 @@ function cmdLog(args) {
     return
   }
 
-  if (!LOG_FILES[type] || !text) { console.error('usage: fde log <decision|risk|delivery|contact> <text> [--signal red|amber|green] [--force]\n       fde log phase <land|discover|plan|build|ship|close>\n       fde log --undo'); process.exit(1) }
+  if (!LOG_FILES[type] || !text) { console.error(`usage: fde log <decision|risk|delivery|contact> <text> [--signal red|amber|green] [--force]\n       fde log phase <${PHASES.join('|')}>\n       fde log --undo`); process.exit(1) }
   if (signal && type !== 'contact') { console.error('--signal only applies to: fde log contact'); process.exit(1) }
   const hit = findSecretHit(text)
   if (hit && !force) { refuseSecret('log text', hit); process.exit(1) }
@@ -2091,7 +2100,7 @@ function collectDoctorIssues(eng) {
 
   if (s.phase === '?' || s.phase === 'unset') {
     if (hasDatedWork) {
-      issues.push('phase is unset but dated work exists - run: fde log phase <land|discover|plan|build|ship|close>')
+      issues.push(`phase is unset but dated work exists - run: fde log phase <${PHASES.join('|')}>`)
     }
   }
   if (s.stale) issues.push(`trust signal is STALE (${s.signalAge}d) - reconfirm with fde log contact ... --signal`)
@@ -2161,7 +2170,7 @@ function collectDoctorIssues(eng) {
   }
   // Failure-path (exception-led operating map): required once past discover.
   // Land seeds; discover fills; plan+ without a real break→owner row is wallpaper.
-  if (/^(plan|build|ship|close)$/.test(s.phase) && !hasOperatingMapContent(eng)) {
+  if (/^(plan|ship|prove|close)$/.test(s.phase) && !hasOperatingMapContent(eng)) {
     issues.push(
       `phase is ${s.phase} with empty operating map - fill terrain.md ## Operating map (exception-led): break → who notices → workaround → evidence`
     )
@@ -3178,7 +3187,7 @@ function printUsage() {
   fde resume --bind        show what this workspace is bound to, and what resolves
   fde triage               TRIAGE block only (hooks / Cursor session entry)
   fde log <type> <text>    append decision|risk|delivery|contact (contact takes --signal red|amber|green; --force to allow secret-like text)
-  fde log phase <phase>    set engagement phase (land|discover|plan|build|ship|close)
+  fde log phase <phase>    set engagement phase (land|discover|plan|ship|prove|close)
   fde log --undo           remove the last CLI log/debrief entry from memory
   fde debrief [file]       meeting notes → memory (prefixed lines; --dry-run; --force)
   fde debrief --smart      heuristic propose (prefix + light keywords); agent routes, CLI gates → --apply
