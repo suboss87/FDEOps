@@ -5,13 +5,13 @@
     "url": "https://github.com/suboss87"
   },
   "metadata": {
-    "description": "Engagement memory for AI coding agents — one @fde skill, local .fde/ client record."
+    "description": "Forward deployed engineering skills for AI coding agents — one @fde skill, local .fde/ client record."
   },
   "plugins": [
     {
       "name": "fdeops",
       "source": "./",
-      "description": "Engagement memory for AI coding agents. One @fde skill is the client record: the brief is wrong, they went quiet, when did we agree, what they got. Dated memory (sponsor, promise, decision, acceptance) lands in local .fde/ files as you confirm. For Forward Deployed Engineers running several clients at once."
+      "description": "Forward deployed engineering skills for AI coding agents. One @fde skill is the client record: the brief is wrong, they went quiet, when did we agree, what they got. Dated memory (sponsor, promise, decision, acceptance) lands in local .fde/ files as you confirm. For Forward Deployed Engineers running several clients at once."
     }
   ]
 }

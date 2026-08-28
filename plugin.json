@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "fdeops",
   "version": "3.13.1",
-  "description": "Engagement memory for AI coding agents: per-client memory in local .fde/ files, one @fde skill. Local-only, no network.",
+  "description": "Forward deployed engineering skills for AI coding agents: per-client memory in local .fde/ files, one @fde skill. Local-only, no network.",
   "author": {
     "name": "Subash Natarajan",
     "url": "https://github.com/suboss87"
