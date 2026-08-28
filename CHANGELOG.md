@@ -1,12 +1,10 @@
 # Changelog
 
-## Unreleased
+## 3.15.2 - 2026-08-28
 
-Front door: Why is the product reason (agents forget the client), not four anecdotes. Commands carry the tells. How Skills Work is the router, not a fake 24-skill anatomy. Project Structure lists every reference and slash command.
+`/got` is now `/outcome`. Why is the product reason: agents forget the client; this is the record you take on site. Commands carry the tells. How Skills Work is the router. Project Structure lists every reference and slash command. Em dashes removed from copy.
 
-**Ground loop.** `@fde` stays on from discovery to signed outcome: POC (sketch), slice and on-site proof (incremental-build), eval when a model judges (eval-pack), promised → measured → accepted. No extra skill pack. Throwaway typos in an unbound repo can skip; a client slice cannot.
-
-`/got` is now `/outcome` (promised, measured, accepted). Em dashes removed from copy.
+**Ground loop.** `@fde` stays from discovery to signed outcome: POC, slice, on-site proof, eval when a model judges, promised → measured → accepted. A throwaway typo in an unbound repo can skip; a client slice cannot.
 
 ## 3.15.1 - 2026-08-28
 
