@@ -13,7 +13,7 @@ Day-to-day reference below.
 ## New here? (5 minutes)
 
 1. Install from the README (plugin or `npx skills add`), then in chat: `@fde this is Acme` — the AI coding agent binds. Terminal fallback: `fde resume --init <client-name>`
-2. Read **The week** and **Who this is for** in the README
+2. Read **Commands** and **Who this is for** in the README
 3. Skim [examples/garvey-payments/](../examples/garvey-payments/) Day 1 → Day 10
 4. Optional recon, zero config: `npx fdeops scan` in a repo
 5. Then: `@fde` + the actual situation (brief wrong, they went quiet, when did we agree, what they got)

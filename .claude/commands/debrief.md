@@ -1,11 +1,21 @@
 ---
-description: After a meeting — notes into the record, you confirm
+description: After a meeting — notes into the record, human confirms
 ---
 
-Load `@fde` (`skills/fde/SKILL.md`). Highest-frequency loop: messy notes → proposed routing → human confirms → write.
+Load `@fde` (`skills/fde/SKILL.md`). Situation: **after a meeting**.
 
-If unbound: ask the client name once, then **you** run `fde resume --init`. If they already pasted notes, go straight to debrief after bind.
+If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI. If they already pasted notes, bind first, then debrief.
 
-Prefer `fde debrief --smart` (or `npx --yes fdeops debrief --smart`). Rewrite the propose file with type prefixes where needed. Show the human the routing in plain language. Only `--apply` after they confirm. Never ask them to run the CLI. Detail: `references/debrief.md`.
+Run `fde debrief --smart` (fallback: `npx --yes fdeops debrief --smart`). `--smart` is a gate, not a brain — it proposes routing; you still judge.
 
-Not for TypeScript errors, unit tests, refactors, or git commits.
+Rewrite the propose output: add type prefixes where the record needs them. Strip noise; keep their words for quotes and decisions.
+
+Present the routing in plain language: what lands where in `.fde/`, what changed, what is still open. One screen, not a transcript dump.
+
+Only run `fde debrief --apply` (fallback: `npx --yes fdeops debrief --apply`) after the human confirms. Never auto-apply.
+
+Read `references/debrief.md` for prefix rules, file targets, and digest beats.
+
+Done when: the human confirmed the routing and `--apply` wrote the agreed `.fde/` updates.
+
+Not for TypeScript errors, unit tests, refactors, or git commits — those stay in the host agent.
