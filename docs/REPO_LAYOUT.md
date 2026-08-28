@@ -14,9 +14,10 @@
 | `bin/install.js` | `node bin/install.js` (skills + hooks on disk) |
 | `hooks/` | session-start (read), session-stop (write), pre-compact - registry-aware |
 | `test/` | CLI regression suite |
-| `evals/` | Cheap skill-routing contract checks |
+| `evals/` | Skill-routing contract checks; `testing-fieldbook.md` is contributor CLI attack notes (not a skill) |
 | `.claude-plugin/` | Claude Code marketplace metadata |
-| `docs/` | install, USAGE, schema, OPERATIONS, REPO_LAYOUT, skills, skills-reference |
-| `media/` | Optional demo assets (not required for CLI/skill install) |
+| `docs/` | install, USAGE, schema, OPERATIONS, REPO_LAYOUT, skills, skills-reference, methodology |
+| `docs/methodology.md` | FDE principles the kit encodes (not loaded by hosts) |
+| `media/` | Recorded session (`session.gif`) — embed lives in USAGE.md, not the README |
 
 **Install:** [install.md](./install.md) - Claude plugin + git clone is the reliable path.

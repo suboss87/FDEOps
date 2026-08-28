@@ -280,9 +280,8 @@ if (!readme.includes('fde-engagements') || !/fdeops.*init.*engagement/i.test(rea
   fail('README must document fde-engagements + init flow')
 } else ok('README engagement path')
 
-// The contributor-only testing skill lives in .agents/skills/, so a bare
-// `skills add` installs it too. The advertised command must name the one skill
-// a field user wants.
+// The advertised command must name the one skill a field user wants.
+// Contributor CLI attack notes live in evals/testing-fieldbook.md, not as a skill.
 for (const m of readme.match(/^.*npx skills add .*$/gm) || []) {
   if (!m.includes('--skill fde')) {
     fail(`README skills-add command must pin --skill fde: ${m.trim()}`)
@@ -615,12 +614,34 @@ for (const manifest of ['plugin.json', 'mcp.json']) {
   else ok(`${manifest} published to npm`)
 }
 
+const skillDirs = []
 for (const entry of fs.readdirSync(path.join(root, 'skills'))) {
   const dir = path.join(root, 'skills', entry)
   if (!fs.statSync(dir).isDirectory()) continue
   if (!fs.existsSync(path.join(dir, 'SKILL.md'))) fail(`skills/${entry}/ has no SKILL.md - clients skip it`)
-  else ok(`skill ${entry} discoverable`)
+  else {
+    skillDirs.push(entry)
+    ok(`skill ${entry} discoverable`)
+  }
 }
+if (skillDirs.length !== 1 || skillDirs[0] !== 'fde') {
+  fail(`public tree ships one skill (skills/fde); found: ${skillDirs.join(', ') || '(none)'}`)
+} else ok('one public skill')
+
+function findSkillMd(dir, acc = []) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === '.git' || e.name === 'node_modules' || e.name === '.agents') continue
+    const p = path.join(dir, e.name)
+    if (e.isDirectory()) findSkillMd(p, acc)
+    else if (e.name === 'SKILL.md') acc.push(path.relative(root, p))
+  }
+  return acc
+}
+const skillFiles = findSkillMd(root)
+const allowedSkill = path.join('skills', 'fde', 'SKILL.md')
+if (skillFiles.length !== 1 || skillFiles[0] !== allowedSkill) {
+  fail(`only ${allowedSkill} may exist; found: ${skillFiles.join(', ') || '(none)'}`)
+} else ok('one SKILL.md')
 
 if (!fs.existsSync(path.join(root, '.github', 'ISSUE_TEMPLATE', 'bug_report.yml'))) {
   fail('GitHub issue template missing')

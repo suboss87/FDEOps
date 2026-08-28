@@ -202,11 +202,16 @@ fdeops/
 │   ├── SKILL.md                #   router
 │   └── references/             #   31 skills + overlays
 ├── .claude/commands/           # slash commands (each loads @fde)
-├── bin/fde.js                  # local CLI — git + files, no network
+├── .claude-plugin/             # Claude Code marketplace
+├── bin/                        # local CLI — git + files, no network
 ├── hooks/                      # session-start / session-stop / pre-compact
 ├── adapters/                   # Cursor, Gemini, Copilot, Codex pointers
 ├── templates/.fde/             # memory files created on bind
-└── docs/                       # usage, schema, install
+├── examples/                   # fictional walkthroughs
+├── mcp/                        # optional ingest + source recipes
+├── evals/                      # routing checks + CLI attack notes
+├── media/                      # recorded session (docs/USAGE.md)
+└── docs/                       # usage, schema, install, methodology
 ```
 
 ---

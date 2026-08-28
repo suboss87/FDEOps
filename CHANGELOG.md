@@ -4,6 +4,8 @@
 
 Public copy uses the standard skill-pack words: **skills**, Commands, Quick Start, All 31 Skills, How Skills Work, Why FDEOps. `@fde` is still the one skill a host loads; the 31 remain references it routes to. No invented glossary on the front door.
 
+Public tree: `.agents/` (the contributor `testing-fieldbook` skill) is gone from git, so a bare `npx skills add` only sees `skills/fde`. Attack notes live in `evals/testing-fieldbook.md`. Methodology moved to `docs/methodology.md`.
+
 ## 3.15.0 — 2026-08-28
 
 Production front door: command map, 30-second install, method catalog (Use when), then why it exists. README is text — no gif. Stages are LAND → CLOSE everywhere. Unused SDLC archive and staged mock media removed. Leftover `build` phase name aliases to `ship`. Coding stays in the host agent.
