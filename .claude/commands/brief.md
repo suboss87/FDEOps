@@ -1,5 +1,5 @@
 ---
-description: Land the embed - brief and trust before code
+description: Land the embed. Who signs done.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **land**.
@@ -14,4 +14,4 @@ Confirm before any write to `.fde/`. Do not invent names or quotes.
 
 Done when: the brief and who decides are on the record, and the human agrees the next move.
 
-Not for TypeScript errors, unit tests, refactors, or git commits - those stay in the host agent.
+Not for a one-line typo in an unbound file. A client slice, POC, eval, or go-live stays on `@fde`.

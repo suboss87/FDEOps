@@ -1,5 +1,5 @@
 ---
-description: Find the real problem - brief is a hypothesis
+description: Find the real problem. Brief is a hypothesis.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **discover**.
@@ -14,4 +14,4 @@ Confirm before any write to `.fde/`. Do not invent stakeholders or quotes.
 
 Done when: reality vs brief is named, and the human agrees the next move.
 
-Not for TypeScript errors, unit tests, refactors, or git commits - those stay in the host agent.
+Not for a one-line typo in an unbound file. A client slice, POC, eval, or go-live stays on `@fde`.

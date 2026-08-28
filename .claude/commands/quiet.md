@@ -1,5 +1,5 @@
 ---
-description: They went quiet - process gap or trust problem
+description: They went quiet. Process gap or trust problem.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Situation: **they went quiet**.

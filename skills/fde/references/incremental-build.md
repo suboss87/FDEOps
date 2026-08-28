@@ -37,14 +37,23 @@ Each vertical slice delivers working functionality the customer can see. Each sl
 
 ```
 Read existing code in the area (search before creating)
-  → Write characterisation tests for what's there (if legacy)
+  → Characterise what is already there (their tests, their runner)
     → Implement the minimal working path
-      → Verify with evidence (tests + typecheck + smallest proving run)
+      → On-site proof (below)
         → Cleanup pass (dedupe, simplify - behaviour unchanged)
           → Self-review against acceptance criteria
-            → Commit with descriptive message
+            → Commit with a message the client's team can read
               → Update decisions.md + delivery.md
 ```
+
+**On-site proof.** A green check on your laptop is not delivery. Before the slice is done:
+
+- Run **their** test command, typecheck, or smallest proving path. Write the command and the result in `delivery.md`.
+- If the signer in `success.md` cannot reject this slice on a screen they already use, it is not proven.
+- Staging they operate beats a local demo. If you have no staging: `unknown - ask:` who owns an environment, then stop pretending it shipped.
+- Model in the path: `eval-pack` until `evals.md` says SHIP. Do not skip because "it looked right in chat."
+
+Do not prove it with a textbook ritual. The proof is whatever this client already believes, plus one new receipt they can replay.
 
 **4. Size discipline.** Each slice targets:
 
