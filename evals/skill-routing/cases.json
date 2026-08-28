@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "purpose": "Cheap @fde routing pack (Philip-style): happy vs negative. CLI unit tests stay the product bar; this grades the skill contract.",
+  "purpose": "Cheap @fde routing pack: happy vs negative. CLI unit tests stay the product bar; this grades the skill contract.",
   "cases": [
     {
       "id": "happy-debrief",

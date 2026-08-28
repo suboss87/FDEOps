@@ -1,5 +1,5 @@
 ---
-description: Plan the sequence - backwards from done
+description: Plan the sequence. Backwards from done.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **plan**.
@@ -14,4 +14,4 @@ Confirm before any write to `.fde/`.
 
 Done when: order, slices, and “done” are on the record and the human agrees.
 
-Not for TypeScript errors, unit tests, refactors, or git commits - those stay in the host agent.
+Not for a one-line typo in an unbound file. A client slice, POC, eval, or go-live stays on `@fde`.

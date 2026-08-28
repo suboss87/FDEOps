@@ -91,7 +91,7 @@ Each reference is a **skill, not advice**: the thinking the agent does, the arti
 
 ## Engagement phases (quick reference)
 
-The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 31 skills. Generic SDLC (build, debug, tests, commits) stays in the host agent - not routed here.
+The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above. POC, slice, on-site proof, and eval stay on `@fde` - they are not a side pack.
 
 | Phase | Enter when | Method highlights | Writes |
 |-------|-----------|-------------------|--------|

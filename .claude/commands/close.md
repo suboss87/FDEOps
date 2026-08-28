@@ -1,5 +1,5 @@
 ---
-description: Close the embed - they can run it without you
+description: Close the embed. They run it without you.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **close**.
@@ -12,4 +12,4 @@ Confirm before any write to `.fde/`. Do not invent a clean ending the record doe
 
 Done when: handoff is on the record and the human agrees they are replaceable.
 
-Not for TypeScript errors, unit tests, refactors, or git commits - those stay in the host agent.
+Not for a one-line typo in an unbound file. A client slice, POC, eval, or go-live stays on `@fde`.
