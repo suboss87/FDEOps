@@ -1,15 +1,8 @@
----
-name: testing-fieldbook
-description: How to adversarially test the fdeops CLI (bin/fde.js), its engagement-resolution and registry logic, the recorded-session gates in bin/check.js, the hooks/ layer, and the <private> redaction boundary — all sandboxed so no user-owned engagement data is touched.
----
+# Testing the fdeops CLI
 
-# Testing the fdeops fieldbook
+Contributor notes for adversarially testing `bin/fde.js`, engagement resolution, `bin/check.js` session gates, the hooks, and the `<private>` redaction boundary. Sandboxed so no user-owned engagement data is touched. Local-only, no network, no credentials.
 
-Everything here is local-only and network-free. No credentials are needed.
-
-## Devin Secrets Needed
-
-None.
+This is not an installable skill. The public tree ships one skill: `skills/fde/`.
 
 ## Sandbox harness (use for every case)
 

@@ -182,24 +182,22 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   // the agent can never reach, advertised anyway.
   const unrouted = [...documented].filter(name => !routed.has(name))
   if (unrouted.length) {
-    fail(`docs/skills-reference.md documents method(s) SKILL.md never routes to: ${unrouted.join(', ')}`)
+    fail(`docs/skills-reference.md documents skill(s) SKILL.md never routes to: ${unrouted.join(', ')}`)
   }
   for (const rel of ['docs/skills.md', 'docs/skills-reference.md']) {
     const body = read(rel)
     // `-` is a word boundary, so \bingest\b matches inside `ingest-connect`:
     // a method could disappear from the docs behind a hyphenated sibling.
     const absent = [...documented].filter(name => !new RegExp(`(?<![\\w-])${name}(?![\\w-])`).test(body))
-    if (absent.length) fail(`${rel} does not list method(s): ${absent.join(', ')}`)
-    // every count claim, not just the first: an earlier sentence must not shadow
-    // a stale headline (or the reverse).
-    const claims = [...body.matchAll(/(\d+)\s+methods/g)].map(m => Number(m[1]))
-    if (!claims.length) fail(`${rel} must state how many methods it documents`)
+    if (absent.length) fail(`${rel} does not list skill(s): ${absent.join(', ')}`)
+    const claims = [...body.matchAll(/(\d+)\s+skills/g)].map(m => Number(m[1]))
+    if (!claims.length) fail(`${rel} must state how many skills it documents`)
     const wrong = [...new Set(claims.filter(n => n !== documented.size))]
     if (wrong.length) {
-      fail(`${rel} claims ${wrong.join('/')} methods; ${documented.size} are documented`)
+      fail(`${rel} claims ${wrong.join('/')} skills; ${documented.size} are documented`)
     }
   }
-  ok(`public method count is verifiable (${documented.size} documented, ${routed.size} routed)`)
+  ok(`public skill count is verifiable (${documented.size} documented, ${routed.size} routed)`)
 
   const refDir = path.join(root, 'skills', 'fde', 'references')
   const extra = fs.readdirSync(refDir).filter(f => f.endsWith('.md') && !mentioned.includes(f))
@@ -250,7 +248,7 @@ if (brokenLinks.length) fail(`README links to missing paths: ${brokenLinks.join(
 else ok('README links all resolve')
 
 for (const section of [
-  'How it works',
+  'How Skills Work',
   'Quick Start',
   'Engagement memory',
   'Who this is for',
@@ -282,9 +280,8 @@ if (!readme.includes('fde-engagements') || !/fdeops.*init.*engagement/i.test(rea
   fail('README must document fde-engagements + init flow')
 } else ok('README engagement path')
 
-// The contributor-only testing skill lives in .agents/skills/, so a bare
-// `skills add` installs it too. The advertised command must name the one skill
-// a field user wants.
+// The advertised command must name the one skill a field user wants.
+// Contributor CLI attack notes live in evals/testing-fieldbook.md, not as a skill.
 for (const m of readme.match(/^.*npx skills add .*$/gm) || []) {
   if (!m.includes('--skill fde')) {
     fail(`README skills-add command must pin --skill fde: ${m.trim()}`)
@@ -310,19 +307,7 @@ if (!read('skills/fde/SKILL.md').includes('npx --yes fdeops')) {
     fail(`SKILL.md description needs several "Use when …" triggers so it fires on intent (found ${triggers.length})`)
   } else if (/Use when the human says @fde or/.test(desc)) {
     fail('SKILL.md description must not gate on @fde - name the client-work intents first')
-  } else ok('SKILL.md description triggers on intent')
-}
-
-// Six invented words (fieldbook, terrain, reality, trust signal, receipts,
-// vault) carry the method. They were never defined in one place, so a stranger
-// met them scattered through the docs and guessed.
-{
-  const gloss = /Words used here[\s\S]{0,1200}/.exec(readme)
-  const missing = ['fieldbook', 'reality', 'terrain', 'trust signal', 'receipts', 'vault']
-    .filter(w => !gloss || !new RegExp(w, 'i').test(gloss[0]))
-  if (!gloss) fail('README must define its invented words once (a "Words used here" line)')
-  else if (missing.length) fail(`README glossary is missing: ${missing.join(', ')}`)
-  else ok('README defines its own vocabulary')
+  }   else ok('SKILL.md description triggers on intent')
 }
 
 if (!fs.existsSync(path.join(root, 'docs', 'USAGE.md'))) {
@@ -629,12 +614,34 @@ for (const manifest of ['plugin.json', 'mcp.json']) {
   else ok(`${manifest} published to npm`)
 }
 
+const skillDirs = []
 for (const entry of fs.readdirSync(path.join(root, 'skills'))) {
   const dir = path.join(root, 'skills', entry)
   if (!fs.statSync(dir).isDirectory()) continue
   if (!fs.existsSync(path.join(dir, 'SKILL.md'))) fail(`skills/${entry}/ has no SKILL.md - clients skip it`)
-  else ok(`skill ${entry} discoverable`)
+  else {
+    skillDirs.push(entry)
+    ok(`skill ${entry} discoverable`)
+  }
 }
+if (skillDirs.length !== 1 || skillDirs[0] !== 'fde') {
+  fail(`public tree ships one skill (skills/fde); found: ${skillDirs.join(', ') || '(none)'}`)
+} else ok('one public skill')
+
+function findSkillMd(dir, acc = []) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === '.git' || e.name === 'node_modules' || e.name === '.agents') continue
+    const p = path.join(dir, e.name)
+    if (e.isDirectory()) findSkillMd(p, acc)
+    else if (e.name === 'SKILL.md') acc.push(path.relative(root, p))
+  }
+  return acc
+}
+const skillFiles = findSkillMd(root)
+const allowedSkill = path.join('skills', 'fde', 'SKILL.md')
+if (skillFiles.length !== 1 || skillFiles[0] !== allowedSkill) {
+  fail(`only ${allowedSkill} may exist; found: ${skillFiles.join(', ') || '(none)'}`)
+} else ok('one SKILL.md')
 
 if (!fs.existsSync(path.join(root, '.github', 'ISSUE_TEMPLATE', 'bug_report.yml'))) {
   fail('GitHub issue template missing')

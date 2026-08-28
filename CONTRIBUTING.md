@@ -24,7 +24,9 @@ Skill and doc changes are **reviewed and merged by the maintainer only**. If you
 1. Open an issue first - one paragraph on the on-site situation.
 2. Wait for alignment before spending time on a large PR.
 
-Methods should be **specific** (actionable steps), **verifiable** (an artifact in `.fde/`), and **minimal**. The `fde` CLI stays local-only.
+Skills should be **specific** (actionable steps), **verifiable** (an artifact in `.fde/`), and **minimal**. The `fde` CLI stays local-only.
+
+Adversarial CLI notes (resolution, hooks, `<private>`, non-regular files) live in [`evals/testing-fieldbook.md`](evals/testing-fieldbook.md). That file is not a skill — do not add a second `SKILL.md`.
 
 **What we won't build:** SaaS sync; Slack/Notion/Granola **push** inside the CLI; CRM as core; hardware capture; generic code-craft packs. You may **pull** via *your* MCP.
 

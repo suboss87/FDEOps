@@ -2,8 +2,8 @@
 
 | Path | Purpose |
 |------|---------|
-| `skills/fde/` | **The one skill** - router (`SKILL.md`) + 31 routed methods, 5 overlays, and AI companion `eval-pack` under `references/` |
-| `.claude/commands/` | Slash commands: `/brief` `/discover` `/plan` `/ship` `/got` `/close` plus `/debrief` `/prep` `/quiet` `/agreed` `/status` — method cards that load `@fde` |
+| `skills/fde/` | **The one skill** - router (`SKILL.md`) + 31 routed skills, 5 overlays, and AI companion `eval-pack` under `references/` |
+| `.claude/commands/` | Slash commands: `/brief` `/discover` `/plan` `/ship` `/got` `/close` plus `/debrief` `/prep` `/quiet` `/agreed` `/status` — each loads `@fde` |
 | `adapters/` | Thin per-tool pointers (Codex/`AGENTS.md`, Gemini, Cursor, Copilot, local LLMs) - `node bin/install.js adapters <dir>` |
 | `templates/.fde/` | Core memory templates for `fde resume --init` (phase artifacts are created by phases on demand; `evals.md` is optional) |
 | `examples/` | Fictional walkthroughs with sample `.fde/` files |
@@ -14,9 +14,10 @@
 | `bin/install.js` | `node bin/install.js` (skills + hooks on disk) |
 | `hooks/` | session-start (read), session-stop (write), pre-compact - registry-aware |
 | `test/` | CLI regression suite |
-| `evals/` | Cheap skill-routing contract checks |
+| `evals/` | Skill-routing contract checks; `testing-fieldbook.md` is contributor CLI attack notes (not a skill) |
 | `.claude-plugin/` | Claude Code marketplace metadata |
-| `docs/` | install, USAGE, schema, OPERATIONS, REPO_LAYOUT, skills, skills-reference |
-| `media/` | Optional demo assets (not required for CLI/skill install) |
+| `docs/` | install, USAGE, schema, OPERATIONS, REPO_LAYOUT, skills, skills-reference, methodology |
+| `docs/methodology.md` | FDE principles the kit encodes (not loaded by hosts) |
+| `media/` | Recorded session (`session.gif`) — embed lives in USAGE.md, not the README |
 
 **Install:** [install.md](./install.md) - Claude plugin + git clone is the reliable path.
