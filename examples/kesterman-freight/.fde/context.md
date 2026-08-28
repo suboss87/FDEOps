@@ -2,7 +2,7 @@
 
 **Engagement:** kesterman-freight
 **Customer:** Kesterman Freight Lines (fictional - regional freight, ~400 trucks, 3 depots)
-**Phase:** build
+**Phase:** ship
 **Last updated:** 2026-07-02
 
 ## Current state

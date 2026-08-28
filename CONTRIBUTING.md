@@ -24,7 +24,7 @@ Skill and doc changes are **reviewed and merged by the maintainer only**. If you
 1. Open an issue first - one paragraph on the on-site situation.
 2. Wait for alignment before spending time on a large PR.
 
-Small typo fixes in docs may be accepted without an issue.
+Methods should be **specific** (actionable steps), **verifiable** (an artifact in `.fde/`), and **minimal**. The `fde` CLI stays local-only.
 
 ---
 

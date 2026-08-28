@@ -1,4 +1,4 @@
-# fdeops Reference - one skill, 31 methods across 6 domains
+# fdeops Reference - one skill, 31 methods across 6 stages
 
 v3 ships **one skill**: `@fde` ([skills/fde/SKILL.md](../skills/fde/SKILL.md)). You describe the situation; it routes to a phase and follows that phase's method from [skills/fde/references/](../skills/fde/references/). Engagement memory lives in `~/fde-engagements/<name>/.fde/` (one folder per customer).
 
@@ -6,9 +6,9 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 
 ---
 
-## The 6 domains
+## The 6 stages
 
-### 1. Embed & Trust
+### Land
 *First days. Getting access, building credibility, understanding scope.*
 
 | Skill | What it does | Use when |
@@ -19,7 +19,7 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 | [trust-engineering](../skills/fde/references/trust-engineering.md) | The trust ladder from observer to trusted; navigate AI policy | Need to earn access, navigate AI policy, build credibility |
 | [scope-defense](../skills/fde/references/scope-defense.md) | "Let me place it": scope receipts, the accumulation conversation | "Also can you...", scope expanding, timeline unchanged |
 
-### 2. Discover & Diagnose
+### Discover
 *Finding the real problem. Testing what the brief claims.*
 
 | Skill | What it does | Use when |
@@ -29,7 +29,7 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 | [use-case-scoring](../skills/fde/references/use-case-scoring.md) | Score on value x urgency x alignment x data readiness / complexity | Multiple use cases competing, "we want to do everything" |
 | [sketch](../skills/fde/references/sketch.md) | Prototype the killer assumption in one day; kill fast, log the learning | Need to validate a direction, prototype, demo to de-risk |
 
-### 3. Plan & Align
+### Plan
 *Sequencing work and getting sponsor alignment.*
 
 | Skill | What it does | Use when |
@@ -39,26 +39,20 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 | [options-analysis](../skills/fde/references/options-analysis.md) | Three genuine options (conservative / pragmatic / ambitious) | Significant decision, multiple approaches, "what should we do?" |
 | [initiative-triage](../skills/fde/references/initiative-triage.md) | 20 things are "urgent"; pick 3 for Now, make trade-offs visible | 20 things are "urgent," need to pick the 3 that matter |
 
-### 4. Build & Guard
-*Safe implementation on someone else's codebase.*
+### Ship
+*Safe implementation on someone else's codebase, then go-live.*
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
 | [incremental-build](../skills/fde/references/incremental-build.md) | Vertical slices, 100-300 lines each, visible progress every 2-3 days | Large feature, need visible progress every 2-3 days |
 | [blast-radius](../skills/fde/references/blast-radius.md) | Trace dependencies, classify impact (CONTAINED -> IRREVERSIBLE) | What could go wrong, touching shared infrastructure, need to assess impact |
 | [rescue](../skills/fde/references/rescue.md) | Production fire, trust fire, wrong-brief-mid-build, **or full pivot** | Production down, urgent - or stakeholder gone quiet, trust slipping |
-
-### 5. Ship & Verify
-*Getting to production without surprises.*
-
-| Skill | What it does | Use when |
-|-------|-------------|----------|
 | [ship](../skills/fde/references/ship.md) | **Intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP) + pre-flight + canary + rollback + **scale-readiness** + **progressive adoption** | Ready to deploy, going live, pre-flight check |
 | [review](../skills/fde/references/review.md) | Stage 1 **intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP), then safety | Review this change, is it safe, does it match what we agreed, scope creep in the PR |
 | [rollback-drill](../skills/fde/references/rollback-drill.md) | Test the escape route on staging before you need it at 2am | "We can always revert" - need to actually test the escape route |
 
-### 6. Operate & Close
-*Running the engagement and ending it well.*
+### Prove
+*Show what they got. Dated receipts, not memory.*
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
@@ -67,13 +61,19 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 | [debrief](../skills/fde/references/debrief.md) | Walk out of any meeting -> decisions, signals, actions in memory | Just out of a meeting, raw notes, "they said...", "debrief" |
 | [exec-narrative](../skills/fde/references/exec-narrative.md) | Pyramid: governing thought, three supports, SCQA frame | Sponsor's boss needs a summary, board update, justify continued investment |
 | [dashboard](../skills/fde/references/dashboard.md) | Portfolio view across all customers, trust-ordered | Status across all my customers |
-| [multi-customer-ops](../skills/fde/references/multi-customer-ops.md) | Daily triage, context-switch, cross-contamination prevention | Juggling 2+ customers, losing track, context-switching |
-| [close](../skills/fde/references/close.md) | Retrospective, the 2am handoff document, what we learned | Wrapping up, handoff, making yourself replaceable |
-| [handoff-engineering](../skills/fde/references/handoff-engineering.md) | Operations runbook, knowledge transfer, confidence scoring | Engagement ending, team needs to operate without you |
-| [pattern-extract](../skills/fde/references/pattern-extract.md) | If you did it twice, encode it; patterns are compound interest | Something worked well and will apply to future engagements |
-| [red-team](../skills/fde/references/red-team.md) | Stress-test a plan, handoff, or narrative before someone else does | "Red-team this," "stress-test my plan," poke holes, what am I missing |
 | [ingest](../skills/fde/references/ingest.md) | Pull raw text from any source MCP into `.inbox/`, propose, you confirm | "Pull today's transcript," "bring in the Notion page" |
 | [ingest-connect](../skills/fde/references/ingest-connect.md) | Guided config for a source MCP you already trust, plus a reusable recipe | "Connect Granola," "wire up Drive" |
+
+### Close
+*They can run it without you.*
+
+| Skill | What it does | Use when |
+|-------|-------------|----------|
+| [close](../skills/fde/references/close.md) | Retrospective, the 2am handoff document, what we learned | Wrapping up, handoff, making yourself replaceable |
+| [handoff-engineering](../skills/fde/references/handoff-engineering.md) | Operations runbook, knowledge transfer, confidence scoring | Engagement ending, team needs to operate without you |
+| [multi-customer-ops](../skills/fde/references/multi-customer-ops.md) | Daily triage, context-switch, cross-contamination prevention | Juggling 2+ customers, losing track, context-switching |
+| [pattern-extract](../skills/fde/references/pattern-extract.md) | If you did it twice, encode it; patterns are compound interest | Something worked well and will apply to future engagements |
+| [red-team](../skills/fde/references/red-team.md) | Stress-test a plan, handoff, or narrative before someone else does | "Red-team this," "stress-test my plan," poke holes, what am I missing |
 
 ### Overlays (activate on signal, alongside whatever skill is running)
 

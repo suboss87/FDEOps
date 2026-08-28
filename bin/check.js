@@ -57,6 +57,10 @@ for (const dir of fs.readdirSync(path.join(root, 'skills'))) {
 }
 ok('skills structure')
 
+if (fs.existsSync(path.join(root, 'skills', 'fde', 'archive'))) {
+  fail('skills/fde/archive must not exist — unrouted methods are dead code')
+} else ok('no archived skill dump')
+
 // v3: one skill + phase references (progressive disclosure)
 const requiredReferences = [
   'land.md', 'discover.md', 'audit.md', 'plan.md', 'review.md',
@@ -118,7 +122,7 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   // Every routing row must parse. A row this misses is a method that could go
   // undocumented for free, so an unparsed row is a hard failure, not a silent skip.
   const routed = new Set()
-  const routing = (router.split('## Routing - 6 domains')[1] || '').split('**Overlays')[0]
+  const routing = (router.split(/^## Routing[^\n]*$/m)[1] || '').split('**Overlays')[0]
   const methodCell = line => (line.split('|')[2] || '').trim().replace(/\s*\([^)]*\)\s*$/, '')
   for (const line of routing.split('\n')) {
     if (!/^\|/.test(line)) continue
@@ -197,6 +201,11 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
     }
   }
   ok(`public method count is verifiable (${documented.size} documented, ${routed.size} routed)`)
+
+  const refDir = path.join(root, 'skills', 'fde', 'references')
+  const extra = fs.readdirSync(refDir).filter(f => f.endsWith('.md') && !mentioned.includes(f))
+  if (extra.length) fail(`unrouted reference file(s) — dead method: ${extra.join(', ')}`)
+  else ok('no unrouted reference files')
 }
 
 const install = read('bin/install.js')

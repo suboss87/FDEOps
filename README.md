@@ -25,7 +25,7 @@ Skills encode the workflows, quality gates, and judgment Forward Deployed Engine
 
 ## Commands
 
-The embed, left to right. Each command loads `@fde` and runs that stage. One skill; you never pick a method.
+11 slash commands that map to the engagement. Each one loads `@fde`. You never pick a method.
 
 | What you're doing | Command | Principle |
 |-------------------|---------|-----------|
@@ -37,8 +37,9 @@ The embed, left to right. Each command loads `@fde` and runs that stage. One ski
 | Close the embed | `/close` | They can run it without you |
 | After a meeting | `/debrief` | Proposed updates. You confirm. |
 | Walk-in tomorrow | `/prep` | From the record, nothing invented |
-
-Also: `/quiet` (sponsor went silent) · `/agreed` (scope dispute) · `/status` (Friday readout).
+| Sponsor went silent | `/quiet` | Process vs trust |
+| Scope dispute | `/agreed` | Dated receipts, not memory |
+| Friday readout | `/status` | Value ledger first |
 
 `@fde` plus English activates the same skill automatically. Ordinary TypeScript, unit tests, and git commits stay in the host agent.
 
@@ -54,23 +55,73 @@ Also: `/quiet` (sponsor went silent) · `/agreed` (scope dispute) · `/status` (
 npx skills add suboss87/fdeops --skill fde
 ```
 
-Claude Code (hooks before you type; slash commands on the map above):
-
-```text
-/plugin marketplace add suboss87/fdeops
-/plugin install fdeops@fdeops
-```
-
 **Then one chat.** Name the client. The AI coding agent binds. You never type the CLI.
 
 ```text
 @fde this is Acme
 ```
 
-Paste kickoff notes in the same thread. `@fde` routes; you confirm judgment. Same folder every time: `~/fde-engagements/<client>/.fde/`. Workflow: [docs/USAGE.md](docs/USAGE.md).
+Paste kickoff notes in the same thread. `@fde` routes; you confirm judgment. Same folder every time: `~/fde-engagements/<client>/.fde/`. Day-to-day: [docs/USAGE.md](docs/USAGE.md). Re-run the install to update.
 
 <details>
-<summary>Terminal bind · other hosts · env</summary>
+<summary><b>Claude Code</b></summary>
+
+```text
+/plugin marketplace add suboss87/fdeops
+/plugin install fdeops@fdeops
+```
+
+Hooks load where you left off before you type. Slash commands match the map above.
+
+</details>
+
+<details>
+<summary><b>Cursor</b></summary>
+
+```bash
+npx skills add suboss87/fdeops --skill fde
+```
+
+Or drop the pointer: `npx fdeops adapters .` — [adapters/](adapters/README.md).
+
+</details>
+
+<details>
+<summary><b>Gemini CLI</b></summary>
+
+```bash
+npx skills add suboss87/fdeops --skill fde
+```
+
+Or load `adapters/GEMINI.md`. Guide: [adapters/](adapters/README.md).
+
+</details>
+
+<details>
+<summary><b>GitHub Copilot</b></summary>
+
+```bash
+npx fdeops adapters .
+```
+
+Writes `.github/copilot-instructions.md`. See [adapters/](adapters/README.md).
+
+</details>
+
+<details>
+<summary><b>Codex / other agents</b></summary>
+
+Skills are markdown. `npx skills add suboss87/fdeops --skill fde`, or copy `skills/fde/SKILL.md`. Codex reads `AGENTS.md` — [adapters/](adapters/README.md).
+
+</details>
+
+<details>
+<summary><b>Local / air-gapped / terminal</b></summary>
+
+```bash
+git clone https://github.com/suboss87/fdeops.git
+cd fdeops && node bin/install.js
+```
 
 Fallback if the agent cannot bind:
 
@@ -79,12 +130,14 @@ npx fdeops resume --init acme   # ~/fde-engagements/acme + bind this checkout
 npx fdeops resume               # where we are
 ```
 
-- **Adapters** (Cursor rules, Gemini, Copilot): `npx fdeops adapters .` — [adapters/](adapters/README.md)
 - **Local LLMs:** load `skills/fde/SKILL.md` — [guide](adapters/LOCAL-LLM.md)
-- **Air-gapped:** `git clone https://github.com/suboss87/fdeops.git && cd fdeops && node bin/install.js`
 - **No install:** `npx fdeops demo` · `npx fdeops scan` (heuristic recon, not findings)
 - **Requires:** Node.js >= 18
 - **Override:** `FDEOPS_ENGAGEMENT` — [docs/install.md](docs/install.md)
+
+Try the loop on a fake client: `npx fdeops demo`. Nothing of yours is read. Lives in `~/fde-engagements/.demo/`. Remove with `npx fdeops demo --clean`. Re-record the session gif: [`media/record-session.sh`](media/record-session.sh).
+
+Two things a chat window cannot do: **nothing is written until you confirm**, and `<private>` lands sealed as `(private - redacted)`.
 
 </details>
 
@@ -110,21 +163,9 @@ A number only you agree with is claimed, not delivered. `/got` reads promised �
 
 ---
 
-## See it
+## All 31 methods
 
-```bash
-npx fdeops demo
-```
-
-Real commands on a fake client. Nothing of yours is read. Lives in `~/fde-engagements/.demo/`. Remove with `npx fdeops demo --clean`. Re-record the session gif: [`media/record-session.sh`](media/record-session.sh).
-
-Two things a chat window cannot do: **nothing is written until you confirm**, and `<private>` lands sealed as `(private - redacted)`.
-
----
-
-## All methods
-
-The commands above are entry points. One `@fde` skill routes; you never pick a method by name. **31 methods**, six stages. Each is thinking + artifact + checkpoint — not a tip sheet. Full detail: [docs/skills-reference.md](docs/skills-reference.md).
+The commands above are the entry points. Under the hood, one `@fde` skill routes to these 31 methods — each a structured workflow with an artifact and a checkpoint. You never pick a method by name. Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 
 ### Land
 
@@ -195,17 +236,29 @@ Optional pull: you add the source MCP; we **pull** on request. [mcp/recipes/](mc
 
 ## How it works
 
+Every method follows the same anatomy:
+
 ```
-┌─────────────────────────────────────────┐
-│  @fde  (one skill)                      │
-│  Commands load it. English loads it.    │
-│  You confirm. Then .fde/ is written.    │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│  @fde  (one skill)                          │
+│                                             │
+│  ┌─ Frontmatter ─────────────────────────┐  │
+│  │ name: fde                             │  │
+│  │ description: Use when [client work]   │  │
+│  └───────────────────────────────────────┘  │
+│                                             │
+│  Commands load it. English loads it.        │
+│  You confirm. Then .fde/ is written.        │
+└─────────────────────────────────────────────┘
          │
          ▼
   references/<method>.md     fde CLI (local)
   one file, then stop        dating, gates, redaction
 ```
+
+- **Process, not prose.** Methods are workflows with an artifact and a checkpoint, not tip sheets.
+- **You confirm.** Nothing is written until you say so. `fde debrief --dry-run` shows routing first.
+- **Progressive disclosure.** `SKILL.md` is the entry point. One `references/*.md` loads when routed.
 
 - **You** describe the situation (`@fde` or a slash command). First chat: you name the client; the AI coding agent binds.
 - **Hooks (Claude Code)** load where you left off. Elsewhere, say `@fde`.
@@ -216,6 +269,23 @@ Optional pull: you add the source MCP; we **pull** on request. [mcp/recipes/](mc
 **Words used here, once:** *engagement* - one client's body of work, one folder. *Fieldbook* - that folder (`.fde/`), the record itself. *Brief vs reality* - what they said the problem was, and what it turned out to be. *Terrain* - their systems and org as you actually found them. *Trust signal* - green / amber / red on one relationship. *Receipts* - the dated line proving something was agreed. *Vault* - the Obsidian copy `fde vault` generates to read it all in one window.
 
 Change hosts, install `@fde` on the new one, bind if needed, keep talking.
+
+---
+
+## Project structure
+
+```
+fdeops/
+├── skills/fde/                 # the one skill
+│   ├── SKILL.md                #   router
+│   └── references/             #   31 methods + overlays
+├── .claude/commands/           # slash commands (each loads @fde)
+├── bin/fde.js                  # local CLI — git + files, no network
+├── hooks/                      # session-start / session-stop / pre-compact
+├── adapters/                   # Cursor, Gemini, Copilot, Codex pointers
+├── templates/.fde/             # memory files created on bind
+└── docs/                       # usage, schema, install
+```
 
 ---
 
@@ -274,17 +344,11 @@ Local HTML fieldbook: `@fde` dashboard, or `npx fdeops dashboard` (`--all` for t
 
 ---
 
-## Updating
-
-Re-run the Quick Start install, or from a clone: `git pull && node bin/install.js`
-
----
-
 ## Contributing
 
 **[Subash Natarajan](https://www.linkedin.com/in/subashn/)**. [Issues](https://github.com/suboss87/fdeops/issues) · [CONTRIBUTING.md](CONTRIBUTING.md)
 
-Methods should be specific (actionable steps), verifiable (an artifact in `.fde/`), and minimal. The `fde` CLI stays local-only.
+Methods should be **specific** (actionable steps), **verifiable** (an artifact in `.fde/`), and **minimal**. The `fde` CLI stays local-only.
 
 **What we won't build:** SaaS sync; Slack/Notion/Granola **push** inside the CLI; CRM as core; hardware capture; generic code-craft packs. You may **pull** via *your* MCP.
 
@@ -292,4 +356,4 @@ Methods should be specific (actionable steps), verifiable (an artifact in `.fde/
 
 ## License
 
-MIT.
+MIT — use these skills on client work.

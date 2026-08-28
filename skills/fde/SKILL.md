@@ -7,7 +7,7 @@ description: Keeps engagement memory for client work - sponsor, promise, what sh
 
 ## Purpose
 
-The **engagement record** for one client. Not a coding skill. Not a land-through-close OS. You pick the method; they never pick a skill. Confirm, then write `.fde/`. The host agent writes the TypeScript; you log what they got. The artifact is the memory.
+The **engagement record** for one client. One skill; six stages (land → close). You pick the method; they never pick a skill. Confirm, then write `.fde/`. The host agent writes the TypeScript; you log what they got. The artifact is the memory.
 
 ## When to use
 
@@ -32,7 +32,7 @@ After a meeting: `fde debrief --smart` → confirm → `--apply`. Walk-in: `fde 
 
 ## Human surface vs agent plumbing
 
-**FDE (human):** `@fde` + English, or `/brief` `/discover` `/plan` `/ship` `/got` `/close` `/debrief` `/prep`. Never a skill catalog.
+**FDE (human):** `@fde` + English, or `/brief` `/discover` `/plan` `/ship` `/got` `/close` `/debrief` `/prep` `/quiet` `/agreed` `/status`. Never a skill catalog.
 
 **You (agent):** run the CLI. **Never tell the FDE to type** `fde …`. If unbound, you run `fde resume --init` after one question. Never ask them to run the CLI.
 
@@ -99,11 +99,11 @@ New embed: sprint / standard / programme changes depth, not which methods exist.
 
 Muddy signal: name it ("discover or rescue — leaning X"). Never a phase-picker interview. Default: land if new, audit if takeover.
 
-## Routing - 6 domains
+## Routing - 6 stages
 
 Read **one** reference and follow it. Do not improvise from memory.
 
-### Domain 1 - Embed & Trust
+### Land
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
@@ -113,7 +113,7 @@ Read **one** reference and follow it. Do not improvise from memory.
 | Need to earn access, navigate AI policy, build credibility | trust-engineering | `references/trust-engineering.md` |
 | "Also can you…", scope expanding, timeline unchanged | scope-defense | `references/scope-defense.md` |
 
-### Domain 2 - Discover & Diagnose
+### Discover
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
@@ -122,7 +122,7 @@ Read **one** reference and follow it. Do not improvise from memory.
 | Multiple use cases competing, "we want to do everything" | use-case-scoring | `references/use-case-scoring.md` |
 | Need to validate a direction, prototype, demo to de-risk | sketch | `references/sketch.md` |
 
-### Domain 3 - Plan & Align
+### Plan
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
@@ -131,25 +131,20 @@ Read **one** reference and follow it. Do not improvise from memory.
 | Significant decision, multiple approaches, "what should we do?" | options-analysis | `references/options-analysis.md` |
 | 20 things are "urgent," need to pick the 3 that matter | initiative-triage | `references/initiative-triage.md` |
 
-### Domain 4 - Build & Guard
+### Ship
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
 | Large feature, need visible progress every 2–3 days | incremental-build | `references/incremental-build.md` |
 | What could go wrong, touching shared infrastructure, need to assess impact | blast-radius | `references/blast-radius.md` |
 | Production down, urgent - OR stakeholder gone quiet, trust slipping | rescue | `references/rescue.md` |
-
-### Domain 5 - Ship & Verify
-
-| You hear | Skill | Reference |
-|----------|-------|-----------|
 | Ready to deploy, going live, pre-flight check | ship | `references/ship.md` |
 | Review this change, is it safe, does it match what we agreed | review | `references/review.md` |
 | Diff grew / scope creep in the PR / "did we only build what we said" / KEEP JUSTIFY SPLIT DROP | review (+ ship if going live) | `references/review.md` Stage 1 · `references/ship.md` Intent vs diff |
 | Wrap the session / share the thinking / catch teammates up / before I open the PR | (memory contract — session digest) | SKILL.md **On exit** — write TL;DR + decisions/why into `.fde/`; no transcript sync |
 | "We can always revert" - need to actually test the escape route | rollback-drill | `references/rollback-drill.md` |
 
-### Domain 6 - Operate & Close
+### Prove
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
@@ -161,6 +156,11 @@ Read **one** reference and follow it. Do not improvise from memory.
 | Prep me for a meeting / walk-in brief / "what should I know before I talk to…" | - | run `fde prep "<label>"`, present in plain language |
 | Sponsor's boss needs a summary, board update, justify continued investment | exec-narrative | `references/exec-narrative.md` |
 | Status across all my customers | dashboard | `references/dashboard.md` |
+
+### Close
+
+| You hear | Skill | Reference |
+|----------|-------|-----------|
 | Juggling 2+ customers, losing track, context-switching | multi-customer-ops | `references/multi-customer-ops.md` |
 | Wrapping up, handoff, making yourself replaceable | close | `references/close.md` |
 | Engagement ending, team needs to operate without you | handoff-engineering | `references/handoff-engineering.md` |
