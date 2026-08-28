@@ -8,20 +8,36 @@ fdeops installs on **your laptop** - where **your AI coding agent** runs. Not on
 
 ---
 
-## Quickstart (the whole setup)
+## Quick Start (the whole setup)
+
+**30-second setup.** Fastest path, any AI coding agent:
+
+```bash
+npx skills add suboss87/fdeops --skill fde
+```
+
+Then one chat — name the client; the AI coding agent binds. You never type the CLI:
 
 ```text
-/plugin marketplace add suboss87/fdeops        # 1. install (Claude Code)
+@fde this is Acme
+```
+
+Claude Code (hooks before you type; slash commands on the README map):
+
+```text
+/plugin marketplace add suboss87/fdeops
 /plugin install fdeops@fdeops
 ```
 
+Terminal fallback (if the agent cannot bind), inside a workspace:
+
 ```bash
-npx fdeops resume --init <client-name>         # 2. run once, inside the client's workspace
+npx fdeops resume --init <client-name>
 ```
 
 The plugin install alone does **not** put a bare `fde` command on your shell PATH. `npx fdeops <command>` always works with nothing pre-installed; run `npm i -g fdeops` once if you want the short `fde` form used in the rest of these docs.
 
-Done. `fde resume --init` creates `~/fde-engagements/<client-name>/.fde/` and **binds this workspace to it in the workspace registry**. The session hooks read that binding, so memory auto-loads at session start and auto-captures at session end - nothing else to configure, no environment variables.
+`fde resume --init` creates `~/fde-engagements/<client-name>/.fde/` and **binds this workspace to it in the workspace registry**. The session hooks read that binding, so memory auto-loads at session start and auto-captures at session end - nothing else to configure, no environment variables.
 
 Type `@fde` in the AI chat and start working.
 

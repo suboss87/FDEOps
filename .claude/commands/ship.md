@@ -8,7 +8,7 @@ If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once
 
 Run `fde resume` (fallback: `npx --yes fdeops resume`). Read `references/ship.md` and follow it. Pre-flight, who needs to know, rollback.
 
-Host agent writes the code. You log what shipped and whether it was accepted. Do not load `archive/sdlc/`.
+Host agent writes the code. You log what shipped and whether it was accepted.
 
 Confirm before any write to `.fde/`. Do not ship on “probably fine.”
 

@@ -4,7 +4,11 @@
 
 **Terminology:** [README § Who this is for](../README.md#who-this-is-for) - **"agent" = AI software, not a human.**
 
-**Start here:** [README](../README.md) (what is happening → 30-second install → one chat).
+**Start here:** [README](../README.md) (command map → 30-second install → one chat).
+
+<p align="center"><img alt="A recorded fdeops session: kickoff notes routed into dated memory after you confirm" src="../media/session.gif" width="900" /></p>
+
+Re-record: [`media/record-session.sh`](../media/record-session.sh).
 
 Day-to-day reference below.
 
@@ -12,7 +16,7 @@ Day-to-day reference below.
 
 ## New here? (5 minutes)
 
-1. Install from the README (plugin or `npx skills add`), then in chat: `@fde this is Acme` — the AI coding agent binds. Terminal fallback: `fde resume --init <client-name>`
+1. Install from the README (plugin or `npx skills add suboss87/fdeops --skill fde`), then in chat: `@fde this is Acme` — the AI coding agent binds. Terminal fallback: `fde resume --init <client-name>`
 2. Read **Commands** and **Who this is for** in the README
 3. Skim [examples/garvey-payments/](../examples/garvey-payments/) Day 1 → Day 10
 4. Optional recon, zero config: `npx fdeops scan` in a repo
