@@ -3,20 +3,20 @@
 One skill (`@fde`) routes by situation - you never pick a method by name. Three layers:
 
 1. **Daily** - prep, debrief, receipts, status, triage / doctor
-2. **Engagement** - land → discover → plan → build → ship → close (the methods below)
+2. **Engagement** - four days (brief wrong, they went quiet, when did we agree, what they got) plus the methods below
 3. **Overlays** - ai / fintech / healthcare / gov / artifacts (plus eval-pack as an AI companion)
 
 The full map is below; per-method details live in [skills-reference.md](./skills-reference.md).
 
-## Engagement methods (37 methods across 6 domains)
+## Engagement methods (31 methods across 6 domains)
 
 | Domain | Skills | What it covers |
 |--------|--------|---------------|
 | **Embed & Trust** | land, audit, stakeholder-radar, trust-engineering, scope-defense | First days: access, credibility, scope |
 | **Discover & Diagnose** | discover, assumption-audit, use-case-scoring, sketch | Finding the real problem behind the brief |
 | **Plan & Align** | plan, business-case, options-analysis, initiative-triage | Sequencing work, getting sponsor alignment |
-| **Build & Guard** | build, incremental-build, test-on-legacy, blast-radius, debug, rescue, security-audit, observability | Building safely on their codebase |
-| **Ship & Verify** | ship, review, rollback-drill, qa-live | Getting to production without surprises |
+| **Build & Guard** | incremental-build, blast-radius, rescue | Visible slices, blast radius, production/trust fire — not generic debug/build |
+| **Ship & Verify** | ship, review, rollback-drill | Intent vs agreed scope, go-live, rollback drill |
 | **Operate & Close** | status, demo-prep, debrief, exec-narrative, dashboard, multi-customer-ops, close, handoff-engineering, pattern-extract, red-team, ingest, ingest-connect | Running and ending the engagement well; pulling from source MCPs |
 
 Each skill is a **method, not advice**: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.

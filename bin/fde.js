@@ -1223,7 +1223,7 @@ function cmdResume(args) {
         .filter(d => !d.startsWith('.') && fs.existsSync(path.join(ENGAGEMENTS_ROOT, d, '.fde')))
         .join(', ') || '(none yet)'
       : '(none yet)'
-    console.log(`NO ENGAGEMENT for this workspace.\nexisting: ${list}\ncreate + bind one:  fde resume --init <client-name>`)
+    console.log(`NO ENGAGEMENT for this workspace.\nexisting: ${list}\nAsk the human the client name (one question), then run: fde resume --init <client-name>\nDo not tell them to type that command.`)
     process.exit(2)
   }
   // Monday-morning: triage + proactive hygiene (silent when clean), then memory.

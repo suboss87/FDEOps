@@ -1,4 +1,4 @@
-# fdeops Reference - one skill, 37 methods across 6 domains
+# fdeops Reference - one skill, 31 methods across 6 domains
 
 v3 ships **one skill**: `@fde` ([skills/fde/SKILL.md](../skills/fde/SKILL.md)). You describe the situation; it routes to a phase and follows that phase's method from [skills/fde/references/](../skills/fde/references/). Engagement memory lives in `~/fde-engagements/<name>/.fde/` (one folder per customer).
 
@@ -44,14 +44,9 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [build](../skills/fde/references/build.md) | Blast radius + legacy safety + **integration design** + **team amplification** | Ready to build, implementing, legacy change, ship a feature end to end |
 | [incremental-build](../skills/fde/references/incremental-build.md) | Vertical slices, 100-300 lines each, visible progress every 2-3 days | Large feature, need visible progress every 2-3 days |
-| [test-on-legacy](../skills/fde/references/test-on-legacy.md) | Characterise first, Strangler Fig, spot lying tests | No tests, legacy code, need to make changes safely |
 | [blast-radius](../skills/fde/references/blast-radius.md) | Trace dependencies, classify impact (CONTAINED -> IRREVERSIBLE) | What could go wrong, touching shared infrastructure, need to assess impact |
-| [debug](../skills/fde/references/debug.md) | Systematic: reproduce -> isolate -> one hypothesis -> verify | Something's broken, can't reproduce, shouldn't be happening |
 | [rescue](../skills/fde/references/rescue.md) | Production fire, trust fire, wrong-brief-mid-build, **or full pivot** | Production down, urgent - or stakeholder gone quiet, trust slipping |
-| [security-audit](../skills/fde/references/security-audit.md) | Threat model in 5 minutes, STRIDE pass, secrets scan | Security check, auth/payments/user data, compliance question |
-| [observability](../skills/fde/references/observability.md) | Define "working" before instrumenting; the four metrics | Need monitoring, can't tell when things break, shipping to prod |
 
 ### 5. Ship & Verify
 *Getting to production without surprises.*
@@ -61,7 +56,6 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 | [ship](../skills/fde/references/ship.md) | **Intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP) + pre-flight + canary + rollback + **scale-readiness** + **progressive adoption** | Ready to deploy, going live, pre-flight check |
 | [review](../skills/fde/references/review.md) | Stage 1 **intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP), then safety | Review this change, is it safe, does it match what we agreed, scope creep in the PR |
 | [rollback-drill](../skills/fde/references/rollback-drill.md) | Test the escape route on staging before you need it at 2am | "We can always revert" - need to actually test the escape route |
-| [qa-live](../skills/fde/references/qa-live.md) | Test from the user's chair, real browser, five perspectives | Need to test from user perspective, "works on my machine" |
 
 ### 6. Operate & Close
 *Running the engagement and ending it well.*
@@ -97,7 +91,7 @@ Each reference is a **method, not advice**: the thinking the agent does, the art
 
 ## Engagement phases (quick reference)
 
-The 10 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 35.
+The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 31. Generic SDLC (`build`, `debug`, `observability`, `qa-live`, `security-audit`, `test-on-legacy`) lives in [`skills/fde/archive/sdlc/`](../skills/fde/archive/sdlc/) and is **not routed**.
 
 | Phase | Enter when | Method highlights | Writes |
 |-------|-----------|-------------------|--------|
@@ -108,7 +102,6 @@ The 10 phases most engagements actually run through, with what gets written wher
 | [rescue](../skills/fde/references/rescue.md) | Production fire, trust fire, or wrong-brief mid-build | Stabilise -> named unknowns -> minimum safe change; quiet-stakeholder protocol; three-path reset | `chaos-log.md` `risks.md` `decisions.md` |
 | [close](../skills/fde/references/close.md) | Engagement ending | Retrospective with receipts; pattern extraction; the 2am handoff | `retrospectives/` `patterns.md` `handoff.md` |
 | [plan](../skills/fde/references/plan.md) | Scope clear, needs sequencing | Backwards from success; fragile first; PR-sized tasks; acceptance-criteria gate | `decisions.md` |
-| [build](../skills/fde/references/build.md) | Agreed slice ready | Blast radius declared; characterisation tests on legacy; Strangler Fig; cleanup pass | `decisions.md` `risks.md` `delivery.md` |
 | [review](../skills/fde/references/review.md) | Change needs a merge gate | Stage 1 KEEP/JUSTIFY/SPLIT/DROP vs stated intent, then 5-dimension safety; review-fix loop until clean | `decisions.md` |
 | [ship](../skills/fde/references/ship.md) | Ready to deploy | Intent vs diff receipt, then pre-flight/CAB; canary with rollback-on-anomaly; pulse before closing the laptop | `delivery.md` |
 
@@ -116,7 +109,7 @@ The 10 phases most engagements actually run through, with what gets written wher
 
 ## The `fde` CLI (deterministic core - works without AI)
 
-`scan` recon + "ASK ON DAY 1" questions (zero-config via `npx fdeops scan`) · `resume [--full] [--init <name>]` memory (bounded by default - current state + recent activity; `--full` for the complete log) + the one canonical setup step (`--init` creates AND binds the workspace) · `debrief <file>` (or stdin) route `decision:`/`risk:`/`delivery:`/`contact:` prefixed lines to their `.fde` files with dates, everything else to a dated block in `context.md` · `log <type> <text> [--signal green|amber|red]` structured appends; `--signal` writes the `[signal:...]` token that drives trust in status/dashboard (stale after 21 days) · `receipts <term>` agreements with dates · `capture` session snapshot · `status` portfolio triage · `dashboard [--open] [--out <path>]` render every engagement into one offline `fieldbook.html`. The skill calls these for mechanics; the AI does interpretation and judgment. Every command above runs locally - no AI needed.
+`scan` recon + "ASK ON DAY 1" questions (zero-config via `npx fdeops scan`) · `resume [--full] [--init <name>]` memory (bounded by default - current state + recent activity; `--full` for the complete log) + bind (`--init` creates AND binds; prefer `@fde this is Acme` in chat, terminal `--init` as fallback) · `debrief <file>` (or stdin) route `decision:`/`risk:`/`delivery:`/`contact:` prefixed lines to their `.fde` files with dates, everything else to a dated block in `context.md` · `log <type> <text> [--signal green|amber|red]` structured appends; `--signal` writes the `[signal:...]` token that drives trust in status/dashboard (stale after 21 days) · `receipts <term>` agreements with dates · `capture` session snapshot · `status` value ledger then trust · `dashboard [--open] [--out <path>]` render every engagement into one offline `fieldbook.html`. The skill calls these for mechanics; the AI does interpretation and judgment. Every command above runs locally - no AI needed.
 
 ---
 
