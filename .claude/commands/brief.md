@@ -1,5 +1,5 @@
 ---
-description: Land the embed. Who signs done.
+description: First week on site. Name who signs done.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **land**.

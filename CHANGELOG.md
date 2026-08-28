@@ -10,6 +10,7 @@ The CLI no longer volunteers a false statement to a sponsor. Signals key on the 
 - `debrief --smart` prints the `decision:` / `risk:` / `delivery:` / `contact:` / `next:` vocabulary. Preview gate unchanged.
 - `fde log delivery "slice | bucket | …"` writes a value-ledger row. `fde log risk --retire <text>` moves matching open risks. `fde tidy --apply` can bless hand-written dirty files.
 - `status` and `dashboard` print doctor issues. README check allows the GitHub poster `<img>` (`user-attachments`).
+- Command map and slash descriptions use plain verbs (`Ship to their production`, `Prep before the meeting`). Craft words stay in the method, not the button.
 
 ## 3.16.0 - 2026-08-28
 

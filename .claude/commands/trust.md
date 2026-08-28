@@ -1,5 +1,5 @@
 ---
-description: They went quiet. Process gap or trust problem.
+description: Sponsor went quiet. Process gap, or they stopped trusting you.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Situation: **they went quiet**.

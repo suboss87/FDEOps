@@ -1,5 +1,5 @@
 ---
-description: Find the real problem. Brief is a hypothesis.
+description: Find the real problem. Treat the brief as a hypothesis.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **discover**.
