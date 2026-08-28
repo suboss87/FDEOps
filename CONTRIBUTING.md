@@ -13,7 +13,7 @@ This repository reflects one operator’s field kit - open-sourced for other FDE
 | [GitHub Issues](https://github.com/suboss87/fdeops/issues) | Bugs, gaps (“situation X isn’t covered”), anonymized patterns that worked |
 | [Discussions](https://github.com/suboss87/fdeops/discussions) | Questions about fit on an engagement type, workflow ideas, show-and-tell |
 
-**Do not** open PRs with client-identifying data, `.fde/` exports, or screenshots containing real names.
+Participation is covered by the [Code of Conduct](CODE_OF_CONDUCT.md). **Do not** open PRs or issues with client-identifying data, `.fde/` exports, or screenshots containing real names.
 
 ---
 
@@ -26,7 +26,7 @@ Skill and doc changes are **reviewed and merged by the maintainer only**. If you
 
 Skills should be **specific** (actionable steps), **verifiable** (an artifact in `.fde/`), and **minimal**. The `fde` CLI stays local-only.
 
-Adversarial CLI notes (resolution, hooks, `<private>`, non-regular files) live in [`evals/testing-fieldbook.md`](evals/testing-fieldbook.md). That file is not a skill — do not add a second `SKILL.md`.
+Adversarial CLI notes (resolution, hooks, `<private>`, non-regular files) live in [`evals/testing-fieldbook.md`](evals/testing-fieldbook.md). That file is not a skill - do not add a second `SKILL.md`.
 
 **What we won't build:** SaaS sync; Slack/Notion/Granola **push** inside the CLI; CRM as core; hardware capture; generic code-craft packs. You may **pull** via *your* MCP.
 

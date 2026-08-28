@@ -66,7 +66,7 @@ Mistakes happen. What matters is speed and honesty:
 **`trust-profile.md`** - updated sections:
 ```markdown
 ## Trust level
-Current: <level 0–5> as of <date>
+Current: <level 0-5> as of <date>
 Evidence: <what earned this level>
 Next target: <level> - requires: <specific action>
 

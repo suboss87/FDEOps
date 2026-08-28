@@ -16,7 +16,7 @@ fdeops installs on **your laptop** - where **your AI coding agent** runs. Not on
 npx skills add suboss87/fdeops --skill fde
 ```
 
-Then one chat — name the client; the AI coding agent binds. You never type the CLI:
+Then one chat - name the client; the AI coding agent binds. You never type the CLI:
 
 ```text
 @fde this is Acme
@@ -97,7 +97,7 @@ No cloud required. Load `SKILL.md` as your model's system prompt. Full guide: [`
 
 ## Other AI tools (Cursor, Codex, Gemini CLI, Copilot)
 
-**Switching tools:** the fieldbook stays at `~/fde-engagements/<client>/.fde/`. Install `@fde` on the new tool, open a bound workspace (`fde resume --init <client>` once if needed), then `@fde` / `fde resume`. Same client record. Session start/stop hooks are Claude Code–first; other tools get the same brain and CLI, usually on demand.
+**Switching tools:** the fieldbook stays at `~/fde-engagements/<client>/.fde/`. Install `@fde` on the new tool, open a bound workspace (`fde resume --init <client>` once if needed), then `@fde` / `fde resume`. Same client record. Session start/stop hooks are Claude Code-first; other tools get the same brain and CLI, usually on demand.
 
 One skill file powers every tool. Drop the right adapter into the **client workspace** (the repo you open in the tool - not only the engagement folder):
 
@@ -140,7 +140,7 @@ The format covers packaging only - it defines no install mechanism, permissions,
 
 The hooks honor the workspace registry written by `fde resume --init` - bind a workspace once and the loop closes by itself: read side + write side. You still confirm judgment; the fieldbook is not self-maintaining without you.
 
-**Windows:** the CLI and `hooks/run-hook.cmd` work on Windows. The session hooks themselves are `#!/bin/bash` scripts — on Windows you need Git Bash (or another bash) available for Claude Code hooks to run. The `fde` CLI (Node) does not require bash.
+**Windows:** the CLI and `hooks/run-hook.cmd` work on Windows. The session hooks themselves are `#!/bin/bash` scripts - on Windows you need Git Bash (or another bash) available for Claude Code hooks to run. The `fde` CLI (Node) does not require bash.
 
 ---
 
@@ -171,7 +171,7 @@ When set, it takes precedence over the registry. If it points at nothing, every 
 
 The session hooks (`session-start`, `session-stop`, `pre-compact`) honor the same rule: with a value they cannot resolve they exit without reading or writing any engagement, so an automatic capture never lands in a client you did not name.
 
-**Writes** (`fde log`, `fde debrief`, `fde capture`) require env, registry bind, pointer, or in-repo `.fde/`. A folder-name match alone is not enough — that stops an unbound checkout named like a client from appending into the wrong memory.
+**Writes** (`fde log`, `fde debrief`, `fde capture`) require env, registry bind, pointer, or in-repo `.fde/`. A folder-name match alone is not enough - that stops an unbound checkout named like a client from appending into the wrong memory.
 
 ---
 

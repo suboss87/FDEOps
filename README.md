@@ -2,7 +2,7 @@
 
 **Forward deployed engineering skills for AI coding agents.**
 
-Skills encode the workflows, quality gates, and judgment Forward Deployed Engineers use on someone else's site. Packaged so an AI coding agent follows them consistently — and writes a dated record you can defend. The host agent still writes the TypeScript.
+Skills encode the workflows, quality gates, and judgment Forward Deployed Engineers use on someone else's site. Packaged so an AI coding agent follows them consistently, and writes a dated record you can defend. The host agent still writes the TypeScript.
 
 ```text
   LAND              DISCOVER           PLAN              SHIP               PROVE              CLOSE
@@ -10,7 +10,7 @@ Skills encode the workflows, quality gates, and judgment Forward Deployed Engine
  │  Brief │ ───▶ │ Reality│ ───▶ │ Sequence│───▶ │  Live  │ ───▶ │ Signed │ ───▶ │  They  │
  │  Trust │      │ Terrain│      │  Align │      │  slice │      │   off  │      │   run  │
  └────────┘      └────────┘      └────────┘      └────────┘      └────────┘      └────────┘
-  /brief           /discover          /plan             /ship              /got              /close
+  /brief           /discover          /plan             /ship            /outcome           /close
 ```
 
 ---
@@ -25,12 +25,12 @@ Skills encode the workflows, quality gates, and judgment Forward Deployed Engine
 | Find the real problem | `/discover` | Brief is a hypothesis |
 | Plan the sequence | `/plan` | Backwards from done |
 | Ship a slice | `/ship` | Pre-flight, then live |
-| Prove what they got | `/got` | Promised → measured → accepted |
+| Prove the outcome | `/outcome` | Promised → measured → accepted |
 | Close the embed | `/close` | They can run it without you |
 
 Also: `/debrief` (after a meeting) · `/prep` (walk-in) · `/quiet` (sponsor silent) · `/agreed` (scope dispute) · `/status` (Friday readout).
 
-Skills also activate automatically based on what you're doing — naming a client, debriefing a meeting, or asking what was agreed triggers `@fde`. Ordinary TypeScript, unit tests, and git commits stay in the host agent.
+Skills also activate automatically based on what you're doing: naming a client, debriefing a meeting, or asking what was agreed triggers `@fde`. Ordinary TypeScript, unit tests, and git commits stay in the host agent.
 
 ---
 
@@ -67,7 +67,7 @@ Hooks load where you left off. Slash commands match the map above.
 npx skills add suboss87/fdeops --skill fde
 ```
 
-Or `npx fdeops adapters .` — [adapters/](adapters/README.md).
+Or `npx fdeops adapters .`. See [adapters/](adapters/README.md).
 
 </details>
 
@@ -86,7 +86,7 @@ Fallback if the agent cannot bind:
 npx fdeops resume --init acme   # ~/fde-engagements/acme + bind this checkout
 ```
 
-Requires Node.js >= 18. Override: `FDEOPS_ENGAGEMENT` — [docs/install.md](docs/install.md). Try the loop: `npx fdeops demo`.
+Requires Node.js >= 18. Override: `FDEOPS_ENGAGEMENT`. See [docs/install.md](docs/install.md). Try the loop: `npx fdeops demo`.
 
 </details>
 
@@ -94,7 +94,7 @@ Requires Node.js >= 18. Override: `FDEOPS_ENGAGEMENT` — [docs/install.md](docs
 
 ## All 31 Skills
 
-The commands above are the entry points. Under the hood, `@fde` activates these 31 skills — each a structured workflow with steps, an artifact, and a checkpoint. You never pick one by name. Full detail: [docs/skills-reference.md](docs/skills-reference.md).
+The commands above are the entry points. Under the hood, `@fde` activates these 31 skills, each a structured workflow with steps, an artifact, and a checkpoint. You never pick one by name. Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 
 ### Land - Brief and trust
 
@@ -128,14 +128,14 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
-| [incremental-build](skills/fde/references/incremental-build.md) | Vertical slices, visible every 2–3 days | Large feature on their codebase |
+| [incremental-build](skills/fde/references/incremental-build.md) | Vertical slices, visible every 2-3 days | Large feature on their codebase |
 | [blast-radius](skills/fde/references/blast-radius.md) | Impact from contained → irreversible | Touching shared infrastructure |
 | [rescue](skills/fde/references/rescue.md) | Production fire or trust fire | Down, or they went quiet |
 | [ship](skills/fde/references/ship.md) | Intent vs diff, pre-flight, rollback | Going live |
 | [review](skills/fde/references/review.md) | Did we only build what we agreed | Before merge, scope creep |
 | [rollback-drill](skills/fde/references/rollback-drill.md) | Test the escape route before 2am | "We can always revert" |
 
-### Prove - What they got
+### Prove - Outcome
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
@@ -190,7 +190,7 @@ Every skill follows a consistent anatomy:
 - **Progressive disclosure.** The `SKILL.md` is the entry point. One `references/*.md` loads when routed.
 - **Local CLI.** Writes, status, dated agreements. Zero model tokens. The AI coding agent runs it.
 
-The record lives at `~/fde-engagements/<client>/.fde/` — not inside any vendor. Change hosts, install `@fde` on the new one, bind if needed, keep talking.
+The record lives at `~/fde-engagements/<client>/.fde/` - not inside any vendor. Change hosts, install `@fde` on the new one, bind if needed, keep talking.
 
 ---
 
@@ -203,7 +203,7 @@ fdeops/
 │   └── references/             #   31 skills + overlays
 ├── .claude/commands/           # slash commands (each loads @fde)
 ├── .claude-plugin/             # Claude Code marketplace
-├── bin/                        # local CLI — git + files, no network
+├── bin/                        # local CLI - git + files, no network
 ├── hooks/                      # session-start / session-stop / pre-compact
 ├── adapters/                   # Cursor, Gemini, Copilot, Codex pointers
 ├── templates/.fde/             # memory files created on bind
@@ -220,19 +220,19 @@ fdeops/
 
 ### 1. The brief is wrong
 
-The most common failure on an embed is building the portal they asked for. Ops has been running a spreadsheet for two years. `/brief` then `/discover` — who in their company would have to agree it worked?
+The most common failure on an embed is building the portal they asked for. Ops has been running a spreadsheet for two years. `/brief` then `/discover`. Who in their company would have to agree it worked?
 
 ### 2. They went quiet
 
-A sponsor who stops answering is not a Jira gap. It is a trust color. `/quiet` — process vs trust, then a dated signal in the record.
+A sponsor who stops answering is not a Jira gap. It is a trust color. `/quiet`. Process vs trust, then a dated signal in the record.
 
 ### 3. When did we agree?
 
 Arguments from memory lose. `/agreed` searches dated receipts. No hit is a gap, not proof.
 
-### 4. What did they get?
+### 4. What's the outcome?
 
-A number only you agree with is claimed, not delivered. `/got` reads promised → measured → accepted out loud.
+A number only you agree with is claimed, not delivered. `/outcome` reads promised → measured → accepted out loud.
 
 ---
 
@@ -260,14 +260,14 @@ Schema: [docs/schema.md](docs/schema.md). Local HTML: `npx fdeops dashboard`.
 | **Forward Deployed Engineer** | Client work that has to survive Monday morning |
 | **Consultant / contractor on site** | The engagement stops resetting every morning |
 | **Solutions architect** | Politics and architecture in the same record |
-| **Agency, 3–5 clients** | One `.fde/` each — they stop blurring |
+| **Agency, 3-5 clients** | One `.fde/` each - they stop blurring |
 | **Fractional CTO on client work** | System of record for the embed, and the billable trail |
 
 ---
 
 ## Your data stays yours
 
-Local only — `git` + files, no network, no telemetry. Plain markdown. The model sees client code only when you point the AI coding agent at it. `<private>` is redacted from CLI, dashboard, and hooks. Nothing is written until you confirm. `~/fde-engagements` is in `$HOME`; iCloud/Dropbox is an NDA incident waiting.
+Local only - `git` + files, no network, no telemetry. Plain markdown. The model sees client code only when you point the AI coding agent at it. `<private>` is redacted from CLI, dashboard, and hooks. Nothing is written until you confirm. `~/fde-engagements` is in `$HOME`; iCloud/Dropbox is an NDA incident waiting.
 
 [PRIVACY.md](PRIVACY.md) · [SECURITY.md](SECURITY.md)
 
@@ -275,20 +275,20 @@ Local only — `git` + files, no network, no telemetry. Plain markdown. The mode
 
 ## Principles
 
-- **The artifact is the memory** — producing the work and recording it are one action
-- **Skills, not autonomy** — the kit says what to check; judgment stays yours
-- **Brief is a hypothesis** — discover before building the wrong thing
-- **Evidence on every claim** — these files get defended in the room
-- **One customer, one folder** — context never bleeds
+- **The artifact is the memory** - producing the work and recording it are one action
+- **Skills, not autonomy** - the kit says what to check; judgment stays yours
+- **Brief is a hypothesis** - discover before building the wrong thing
+- **Evidence on every claim** - these files get defended in the room
+- **One customer, one folder** - context never bleeds
 
 ---
 
 ## Contributing
 
-**[Subash Natarajan](https://www.linkedin.com/in/subashn/)**. [Issues](https://github.com/suboss87/fdeops/issues) · [CONTRIBUTING.md](CONTRIBUTING.md)
+**[Subash Natarajan](https://www.linkedin.com/in/subashn/)**. [Issues](https://github.com/suboss87/fdeops/issues) · [Discussions](https://github.com/suboss87/fdeops/discussions) · [CONTRIBUTING.md](CONTRIBUTING.md) · [Code of Conduct](CODE_OF_CONDUCT.md)
 
 Skills should be **specific** (actionable steps), **verifiable** (an artifact in `.fde/`), and **minimal**. The `fde` CLI stays local-only.
 
 ## License
 
-MIT — use these skills on client work.
+MIT - use these skills on client work.

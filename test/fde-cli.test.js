@@ -2111,7 +2111,7 @@ test('ingest stage → propose → apply never writes .fde until confirm', () =>
   fs.writeFileSync(
     notes,
     [
-      'decision: agreed to descope reporting until audit — Denise',
+      'decision: agreed to descope reporting until audit - Denise',
       'Denise went quiet after the board review',
       'next: send one-pager before Thursday',
     ].join('\n')
@@ -2142,7 +2142,7 @@ test('ingest stage → propose → apply never writes .fde until confirm', () =>
     path.join(eng, '.debrief-propose'),
     [
       'via:granola board prep',
-      'decision: agreed to descope reporting until audit — Denise',
+      'decision: agreed to descope reporting until audit - Denise',
       'contact: Denise went quiet after the board review [signal:amber]',
       'next: send one-pager before Thursday',
       '',

@@ -1,5 +1,5 @@
 ---
-description: What did they get? — promised, measured, accepted
+description: Prove the outcome. Promised, measured, accepted
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **prove**.
@@ -18,4 +18,4 @@ Do not invent metrics or sign-off. Numbers without a source in `.fde/` stay `unk
 
 Done when: the human hears the three-beat ledger and agrees what is actually delivered vs still claimed.
 
-Not for TypeScript errors, unit tests, refactors, or git commits — those stay in the host agent.
+Not for TypeScript errors, unit tests, refactors, or git commits. Those stay in the host agent.

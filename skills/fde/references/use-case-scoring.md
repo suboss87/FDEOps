@@ -10,7 +10,7 @@ The most dangerous moment in a multi-use-case engagement is when the technically
 
 **1. List every candidate.** From the brief, from discovery conversations, from the FDE's own observations. Include the ones the customer hasn't said aloud but the codebase implies - a high-churn module with no tests is a candidate even if nobody named it.
 
-**2. Score on five dimensions.** Each 1–5, with the scoring rubric below:
+**2. Score on five dimensions.** Each 1-5, with the scoring rubric below:
 
 | Dimension | 1 | 3 | 5 |
 |-----------|---|---|---|

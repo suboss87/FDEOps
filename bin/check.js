@@ -43,7 +43,7 @@ for (const f of requiredTemplates) {
 
 const deadMedia = ['demo.gif', 'demo.sh', 'demo.tape', 'terminal-demo.svg', 'fieldbook-dashboard.png', 'fieldbook-detail.png', 'fieldbook-walkthrough.gif']
 for (const name of deadMedia) {
-  if (fs.existsSync(path.join(root, 'media', name))) fail(`dead media/${name} must not ship — the recorded session is session.gif`)
+  if (fs.existsSync(path.join(root, 'media', name))) fail(`dead media/${name} must not ship - the recorded session is session.gif`)
 }
 ok('no staged mock media')
 
@@ -57,7 +57,7 @@ for (const dir of fs.readdirSync(path.join(root, 'skills'))) {
 ok('skills structure')
 
 if (fs.existsSync(path.join(root, 'skills', 'fde', 'archive'))) {
-  fail('skills/fde/archive must not exist — unrouted skills are dead code')
+  fail('skills/fde/archive must not exist - unrouted skills are dead code')
 } else ok('no archived skill dump')
 
 // v3: one skill + phase references (progressive disclosure)
@@ -201,7 +201,7 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
 
   const refDir = path.join(root, 'skills', 'fde', 'references')
   const extra = fs.readdirSync(refDir).filter(f => f.endsWith('.md') && !mentioned.includes(f))
-  if (extra.length) fail(`unrouted reference file(s) — dead skill: ${extra.join(', ')}`)
+  if (extra.length) fail(`unrouted reference file(s) - dead skill: ${extra.join(', ')}`)
   else ok('no unrouted reference files')
 }
 
@@ -222,7 +222,7 @@ if (read('package.json').includes('postinstall')) {
 
 const readme = read('README.md')
 if (/session\.gif|demo\.gif|<img /i.test(readme)) {
-  fail('README must not embed images — front door is text; the recording lives in docs/USAGE.md')
+  fail('README must not embed images - front door is text; the recording lives in docs/USAGE.md')
 } else ok('README is text (no gif)')
 
 const usage = read('docs/USAGE.md')
@@ -262,9 +262,10 @@ if (!readme.includes('AI coding agent')) {
 }
 ok('README clarity sections')
 
-for (const cmd of ['/brief', '/discover', '/plan', '/ship', '/got', '/close', '/debrief', '/prep', '/quiet', '/agreed', '/status']) {
+for (const cmd of ['/brief', '/discover', '/plan', '/ship', '/outcome', '/close', '/debrief', '/prep', '/quiet', '/agreed', '/status']) {
   if (!readme.includes(cmd)) fail(`README must document slash command ${cmd}`)
 }
+if (/(^|[^\w/])\/got\b/.test(readme)) fail('README must use /outcome, not /got')
 ok('README slash commands documented')
 
 // Front-door map is the embed left-to-right (LAND → CLOSE), not a pile of situations.
@@ -535,7 +536,7 @@ if (pkg.version !== plugin.version) {
 if (plugin.commands !== './.claude/commands' || plugin.skills !== './skills') {
   fail('.claude-plugin/plugin.json must declare skills and commands')
 } else {
-  for (const cmd of ['brief', 'discover', 'plan', 'ship', 'got', 'close', 'debrief', 'prep', 'quiet', 'agreed', 'status']) {
+  for (const cmd of ['brief', 'discover', 'plan', 'ship', 'outcome', 'close', 'debrief', 'prep', 'quiet', 'agreed', 'status']) {
     const rel = `.claude/commands/${cmd}.md`
     if (!fs.existsSync(path.join(root, rel))) fail(`${rel} missing`)
     else if (!read(rel).includes('@fde')) fail(`${rel} must load @fde`)
@@ -646,5 +647,56 @@ if (skillFiles.length !== 1 || skillFiles[0] !== allowedSkill) {
 if (!fs.existsSync(path.join(root, '.github', 'ISSUE_TEMPLATE', 'bug_report.yml'))) {
   fail('GitHub issue template missing')
 } else ok('issue templates')
+
+function findUnicodeDashes(dir, acc = []) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === '.git' || e.name === 'node_modules' || e.name === '.agents') continue
+    const p = path.join(dir, e.name)
+    if (e.isDirectory()) findUnicodeDashes(p, acc)
+    else if (e.name === 'session.cast' || e.name === 'session.gif') continue
+    else {
+      let t
+      try { t = fs.readFileSync(p, 'utf8') } catch { continue }
+      if (t.includes('\u2014') || t.includes('\u2013')) acc.push(path.relative(root, p))
+    }
+  }
+  return acc
+}
+{
+  const dashed = findUnicodeDashes(root)
+  if (dashed.length) fail(`em/en dashes must be ASCII hyphen: ${dashed.join(', ')}`)
+  else ok('no em/en dashes')
+}
+
+if (!fs.existsSync(path.join(root, 'CODE_OF_CONDUCT.md'))) {
+  fail('CODE_OF_CONDUCT.md missing - GitHub community profile needs it')
+} else ok('CODE_OF_CONDUCT.md')
+
+if (!fs.existsSync(path.join(root, '.github', 'PULL_REQUEST_TEMPLATE.md'))) {
+  fail('.github/PULL_REQUEST_TEMPLATE.md missing - GitHub community profile needs it')
+} else ok('pull request template')
+
+if (!fs.existsSync(path.join(root, '.github', 'ISSUE_TEMPLATE', 'question.md'))) {
+  fail('.github/ISSUE_TEMPLATE/question.md missing - community profile needs a markdown template with name/about')
+} else {
+  const q = read('.github/ISSUE_TEMPLATE/question.md')
+  if (!/^---[\s\S]*\nname:/m.test(q) || !/^---[\s\S]*\nabout:/m.test(q)) {
+    fail('question.md must have YAML name: and about: so GitHub ticks issue templates')
+  } else ok('markdown issue template (name + about)')
+}
+
+{
+  const mktPath = path.join(root, '.claude-plugin', 'marketplace.json')
+  if (!fs.existsSync(mktPath)) fail('.claude-plugin/marketplace.json missing - /plugin marketplace add needs it')
+  else {
+    const mkt = JSON.parse(read('.claude-plugin/marketplace.json'))
+    const plug = (mkt.plugins || [])[0]
+    if (mkt.name !== 'fdeops' || !plug || plug.source !== './') {
+      fail('marketplace.json must name fdeops and list source ./')
+    } else if (!mkt.description && !(mkt.metadata && mkt.metadata.description)) {
+      fail('marketplace.json needs a description for the plugin directory')
+    } else ok('claude marketplace.json')
+  }
+}
 
 process.exit(failed)

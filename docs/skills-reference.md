@@ -52,7 +52,7 @@ Each reference is a **skill, not advice**: the thinking the agent does, the arti
 | [rollback-drill](../skills/fde/references/rollback-drill.md) | Test the escape route on staging before you need it at 2am | "We can always revert" - need to actually test the escape route |
 
 ### Prove
-*Show what they got. Dated receipts, not memory.*
+*Show the outcome. Dated receipts, not memory.*
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
@@ -91,7 +91,7 @@ Each reference is a **skill, not advice**: the thinking the agent does, the arti
 
 ## Engagement phases (quick reference)
 
-The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 31 skills. Generic SDLC (build, debug, tests, commits) stays in the host agent — not routed here.
+The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above - see it for the full 31 skills. Generic SDLC (build, debug, tests, commits) stays in the host agent - not routed here.
 
 | Phase | Enter when | Skill highlights | Writes |
 |-------|-----------|------------------|--------|
@@ -118,7 +118,7 @@ The 9 phases most engagements actually run through, with what gets written where
 1. On entry the agent reads a bounded view of `context.md` (via `fde resume`) - nothing else until the phase needs it.
 2. **Deliverable = memory:** every phase's output IS a `.fde/` file; nothing is maintained by hand.
 3. Every claim carries evidence: `(ops lead, Day 5)` · `(churn: 47/90d)` · `(stated, unverified)`.
-4. On exit (and before a PR) the agent runs a **session digest** — TL;DR, key decisions & why, scope/verification, gotchas, next action — into existing `.fde/` files (not chat transcripts into the product repo); the `session-stop` hook backstops a thin snapshot (hooks resolve the engagement via the workspace registry written by `fde resume --init`).
+4. On exit (and before a PR) the agent runs a **session digest** - TL;DR, key decisions & why, scope/verification, gotchas, next action - into existing `.fde/` files (not chat transcripts into the product repo); the `session-stop` hook backstops a thin snapshot (hooks resolve the engagement via the workspace registry written by `fde resume --init`).
 5. One customer, one folder. Never merged.
 
 v2's 16 standalone skills were consolidated into the single `@fde` router in v3.

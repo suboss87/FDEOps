@@ -28,7 +28,7 @@ The org chart tells you who reports to whom. The stakeholder radar tells you who
 
 **3. The 48-hour rule.** A stakeholder who goes amber has roughly 48 hours before they go red. A stakeholder who goes red is already escalating above you. Respond same-day to amber signals - not with more delivery, with a conversation.
 
-**3b. One name per person.** If the table says "Denise Chen" and Signal history says "Denise" or "D. Chen", trust keys fork and prep lies. Consolidate to one spelling. `fde doctor` flags these identity clusters — treat that as a fix, not a nit.
+**3b. One name per person.** If the table says "Denise Chen" and Signal history says "Denise" or "D. Chen", trust keys fork and prep lies. Consolidate to one spelling. `fde doctor` flags these identity clusters - treat that as a fix, not a nit.
 
 **4. Detect the invisible escalation.** Three markers:
 - Questions shift from "what are you building" to "when will it be done" - someone above is asking.
@@ -76,11 +76,11 @@ One line per stakeholder who changed signal this week. If nobody changed: "Map s
 
 Acme, week 6. Priya's replies have gone from same-day to two days, and a phase-2 go/no-go is scheduled for Thursday.
 
-Two signals, not one feeling: response time doubled *and* a finance analyst nobody introduced started asking when the work completes. That combination is an invisible escalation — someone above Priya is asking, and the meeting is already happening without the FDE.
+Two signals, not one feeling: response time doubled *and* a finance analyst nobody introduced started asking when the work completes. That combination is an invisible escalation - someone above Priya is asking, and the meeting is already happening without the FDE.
 
-Positions: Priya is a supporter under pressure. Marco is a supporter who does not vote. Denise (finance) is the swing, and what she is protecting is not the budget line she cites — it is that her team's escalation started this and she has nothing to show her own director. Raj is a firm opponent on the rewrite question, and no amount of the same argument moves him.
+Positions: Priya is a supporter under pressure. Marco is a supporter who does not vote. Denise (finance) is the swing, and what she is protecting is not the budget line she cites - it is that her team's escalation started this and she has nothing to show her own director. Raj is a firm opponent on the rewrite question, and no amount of the same argument moves him.
 
-Sequence: Denise one-on-one Tuesday with the incident numbers in her units, then Priya Wednesday, so Priya walks in already knowing finance is not going to object. Pre-mortem sentence: *"Denise says 'we still don't know if this actually caught anything'"* — which is precisely why Tuesday exists. `stakeholders.md` records `Priya | sponsor | green→amber | reply latency 1d → 2d, unintroduced analyst (Jul 3)`; `context.md` carries the sequence.
+Sequence: Denise one-on-one Tuesday with the incident numbers in her units, then Priya Wednesday, so Priya walks in already knowing finance is not going to object. Pre-mortem sentence: *"Denise says 'we still don't know if this actually caught anything'"* - which is precisely why Tuesday exists. `stakeholders.md` records `Priya | sponsor | green→amber | reply latency 1d → 2d, unintroduced analyst (Jul 3)`; `context.md` carries the sequence.
 
 ## Principles
 
