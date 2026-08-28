@@ -10,21 +10,30 @@ The AI coding agent forgets the client. fdeops is the countersigned record — p
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-One `@fde` skill. The AI coding agent picks the method. You confirm the record. The host agent still writes the TypeScript.
+```text
+  BRIEF WRONG         THEY WENT QUIET        WHEN DID WE AGREE        WHAT DID THEY GET
+ ┌────────────┐      ┌──────────────┐      ┌───────────────┐      ┌─────────────────┐
+ │ real       │      │ process vs   │      │ dated         │      │ promised →      │
+ │ problem    │      │ trust        │      │ receipts      │      │ accepted        │
+ └────────────┘      └──────────────┘      └───────────────┘      └─────────────────┘
+    /brief               /quiet                /agreed                  /got
+```
 
 ---
 
-## The week
+## Commands
 
-What you are doing. English, or a slash command. One skill — you never pick a method.
+What you are doing. Each command is a full procedure that loads `@fde`. One skill; you never pick a method. These four are situations, not a sequence.
 
 | What you're doing | Command | Principle |
 |-------------------|---------|-----------|
-| **The brief is wrong** | `@fde this is Acme. Brief says they want a portal.` · `/brief` | Real problem before more code |
-| **They went quiet** | `@fde the sponsor went quiet` · `/quiet` | Process gap vs trust problem |
-| **When did we agree?** | `@fde when did we agree to drop that?` · `/agreed` | Dated receipts, or a gap |
-| **What did they get?** | `@fde what did they get this week` · `/got` | Promised → measured → accepted |
-| **After a meeting** | `@fde` debrief these notes *(paste)* · `/debrief` | Proposed updates. You confirm. |
+| **The brief is wrong** | `/brief` · `@fde this is Acme. Brief says they want a portal.` | Real problem before more code |
+| **They went quiet** | `/quiet` · `@fde the sponsor went quiet` | Process gap vs trust problem |
+| **When did we agree?** | `/agreed` · `@fde when did we agree to drop that?` | Dated receipts, or a gap |
+| **What did they get?** | `/got` · `@fde what did they get this week` | Promised → measured → accepted |
+| **After a meeting** | `/debrief` · `@fde` debrief these notes *(paste)* | Proposed updates. You confirm. |
+| **Walk-in tomorrow** | `/prep` · `@fde prep me for the sponsor` | Brief from the record, nothing invented |
+| **Friday ledger** | `/status` · `@fde draft the sponsor update` | Promised → measured → accepted |
 | **Optional: pull** | `@fde` connect Granola · `@fde` pull today's transcript | You add that source MCP. We **pull** on request. [mcp/recipes/](mcp/recipes/) |
 
 First chat: you name the client; the AI coding agent binds. Same folder every time: `~/fde-engagements/<client>/.fde/`.
@@ -35,7 +44,7 @@ First chat: you name the client; the AI coding agent binds. Same folder every ti
 
 **30-second setup.** Pick one — both copies `@fde` twice.
 
-Claude Code (hooks before you type; slash commands `/brief` `/quiet` `/agreed` `/got` `/debrief`):
+Claude Code (hooks before you type; slash commands `/brief` `/quiet` `/agreed` `/got` `/debrief` `/prep` `/status`):
 
 ```text
 /plugin marketplace add suboss87/fdeops
@@ -79,6 +88,23 @@ npx fdeops resume               # where we are
 
 ---
 
+## Use when
+
+Eight moments on an embed. One `@fde` skill routes each — you never pick a method.
+
+| Moment | What it does | Use when | Command |
+|--------|--------------|----------|---------|
+| **The brief is wrong** | Surfaces the real problem before more code | Kickoff notes don't match what ops actually runs | `/brief` |
+| **They went quiet** | Separates process gap from trust problem; logs a dated signal | The sponsor stops answering | `/quiet` |
+| **When did we agree?** | Searches dated receipts — no hit is a gap, not proof | Someone remembers a commitment differently | `/agreed` |
+| **What did they get?** | Reads promised → measured → accepted out loud | Friday, or anyone asks what shipped | `/got` |
+| **After a meeting** | Routes notes into proposed `.fde/` updates | You paste debrief notes from a call | `/debrief` |
+| **Walk-in tomorrow** | Brief from the record — nothing invented | Sponsor meeting in the morning | `/prep` |
+| **Friday ledger** | Draft sponsor update from the countersigned record | End of week status | `/status` |
+| **Optional: pull** | Fetch transcript or thread via a source MCP you add | You want Granola, Slack, or Notion text pulled on request | `@fde` connect · `@fde` pull |
+
+---
+
 ## Why this exists
 
 ### 1. The brief is wrong
@@ -119,7 +145,7 @@ Two things a chat window cannot do: **nothing is written until you confirm**, an
 
 ## How it works
 
-- **You** describe the situation with `@fde` (or `/brief` `/quiet` `/agreed` `/got` `/debrief` on Claude Code). First chat: you name the client; the AI coding agent runs the bind.
+- **You** describe the situation with `@fde` (or `/brief` `/quiet` `/agreed` `/got` `/debrief` `/prep` `/status` on Claude Code). First chat: you name the client; the AI coding agent runs the bind.
 - **Hooks (Claude Code)** load where you left off and snapshot on the way out. Other hosts: same CLI and files; you call `@fde`.
 - **Local CLI** — writes, receipts, status. Zero model tokens. The AI coding agent runs it; you do not live in the CLI. Friday, `fde status` prints promised → measured → accepted. [docs/USAGE.md](docs/USAGE.md)
 - **Pull (optional)** — FDEOps is the sink. Paste is the daily path. A source MCP you add (Granola, Slack, Notion, …) can fetch text; `@fde connect …` walks config. No push, no sync, no tokens in `.fde/`. [mcp/recipes/](mcp/recipes/)
@@ -163,7 +189,7 @@ Local HTML: trust, phase, next, the record. `@fde` dashboard, or `npx fdeops das
 
 | You are | What this is |
 |---------|----------------|
-| **Forward Deployed Engineer** | The job this was built for — client work that has to survive Monday morning |
+| **Forward Deployed Engineer** | Client work that has to survive Monday morning |
 | **Consultant / contractor on site** | The engagement stops resetting every morning |
 | **Solutions architect** | Politics and architecture in the same record |
 | **Agency, 3–5 clients** | One `.fde/` each — they stop blurring |

@@ -252,7 +252,7 @@ for (const section of [
   'Quickstart',
   'Engagement memory',
   'Who this is for',
-  'The week',
+  'Commands',
   'Principles',
 ]) {
   if (!readme.includes(section)) fail(`README missing section: ${section}`)
@@ -261,6 +261,18 @@ if (!readme.includes('AI coding agent')) {
   fail('README must say AI coding agent (not ambiguous "agent")')
 }
 ok('README clarity sections')
+
+for (const cmd of ['/brief', '/quiet', '/agreed', '/got', '/debrief', '/prep', '/status']) {
+  if (!readme.includes(cmd)) fail(`README must document slash command ${cmd}`)
+}
+ok('README slash commands documented')
+
+// The front-door command map is a fenced diagram: a stranger should see the
+// four-day situations (and prep/status) before the install block, not infer them
+// from a table buried later.
+if (!readme.slice(0, 4000).includes('THEY WENT QUIET')) {
+  fail('README must include the command-map diagram near the top (expect THEY WENT QUIET in the ASCII map)')
+} else ok('README command-map diagram')
 
 if (readme.includes('your-client-repo')) {
   fail('README must not instruct install in customer repo (your-client-repo)')
@@ -538,7 +550,7 @@ if (pkg.version !== plugin.version) {
 if (plugin.commands !== './.claude/commands' || plugin.skills !== './skills') {
   fail('.claude-plugin/plugin.json must declare skills and commands')
 } else {
-  for (const cmd of ['brief', 'quiet', 'agreed', 'got', 'debrief']) {
+  for (const cmd of ['brief', 'quiet', 'agreed', 'got', 'debrief', 'prep', 'status']) {
     const rel = `.claude/commands/${cmd}.md`
     if (!fs.existsSync(path.join(root, rel))) fail(`${rel} missing`)
     else if (!read(rel).includes('@fde')) fail(`${rel} must load @fde`)

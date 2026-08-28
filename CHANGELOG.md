@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.14.0 — 2026-08-28
+
+### Changed
+- **Command map on the front door** — four situations as a map, then slash commands as method cards. `/prep` and `/status` added. The 31 methods stay in a details block.
+
 ## 3.13.2 — 2026-08-28
 
 ### Changed
