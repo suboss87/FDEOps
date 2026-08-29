@@ -1,8 +1,10 @@
-# poc - kill or confirm a direction in a day
+# poc - Validate the bet in a day
 
 **Enter when:** a direction needs validating before committing real build time - POC, spike, show something, de-risk, pick between use cases. The output is something a sponsor can reject in a room this week, not a polished product.
 
-**Read first:** `context.md`, `reality.md`. Load `terrain.md` only if the prototype touches the existing codebase.
+**Read first:** `context.md`, `reality.md`. Load `terrain.md` only if the prototype touches the existing codebase. If `terrain.md` **Data estate** has a Blocker source this prototype needs, stop - that is discover, not a day's demo.
+
+A green check on synthetic data is not a validated solution. The person who can say no has to see it on evidence they already believe.
 
 ## Method (you do this work)
 

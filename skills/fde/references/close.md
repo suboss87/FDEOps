@@ -1,4 +1,4 @@
-# close - handoff and pattern extraction
+# close - Hand off so they run it
 
 **Enter when:** the engagement is ending - the customer team must run this without the FDE.
 

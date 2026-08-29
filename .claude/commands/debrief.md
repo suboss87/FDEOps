@@ -1,5 +1,5 @@
 ---
-description: After a meeting. Notes into the record.
+description: Capture the meeting. Notes into the record.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Situation: **after a meeting**.

@@ -1,4 +1,4 @@
-# ingest - pull large artifacts into the fieldbook loop
+# ingest - Pull text you confirm
 
 **Enter when:** the FDE wants to catch the engagement up from external sources - "make sure Acme is up to date," "pull what's relevant," "grab today's Granola and Denise's last email." Raw transcripts and long emails that are too big to paste usefully.
 

@@ -1,4 +1,4 @@
-# review - two stages, always in order
+# review - Review the change against what we agreed
 
 **Enter when:** a change needs review before merge - "is this safe," "does it match what we agreed."
 

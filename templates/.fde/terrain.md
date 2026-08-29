@@ -9,7 +9,7 @@
 ## Operating map (exception-led)
 
 <!-- How work actually runs when the happy path fails. Fill in discover; leave blank until heard/seen.
-     fde doctor requires ≥1 real exception row before plan/build/ship/close. -->
+     fde doctor requires ≥1 real exception row before plan/ship/outcome/close. -->
 
 | Exception / break | Who notices first | What they do today (workaround) | System of record then | Blast if wrong | Evidence |
 |-------------------|-------------------|---------------------------------|-----------------------|----------------|----------|

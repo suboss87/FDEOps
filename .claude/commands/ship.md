@@ -1,5 +1,5 @@
 ---
-description: Ship to their production. One change they can see, then go live with a rollback you have run.
+description: Build one change they can see, then go live with a rollback you have run.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **ship**.

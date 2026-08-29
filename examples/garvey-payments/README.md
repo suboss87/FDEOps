@@ -48,11 +48,11 @@ Open your workspace for this embed. Type `@fde`.
 
 ---
 
-### Day 10 - Build & ship slice
+### Day 10 - Ship one change
 
 **You:** `@fde Ship thinnest path by Friday. Legacy `payments-eu` module, no tests in repo.`
 
-**AI coding agent should:** route engineering - characterise, small PR, `decisions.md` + `delivery.md`.
+**AI coding agent should:** route engineering - characterise, one change they can see, `decisions.md` + `delivery.md`.
 
 | File | What gets written |
 |------|-------------------|

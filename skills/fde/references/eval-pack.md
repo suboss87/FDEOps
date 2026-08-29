@@ -1,4 +1,4 @@
-# eval-pack - prove the system before it acts
+# eval-pack - Gate the model before it acts
 
 **Enter when:** the work touches AI/LLM/agents/RAG, or they need to POC a model, or ship/close is blocked because there is no evidence the non-deterministic path is safe. Activate alongside `ai.md`, `poc`, or `ship` - not instead of them.
 

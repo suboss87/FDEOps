@@ -1,4 +1,4 @@
-# dashboard - the portfolio view
+# dashboard - See every client
 
 **Enter when:** the FDE runs several customers and asks "where am I across everything?"
 

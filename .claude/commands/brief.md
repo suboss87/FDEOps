@@ -1,5 +1,5 @@
 ---
-description: First week on site. Name who signs done.
+description: Interrogate the brief. Name who signs done.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **land**.

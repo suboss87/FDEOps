@@ -1,4 +1,4 @@
-# plan - sequence the work
+# plan - Sequence the work
 
 **Enter when:** scope is understood and the work needs breaking down - a slice, a phase, or the whole delivery.
 

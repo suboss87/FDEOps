@@ -1,4 +1,4 @@
-# who-decides - reading the room before it reads you
+# who-decides - Map who decides
 
 **Enter when:** new stakeholders appear, signals shift mid-engagement, a meeting felt off but you can't say why, or it's been two weeks and the map hasn't been updated.
 

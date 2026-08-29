@@ -1,4 +1,4 @@
-# land - first 48 hours
+# land - Interrogate the brief
 
 **Enter when:** new customer, first meeting, just got the brief, nothing started yet.
 

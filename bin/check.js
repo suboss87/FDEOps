@@ -211,6 +211,13 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
     }
   }
   ok('ship is one method (no implement / small-prs / thin-slices sibling)')
+
+  if (/^### Prove\b/m.test(read('skills/fde/SKILL.md'))) {
+    fail('SKILL.md must not use Prove as a stage heading - the public stage is Outcome')
+  } else ok('SKILL.md stage heading is Outcome')
+  if (/\b31 names\b|\b31 skills\b/.test(read('README.md'))) {
+    fail('README must not advertise 31 skills')
+  } else ok('README skill count is 30')
 }
 
 const install = read('bin/install.js')

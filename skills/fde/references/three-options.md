@@ -1,4 +1,4 @@
-# three-options - three paths, not one recommendation
+# three-options - Generate three real options
 
 **Enter when:** a significant technical or strategic decision needs to be made, the FDE is asked "what should we do?", the team is stuck between approaches, or a fork in the engagement requires the sponsor's input.
 
