@@ -1,4 +1,4 @@
-# ship - Build one change they can see, then go live
+# ship - Deliver the increment
 
 **Enter when:** you are writing or updating on their codebase, they need to see something real, or you are going live.
 
@@ -24,6 +24,8 @@ A same-day throwaway that kills an assumption is `poc`. This method is the real 
 | Undo | Revert this change on its own | Same. If you cannot undo it, the design is coupled. |
 
 Skip POC only when the killer assumption already lives in the repo (typical brownfield). If the bet is unproven, `poc` first.
+
+**Done means:** the signer in `success.md` can reject this on staging they operate. A green check on your laptop is not delivery. Do not start the next change until this one is rejectable.
 
 If `terrain.md` **Data estate** lists a **Blocker** this change depends on: stop. That is discover, not ship. Do not build a path they cannot feed.
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.19.0 - 2026-08-29
+
+The public map is consulting language on FDE stages. Same 30 skills. Same slash commands.
+
+- Work names sit on the command table: Engage, Diagnose, Align, Deliver, Realize, Transfer. Stages stay Land → Close.
+- Skill titles match: Deliver the increment, Validate the solution, Hold scope, Transfer operations.
+- Same six stages at any scale, greenfield or brownfield, any industry (overlays). Done is not claimed until they can reject it on staging they operate.
+
 ## 3.18.0 - 2026-08-29
 
 Public names match the work: verb + object, six stages ending in Outcome.

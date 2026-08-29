@@ -1,5 +1,5 @@
 ---
-description: Prep the meeting. One page from the record.
+description: Prepare the meeting. One page from the record.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Situation: **prep for a meeting or readout**.

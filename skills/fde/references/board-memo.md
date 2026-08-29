@@ -1,4 +1,4 @@
-# board-memo - Brief the sponsor's boss
+# board-memo - Brief the board
 
 **Enter when:** the sponsor's boss needs a summary, a board update mentions the engagement, the FDE needs to justify continued investment, or a quarterly review is approaching.
 

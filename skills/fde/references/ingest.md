@@ -1,4 +1,4 @@
-# ingest - Pull text you confirm
+# ingest - Ingest sources
 
 **Enter when:** the FDE wants to catch the engagement up from external sources - "make sure Acme is up to date," "pull what's relevant," "grab today's Granola and Denise's last email." Raw transcripts and long emails that are too big to paste usefully.
 

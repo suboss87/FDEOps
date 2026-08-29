@@ -1,5 +1,5 @@
 ---
-description: Diagnose a quiet sponsor. Process gap, or they stopped trusting you.
+description: Diagnose trust. Process gap, or they stopped trusting you.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Situation: **they went quiet**.

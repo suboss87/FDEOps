@@ -1,4 +1,4 @@
-# poc - Validate the bet in a day
+# poc - Validate the solution
 
 **Enter when:** a direction needs validating before committing real build time - POC, spike, show something, de-risk, pick between use cases. The output is something a sponsor can reject in a room this week, not a polished product.
 
