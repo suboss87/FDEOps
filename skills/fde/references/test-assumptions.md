@@ -1,4 +1,4 @@
-# test-assumptions - Kill the riskiest belief
+# test-assumptions - Test assumptions
 
 **Enter when:** the brief feels too neat, the customer is very confident about the solution (not the problem), someone says "we just need…" about a complex system, or discover surfaced contradictions between what was said and what the codebase shows.
 

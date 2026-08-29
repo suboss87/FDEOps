@@ -1,4 +1,4 @@
-# switch-clients - Switch without bleed
+# switch-clients - Switch engagements
 
 **Enter when:** the FDE is running 2+ engagements simultaneously, context-switching is causing mistakes or delays, a new customer is being onboarded while existing engagements are active, or the FDE says "I'm losing track."
 

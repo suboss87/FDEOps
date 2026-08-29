@@ -1,4 +1,4 @@
-# rollback - Test the escape route
+# rollback - Rehearse rollback
 
 **Enter when:** a deploy is planned for the next 48 hours, the FDE says "we can always revert," a previous rollback failed or took too long, or the engagement involves regulated/critical systems.
 

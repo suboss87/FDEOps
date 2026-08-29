@@ -1,4 +1,4 @@
-# close - Hand off so they run it
+# close - Transfer operations
 
 **Enter when:** the engagement is ending - the customer team must run this without the FDE.
 

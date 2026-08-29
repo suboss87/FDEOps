@@ -12,12 +12,12 @@ The full map is below; per-skill details live in [skills-reference.md](./skills-
 
 | Stage | Skills | What it covers |
 |--------|--------|---------------|
-| **Land** | land, audit, who-decides, earn-trust, hold-scope | First days: access, credibility, scope |
-| **Discover** | discover, test-assumptions, score-use-cases, poc | Finding the real problem behind the brief |
-| **Plan** | plan, business-case, three-options, pick-three | Sequencing work, getting sponsor alignment |
-| **Ship** | ship, what-breaks, rescue, review, rollback | One change they can see on their repo, then go-live - not generic debug/build |
-| **Outcome** | readout, demo-prep, debrief, board-memo, dashboard, ingest, connect | Get the number accepted; dated receipts |
-| **Close** | close, runbook, switch-clients, encode-pattern, red-team | They can run it without you |
+| **Land** (Engage) | land, audit, who-decides, earn-trust, hold-scope | First days: access, credibility, scope |
+| **Discover** (Diagnose) | discover, test-assumptions, score-use-cases, poc | Finding the real problem behind the brief |
+| **Plan** (Align) | plan, business-case, three-options, pick-three | Sequencing work, getting sponsor alignment |
+| **Ship** (Deliver) | ship, what-breaks, rescue, review, rollback | One visible change on their repo, then go-live |
+| **Outcome** (Realize) | readout, demo-prep, debrief, board-memo, dashboard, ingest, connect | Get the number accepted; dated receipts |
+| **Close** (Transfer) | close, runbook, switch-clients, encode-pattern, red-team | They can run it without you |
 
 Each skill is a workflow, not advice: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.
 

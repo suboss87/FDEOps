@@ -1,4 +1,4 @@
-# rescue - Resolve the incident or the trust fire
+# rescue - Resolve the incident
 
 **Enter when:** production is down, something's bleeding - OR a stakeholder went quiet, confidence is slipping, or three weeks into the build the brief turned out to be wrong. Trust fires get the same urgency as outages.
 

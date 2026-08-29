@@ -1,4 +1,4 @@
-# readout - Get the week's number on paper
+# readout - Report the outcome
 
 **Enter when:** the weekly update is due, an exec asks "where are we," or the FDE says "I need to send Dana something." This artifact decides renewals; engineers underinvest in it.
 

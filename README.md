@@ -10,26 +10,26 @@ Skills encode the workflows, quality gates, and judgment Forward Deployed Engine
 
 ## Commands
 
-Each command loads the same `@fde` skill. You never pick from 30 names.
+One map. Sprint or programme. Greenfield or brownfield. Any industry. Each command loads the same `@fde` skill. You never pick from 30 names.
 
-| What you're doing | Command | Key principle |
-|-------------------|---------|-----------|
-| Interrogate the brief | `/brief` | Name who signs done |
-| Frame the real problem | `/discover` | Treat the brief as a hypothesis |
-| Sequence the work | `/plan` | Work backwards from done |
-| Build one change they can see | `/ship` | Then go live with a rollback you have run |
-| Get the number accepted | `/outcome` | Promised, measured, accepted |
-| Hand off so they run it | `/close` | They operate it without you |
+| Work | Command | Stage | Principle |
+|------|---------|-------|-----------|
+| Engage | `/brief` | Land | Name who signs done |
+| Diagnose | `/discover` | Discover | Treat the brief as a hypothesis |
+| Align | `/plan` | Plan | Work backwards from done |
+| Deliver | `/ship` | Ship | One visible change, then go live |
+| Realize | `/outcome` | Outcome | Promised, measured, accepted |
+| Transfer | `/close` | Close | They operate it without you |
 
 Also:
 
-| What you're doing | Command | Key principle |
-|-------------------|---------|-----------|
-| Diagnose a quiet sponsor | `/trust` | Process gap, or they stopped trusting you |
-| Find when we agreed | `/receipts` | A dated line, or it did not happen |
+| Work | Command | Principle |
+|------|---------|-----------|
+| Diagnose trust | `/trust` | Process gap, or they stopped trusting you |
+| Find the receipt | `/receipts` | A dated line, or it did not happen |
 | Capture the meeting | `/debrief` | Notes into the record |
-| Prep the meeting | `/prep` | One page from the record |
-| Brief the sponsor | `/readout` | Promised, measured, accepted |
+| Prepare the meeting | `/prep` | One page from the record |
+| Report the outcome | `/readout` | Promised, measured, accepted |
 
 Skills also activate on English: naming a client, running a POC, changing their checkout, going live, asking what was agreed. A throwaway one-liner in an unbound repo can skip `@fde`. Bound client work cannot.
 
@@ -97,65 +97,65 @@ Requires Node.js >= 18. Override: `FDEOPS_ENGAGEMENT`. See [docs/install.md](doc
 
 The commands above are the entry points. Under the hood, `@fde` activates these 30 skills, each a structured workflow with steps, an artifact, and a checkpoint. You never pick one by name. Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 
-### Land - Brief and trust
+### Land - Engage
 
 | Skill | What it does | Use when |
 |--------|--------------|----------|
-| [land](skills/fde/references/land.md) | Interrogate the brief, name who signs | New client, first meeting, just got the brief |
+| [land](skills/fde/references/land.md) | Interrogate the brief | New client, first meeting, just got the brief |
 | [audit](skills/fde/references/audit.md) | Verify inherited claims | Taking over, previous consultant left |
-| [who-decides](skills/fde/references/who-decides.md) | Map who decides | Need to know who matters |
-| [earn-trust](skills/fde/references/earn-trust.md) | Earn access; navigate AI policy | Need access or credibility |
-| [hold-scope](skills/fde/references/hold-scope.md) | Park the extra ask | "Also can you…", timeline unchanged |
+| [who-decides](skills/fde/references/who-decides.md) | Map decision rights | Need to know who matters |
+| [earn-trust](skills/fde/references/earn-trust.md) | Earn access | Need access or credibility |
+| [hold-scope](skills/fde/references/hold-scope.md) | Hold scope | "Also can you…", timeline unchanged |
 
-### Discover - Find the real problem
+### Discover - Diagnose
 
 | Skill | What it does | Use when |
 |--------|--------------|----------|
-| [discover](skills/fde/references/discover.md) | Frame the real problem | Brief feels wrong, shadow processes |
-| [test-assumptions](skills/fde/references/test-assumptions.md) | Kill the riskiest belief | Brief feels too neat |
-| [score-use-cases](skills/fde/references/score-use-cases.md) | Score what to build first | Everything is P0 |
-| [poc](skills/fde/references/poc.md) | Validate the bet in a day | POC, spike, need to de-risk |
+| [discover](skills/fde/references/discover.md) | Frame the problem | Brief feels wrong, shadow processes |
+| [test-assumptions](skills/fde/references/test-assumptions.md) | Test assumptions | Brief feels too neat |
+| [score-use-cases](skills/fde/references/score-use-cases.md) | Score use cases | Everything is P0 |
+| [poc](skills/fde/references/poc.md) | Validate the solution | POC, spike, need to de-risk |
 
-### Plan - Sequence the work
+### Plan - Align
 
 | Skill | What it does | Use when |
 |--------|--------------|----------|
 | [plan](skills/fde/references/plan.md) | Sequence the work | What order, what is done |
-| [business-case](skills/fde/references/business-case.md) | Defend the investment | Defend budget or timeline |
-| [three-options](skills/fde/references/three-options.md) | Generate three real options | "What should we do?" |
-| [pick-three](skills/fde/references/pick-three.md) | Pick three from twenty urgents | Everything is urgent |
+| [business-case](skills/fde/references/business-case.md) | Build the business case | Defend budget or timeline |
+| [three-options](skills/fde/references/three-options.md) | Generate options | "What should we do?" |
+| [pick-three](skills/fde/references/pick-three.md) | Prioritize three | Everything is urgent |
 
-### Ship - On their repo, then live
-
-| Skill | What it does | Use when |
-|--------|--------------|----------|
-| [ship](skills/fde/references/ship.md) | Build one change they can see, then go live | Building, updating, or going live |
-| [what-breaks](skills/fde/references/what-breaks.md) | Name the blast radius | Touching shared infrastructure |
-| [rescue](skills/fde/references/rescue.md) | Resolve the incident or the trust fire | Down, or they went quiet |
-| [review](skills/fde/references/review.md) | Review the change against what we agreed | Before merge, scope creep |
-| [rollback](skills/fde/references/rollback.md) | Test the escape route | "We can always revert" |
-
-### Outcome - Get the number accepted
+### Ship - Deliver
 
 | Skill | What it does | Use when |
 |--------|--------------|----------|
-| [readout](skills/fde/references/readout.md) | Get the number on paper | Friday, sponsor update |
-| [demo-prep](skills/fde/references/demo-prep.md) | Prep the demo they can reject | Demo or exec walkthrough |
-| [debrief](skills/fde/references/debrief.md) | Put the meeting in the record | Just left a meeting |
-| [board-memo](skills/fde/references/board-memo.md) | Brief the sponsor's boss | Justify continued investment |
-| [dashboard](skills/fde/references/dashboard.md) | See every client | All my customers |
-| [ingest](skills/fde/references/ingest.md) | Pull text you confirm | Transcript, Notion, Slack |
-| [connect](skills/fde/references/connect.md) | Wire a source | Connect Granola |
+| [ship](skills/fde/references/ship.md) | Deliver the increment | Building, updating, or going live |
+| [what-breaks](skills/fde/references/what-breaks.md) | Assess impact | Touching shared infrastructure |
+| [rescue](skills/fde/references/rescue.md) | Resolve the incident | Down, or they went quiet |
+| [review](skills/fde/references/review.md) | Review the change | Before merge, scope creep |
+| [rollback](skills/fde/references/rollback.md) | Rehearse rollback | "We can always revert" |
 
-### Close - They run it
+### Outcome - Realize
 
 | Skill | What it does | Use when |
 |--------|--------------|----------|
-| [close](skills/fde/references/close.md) | Hand off so they run it | Wrapping up |
-| [runbook](skills/fde/references/runbook.md) | Write the 2am document | They must operate without you |
-| [switch-clients](skills/fde/references/switch-clients.md) | Switch without bleed | 2+ clients |
-| [encode-pattern](skills/fde/references/encode-pattern.md) | Save what worked twice | It will apply again |
-| [red-team](skills/fde/references/red-team.md) | Stress-test before they do | "Poke holes in this" |
+| [readout](skills/fde/references/readout.md) | Report the outcome | Friday, sponsor update |
+| [demo-prep](skills/fde/references/demo-prep.md) | Prepare the demo | Demo or exec walkthrough |
+| [debrief](skills/fde/references/debrief.md) | Capture the meeting | Just left a meeting |
+| [board-memo](skills/fde/references/board-memo.md) | Brief the board | Justify continued investment |
+| [dashboard](skills/fde/references/dashboard.md) | View the portfolio | All my customers |
+| [ingest](skills/fde/references/ingest.md) | Ingest sources | Transcript, Notion, Slack |
+| [connect](skills/fde/references/connect.md) | Connect a source | Connect Granola |
+
+### Close - Transfer
+
+| Skill | What it does | Use when |
+|--------|--------------|----------|
+| [close](skills/fde/references/close.md) | Transfer operations | Wrapping up |
+| [runbook](skills/fde/references/runbook.md) | Write the runbook | They must operate without you |
+| [switch-clients](skills/fde/references/switch-clients.md) | Switch engagements | 2+ clients |
+| [encode-pattern](skills/fde/references/encode-pattern.md) | Encode the pattern | It will apply again |
+| [red-team](skills/fde/references/red-team.md) | Challenge the plan | "Poke holes in this" |
 
 Overlays (on signal, not on request): [ai](skills/fde/references/ai.md) · [artifacts](skills/fde/references/artifacts.md) · [fintech](skills/fde/references/fintech.md) · [healthcare](skills/fde/references/healthcare.md) · [gov](skills/fde/references/gov.md) · [eval-pack](skills/fde/references/eval-pack.md)
 
@@ -304,6 +304,7 @@ Local only - `git` + files, no network, no telemetry. Plain markdown. The model 
 
 ## Principles
 
+- **One map** - any scale, greenfield or brownfield, any industry. Overlays carry the vertical
 - **The artifact is the memory** - producing the work and recording it are one action
 - **Ground loop** - name the change, characterise their code, prove it on their staging, go live, log the outcome
 - **Skills, not autonomy** - the kit says what to check; judgment stays yours

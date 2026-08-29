@@ -1,5 +1,5 @@
 ---
-description: Get the number accepted. Promised, measured, accepted.
+description: Realize. Promised, measured, accepted.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **outcome**.

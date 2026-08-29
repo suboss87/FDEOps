@@ -1,4 +1,4 @@
-# pick-three - Pick three from twenty urgents
+# pick-three - Prioritize three
 
 **Enter when:** a transformation engagement with a long list of initiatives, the customer's roadmap has more items than weeks, competing teams want different things, or the FDE needs to recommend what to do *first* across a complex programme.
 

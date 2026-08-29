@@ -1,7 +1,7 @@
 {
   "name": "fdeops",
   "description": "Forward deployed engineering skills for AI coding agents. One @fde skill is the client record - brief wrong, they went quiet, when did we agree, what's the outcome - and the dated memory (sponsor, promise, decision, acceptance) lands in local .fde/ files as you confirm judgment. For Forward Deployed Engineers running several clients at once.",
-  "version": "3.18.0",
+  "version": "3.19.0",
   "category": "productivity",
   "tags": [
     "community-managed"
