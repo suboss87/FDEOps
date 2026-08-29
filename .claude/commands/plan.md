@@ -6,7 +6,7 @@ Load `@fde` (`skills/fde/SKILL.md`). Stage: **plan**.
 
 If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI.
 
-Run `fde resume` (fallback: `npx --yes fdeops resume`). Read `references/plan.md` and follow it. Sequence backwards from done, PR-sized slices, who signs.
+Run `fde resume` (fallback: `npx --yes fdeops resume`). Read `references/plan.md` and follow it. Sequence backwards from done, PR-sized slices, who signs. Each Now slice names `Kill if`.
 
 Do not invent a plan the record cannot support. Missing success criteria → `unknown - ask: <question>`.
 

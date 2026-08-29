@@ -111,7 +111,7 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
-| [discover](skills/fde/references/discover.md) | Repo + workaround + the real problem | Brief feels wrong, shadow processes |
+| [discover](skills/fde/references/discover.md) | Question first, then repo + workaround | Brief feels wrong, shadow processes |
 | [test-assumptions](skills/fde/references/test-assumptions.md) | Untested assumptions by blast radius | Brief feels too neat |
 | [score-use-cases](skills/fde/references/score-use-cases.md) | Value × urgency × alignment / complexity | Everything is P0 |
 | [poc](skills/fde/references/poc.md) | Kill the killer assumption in a day | POC, spike, need to de-risk |
@@ -120,7 +120,7 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
-| [plan](skills/fde/references/plan.md) | Backwards from done, PR-sized | What order, what is done |
+| [plan](skills/fde/references/plan.md) | Backwards from done, Kill if on each slice | What order, what is done |
 | [business-case](skills/fde/references/business-case.md) | Cost of nothing → investment → return | Defend budget or timeline |
 | [three-options](skills/fde/references/three-options.md) | Three genuine options | "What should we do?" |
 | [pick-three](skills/fde/references/pick-three.md) | Pick three from twenty urgents | Everything is urgent |
