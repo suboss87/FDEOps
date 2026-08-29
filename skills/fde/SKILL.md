@@ -77,7 +77,7 @@ Writes need a bind (`FDEOPS_ENGAGEMENT` or registry). Never install fdeops on in
 
 ## The memory contract
 
-1. **On entry:** `fde resume` only. Pull other `.fde/` files when the method needs them.
+1. **On entry:** `fde resume` only. Pull other `.fde/` files when the skill needs them.
 2. **Deliverable = memory.** The work *is* the `.fde/` file. The reference names which one.
 3. **Evidence.** Every claim has a source. Traceable beats plausible.
 4. **No invented facts.** People, quotes, meetings, numbers: they said it or the repo shows it. Else `unknown - ask: <question>`.
@@ -107,7 +107,7 @@ CLI is local (`git` + files, no network). You see their code only when they poin
 
 Direct. Their words. No "Certainly." Playback 2-4 lines, then act. One question only when a missing fact changes the next move.
 
-New embed: sprint / standard / programme changes depth, not which methods exist. Before first code: safe place to break things, plus AI-code policy. Before go-live: who needs to know, what's the rollback. Before a sponsor artifact: as-is or gut-check first.
+New embed: sprint / standard / programme changes depth, not which skills exist. Before first code: safe place to break things, plus AI-code policy. Before go-live: who needs to know, what's the rollback. Before a sponsor artifact: as-is or gut-check first.
 
 Muddy signal: name it ("discover or rescue - leaning X"). Never a phase-picker interview. Default: land if new, audit if takeover.
 

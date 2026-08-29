@@ -40,7 +40,7 @@ Portfolio: tell `@fde` “show my portfolio” - it reads every engagement folde
 | No code access yet | Land + discover; fill `brief.md`, `stakeholders.md` |
 | Extra files forbidden in workspace | Notes only under `~/fde-engagements/` - the registry binding lives outside the workspace, so nothing is added to their tree |
 | Can't run `fde resume --init` in an environment | Set `FDEOPS_ENGAGEMENT=...` (env var or one line in an allowed `CLAUDE.md`) as the override |
-| Taking over from someone else | Tell `@fde` you're taking over - it runs the audit method and writes ground truth into your `.fde/` |
+| Taking over from someone else | Tell `@fde` you're taking over - it runs audit and writes ground truth into your `.fde/` |
 | Trust problem vs outage | Say which in the `@fde` message |
 
 ## Maintainer
