@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.17.0 - 2026-08-29
+
+Ship is one method. Write or update on their repo, prove it on staging they operate, then go live with a rollback you have run. No extra method.
+
+- `/ship` names brownfield or greenfield once, then the same loop: one change they can see, on their staging, undoable, then the go-live gates.
+- `thin-slices` / `small-prs` are gone. That craft lives in `ship.md`. Catalog is 30 skills.
+- A same-day throwaway that kills an assumption stays `poc`. Outcome stays promised → measured → accepted.
+
 ## 3.16.1 - 2026-08-28
 
 The CLI no longer volunteers a false statement to a sponsor. Signals key on the person, redact does not reprint the secret in `git log`, and the dashboard fails loud when `reality.md` is not the schema.
@@ -11,8 +19,7 @@ The CLI no longer volunteers a false statement to a sponsor. Signals key on the 
 - `fde log delivery "slice | bucket | …"` writes a value-ledger row. `fde log risk --retire <text>` moves matching open risks. `fde tidy --apply` can bless hand-written dirty files.
 - `status` and `dashboard` print doctor issues. README check allows the GitHub poster `<img>` (`user-attachments`).
 - Command map and slash descriptions use plain verbs (`Ship to their production`, `Prep before the meeting`). Craft words stay in the method, not the button.
-- Discover frames Situation / Complication / Question / Answer-space before any scan (same spine as readout, aimed at the floor). Plan copies the kill observation onto each Now PR as `Kill if`.
-- `thin-slices` is now `small-prs`. One small PR, one user action, proven on their staging. `/ship` stays go-live.
+- Discover frames Situation / Complication / Question / Answer-space before any scan (same spine as readout, aimed at the floor). Plan copies the kill observation onto each Now slice as `Kill if`.
 
 ## 3.16.0 - 2026-08-28
 

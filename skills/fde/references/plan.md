@@ -28,7 +28,7 @@ An FDE plan is not a sprint backlog. The technical sequence is the easy part. Th
 
 **2. Front-load the fragile.** Check `terrain.md` hotspots. Risky modules go early - fail fast, not in week three.
 
-**3. One user action per PR.** Each task delivers something visible and testable ("user submits form, sees it saved"), never a layer ("build the database layer"). See `small-prs`.
+**3. One user action per change.** Each task delivers something visible and testable ("user submits form, sees it saved"), never a layer ("build the database layer"). See `ship`.
 
 **4. Size to 30-90 minutes, PR-sized.** Longer = two tasks. Each task implementable, testable, reviewable without a thousand-line diff.
 
