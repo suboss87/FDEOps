@@ -31,9 +31,9 @@ After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same rou
 |------|---------|------------|
 | `reality.md` | Actual problem vs brief | discover |
 | `terrain.md` | Codebase map, hotspots, test gaps, exception-led operating map (doctor requires ≥1 row from plan+) | discover, audit |
-| `decisions.md` | Plan + kill list + technical choices + reviews | plan, pick-three, build, review, `fde debrief` |
-| `risks.md` | Live risk register | plan, build, rescue, `fde debrief` |
-| `delivery.md` | Value ledger (bucket → promised → measured → accepted by → evidence) + ship receipts + status memos | build, ship, status, close, `fde debrief` |
+| `decisions.md` | Plan + kill list + technical choices + reviews | plan, pick-three, ship, review, `fde debrief` |
+| `risks.md` | Live risk register | plan, ship, rescue, `fde debrief` |
+| `delivery.md` | Value ledger (bucket → promised → measured → accepted by → evidence) + ship receipts + status memos | ship, status, close, `fde debrief` |
 
 ### Decision entries
 

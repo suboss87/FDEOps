@@ -1,4 +1,4 @@
-# rescue - production fire, trust fire, or wrong-brief mid-build
+# rescue - Resolve the incident or the trust fire
 
 **Enter when:** production is down, something's bleeding - OR a stakeholder went quiet, confidence is slipping, or three weeks into the build the brief turned out to be wrong. Trust fires get the same urgency as outages.
 
@@ -13,7 +13,8 @@ Open by narrowing time, like a human: "Walk me through the last couple hours - d
 git log --since="6 hours ago" --format="%ad %an %s" --date=relative
 ```
 
-**The sequence:**
+**The sequence:** no fix until the cause is named. A symptom patch is the second incident.
+
 1. **Stabilise first.** Roll back? Disable the broken path? Route around it? Buy time before diagnosing. The instinct to fix fast causes the second incident.
 2. **Name the unknowns.** "We don't know if the queue is corrupted / if this hits all users / if the cache is stale." Written down. Named unknowns are safer than assumed knowns.
 3. **Assume maximum blast radius.** The unrecognised integration in the stack trace is load-bearing until proven otherwise.

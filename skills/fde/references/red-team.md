@@ -1,4 +1,4 @@
-# red-team - adversarial stress-test of your plan, position, or deliverable
+# red-team - Stress-test before they do
 
 **Enter when:** the FDE says "red-team this," "stress-test my thinking," "poke holes in this," "what am I missing," "challenge my plan" - or anytime they are about to walk into a high-stakes conversation (sponsor meeting, accumulation conversation, handoff, go-live) and want their blind spots exposed first.
 

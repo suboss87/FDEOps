@@ -1,6 +1,6 @@
 {
   "name": "fdeops",
-  "version": "3.17.0",
+  "version": "3.18.0",
   "description": "Forward deployed engineering skills for AI coding agents. Your agent forgets the client every morning - the sponsor, the promise, who signed off. FDEOps keeps that as dated markdown on your laptop: one @fde skill, a deterministic local CLI, and hooks that make it automatic. Claude Code plugin and any agent that loads skills.",
   "bin": {
     "fdeops": "bin/install.js",

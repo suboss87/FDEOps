@@ -1,4 +1,4 @@
-# audit - taking over mid-engagement
+# audit - Verify inherited claims
 
 **Enter when:** picking up someone else's work - previous consultant left, joining mid-project, half-done system.
 

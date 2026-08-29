@@ -1,4 +1,4 @@
-# readout - the sponsor update that keeps the engagement alive
+# readout - Get the week's number on paper
 
 **Enter when:** the weekly update is due, an exec asks "where are we," or the FDE says "I need to send Dana something." This artifact decides renewals; engineers underinvest in it.
 

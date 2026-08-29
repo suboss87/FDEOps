@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.18.0 - 2026-08-29
+
+Public names match the work: verb + object, six stages ending in Outcome.
+
+- Stage `prove` is now `outcome`. `fde log phase prove` still works. Catalog, slash commands, and skill titles use the same labels (`Interrogate the brief`, `Validate the bet`, `Build one change they can see`).
+- `/outcome` is the stage name in commands and the CLI. Display is Outcome, not Prove.
+
 ## 3.17.0 - 2026-08-29
 
 Ship is one method. Write or update on their repo, prove it on staging they operate, then go live with a rollback you have run. No extra method.

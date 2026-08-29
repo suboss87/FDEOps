@@ -1,4 +1,4 @@
-# business-case - the economics that get the sponsor to say yes
+# business-case - Defend the investment
 
 **Enter when:** the sponsor needs justification for the next phase, the FDE needs to defend budget or timeline, a feature decision needs cost/benefit evidence, or poc produced a direction that needs funding.
 

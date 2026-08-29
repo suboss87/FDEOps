@@ -1,4 +1,4 @@
-# debrief - capture the meeting before it evaporates
+# debrief - Put the meeting in the record
 
 **Enter when:** the FDE just left a meeting/call and dumps raw notes, a transcript, or "they said…". Highest-frequency moment in FDE life. Capture within the hour.
 

@@ -119,49 +119,49 @@ Read **one** reference and follow it. Do not improvise from memory.
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| Starting fresh, new customer, first meeting, just got the brief | land | `references/land.md` |
+| Starting fresh, new customer, first meeting, just got the brief, set product strategy, define success metrics, scope the brief | land | `references/land.md` |
 | Taking over, previous consultant left, joining mid-project | audit | `references/audit.md` |
 | Need to understand who matters, who decides, who blocks quietly | who-decides | `references/who-decides.md` |
 | Need to earn access, navigate AI policy, build credibility | earn-trust | `references/earn-trust.md` |
-| "Also can you…", scope expanding, timeline unchanged | hold-scope | `references/hold-scope.md` |
+| "Also can you…", scope expanding, timeline unchanged, scope the brief after kickoff | hold-scope | `references/hold-scope.md` |
 
 ### Discover
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| Don't know the real problem, brief feels wrong, shadow processes | discover | `references/discover.md` |
+| Don't know the real problem, brief feels wrong, shadow processes, frame discovery, understand the problem space, data not ready, data estate, catalog the data | discover | `references/discover.md` |
 | The brief feels too neat, assumptions untested, "we just need…" | test-assumptions | `references/test-assumptions.md` |
 | Multiple use cases competing, "we want to do everything" | score-use-cases | `references/score-use-cases.md` |
-| Need to validate a direction, prototype, demo to de-risk, **POC**, spike, killer assumption | poc | `references/poc.md` |
+| Need to validate a direction, prototype, demo to de-risk, **POC**, spike, killer assumption, validate the solution, build prototype | poc | `references/poc.md` |
 
 ### Plan
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| Break this down, what order, sequence the build | plan | `references/plan.md` |
+| Break this down, what order, sequence the build, plan the roadmap, create user stories, write the tasks | plan | `references/plan.md` |
 | Sponsor needs justification, need to defend budget or timeline | business-case | `references/business-case.md` |
-| Significant decision, multiple approaches, "what should we do?" | three-options | `references/three-options.md` |
+| Significant decision, multiple approaches, "what should we do?", generate solutions | three-options | `references/three-options.md` |
 | 20 things are "urgent," need to pick the 3 that matter | pick-three | `references/pick-three.md` |
 
 ### Ship
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| What could go wrong, touching shared infrastructure, need to assess impact | what-breaks | `references/what-breaks.md` |
-| Production down, urgent - OR stakeholder gone quiet, trust slipping | rescue | `references/rescue.md` |
-| Start building, update their checkout, first module, visible progress, their tests, POC follow-through, ready to deploy, going live, pre-flight | ship | `references/ship.md` |
-| Review this change, is it safe, does it match what we agreed | review | `references/review.md` |
+| What could go wrong, touching shared infrastructure, need to assess impact, provision, IaC, shared infra | what-breaks | `references/what-breaks.md` |
+| Production down, urgent, fix a prod bug, resolve incident - OR stakeholder gone quiet, trust slipping | rescue | `references/rescue.md` |
+| Start building, update their checkout, first module, visible progress, their tests, POC follow-through, ready to deploy, going live, pre-flight, build the increment, create the launch plan, design their UI | ship | `references/ship.md` |
+| Review this change, review the pull request, is it safe, does it match what we agreed | review | `references/review.md` |
 | Diff grew / scope creep in the PR / "did we only build what we said" / KEEP JUSTIFY SPLIT DROP | review (+ ship if going live) | `references/review.md` Stage 1 · `references/ship.md` Intent vs diff |
 | Wrap the session / share the thinking / catch teammates up / before I open the PR | (memory contract - session digest) | SKILL.md **On exit** - write TL;DR + decisions/why into `.fde/`; no transcript sync |
 | "We can always revert" - need to actually test the escape route | rollback | `references/rollback.md` |
 
-### Prove
+### Outcome
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
 | Weekly update due, "need to send the sponsor something" | readout | `references/readout.md` |
 | Demo coming up, show-and-tell, exec walkthrough | demo-prep | `references/demo-prep.md` |
-| Just out of a meeting, raw notes, "they said…", "debrief" | debrief | the debrief verb (above) + `references/debrief.md` |
+| Just out of a meeting, raw notes, "they said…", "debrief", user interviews, workshop notes | debrief | the debrief verb (above) + `references/debrief.md` |
 | Make sure we're up to date, pull what's relevant, fetch from Granola/Slack/Gmail/transcript | ingest | `references/ingest.md` (capability check → stage → propose → confirm → apply) |
 | Connect a new MCP / connect Granola Slack or Notion / what can you pull | connect | `references/connect.md` (+ `mcp/recipes/`) |
 | Prep me for a meeting / walk-in brief / "what should I know before I talk to…" | - | run `fde prep "<label>"`, present in plain language |
@@ -183,7 +183,7 @@ Read **one** reference and follow it. Do not improvise from memory.
 
 | Signal | Overlay |
 |--------|---------|
-| AI, ML, LLM, model, embeddings, RAG, agents, fine-tuning, inference, drift | `references/ai.md` |
+| AI, ML, LLM, model, embeddings, RAG, agents, fine-tuning, inference, drift, train the model | `references/ai.md` |
 | Golden set, eval suite, eval pack, pass/fail before AI ship, HITL gate for model, POC the model | `references/eval-pack.md` (+ `ai.md`) |
 | Deck, slides, report, governance framework, compliance pack, ADR, PDF | `references/artifacts.md` |
 | Patient data, PHI, HIPAA, EHR, clinical | `references/healthcare.md` |

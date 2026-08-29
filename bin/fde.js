@@ -740,11 +740,11 @@ function appendLogEntry(eng, type, entry, opts = {}) {
 // degrading to "nothing found" rather than guessing when the shape does not
 // match. Never fabricate a number, a name, or a signal that is not in the text.
 
-const PHASES = ['land', 'discover', 'plan', 'ship', 'prove', 'close']
-const PHASE_ALIASES = { build: 'ship' } // legacy SDLC name; public map is ship
+const PHASES = ['land', 'discover', 'plan', 'ship', 'outcome', 'close']
+const PHASE_ALIASES = { build: 'ship', prove: 'outcome' } // legacy names; public map is ship / outcome
 const PHASE_LABELS = {
   land: 'Land', discover: 'Discover', plan: 'Plan',
-  ship: 'Ship', prove: 'Prove', close: 'Close',
+  ship: 'Ship', outcome: 'Outcome', close: 'Close',
 }
 function canonicalPhase(phase) {
   const p = String(phase).toLowerCase()
@@ -1412,7 +1412,7 @@ function cmdLog(args) {
   const eng = resolveEngagement({ forWrite: true })
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
 
-  // fde log phase <land|discover|plan|ship|prove|close> - advances portfolio phase
+  // fde log phase <land|discover|plan|ship|outcome|close> - advances portfolio phase (prove → outcome)
   if (type === 'phase') {
     const phase = canonicalPhase((text || '').toLowerCase().trim())
     if (!PHASES.includes(phase)) {
@@ -2237,7 +2237,7 @@ function collectDoctorIssues(eng) {
     }
   }
   const success = readClean(eng, 'success.md')
-  if (!firstLine(success, 80)) issues.push('success.md has no stated done-definition - fill before plan/build')
+  if (!firstLine(success, 80)) issues.push('success.md has no stated done-definition - fill before plan/ship')
   const ctxMd = readClean(eng, 'context.md')
   if (!sectionBody(ctxMd, 'Next action', { lastNonEmpty: true })) {
     issues.push('no ## Next action in context.md - Monday morning has nothing to drive')
@@ -2278,7 +2278,7 @@ function collectDoctorIssues(eng) {
   }
   // Failure-path (exception-led operating map): required once past discover.
   // Land seeds; discover fills; plan+ without a real break→owner row is wallpaper.
-  if (/^(plan|ship|prove|close)$/.test(s.phase) && !hasOperatingMapContent(eng)) {
+  if (/^(plan|ship|outcome|close)$/.test(s.phase) && !hasOperatingMapContent(eng)) {
     issues.push(
       `phase is ${s.phase} with empty operating map - fill terrain.md ## Operating map (exception-led): break → who notices → workaround → evidence`
     )
@@ -3324,7 +3324,7 @@ function printUsage() {
   fde triage               TRIAGE block only (hooks / Cursor session entry)
   fde log <type> <text>    append decision|risk|delivery|contact (contact takes --signal red|amber|green; delivery "a|b|c" writes the value ledger; --force to allow secret-like text)
   fde log risk --retire    move matching open-risk bullets to ## Retired
-  fde log phase <phase>    set engagement phase (land|discover|plan|ship|prove|close)
+  fde log phase <phase>    set engagement phase (land|discover|plan|ship|outcome|close)
   fde log --undo           remove the last CLI log/debrief entry from memory
   fde debrief [file]       meeting notes → memory (prefixed lines; --dry-run; --force)
   fde debrief --smart      heuristic propose (prints decision:/risk:/delivery:/contact:/next:); --apply after confirm

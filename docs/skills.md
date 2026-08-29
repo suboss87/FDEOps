@@ -16,7 +16,7 @@ The full map is below; per-skill details live in [skills-reference.md](./skills-
 | **Discover** | discover, test-assumptions, score-use-cases, poc | Finding the real problem behind the brief |
 | **Plan** | plan, business-case, three-options, pick-three | Sequencing work, getting sponsor alignment |
 | **Ship** | ship, what-breaks, rescue, review, rollback | One change they can see on their repo, then go-live - not generic debug/build |
-| **Prove** | readout, demo-prep, debrief, board-memo, dashboard, ingest, connect | The outcome; pulling from source MCPs |
+| **Outcome** | readout, demo-prep, debrief, board-memo, dashboard, ingest, connect | Get the number accepted; dated receipts |
 | **Close** | close, runbook, switch-clients, encode-pattern, red-team | They can run it without you |
 
 Each skill is a workflow, not advice: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.
