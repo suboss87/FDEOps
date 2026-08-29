@@ -1,10 +1,10 @@
 # fdeops usage guide
 
-**What it is:** the engagement layer for **you** (human FDE) + your **AI coding agent** - `@fde` routes methods; `.fde/` holds client-scoped memory on your machine.
+**What it is:** the engagement layer for **you** (human FDE) + your **AI coding agent** - `@fde` routes skills; `.fde/` holds client-scoped memory on your machine.
 
 **Terminology:** [README § Who this is for](../README.md#who-this-is-for) - **"agent" = AI software, not a human.**
 
-**Start here:** [README](../README.md) (command map → 30-second install → one chat).
+**Start here:** [README](../README.md) - Commands (lifecycle) → All 30 Skills (catalog) → How Skills Work.
 
 <p align="center"><img alt="A recorded fdeops session: kickoff notes routed into dated memory after you confirm" src="../media/session.gif" width="900" /></p>
 
@@ -22,7 +22,7 @@ Day-to-day reference below.
 4. Optional recon, zero config: `npx fdeops scan` in a repo
 5. Then: `@fde` + the actual situation (brief wrong, they went quiet, when did we agree, what's the outcome)
 
-You do not read the phase methods. **`@fde` routes the AI and loads the right one.**
+You do not pick a skill. **`@fde` routes the AI and loads the right one.**
 
 ---
 
@@ -197,7 +197,7 @@ The rules that keep it from becoming a second memory:
 
 ## What fdeops does not do
 
-The skills are methods refined from real engagements, not autonomy - they tell you what to check, not what to decide. Concretely, fdeops does not:
+The skills are refined from real engagements, not autonomy - they tell you what to check, not what to decide. Concretely, fdeops does not:
 
 - Replace **you** in meetings or politics
 - Grant repo access or stakeholder buy-in
@@ -212,4 +212,4 @@ The skills are methods refined from real engagements, not autonomy - they tell y
 - [OPERATIONS.md](./OPERATIONS.md) - operating rules
 - [schema.md](./schema.md) - `.fde/` files
 - [skills.md](./skills.md) - the skills matrix + overlays
-- [skills-reference.md](./skills-reference.md) - the phase methods
+- [skills-reference.md](./skills-reference.md) - the 30 skills

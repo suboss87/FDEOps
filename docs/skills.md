@@ -1,6 +1,8 @@
-# One skill, three layers
+# The catalog
 
-One skill (`@fde`) routes by situation - you never pick a skill by name. Three layers:
+One skill (`@fde`) routes. You never pick a skill by name. 30 skills across 6 stages. Not prompts - each skill is a workflow with an artifact and a checkpoint.
+
+Three layers:
 
 1. **Daily** - prep, debrief, receipts, status, triage / doctor
 2. **Engagement** - brief wrong, they went quiet, when did we agree, what's the outcome - plus the skills below
@@ -19,7 +21,7 @@ The full map is below; per-skill details live in [skills-reference.md](./skills-
 | **Outcome** (Realize) | readout, demo-prep, debrief, board-memo, dashboard, ingest, connect | Get the number accepted; dated receipts |
 | **Close** (Transfer) | close, runbook, switch-clients, encode-pattern, red-team | They can run it without you |
 
-Each skill is a workflow, not advice: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.
+Each skill is a workflow, not a prompt: the thinking the agent does, the artifact it drafts into `.fde/` under `~/fde-engagements/`, and the checkpoint with the human FDE.
 
 **Field judgment (blended into skills, not a separate pack):** land/discover use **brief interrogation** when the brief is thin; `@fde` enforces **anti-invention gates**; ship/red-team run a **pre-blast challenge** before irreversible moves.
 

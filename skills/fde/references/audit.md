@@ -9,7 +9,7 @@
 Before forming any opinion:
 
 1. **Inherit the paper.** Any previous `.fde/`, docs, README claims, ADRs, ticket history the FDE can export. Read it all - the previous FDE's decisions are evidence, not verdicts.
-2. **Run the discover scans** (see `discover.md` method part 1: churn, test gaps, "temporary" grep, AI components). On a takeover, add:
+2. **Run the discover scans** (see `discover.md` part 1: churn, test gaps, "temporary" grep, AI components). On a takeover, add:
 ```bash
 git log --format="%an" | sort | uniq -c | sort -rn | head   # who actually built this
 git log --since="60 days ago" --format="%ad %s" --date=short | head -20  # what was happening when they left

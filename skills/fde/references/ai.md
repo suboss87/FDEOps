@@ -38,7 +38,7 @@ Write model selection rationale to `decisions.md`. Include: models tested, test 
 
 ## Engagement eval pack (before AI ships)
 
-When any slice touches a model, embeddings, RAG, or an agent: create or update `.fde/evals.md` **before** ship. Full method: `references/eval-pack.md`. This is the engagement-local test set - not unit tests.
+When any slice touches a model, embeddings, RAG, or an agent: create or update `.fde/evals.md` **before** ship. Full skill: `references/eval-pack.md`. This is the engagement-local test set - not unit tests.
 
 **Minimum pack (do not grow until the minimum exists):**
 1. **Component + quality bar** - one sentence each; kill switch / fallback named.

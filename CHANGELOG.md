@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.20.0 - 2026-08-29
+
+The public map is a skill catalog. Lifecycle, then catalog, then how it works.
+
+- README Commands: one command per stage, skills load automatically.
+- README catalog: 30 skills, not prompts. How Skills Work is route, evidence, confirm.
+- Public docs say skills, not methods. Slash commands and file ids unchanged.
+
 ## 3.19.0 - 2026-08-29
 
 The public map is consulting language on FDE stages. Same 30 skills. Same slash commands.

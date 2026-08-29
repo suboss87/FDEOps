@@ -57,7 +57,7 @@ for (const dir of fs.readdirSync(path.join(root, 'skills'))) {
 ok('skills structure')
 
 if (fs.existsSync(path.join(root, 'skills', 'fde', 'archive'))) {
-  fail('skills/fde/archive must not exist - unrouted methods are dead code')
+  fail('skills/fde/archive must not exist - unrouted skills are dead code')
 } else ok('no archived skill dump')
 
 // v3: one skill + phase references (progressive disclosure)
@@ -164,7 +164,7 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
     documentedRows++
     documented.add(m[1])
     // A link nobody followed is the same unverifiable claim this gate exists for:
-    // the target must exist, and it must be the method the text names.
+    // the target must exist, and it must be the skill the text names.
     if (m[2] !== `${m[1]}.md`) {
       fail(`docs/skills-reference.md links [${m[1]}] at references/${m[2]}`)
     } else if (!fs.existsSync(path.join(root, 'skills', 'fde', 'references', m[2]))) {
@@ -172,13 +172,13 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
     }
   }
   if (documented.size !== documentedRows) {
-    fail(`docs/skills-reference.md lists ${documentedRows} method rows for ${documented.size} methods - a duplicate row inflates the count`)
+    fail(`docs/skills-reference.md lists ${documentedRows} skill rows for ${documented.size} skills - a duplicate row inflates the count`)
   }
   const undocumented = [...routed].filter(name => !documented.has(name))
   if (undocumented.length) {
     fail(`SKILL.md routes skill(s) missing from docs/skills-reference.md: ${undocumented.join(', ')}`)
   }
-  // and the other direction: a documented method nothing routes to is a method
+  // and the other direction: a documented skill nothing routes to is a skill
   // the agent can never reach, advertised anyway.
   const unrouted = [...documented].filter(name => !routed.has(name))
   if (unrouted.length) {
@@ -187,7 +187,7 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   for (const rel of ['docs/skills.md', 'docs/skills-reference.md']) {
     const body = read(rel)
     // `-` is a word boundary, so \bscore\b matches inside `score-use-cases`:
-    // a method could disappear from the docs behind a hyphenated sibling.
+    // a skill could disappear from the docs behind a hyphenated sibling.
     const absent = [...documented].filter(name => !new RegExp(`(?<![\\w-])${name}(?![\\w-])`).test(body))
     if (absent.length) fail(`${rel} does not list skill(s): ${absent.join(', ')}`)
     const claims = [...body.matchAll(/(\d+)\s+skills/g)].map(m => Number(m[1]))
@@ -201,16 +201,16 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
 
   const refDir = path.join(root, 'skills', 'fde', 'references')
   const extra = fs.readdirSync(refDir).filter(f => f.endsWith('.md') && !mentioned.includes(f))
-  if (extra.length) fail(`unrouted reference file(s) - dead method: ${extra.join(', ')}`)
+  if (extra.length) fail(`unrouted reference file(s) - dead skill: ${extra.join(', ')}`)
   else ok('no unrouted reference files')
 
-  // The on-site change loop lives in ship.md. A sibling method is a split.
+  // The on-site change loop lives in ship.md. A sibling skill is a split.
   for (const dead of ['small-prs.md', 'thin-slices.md', 'implement.md']) {
     if (fs.existsSync(path.join(refDir, dead))) {
       fail(`${dead} must not exist - that craft lives in ship.md`)
     }
   }
-  ok('ship is one method (no implement / small-prs / thin-slices sibling)')
+  ok('ship is one skill (no implement / small-prs / thin-slices sibling)')
 
   if (/^### Prove\b/m.test(read('skills/fde/SKILL.md'))) {
     fail('SKILL.md must not use Prove as a stage heading - the public stage is Outcome')
@@ -355,6 +355,18 @@ for (const rx of derivativeFraming) {
 }
 if (/docs\/internal|PMF_360/i.test(readme)) {
   fail('README must not link docs/internal or PMF_360')
+}
+if (!/One command per stage/.test(readme) || !/Skills load automatically/.test(readme)) {
+  fail('README must formulate Commands as: one command per stage, skills load automatically')
+}
+if (!/Not prompts/.test(readme)) {
+  fail('README catalog must say skills are not prompts')
+}
+if (/\b(30|31|37)\s+methods\b|\broutes methods\b|\bphase methods\b|\bfield methods\b|\bengagement methods\b/.test(readme)) {
+  fail('README must call the catalog skills, not methods')
+}
+if (/\broutes methods\b|\bphase methods\b|\bengagement methods\b/.test(usage)) {
+  fail('docs/USAGE.md must call them skills, not methods')
 }
 ok('README tone')
 

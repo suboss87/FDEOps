@@ -8,7 +8,7 @@ The visual artifact is rendered by code, not by you. `fde dashboard` reads every
 
 ## Method (you do this work)
 
-0. **First move: `fde status`** - instant heuristic triage (trust-first ordering) across every engagement. Use it as the index; then deep-read only the folders that are red/amber or that the FDE asks about, and apply the full card method below.
+0. **First move: `fde status`** - instant heuristic triage (trust-first ordering) across every engagement. Use it as the index; then deep-read only the folders that are red/amber or that the FDE asks about, and apply the full card below.
 1. **Find the engagements:** `~/fde-engagements/*/.fde/` (primary) · workspace `./.fde/` if present · paths the FDE names. Read each folder **separately** - never merge two customers.
 2. **Per engagement, read the card the way a human would:**
    - Name, phase, week
