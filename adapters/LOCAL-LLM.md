@@ -62,7 +62,7 @@ The model reads SKILL.md, routes to the right skill, and produces artifacts in y
 
 ## Model size recommendations
 
-The methodology is detailed (31 skills, routing logic, evidence format, memory contract). Larger models handle it better:
+The methodology is detailed (30 skills, routing logic, evidence format, memory contract). Larger models handle it better:
 
 | Model class | Experience |
 |-------------|-----------|

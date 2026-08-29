@@ -2,7 +2,7 @@
 
 **Forward deployed engineering skills for AI coding agents.**
 
-Skills encode the workflows, quality gates, and judgment Forward Deployed Engineers use on someone else's site. Packaged so an AI coding agent can run the embed end-to-end: discovery, POC, small PRs on their codebase, go-live, eval, signed outcome. The workspace still compiles and commits. `@fde` does not leave.
+Skills encode the workflows, quality gates, and judgment Forward Deployed Engineers use on someone else's site. Packaged so an AI coding agent can run the embed end-to-end: discovery, POC, their codebase (greenfield or brownfield), go-live, eval, signed outcome. The workspace still compiles and commits. `@fde` does not leave.
 
 <img width="1774" height="887" alt="FDEops-githubposter" src="https://github.com/user-attachments/assets/9eb842d2-a356-4995-9057-841f1b2d15d6" />
 
@@ -17,7 +17,7 @@ Each command loads the same `@fde` skill. You never pick from 31 names.
 | First week on site | `/brief` | Name who signs done |
 | Find the real problem | `/discover` | Treat the brief as a hypothesis |
 | Sequence the work | `/plan` | Work backwards from done |
-| Ship to their production | `/ship` | Go live with a rollback you have run |
+| Ship to their production | `/ship` | One change they can see, then go live with a rollback you have run |
 | Get the number accepted | `/outcome` | Promised, measured, accepted |
 | Hand off so they run it | `/close` | They operate it without you |
 
@@ -31,7 +31,7 @@ Also:
 | Prep before the meeting | `/prep` | One page from the record |
 | Friday sponsor update | `/readout` | Promised, measured, accepted |
 
-Skills also activate on English: naming a client, running a POC, landing a small PR, asking what was agreed. A throwaway one-liner in an unbound repo can skip `@fde`. Bound client work cannot.
+Skills also activate on English: naming a client, running a POC, changing their checkout, going live, asking what was agreed. A throwaway one-liner in an unbound repo can skip `@fde`. Bound client work cannot.
 
 ---
 
@@ -93,9 +93,9 @@ Requires Node.js >= 18. Override: `FDEOPS_ENGAGEMENT`. See [docs/install.md](doc
 
 ---
 
-## All 31 Skills
+## All 30 Skills
 
-The commands above are the entry points. Under the hood, `@fde` activates these 31 skills, each a structured workflow with steps, an artifact, and a checkpoint. You never pick one by name. Full detail: [docs/skills-reference.md](docs/skills-reference.md).
+The commands above are the entry points. Under the hood, `@fde` activates these 30 skills, each a structured workflow with steps, an artifact, and a checkpoint. You never pick one by name. Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 
 ### Land - Brief and trust
 
@@ -125,14 +125,13 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 | [three-options](skills/fde/references/three-options.md) | Three genuine options | "What should we do?" |
 | [pick-three](skills/fde/references/pick-three.md) | Pick three from twenty urgents | Everything is urgent |
 
-### Ship - Go live
+### Ship - On their repo, then live
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
-| [small-prs](skills/fde/references/small-prs.md) | One small PR, proven on their staging | Building on their codebase |
+| [ship](skills/fde/references/ship.md) | One change they can see (greenfield or brownfield), proven on their staging, then go live | Building, updating, or going live |
 | [what-breaks](skills/fde/references/what-breaks.md) | Impact from contained → irreversible | Touching shared infrastructure |
 | [rescue](skills/fde/references/rescue.md) | Production fire or trust fire | Down, or they went quiet |
-| [ship](skills/fde/references/ship.md) | Intent vs diff, pre-flight, rollback | Going live |
 | [review](skills/fde/references/review.md) | Did we only build what we agreed | Before merge, scope creep |
 | [rollback](skills/fde/references/rollback.md) | Test the escape route before 2am | "We can always revert" |
 
@@ -185,7 +184,7 @@ One skill. One reference file per situation. One folder per client.
 ```
 
 - **Process, not prose.** Each reference is a workflow with an artifact and a checkpoint, not a tip sheet.
-- **Ground loop.** Name → characterise → prove where they live → log. The workspace compiles; `@fde` stays.
+- **Ground loop.** Name → characterise → prove where they live → go live → log. The workspace compiles; `@fde` stays.
 - **You confirm.** Nothing is written until you say so.
 - **Progressive disclosure.** `SKILL.md` is the entry point. One `references/*.md` loads when routed.
 - **Local CLI.** Writes and status cost zero model tokens. The AI coding agent runs it.
@@ -200,7 +199,7 @@ Change hosts, install `@fde` on the new one, bind if needed, keep talking. The r
 fdeops/
 ├── skills/fde/                            # the one skill hosts load
 │   ├── SKILL.md                           #   router
-│   └── references/                        #   31 skills + overlays (you never pick)
+│   └── references/                        #   30 skills + overlays (you never pick)
 │       ├── land.md                        #   Land
 │       ├── audit.md
 │       ├── who-decides.md
@@ -214,10 +213,9 @@ fdeops/
 │       ├── business-case.md
 │       ├── three-options.md
 │       ├── pick-three.md
-│       ├── small-prs.md                   #   Ship
+│       ├── ship.md                        #   Ship
 │       ├── what-breaks.md
 │       ├── rescue.md
-│       ├── ship.md
 │       ├── review.md
 │       ├── rollback.md
 │       ├── readout.md                      #   Outcome
@@ -267,7 +265,7 @@ fdeops/
 
 AI coding agents are built for a repo, not for a client. They forget the sponsor, the promise, who can say yes, and whether anyone accepted the number. Monday morning they start from the ticket again.
 
-FDEOps is what you take on site. One `@fde` skill runs the embed from discovery to signed outcome: POC, small PRs, go-live, eval when a model judges, promised → measured → accepted. A local CLI dates every decision. `.fde/` is markdown on your laptop. You confirm; then it is on the record.
+FDEOps is what you take on site. One `@fde` skill runs the embed from discovery to signed outcome: POC, their codebase, go-live, eval when a model judges, promised → measured → accepted. A local CLI dates every decision. `.fde/` is markdown on your laptop. You confirm; then it is on the record.
 
 ---
 
@@ -307,7 +305,7 @@ Local only - `git` + files, no network, no telemetry. Plain markdown. The model 
 ## Principles
 
 - **The artifact is the memory** - producing the work and recording it are one action
-- **Ground loop** - name the PR, characterise their code, prove it on their staging, log the outcome
+- **Ground loop** - name the change, characterise their code, prove it on their staging, go live, log the outcome
 - **Skills, not autonomy** - the kit says what to check; judgment stays yours
 - **Brief is a hypothesis** - discover before building the wrong thing
 - **Evidence on every claim** - these files get defended in the room

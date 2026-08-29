@@ -203,6 +203,14 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   const extra = fs.readdirSync(refDir).filter(f => f.endsWith('.md') && !mentioned.includes(f))
   if (extra.length) fail(`unrouted reference file(s) - dead method: ${extra.join(', ')}`)
   else ok('no unrouted reference files')
+
+  // The on-site change loop lives in ship.md. A sibling method is a split.
+  for (const dead of ['small-prs.md', 'thin-slices.md', 'implement.md']) {
+    if (fs.existsSync(path.join(refDir, dead))) {
+      fail(`${dead} must not exist - that craft lives in ship.md`)
+    }
+  }
+  ok('ship is one method (no implement / small-prs / thin-slices sibling)')
 }
 
 const install = read('bin/install.js')
