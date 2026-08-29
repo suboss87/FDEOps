@@ -10,7 +10,9 @@ Skills encode the workflows, quality gates, and judgment Forward Deployed Engine
 
 ## Commands
 
-One map. Sprint or programme. Greenfield or brownfield. Any industry. Each command loads the same `@fde` skill. You never pick from 30 names.
+One command per stage. Skills load automatically.
+
+Six commands map to the embed. Each one loads `@fde`, which opens the skill for that moment: a thin brief pulls land, a wrong brief pulls discover, a Friday number pulls readout. Sprint or programme. Greenfield or brownfield. Any industry. You never pick from 30 names.
 
 | Work | Command | Stage | Principle |
 |------|---------|-------|-----------|
@@ -95,7 +97,9 @@ Requires Node.js >= 18. Override: `FDEOPS_ENGAGEMENT`. See [docs/install.md](doc
 
 ## All 30 Skills
 
-The commands above are the entry points. Under the hood, `@fde` activates these 30 skills, each a structured workflow with steps, an artifact, and a checkpoint. You never pick one by name. Full detail: [docs/skills-reference.md](docs/skills-reference.md).
+The catalog. 30 skills spanning the embed. Not prompts - structured workflows with steps, an artifact, and a checkpoint. Type English or a slash command. `@fde` activates the right skill. You never pick one by name.
+
+Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 
 ### Land - Engage
 
@@ -174,7 +178,7 @@ One skill. One reference file per situation. One folder per client.
   skills/fde/SKILL.md          hosts load this one file
            │  routes. you never pick a skill by name
            ▼
-  references/land.md           one workflow, then stop
+  references/land.md           one skill, then stop
            │
            ▼
   fde CLI (local)              dates, gates, redacts. no network
@@ -183,11 +187,13 @@ One skill. One reference file per situation. One folder per client.
   ~/fde-engagements/<client>/.fde/
 ```
 
-- **Process, not prose.** Each reference is a workflow with an artifact and a checkpoint, not a tip sheet.
-- **Ground loop.** Name → characterise → prove where they live → go live → log. The workspace compiles; `@fde` stays.
-- **You confirm.** Nothing is written until you say so.
-- **Progressive disclosure.** `SKILL.md` is the entry point. One `references/*.md` loads when routed.
-- **Local CLI.** Writes and status cost zero model tokens. The AI coding agent runs it.
+**One skill routes.** Hosts load `@fde`. It reads the situation and opens one `references/*.md`. Slash commands and English both land here. You never pick a skill by name.
+
+**Evidence, not memory.** Promised → measured → accepted. A dated line in `.fde/`, or it did not happen. Nothing is done on vibes.
+
+**Confirm before write.** Local CLI: git and files, no network. `.fde/` on your laptop. The AI coding agent runs the command. You confirm. Then it is on the record.
+
+**Progressive disclosure.** `SKILL.md` is the entry. One skill file loads when routed. Writes and status cost zero model tokens.
 
 Change hosts, install `@fde` on the new one, bind if needed, keep talking. The record is not inside any vendor.
 
@@ -263,9 +269,9 @@ fdeops/
 
 ## Why FDEOps?
 
-AI coding agents are built for a repo, not for a client. They forget the sponsor, the promise, who can say yes, and whether anyone accepted the number. Monday morning they start from the ticket again.
+AI coding agents are built for a repo, not for a client. Left alone they skip who signs done, whether the brief is true, and whether anyone accepted the number. Monday morning they start from the ticket again.
 
-FDEOps is what you take on site. One `@fde` skill runs the embed from discovery to signed outcome: POC, their codebase, go-live, eval when a model judges, promised → measured → accepted. A local CLI dates every decision. `.fde/` is markdown on your laptop. You confirm; then it is on the record.
+FDEOps is the catalog you take on site. One `@fde` skill runs the embed from discovery to signed outcome: POC, their codebase, go-live, eval when a model judges, promised → measured → accepted. A local CLI dates every decision. `.fde/` is markdown on your laptop. You confirm; then it is on the record.
 
 ---
 

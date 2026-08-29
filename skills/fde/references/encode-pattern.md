@@ -48,7 +48,7 @@ The difference between a 5-year FDE and a 15-year FDE is not talent - it's encod
 | **Repeatable?** | Applies to a class of situations, not just this one | Only worked because of a unique circumstance |
 | **Falsifiable?** | You can tell when the pattern is working or not | No way to measure whether applying it helped |
 
-**4. Classify by stage.** Patterns sort into the same stages as the methods:
+**4. Classify by stage.** Patterns sort into the same stages as the skills:
 
 | Stage | Pattern type | Example |
 |--------|-------------|---------|

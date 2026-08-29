@@ -5,7 +5,7 @@ Cheap eval for `@fde` (inspired by “don’t ship skills without evals”).
 | Layer | What it proves |
 |-------|----------------|
 | `node evals/skill-routing/check.js` | Happy prompts still have a documented `fde …` route in `SKILL.md` |
-| Live trial (you + agent) | Negatives don’t pull engagement methods; happies run the right CLI |
+| Live trial (you + agent) | Negatives don’t pull engagement skills; happies run the right CLI |
 
 CLI unit tests (`npm test`) remain the product bar. This only grades the skill.
 
