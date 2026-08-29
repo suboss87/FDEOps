@@ -1,5 +1,5 @@
 ---
-description: Brief the sponsor. Promised, measured, accepted.
+description: Report the outcome. Promised, measured, accepted.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Situation: **Friday or sponsor update**.

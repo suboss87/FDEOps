@@ -1,4 +1,4 @@
-# review - Review the change against what we agreed
+# review - Review the change
 
 **Enter when:** a change needs review before merge - "is this safe," "does it match what we agreed."
 

@@ -1,5 +1,5 @@
 ---
-description: Sequence the work. Work backwards from done.
+description: Align. Sequence the work. Work backwards from done.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **plan**.

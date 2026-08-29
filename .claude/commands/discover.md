@@ -1,5 +1,5 @@
 ---
-description: Frame the real problem. Treat the brief as a hypothesis.
+description: Diagnose. Treat the brief as a hypothesis.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **discover**.

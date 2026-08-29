@@ -1,4 +1,4 @@
-# discover - Frame the real problem
+# discover - Frame the problem
 
 **Enter when:** the brief feels wrong, the real problem is unclear, shadow processes are suspected, or any phase found that the map is missing.
 

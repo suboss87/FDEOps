@@ -1,5 +1,5 @@
 ---
-description: Find when we agreed. A dated line, or it did not happen.
+description: Find the receipt. A dated line, or it did not happen.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Situation: **when did we agree?**
