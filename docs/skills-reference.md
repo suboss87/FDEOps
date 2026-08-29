@@ -2,7 +2,7 @@
 
 v3 ships **one skill**: `@fde` ([skills/fde/SKILL.md](../skills/fde/SKILL.md)). You describe the situation; it routes to a phase and follows that phase's skill from [skills/fde/references/](../skills/fde/references/). Engagement memory lives in `~/fde-engagements/<name>/.fde/` (one folder per customer).
 
-Each reference is a **skill, not advice**: the thinking the agent does, the artifact it drafts, and the checkpoint with the human FDE. The **Use When** column below is what the router actually matches on - the phrases in `skills/fde/SKILL.md` that send you to that skill, not a paraphrase.
+Each reference is a **skill, not advice**: the thinking the agent does, the artifact it drafts, and the checkpoint with the human FDE. The **Use when** column below is what the router actually matches on - the phrases in `skills/fde/SKILL.md` that send you to that skill, not a paraphrase.
 
 ---
 
@@ -13,66 +13,66 @@ Each reference is a **skill, not advice**: the thinking the agent does, the arti
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [land](../skills/fde/references/land.md) | First 48 hours: interrogate the brief, map stakeholders, define success before code | Starting fresh, new customer, first meeting, just got the brief |
-| [audit](../skills/fde/references/audit.md) | Taking over mid-project: verify claims, find the load-bearing wall | Taking over, previous consultant left, joining mid-project |
-| [who-decides](../skills/fde/references/who-decides.md) | Map who decides, who blocks, who's about to escalate | Need to understand who matters, who decides, who blocks quietly |
-| [earn-trust](../skills/fde/references/earn-trust.md) | The trust ladder from observer to trusted; navigate AI policy | Need to earn access, navigate AI policy, build credibility |
-| [hold-scope](../skills/fde/references/hold-scope.md) | "Let me place it": scope receipts, the accumulation conversation | "Also can you...", scope expanding, timeline unchanged |
+| [land](../skills/fde/references/land.md) | Interrogate the brief, map who signs, define success | Starting fresh, new customer, first meeting, just got the brief, set product strategy, define success metrics, scope the brief |
+| [audit](../skills/fde/references/audit.md) | Verify inherited claims, find the load-bearing wall | Taking over, previous consultant left, joining mid-project |
+| [who-decides](../skills/fde/references/who-decides.md) | Map who decides, who blocks, who escalates | Need to understand who matters, who decides, who blocks quietly |
+| [earn-trust](../skills/fde/references/earn-trust.md) | Earn access; navigate AI policy | Need to earn access, navigate AI policy, build credibility |
+| [hold-scope](../skills/fde/references/hold-scope.md) | Park the extra ask; keep the timeline honest | "Also can you...", scope expanding, timeline unchanged, scope the brief after kickoff |
 
 ### Discover
 *Finding the real problem. Testing what the brief claims.*
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [discover](../skills/fde/references/discover.md) | Frame the decision (Situation / Complication / Question) then scan repo + hunt the workaround + **workshop facilitation** + **data estate assessment** | Don't know the real problem, brief feels wrong, shadow processes |
-| [test-assumptions](../skills/fde/references/test-assumptions.md) | Extract untested assumptions, classify by blast radius, kill the riskiest first | The brief feels too neat, assumptions untested, "we just need..." |
-| [score-use-cases](../skills/fde/references/score-use-cases.md) | Score on value x urgency x alignment x data readiness / complexity | Multiple use cases competing, "we want to do everything" |
-| [poc](../skills/fde/references/poc.md) | Prototype the killer assumption in one day; kill fast, log the learning | Need to validate a direction, prototype, demo to de-risk |
+| [discover](../skills/fde/references/discover.md) | Frame the real problem, then scan; stop if data is not ready | Don't know the real problem, brief feels wrong, shadow processes, frame discovery, understand the problem space, data not ready, data estate |
+| [test-assumptions](../skills/fde/references/test-assumptions.md) | Kill the riskiest untested belief first | The brief feels too neat, assumptions untested, "we just need..." |
+| [score-use-cases](../skills/fde/references/score-use-cases.md) | Score what to build first | Multiple use cases competing, "we want to do everything" |
+| [poc](../skills/fde/references/poc.md) | Validate the bet in a day | Need to validate a direction, prototype, demo to de-risk, validate the solution, build prototype |
 
 ### Plan
 *Sequencing work and getting sponsor alignment.*
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [plan](../skills/fde/references/plan.md) | Work backwards from success + **estimation** (3-point sizing) + **migration strategy** | Break this down, what order, sequence the build |
-| [business-case](../skills/fde/references/business-case.md) | Cost of doing nothing -> investment -> return -> sensitivity check | Sponsor needs justification, need to defend budget or timeline |
-| [three-options](../skills/fde/references/three-options.md) | Three genuine options (conservative / pragmatic / ambitious) | Significant decision, multiple approaches, "what should we do?" |
-| [pick-three](../skills/fde/references/pick-three.md) | 20 things are "urgent"; pick 3 for Now, make trade-offs visible | 20 things are "urgent," need to pick the 3 that matter |
+| [plan](../skills/fde/references/plan.md) | Sequence the work backwards from done | Break this down, what order, sequence the build, plan the roadmap, create user stories, write the tasks |
+| [business-case](../skills/fde/references/business-case.md) | Defend the investment | Sponsor needs justification, need to defend budget or timeline |
+| [three-options](../skills/fde/references/three-options.md) | Generate three real options | Significant decision, multiple approaches, "what should we do?", generate solutions |
+| [pick-three](../skills/fde/references/pick-three.md) | Pick three from twenty urgents | 20 things are "urgent," need to pick the 3 that matter |
 
 ### Ship
 *On their codebase (greenfield or brownfield), then go-live.*
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [what-breaks](../skills/fde/references/what-breaks.md) | Trace dependencies, classify impact (CONTAINED -> IRREVERSIBLE) | What could go wrong, touching shared infrastructure, need to assess impact |
-| [rescue](../skills/fde/references/rescue.md) | Production fire, trust fire, wrong-brief-mid-build, **or full pivot** | Production down, urgent - or stakeholder gone quiet, trust slipping |
-| [ship](../skills/fde/references/ship.md) | One change they can see, proven on staging they operate, then **intent vs diff** + pre-flight + canary + rollback | Start building, update their checkout, first module, visible progress, going live, pre-flight |
-| [review](../skills/fde/references/review.md) | Stage 1 **intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP), then safety | Review this change, is it safe, does it match what we agreed, scope creep in the PR |
-| [rollback](../skills/fde/references/rollback.md) | Test the escape route on staging before you need it at 2am | "We can always revert" - need to actually test the escape route |
+| [what-breaks](../skills/fde/references/what-breaks.md) | Name the blast radius | What could go wrong, touching shared infrastructure, need to assess impact, provision, IaC, shared infra |
+| [rescue](../skills/fde/references/rescue.md) | Resolve the incident or the trust fire | Production down, urgent, fix a prod bug, resolve incident - or stakeholder gone quiet, trust slipping |
+| [ship](../skills/fde/references/ship.md) | Build one change they can see, then go live | Start building, update their checkout, first module, visible progress, going live, pre-flight, build the increment, create the launch plan |
+| [review](../skills/fde/references/review.md) | Review the change against what we agreed | Review this change, review the pull request, is it safe, does it match what we agreed, scope creep in the PR |
+| [rollback](../skills/fde/references/rollback.md) | Test the escape route before 2am | "We can always revert" - need to actually test the escape route |
 
 ### Outcome
 *Show the outcome. Dated receipts, not memory.*
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [readout](../skills/fde/references/readout.md) | Sponsor update from the week's actual record | Weekly update due, "need to send the sponsor something" |
-| [demo-prep](../skills/fde/references/demo-prep.md) | The one number, live-vs-canned, five hard questions | Demo coming up, show-and-tell, exec walkthrough |
-| [debrief](../skills/fde/references/debrief.md) | Walk out of any meeting -> decisions, signals, actions in memory | Just out of a meeting, raw notes, "they said...", "debrief" |
-| [board-memo](../skills/fde/references/board-memo.md) | Pyramid: governing thought, three supports, SCQA frame | Sponsor's boss needs a summary, board update, justify continued investment |
-| [dashboard](../skills/fde/references/dashboard.md) | Portfolio view across all customers, trust-ordered | Status across all my customers |
-| [ingest](../skills/fde/references/ingest.md) | Pull raw text from any source MCP into `.inbox/`, propose, you confirm | "Pull today's transcript," "bring in the Notion page" |
-| [connect](../skills/fde/references/connect.md) | Guided config for a source MCP you already trust, plus a reusable recipe | "Connect Granola," "wire up Drive" |
+| [readout](../skills/fde/references/readout.md) | Get the week's number on paper | Weekly update due, "need to send the sponsor something" |
+| [demo-prep](../skills/fde/references/demo-prep.md) | Prep the demo they can reject | Demo coming up, show-and-tell, exec walkthrough |
+| [debrief](../skills/fde/references/debrief.md) | Put the meeting in the record | Just out of a meeting, raw notes, "they said...", "debrief", user interviews, workshop notes |
+| [board-memo](../skills/fde/references/board-memo.md) | Brief the sponsor's boss | Sponsor's boss needs a summary, board update, justify continued investment |
+| [dashboard](../skills/fde/references/dashboard.md) | See every client | Status across all my customers |
+| [ingest](../skills/fde/references/ingest.md) | Pull text you confirm | "Pull today's transcript," "bring in the Notion page" |
+| [connect](../skills/fde/references/connect.md) | Wire a source | "Connect Granola," "wire up Drive" |
 
 ### Close
 *They can run it without you.*
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [close](../skills/fde/references/close.md) | Retrospective, the 2am handoff document, what we learned | Wrapping up, handoff, making yourself replaceable |
-| [runbook](../skills/fde/references/runbook.md) | Operations runbook, knowledge transfer, confidence scoring | Engagement ending, team needs to operate without you |
-| [switch-clients](../skills/fde/references/switch-clients.md) | Daily triage, context-switch, cross-contamination prevention | Juggling 2+ customers, losing track, context-switching |
-| [encode-pattern](../skills/fde/references/encode-pattern.md) | If you did it twice, encode it; patterns are compound interest | Something worked well and will apply to future engagements |
-| [red-team](../skills/fde/references/red-team.md) | Stress-test a plan, handoff, or narrative before someone else does | "Red-team this," "stress-test my plan," poke holes, what am I missing |
+| [close](../skills/fde/references/close.md) | Hand off so they run it | Wrapping up, handoff, making yourself replaceable |
+| [runbook](../skills/fde/references/runbook.md) | Write the 2am document | Engagement ending, team needs to operate without you |
+| [switch-clients](../skills/fde/references/switch-clients.md) | Switch without bleed | Juggling 2+ customers, losing track, context-switching |
+| [encode-pattern](../skills/fde/references/encode-pattern.md) | Save what worked twice | Something worked well and will apply to future engagements |
+| [red-team](../skills/fde/references/red-team.md) | Stress-test before they do | "Red-team this," "stress-test my plan," poke holes, what am I missing |
 
 ### Overlays (activate on signal, alongside whatever skill is running)
 

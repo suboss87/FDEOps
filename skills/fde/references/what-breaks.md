@@ -1,4 +1,4 @@
-# what-breaks - know what breaks before you touch it
+# what-breaks - Name the blast radius
 
 **Enter when:** about to make a change on a system you don't fully understand, touching a high-churn module from `terrain.md`, modifying shared infrastructure (auth, database, messaging), or the FDE asks "what could go wrong?"
 

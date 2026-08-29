@@ -1,4 +1,4 @@
-# discover - find the real problem, map the terrain
+# discover - Frame the real problem
 
 **Enter when:** the brief feels wrong, the real problem is unclear, shadow processes are suspected, or any phase found that the map is missing.
 
@@ -105,7 +105,7 @@ The real spec is what people **do** when the system fails - not what the slide d
 - **The hesitation.** When someone says "well, there's also this other thing we do…" - stop them, ask them to finish. The main story is what they're comfortable explaining; the hesitation is the real problem.
 - **"Which part of the codebase do you least want to touch?"** The answer is unanimous and it's the load-bearing wall. Check it against your churn scan - when the human answer and the churn data agree, that's your first map landmark.
 - **Shadow AI.** Someone pasting data into ChatGPT to cope = a real unmet need + an uncontrolled data risk. Note both.
-- **Exception-led operating map.** For each real break (not the slide-deck process): what fails, who notices first, what they do today, and which artifact is trusted in that moment. Prefer exceptions over happy-path swimlanes - the workaround is the operating system. Write rows under `terrain.md` → `## Operating map (exception-led)`. If the section is missing on an older engagement, add it; never regenerate the rest of terrain. When AI is in play, also fill `## Intelligence placement` (deterministic vs LLM judgement vs human approve). **`fde doctor` requires at least one filled exception row before plan/build/ship/close** - empty map after discover is a hygiene fail, not optional polish.
+- **Exception-led operating map.** For each real break (not the slide-deck process): what fails, who notices first, what they do today, and which artifact is trusted in that moment. Prefer exceptions over happy-path swimlanes - the workaround is the operating system. Write rows under `terrain.md` → `## Operating map (exception-led)`. If the section is missing on an older engagement, add it; never regenerate the rest of terrain. When AI is in play, also fill `## Intelligence placement` (deterministic vs LLM judgement vs human approve). **`fde doctor` requires at least one filled exception row before plan/ship/outcome/close** - empty map after discover is a hygiene fail, not optional polish.
 
 ## Method - part 3: workshop facilitation
 
@@ -171,7 +171,7 @@ Score every candidate use case before anything gets prototyped:
 **Complication:** <what forces a decision now>
 **Question:** <one decision-shaped sentence>
 **Answer-space:** confirm brief / descope / rescope / pause - and what a yes looks like
-**Implication for build:** <first small PR>
+**Implication for build:** <first change they can see>
 **Validated with:** <who, when>
 ```
 

@@ -1,4 +1,4 @@
-# demo-prep - the demo is the heartbeat of the engagement
+# demo-prep - Prep the demo they can reject
 
 **Enter when:** a demo, show-and-tell, or exec walkthrough is coming. FDE engagements live demo-to-demo; a flat demo costs more than a slipped task.
 

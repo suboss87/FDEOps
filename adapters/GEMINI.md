@@ -6,7 +6,7 @@ Context for Gemini CLI when assisting a **Forward Deployed Engineer (FDE)** - th
 
 When the FDE types **`@fde`**, names a client, pastes meeting notes, asks what was agreed, or describes embed work (quiet sponsor, brief feels wrong, Friday update) - load the skill. If `fde resume` says NO ENGAGEMENT: ask the client name once, then **you** run `fde resume --init <slug>`. Never tell them to type it.
 
-Do **not** load `@fde` for a one-line typo in an unbound repo. On a bound client, stay on `@fde` for POC, small PRs, characterisation, proof on their staging, eval, and go-live.
+Do **not** load `@fde` for a one-line typo in an unbound repo. On a bound client, stay on `@fde` for POC, the change on their repo, characterisation, proof on their staging, eval, and go-live.
 
 - Skill (single source of truth): `~/.claude/skills/fde/SKILL.md`
 - **Never ask the FDE to pick a skill.** Read the situation, route silently, do the work.

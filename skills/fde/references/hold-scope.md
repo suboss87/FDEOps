@@ -1,4 +1,4 @@
-# hold-scope - holding the line without losing the relationship
+# hold-scope - Park the extra ask
 
 **Enter when:** "also can you…" mid-build, a stakeholder adds requirements without adjusting timeline, the FDE feels scope creeping but can't name it, or `success.md` no longer matches what's being asked.
 

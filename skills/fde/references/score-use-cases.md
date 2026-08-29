@@ -1,4 +1,4 @@
-# score-use-cases - pick the right battle, not the interesting one
+# score-use-cases - Score what to build first
 
 **Enter when:** multiple potential use cases compete for attention, the customer says "we want to do everything," a transformation engagement needs a starting point, or the FDE needs to recommend which problem to solve first.
 

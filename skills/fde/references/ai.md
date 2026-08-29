@@ -47,7 +47,7 @@ When any slice touches a model, embeddings, RAG, or an agent: create or update `
 4. **Pass/fail** - dated run; Verdict **SHIP** or **NO-SHIP**; critical fails must be 0.
 5. **HITL gate** - which decisions need human review before action (align with `trust-profile.md`). Empty when policy requires review → NO-SHIP.
 
-**When to write:** plan seeds the pack; poc/build grows goldens; ship requires Verdict SHIP and a receipt in `delivery.md` → `## Ship receipts`. Non-AI work skips this file entirely.
+**When to write:** plan seeds the pack; poc/ship grows goldens; ship requires Verdict SHIP and a receipt in `delivery.md` → `## Ship receipts`. Non-AI work skips this file entirely.
 
 ## RAG architecture (retrieval-augmented generation)
 

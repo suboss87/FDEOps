@@ -98,9 +98,11 @@ function createTrustApi(deps) {
     if (!m) return '?'
     const raw = m[1].replace(/\*/g, '').trim()
     if (!raw || /\|/.test(raw) || /^unset$/i.test(raw) || /^[\[(]/.test(raw)) return '?'
-    const one = raw.toLowerCase().match(/^(land|discover|plan|build|ship|prove|close)\b/)
+    const one = raw.toLowerCase().match(/^(land|discover|plan|build|ship|prove|outcome|close)\b/)
     if (!one) return '?'
-    return one[1] === 'build' ? 'ship' : one[1]
+    if (one[1] === 'build') return 'ship'
+    if (one[1] === 'prove') return 'outcome'
+    return one[1]
   }
 
   function countOpenRisks(eng) {

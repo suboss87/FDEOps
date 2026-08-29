@@ -2,7 +2,7 @@
 description: Get the number accepted. Promised, measured, accepted.
 ---
 
-Load `@fde` (`skills/fde/SKILL.md`). Stage: **prove**.
+Load `@fde` (`skills/fde/SKILL.md`). Stage: **outcome**.
 
 If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI.
 

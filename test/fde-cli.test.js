@@ -998,6 +998,24 @@ test('resume leads with triage; log phase advances portfolio phase', () => {
   assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /\*\*Phase:\*\*\s*discover/)
 })
 
+test('log phase prove aliases to outcome', () => {
+  const sandbox = makeSandbox('phase-outcome')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'acme']).status, 0)
+  const eng = engagementPath(sandbox, 'acme')
+  const prove = runFde(sandbox, ['log', 'phase', 'prove'])
+  assert.equal(prove.status, 0, prove.stderr)
+  assert.match(prove.stdout, /phase → outcome/)
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /\*\*Phase:\*\*\s*outcome/)
+  const status = runFde(sandbox, ['status'])
+  assert.match(status.stdout, /phase:outcome/)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'outcome']).status, 0)
+
+  fs.writeFileSync(path.join(eng, 'context.md'), '# Engagement context\n**Phase:** prove\n\n## Next action\n- get the number signed\n')
+  const legacy = runFde(sandbox, ['status'])
+  assert.equal(legacy.status, 0, legacy.stderr)
+  assert.match(legacy.stdout, /phase:outcome/)
+})
+
 test('engagement memory is git-versioned with owner attribution on writes', () => {
   const sandbox = makeSandbox('mem-git')
   const init = runFde(sandbox, ['resume', '--init', 'ledgerco'])

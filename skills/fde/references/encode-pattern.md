@@ -1,4 +1,4 @@
-# encode-pattern - if you did it twice, encode it
+# encode-pattern - Save what worked twice
 
 **Enter when:** the engagement is closing and reusable patterns exist, a technique worked well and will apply to future clients, the FDE notices themselves doing the same thing on a second engagement, or close identified a pattern worth preserving.
 
@@ -56,7 +56,7 @@ The difference between a 5-year FDE and a 15-year FDE is not talent - it's encod
 | **Discover** | Investigative / analytical | "The cron-job discovery checklist for legacy systems" |
 | **Plan** | Structural / strategic | "The three-option presentation for nervous sponsors" |
 | **Ship** | Technical / safety | "The Strangler Fig on financial transaction code" |
-| **Prove** | Operational / process | "The regulated-environment change-approval timeline buffer" |
+| **Outcome** | Operational / process | "The regulated-environment change-approval timeline buffer" |
 | **Close** | Knowledge / handoff | "The 2am document format that actually gets used" |
 
 **5. Version and evolve.** Patterns are living documents:
