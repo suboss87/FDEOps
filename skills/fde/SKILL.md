@@ -1,6 +1,6 @@
 ---
 name: fde
-description: Keeps the engagement record for client work. Use when they name a client or stakeholder. Use when they debrief a meeting or paste notes. Use when they ask what was agreed. Use when they run a POC, slice a feature on the client's codebase, prove it on their staging, or need evals before a model acts. Use when they prep a readout, when trust shifts, or they say @fde. Route and run the local fde CLI (or npx --yes fdeops). Never ask them to type commands. Not for ordinary code edits in an unbound repo.
+description: Keeps the engagement record for client work. Use when they name a client or stakeholder. Use when they debrief a meeting or paste notes. Use when they ask what was agreed. Use when they run a POC, land a small PR on the client's codebase, prove it on their staging, or need evals before a model acts. Use when they prep a readout, when trust shifts, or they say @fde. Route and run the local fde CLI (or npx --yes fdeops). Never ask them to type commands. Not for ordinary code edits in an unbound repo.
 ---
 
 # @fde
@@ -17,7 +17,7 @@ The **engagement record** for one client, from first meeting to signed outcome. 
 
 ## When NOT to use
 
-A one-line typo or compile error in a file that will not ship. On a bound client: stay here for POC, slice, characterisation, eval, go-live, rollback, and acceptance.
+A one-line typo or compile error in a file that will not ship. On a bound client: stay here for POC, small PRs, characterisation, eval, go-live, rollback, and acceptance.
 
 ## Use these first
 
@@ -32,15 +32,15 @@ After a meeting: `fde debrief --smart` → confirm → `--apply`. Walk-in: `fde 
 
 ## Ground loop
 
-On someone else's site the work is not "write code, remember later." Every slice stays on `@fde`:
+On someone else's site the work is not "write code, remember later." Every small PR stays on `@fde`:
 
 1. **Name it** in `decisions.md` (plan) or kill it in a day (poc).
-2. **Characterise their code** before you change it (thin-slices). Their tests, their runner.
-3. **Prove it where they live.** Staging they operate, a screen the signer in `success.md` can reject.
-4. **If a model judges:** `evals.md` Verdict SHIP before the slice is done (eval-pack).
+2. **Characterise their code** before you change it. Their tests, their runner.
+3. **Prove it on their staging.** Staging they operate, a screen the signer in `success.md` can reject.
+4. **If a model judges:** `evals.md` Verdict SHIP before that PR is done (eval-pack).
 5. **Log delivery.** Outcome is promised → measured → accepted, not a green CI.
 
-A throwaway file can skip the loop. A client slice cannot.
+A throwaway file can skip the loop. Bound client work cannot.
 
 ## Human surface vs agent plumbing
 
@@ -147,7 +147,7 @@ Read **one** reference and follow it. Do not improvise from memory.
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| Large feature, need visible progress every 2-3 days, slice it, characterise their tests, POC follow-through | thin-slices | `references/thin-slices.md` |
+| Large feature, visible progress every 2-3 days, small PRs, their tests, POC follow-through | small-prs | `references/small-prs.md` |
 | What could go wrong, touching shared infrastructure, need to assess impact | what-breaks | `references/what-breaks.md` |
 | Production down, urgent - OR stakeholder gone quiet, trust slipping | rescue | `references/rescue.md` |
 | Ready to deploy, going live, pre-flight check | ship | `references/ship.md` |
@@ -196,7 +196,7 @@ Ready to build with no `terrain.md` / plan: discover or plan first. Takeover wit
 ## Principles
 
 - Never ask the FDE to pick a phase. That's your job.
-- Ground loop on a bound client: name → characterise → prove where they live → log. Do not hand the slice to a generic coding pack.
+- Ground loop on a bound client: name → characterise → prove on their staging → log. Do not hand the PR to a generic coding pack.
 - Read `context.md` before speaking. One sharp question - never a barrage.
 - Never invent people, meetings, or numbers - `unknown - ask:` beats a polished lie.
 - Every phase ends with its artifact written. No artifact, no "done."

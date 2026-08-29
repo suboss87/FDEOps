@@ -171,7 +171,7 @@ Score every candidate use case before anything gets prototyped:
 **Complication:** <what forces a decision now>
 **Question:** <one decision-shaped sentence>
 **Answer-space:** confirm brief / descope / rescope / pause - and what a yes looks like
-**Implication for build:** <thin-slice direction>
+**Implication for build:** <first small PR>
 **Validated with:** <who, when>
 ```
 
