@@ -15,7 +15,7 @@ The full map is below; per-skill details live in [skills-reference.md](./skills-
 | **Land** | land, audit, who-decides, earn-trust, hold-scope | First days: access, credibility, scope |
 | **Discover** | discover, test-assumptions, score-use-cases, poc | Finding the real problem behind the brief |
 | **Plan** | plan, business-case, three-options, pick-three | Sequencing work, getting sponsor alignment |
-| **Ship** | thin-slices, what-breaks, rescue, ship, review, rollback | Visible slices, go-live, rollback - not generic debug/build |
+| **Ship** | small-prs, what-breaks, rescue, ship, review, rollback | Small PRs, go-live, rollback - not generic debug/build |
 | **Prove** | readout, demo-prep, debrief, board-memo, dashboard, ingest, connect | The outcome; pulling from source MCPs |
 | **Close** | close, runbook, switch-clients, encode-pattern, red-team | They can run it without you |
 

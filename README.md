@@ -2,7 +2,7 @@
 
 **Forward deployed engineering skills for AI coding agents.**
 
-Skills encode the workflows, quality gates, and judgment Forward Deployed Engineers use on someone else's site. Packaged so an AI coding agent can run the embed end-to-end: discovery, POC, slice, on-site proof, eval, signed outcome. The workspace still compiles and commits. `@fde` does not leave.
+Skills encode the workflows, quality gates, and judgment Forward Deployed Engineers use on someone else's site. Packaged so an AI coding agent can run the embed end-to-end: discovery, POC, small PRs on their codebase, go-live, eval, signed outcome. The workspace still compiles and commits. `@fde` does not leave.
 
 <img width="1774" height="887" alt="FDEops-githubposter" src="https://github.com/user-attachments/assets/9eb842d2-a356-4995-9057-841f1b2d15d6" />
 
@@ -31,7 +31,7 @@ Also:
 | Prep before the meeting | `/prep` | One page from the record |
 | Friday sponsor update | `/readout` | Promised, measured, accepted |
 
-Skills also activate on English: naming a client, running a POC, slicing a feature, asking what was agreed. A throwaway one-liner in an unbound repo can skip `@fde`. A client slice cannot.
+Skills also activate on English: naming a client, running a POC, landing a small PR, asking what was agreed. A throwaway one-liner in an unbound repo can skip `@fde`. Bound client work cannot.
 
 ---
 
@@ -120,7 +120,7 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
-| [plan](skills/fde/references/plan.md) | Backwards from done, Kill if on each slice | What order, what is done |
+| [plan](skills/fde/references/plan.md) | Backwards from done, Kill if on each PR | What order, what is done |
 | [business-case](skills/fde/references/business-case.md) | Cost of nothing → investment → return | Defend budget or timeline |
 | [three-options](skills/fde/references/three-options.md) | Three genuine options | "What should we do?" |
 | [pick-three](skills/fde/references/pick-three.md) | Pick three from twenty urgents | Everything is urgent |
@@ -129,14 +129,14 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
-| [thin-slices](skills/fde/references/thin-slices.md) | Vertical slices, on-site proof | Building on their codebase |
+| [small-prs](skills/fde/references/small-prs.md) | One small PR, proven on their staging | Building on their codebase |
 | [what-breaks](skills/fde/references/what-breaks.md) | Impact from contained → irreversible | Touching shared infrastructure |
 | [rescue](skills/fde/references/rescue.md) | Production fire or trust fire | Down, or they went quiet |
 | [ship](skills/fde/references/ship.md) | Intent vs diff, pre-flight, rollback | Going live |
 | [review](skills/fde/references/review.md) | Did we only build what we agreed | Before merge, scope creep |
 | [rollback](skills/fde/references/rollback.md) | Test the escape route before 2am | "We can always revert" |
 
-### Prove - Outcome
+### Outcome - Get the number accepted
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
@@ -214,13 +214,13 @@ fdeops/
 │       ├── business-case.md
 │       ├── three-options.md
 │       ├── pick-three.md
-│       ├── thin-slices.md                 #   Ship
+│       ├── small-prs.md                   #   Ship
 │       ├── what-breaks.md
 │       ├── rescue.md
 │       ├── ship.md
 │       ├── review.md
 │       ├── rollback.md
-│       ├── readout.md                      #   Prove
+│       ├── readout.md                      #   Outcome
 │       ├── demo-prep.md
 │       ├── debrief.md
 │       ├── board-memo.md
@@ -267,7 +267,7 @@ fdeops/
 
 AI coding agents are built for a repo, not for a client. They forget the sponsor, the promise, who can say yes, and whether anyone accepted the number. Monday morning they start from the ticket again.
 
-FDEOps is what you take on site. One `@fde` skill runs the embed from discovery to signed outcome: POC, slice, on-site proof, eval when a model judges, promised → measured → accepted. A local CLI dates every decision. `.fde/` is markdown on your laptop. You confirm; then it is on the record.
+FDEOps is what you take on site. One `@fde` skill runs the embed from discovery to signed outcome: POC, small PRs, go-live, eval when a model judges, promised → measured → accepted. A local CLI dates every decision. `.fde/` is markdown on your laptop. You confirm; then it is on the record.
 
 ---
 
@@ -307,7 +307,7 @@ Local only - `git` + files, no network, no telemetry. Plain markdown. The model 
 ## Principles
 
 - **The artifact is the memory** - producing the work and recording it are one action
-- **Ground loop** - name the slice, characterise their code, prove it where they live, log the outcome
+- **Ground loop** - name the PR, characterise their code, prove it on their staging, log the outcome
 - **Skills, not autonomy** - the kit says what to check; judgment stays yours
 - **Brief is a hypothesis** - discover before building the wrong thing
 - **Evidence on every claim** - these files get defended in the room
