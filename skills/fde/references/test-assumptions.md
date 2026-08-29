@@ -40,7 +40,7 @@ CONVENIENCE - if wrong, a task changes but the approach holds
 | "The team will adopt the new tool" | Ask three team members individually: "Show me how you'd use this" | 1h | 2 of 3 can describe a use case without prompting |
 | "The data is clean enough for ML" | Sample 200 records, count nulls/duplicates/format errors | 1h | <5% error rate on the fields the model needs |
 
-**4. Run the killer test first.** The assumption with the highest blast radius AND the cheapest validation gets tested immediately. This single principle saves more engagement time than any other: if the killer assumption is wrong, you've saved weeks; if it holds, you've bought confidence. Write the kill observation in `How we test` as the result that would **stop** the plan - plan copies that line onto each Now slice as `Kill if`.
+**4. Run the killer test first.** The assumption with the highest blast radius AND the cheapest validation gets tested immediately. This single principle saves more engagement time than any other: if the killer assumption is wrong, you've saved weeks; if it holds, you've bought confidence. Write the kill observation in `How we test` as the result that would **stop** the plan - plan copies that line onto each Now PR as `Kill if`.
 
 **5. Present findings as a fact base, not a challenge.**
 

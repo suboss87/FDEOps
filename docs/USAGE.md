@@ -33,7 +33,7 @@ You do not read the phase methods. **`@fde` routes the AI and loads the right on
 | Starting | `@fde this is Acme` (binds) then `@fde New embed. First meeting tomorrow. Brief says: …` |
 | Unsure of real problem | `@fde Workshop done. Ops says they use a spreadsheet nightly.` |
 | Just out of a meeting | `@fde Debrief: <paste your raw notes>` |
-| Ready to code | `@fde Ship smallest slice by Friday in module X.` |
+| Ready to code | `@fde Smallest PR by Friday in module X.` |
 | Production broken | `@fde API 500 since 2pm deploy.` |
 | Sponsor went quiet | `@fde VP stopped replying; still building old scope.` |
 | Handing off | `@fde Engagement ends Friday. Need handoff doc.` |

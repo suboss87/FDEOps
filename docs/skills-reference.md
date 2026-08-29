@@ -44,14 +44,14 @@ Each reference is a **skill, not advice**: the thinking the agent does, the arti
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [thin-slices](../skills/fde/references/thin-slices.md) | Vertical slices, 100-300 lines each, visible progress every 2-3 days | Large feature, need visible progress every 2-3 days |
+| [small-prs](../skills/fde/references/small-prs.md) | One small PR (100-300 lines, one user action), proven on staging they operate, visible every 2-3 days | Large feature, need visible progress every 2-3 days |
 | [what-breaks](../skills/fde/references/what-breaks.md) | Trace dependencies, classify impact (CONTAINED -> IRREVERSIBLE) | What could go wrong, touching shared infrastructure, need to assess impact |
 | [rescue](../skills/fde/references/rescue.md) | Production fire, trust fire, wrong-brief-mid-build, **or full pivot** | Production down, urgent - or stakeholder gone quiet, trust slipping |
 | [ship](../skills/fde/references/ship.md) | **Intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP) + pre-flight + canary + rollback + **scale-readiness** + **progressive adoption** | Ready to deploy, going live, pre-flight check |
 | [review](../skills/fde/references/review.md) | Stage 1 **intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP), then safety | Review this change, is it safe, does it match what we agreed, scope creep in the PR |
 | [rollback](../skills/fde/references/rollback.md) | Test the escape route on staging before you need it at 2am | "We can always revert" - need to actually test the escape route |
 
-### Prove
+### Outcome
 *Show the outcome. Dated receipts, not memory.*
 
 | Skill | What it does | Use when |
@@ -91,7 +91,7 @@ Each reference is a **skill, not advice**: the thinking the agent does, the arti
 
 ## Engagement phases (quick reference)
 
-The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above. POC, slice, on-site proof, and eval stay on `@fde` - they are not a side pack.
+The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above. POC, small PRs, proof on their staging, and eval stay on `@fde` - they are not a side pack.
 
 | Phase | Enter when | Method highlights | Writes |
 |-------|-----------|-------------------|--------|

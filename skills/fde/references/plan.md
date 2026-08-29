@@ -28,7 +28,7 @@ An FDE plan is not a sprint backlog. The technical sequence is the easy part. Th
 
 **2. Front-load the fragile.** Check `terrain.md` hotspots. Risky modules go early - fail fast, not in week three.
 
-**3. Slice vertically.** Each task delivers something visible and testable end to end ("user submits form, sees it saved"), never a horizontal layer ("build the database layer").
+**3. One user action per PR.** Each task delivers something visible and testable ("user submits form, sees it saved"), never a layer ("build the database layer"). See `small-prs`.
 
 **4. Size to 30-90 minutes, PR-sized.** Longer = two tasks. Each task implementable, testable, reviewable without a thousand-line diff.
 
@@ -36,7 +36,7 @@ An FDE plan is not a sprint backlog. The technical sequence is the easy part. Th
 
 **6. Stakeholder touchpoints every 2-3 tasks.** "Show progress to <name from stakeholders.md>." Not ceremony: a customer who sees small wins stays bought in; silence gets filled with doubt.
 
-**7. End with a kill list.** Every plan names what you will **not** do this phase. If everything is "later," you have no plan - you have a wish list. Cap **Now** at 3 slices (same discipline as pick-three).
+**7. End with a kill list.** Every plan names what you will **not** do this phase. If everything is "later," you have no plan - you have a wish list. Cap **Now** at 3 PRs (same discipline as pick-three).
 
 **Acceptance criteria gate:** no task moves to build without written happy-path AND unhappy-path criteria. Can't write them = the task isn't understood; the open question goes to the customer **before** the task starts. Vague criteria surface later as scope creep and rework.
 
@@ -150,6 +150,6 @@ First visible slice goes to Marco, not Priya: he is the one whose morning change
 - Every 2-3 tasks, a stakeholder touchpoint. Trust decays without visibility.
 - No written acceptance criteria, no build.
 - No kill list, no finished plan.
-- No **Kill if** on a Now slice, that slice is hope.
+- No **Kill if** on a Now PR, that PR is hope.
 - Estimates are ranges, not promises. Name the assumptions and the observation that voids them.
 - Migrations: leaf nodes first, core last. Rollback before cutover.

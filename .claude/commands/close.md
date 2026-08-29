@@ -12,4 +12,4 @@ Confirm before any write to `.fde/`. Do not invent a clean ending the record doe
 
 Done when: handoff is on the record and the human agrees they are replaceable.
 
-Not for a one-line typo in an unbound file. A client slice, POC, eval, or go-live stays on `@fde`.
+Not for a one-line typo in an unbound file. Bound client work, a POC, eval, or go-live stays on `@fde`.

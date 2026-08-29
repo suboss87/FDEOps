@@ -18,4 +18,4 @@ Do not invent metrics or sign-off. Numbers without a source in `.fde/` stay `unk
 
 Done when: the human hears the three-beat ledger and agrees what is actually delivered vs still claimed.
 
-Not for a one-line typo in an unbound file. A client slice, POC, eval, or go-live stays on `@fde`.
+Not for a one-line typo in an unbound file. Bound client work, a POC, eval, or go-live stays on `@fde`.
