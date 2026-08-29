@@ -4,7 +4,7 @@
 
 Skills encode the workflows, quality gates, and judgment Forward Deployed Engineers use on someone else's site. Packaged so an AI coding agent can run the embed end-to-end: discovery, POC, their codebase (greenfield or brownfield), go-live, eval, signed outcome. The workspace still compiles and commits. `@fde` does not leave.
 
-<img width="1774" height="887" alt="FDEops-githubposter" src="https://github.com/user-attachments/assets/9eb842d2-a356-4995-9057-841f1b2d15d6" />
+<img width="1536" height="1024" alt="fdeops" src="https://github.com/user-attachments/assets/f861618c-0caf-4a19-8e1b-7af6d4d5f8f6" />
 
 ---
 
