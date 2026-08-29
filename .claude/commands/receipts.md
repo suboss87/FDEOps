@@ -1,5 +1,5 @@
 ---
-description: When did we agree? Dated receipts, or a gap.
+description: When did we agree? A dated line, or it did not happen.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Situation: **when did we agree?**

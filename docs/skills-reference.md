@@ -24,7 +24,7 @@ Each reference is a **skill, not advice**: the thinking the agent does, the arti
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [discover](../skills/fde/references/discover.md) | Scan repo + hunt the workaround + **workshop facilitation** + **data estate assessment** | Don't know the real problem, brief feels wrong, shadow processes |
+| [discover](../skills/fde/references/discover.md) | Frame the decision (Situation / Complication / Question) then scan repo + hunt the workaround + **workshop facilitation** + **data estate assessment** | Don't know the real problem, brief feels wrong, shadow processes |
 | [test-assumptions](../skills/fde/references/test-assumptions.md) | Extract untested assumptions, classify by blast radius, kill the riskiest first | The brief feels too neat, assumptions untested, "we just need..." |
 | [score-use-cases](../skills/fde/references/score-use-cases.md) | Score on value x urgency x alignment x data readiness / complexity | Multiple use cases competing, "we want to do everything" |
 | [poc](../skills/fde/references/poc.md) | Prototype the killer assumption in one day; kill fast, log the learning | Need to validate a direction, prototype, demo to de-risk |

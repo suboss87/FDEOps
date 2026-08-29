@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.16.1 - 2026-08-28
+
+The CLI no longer volunteers a false statement to a sponsor. Signals key on the person, redact does not reprint the secret in `git log`, and the dashboard fails loud when `reality.md` is not the schema.
+
+- Trust signals key on the person in the bullet, not `words[0]`. `INCIDENT:` / `recovery` no longer become phantom stakeholders that pin the engagement RED.
+- `fde redact --apply` commit subject is `redact N line(s)` - never the search term. `log` also refuses `postgresql://user:pass@host` and `api_key=` assignments.
+- Dashboard fails loud when `reality.md` is not the schema. It will not label the inherited brief as "what's actually true".
+- `debrief --smart` prints the `decision:` / `risk:` / `delivery:` / `contact:` / `next:` vocabulary. Preview gate unchanged.
+- `fde log delivery "slice | bucket | …"` writes a value-ledger row. `fde log risk --retire <text>` moves matching open risks. `fde tidy --apply` can bless hand-written dirty files.
+- `status` and `dashboard` print doctor issues. README check allows the GitHub poster `<img>` (`user-attachments`).
+- Command map and slash descriptions use plain verbs (`Ship to their production`, `Prep before the meeting`). Craft words stay in the method, not the button.
+- Discover frames Situation / Complication / Question / Answer-space before any scan (same spine as readout, aimed at the floor). Plan copies the kill observation onto each Now slice as `Kill if`.
+
 ## 3.16.0 - 2026-08-28
 
 Skill and command names are the job, in the language of the embed. You can read the filename and know what it is: `who-decides`, `hold-scope`, `thin-slices`, `readout`. Slash tells match how you ask: `/trust` `/receipts` `/readout`. CLI verbs stay (`fde status`, `fde receipts`).

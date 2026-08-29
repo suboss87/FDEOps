@@ -221,8 +221,10 @@ if (read('package.json').includes('postinstall')) {
 }
 
 const readme = read('README.md')
-if (/session\.gif|demo\.gif|<img /i.test(readme)) {
-  fail('README must not embed images - front door is text; the recording lives in docs/USAGE.md')
+if (/session\.gif|demo\.gif/i.test(readme)) {
+  fail('README must not embed session.gif or demo.gif - the recording lives in docs/USAGE.md')
+} else if (/<img /i.test(readme) && !/user-attachments\/assets/.test(readme)) {
+  fail('README <img> must be the GitHub poster (user-attachments), not a local gif')
 } else ok('README is text (no gif)')
 
 const usage = read('docs/USAGE.md')
@@ -268,9 +270,11 @@ for (const cmd of ['/brief', '/discover', '/plan', '/ship', '/outcome', '/close'
 if (/(^|[^\w/])\/got\b/.test(readme)) fail('README must use /outcome, not /got')
 ok('README slash commands documented')
 
-// Front-door map is the embed left-to-right (LAND → CLOSE), not a pile of situations.
-if (!readme.slice(0, 4000).includes('LAND') || !readme.slice(0, 4000).includes('/discover')) {
-  fail('README must include the LAND→CLOSE command-map diagram near the top')
+// Front-door map is the embed left-to-right (Land → Close). After the GitHub
+// poster (#68) the table is the map: /brief /discover /plan /ship /outcome /close.
+const front = readme.slice(0, 4000)
+if (!['/brief', '/discover', '/plan', '/ship', '/outcome', '/close'].every(c => front.includes(c))) {
+  fail('README must include the Land→Close command map near the top')
 } else ok('README command-map diagram')
 
 if (readme.includes('your-client-repo')) {

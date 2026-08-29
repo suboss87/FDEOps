@@ -408,6 +408,8 @@ const SECRET_PATTERNS = [
   { name: 'Slack token', re: /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/ },
   { name: 'PEM private key', re: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
   { name: 'Bearer token', re: /\bBearer\s+[A-Za-z0-9._\-]{20,}\b/ },
+  { name: 'database URL', re: /\b[a-z][a-z0-9+.-]*:\/\/[^/\s:]+:[^/\s@]+@/i },
+  { name: 'api key assignment', re: /\b(?:api[_-]?key|secret|password)\s*=\s*\S{8,}/i },
 ]
 
 function findSecretHit(text) {
@@ -769,6 +771,89 @@ function firstLine(md, maxLen) {
   return ''
 }
 
+// reality.md is the one panel whose job is "not the brief". If the file does
+// not carry Working theory / Evidence / Differs from brief, do not scrape a
+// first line that might be the inherited brief and label it truth.
+function parseReality(md, maxLen) {
+  const theory = (md.match(/\*\*Working theory:\*\*\s*(.*)/i) || [])[1]
+  const hasSchema = /\*\*(Working theory|Evidence|Differs from brief how):\*\*/i.test(md)
+  const theoryText = (theory || '').trim()
+  if (theoryText) {
+    const line = theoryText.length > maxLen ? theoryText.slice(0, maxLen - 1).trim() + '…' : theoryText
+    return { line, missing: '' }
+  }
+  if (hasSchema) return { line: '', missing: '' }
+  const prose = firstLine(md, maxLen)
+  if (prose) {
+    return {
+      line: '',
+      missing: 'UNREADABLE - reality.md does not match the schema (Working theory / Evidence / Differs from brief). Not showing the brief as truth.',
+    }
+  }
+  return { line: '', missing: '' }
+}
+
+function appendValueLedgerRow(eng, cells) {
+  ensureMemoryGit(eng)
+  const p = path.join(eng, 'delivery.md')
+  let md = readEng(eng, 'delivery.md')
+  if (!md) md = '# Delivery log\n\n## Value ledger\n\n'
+  const date = new Date().toISOString().slice(0, 10)
+  const cols = []
+  for (let i = 0; i < 7; i++) cols.push((cells[i] || '').replace(/\|/g, '\\|').trim() || ' ')
+  const row = `| ${date} | ${cols.join(' | ')} |`
+  const lines = md.split('\n')
+  let inLedger = false
+  let lastTableLine = -1
+  for (let i = 0; i < lines.length; i++) {
+    if (/^##\s+Value ledger\b/i.test(lines[i])) { inLedger = true; continue }
+    if (inLedger && /^##\s+/.test(lines[i])) break
+    if (inLedger && /^\|/.test(lines[i].trim())) lastTableLine = i
+  }
+  if (lastTableLine === -1) md = appendUnderSection(md, 'Value ledger', row)
+  else {
+    lines.splice(lastTableLine + 1, 0, row)
+    md = lines.join('\n')
+  }
+  withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
+  recordLastWrite(eng, 'delivery.md', row)
+  commitMemory(eng, 'log delivery', { files: ['delivery.md'] })
+}
+
+function retireOpenRisks(eng, needle) {
+  const n = String(needle || '').toLowerCase()
+  if (!n) return 0
+  const p = path.join(eng, 'risks.md')
+  const md = readEng(eng, 'risks.md')
+  if (!md) return 0
+  const retired = []
+  const kept = []
+  let inRetired = false
+  for (const raw of md.split('\n')) {
+    const t = raw.trim()
+    if (/^#{1,6}\s+Retired\b/i.test(t)) { inRetired = true; kept.push(raw); continue }
+    if (!inRetired) {
+      const m = t.match(/^-\s*\[\d{4}-\d{2}-\d{2}\]\s*(?:\[@[^\]]+\]\s*)?(.*)$/)
+      if (m && m[1].toLowerCase().includes(n)) {
+        retired.push(raw)
+        continue
+      }
+    }
+    kept.push(raw)
+  }
+  if (!retired.length) return 0
+  let out = kept.join('\n')
+  if (!/^#{1,6}\s+Retired\b/im.test(out)) out = out.replace(/\n*$/, '\n\n## Retired\n')
+  const stamp = new Date().toISOString().slice(0, 10)
+  const block = retired.map(l => {
+    const body = l.trim().replace(/^-\s*/, '')
+    return `- [${stamp}] (retired) ${body}`
+  }).join('\n')
+  out = appendUnderSection(out, 'Retired', block)
+  withFileLock(p, () => { atomicWriteFile(p, out.endsWith('\n') ? out : out + '\n') })
+  return retired.length
+}
+
 // Engagement age from the .fde/ directory's own birth time - hidden (not
 // fabricated as 0) on filesystems that do not report birthtime.
 function daysElapsed(eng) {
@@ -817,6 +902,7 @@ function parseMdTable(md) {
 function colIndex(headers, rx) { return headers.findIndex(h => rx.test(h)) }
 
 const {
+  personFromSignalText,
   signalSubjectKey,
   nextActionLine,
   computeSignals,
@@ -856,6 +942,8 @@ function parseSignalHistoryEntries(eng) {
 }
 
 function displayNameFromSignalText(text) {
+  const person = personFromSignalText(text)
+  if (person) return person
   const t = String(text).trim()
   const proper = t.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/)
   if (proper) return proper[1]
@@ -885,11 +973,11 @@ function extractStakeholders(eng) {
         const stance = stanceIdx !== -1 ? (cs[stanceIdx] || '').trim() : ''
         const note = notesIdx !== -1 ? (cs[notesIdx] || '').trim() : ''
         const words = name.replace(/\([^)]*\)/g, '').split(/\s+/).filter(w => w && !/^(dr|mr|mrs|ms)\.?$/i.test(w))
-        const frag = (words[0] || '').replace(/[^a-z0-9]/gi, '')
+        const nameKey = signalSubjectKey(name)
         let signal = null, matchedDate = null
-        if (frag.length >= 3) {
+        if (nameKey) {
           for (const h of history) {
-            if (h.text.trim().toLowerCase().startsWith(frag.toLowerCase()) && (!matchedDate || h.date >= matchedDate)) {
+            if (signalSubjectKey(h.text) === nameKey && (!matchedDate || h.date >= matchedDate)) {
               signal = h.signal; matchedDate = h.date
             }
           }
@@ -1317,6 +1405,9 @@ function cmdLog(args) {
     if (!['red', 'amber', 'green'].includes(signal)) { console.error('usage: fde log contact <text> --signal red|amber|green'); process.exit(1) }
     args.splice(sigIdx, 2)
   }
+  let retire = false
+  const retireIdx = args.indexOf('--retire')
+  if (retireIdx !== -1) { retire = true; args.splice(retireIdx, 1) }
   const type = args[0]; const text = args.slice(1).join(' ')
   const eng = resolveEngagement({ forWrite: true })
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
@@ -1333,11 +1424,26 @@ function cmdLog(args) {
     return
   }
 
-  if (!LOG_FILES[type] || !text) { console.error(`usage: fde log <decision|risk|delivery|contact> <text> [--signal red|amber|green] [--force]\n       fde log phase <${PHASES.join('|')}>\n       fde log --undo`); process.exit(1) }
+  if (!LOG_FILES[type] || !text) { console.error(`usage: fde log <decision|risk|delivery|contact> <text> [--signal red|amber|green] [--force]\n       fde log risk --retire <text>\n       fde log phase <${PHASES.join('|')}>\n       fde log --undo`); process.exit(1) }
   if (signal && type !== 'contact') { console.error('--signal only applies to: fde log contact'); process.exit(1) }
+  if (retire && type !== 'risk') { console.error('--retire only applies to: fde log risk'); process.exit(1) }
   const hit = findSecretHit(text)
   if (hit && !force) { refuseSecret('log text', hit); process.exit(1) }
   if (hit && force) console.error(`warning: logging possible ${hit} (--force)`)
+  if (retire) {
+    const n = retireOpenRisks(eng, text)
+    if (!n) { console.error(`no open risk matched ${JSON.stringify(text)}`); process.exit(1) }
+    const hash = commitMemory(eng, 'retire risk', { files: ['risks.md'] })
+    console.log(`retired ${n} risk(s) → risks.md${hash ? ` @${hash}` : ''}`)
+    return
+  }
+  if (type === 'delivery' && text.includes('|')) {
+    const cells = text.split('|').map(s => s.trim())
+    appendValueLedgerRow(eng, cells)
+    const hash = memoryHead(eng)
+    console.log(`logged → delivery.md (value ledger)${hash ? ` @${hash}` : ''}`)
+    return
+  }
   const date = new Date().toISOString().slice(0, 10)
   const entry = datedEntry(eng, date, text, signal || '')
   appendLogEntry(eng, type, entry)
@@ -1651,9 +1757,11 @@ function cmdDebrief(args) {
     input = readDebriefInput(args)
   }
 
-  if (smart) {
+    if (smart) {
     const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
     console.log('SMART PROPOSE (heuristic - review before apply; no new facts invented beyond line rewrites)\n')
+    console.log('Prefix vocabulary (lines that route): decision:  risk:  delivery:  contact:  next:')
+    console.log('Everything else → context.md. Keep the prefixes; the preview gate stays.\n')
     routeDebriefInput(eng, clean, { dry: true, force, sealed: blocks })
     if (!apply) {
       console.log(`\nproposal saved → ${proposePath}`)
@@ -2182,6 +2290,8 @@ function collectDoctorIssues(eng) {
       `${aliases.length} stakeholder identity cluster(s) (e.g. "${sample}") - same person under different names? consolidate in stakeholders.md`
     )
   }
+  const reality = parseReality(readClean(eng, 'reality.md'), 220)
+  if (reality.missing) issues.push(reality.missing)
   return issues
 }
 
@@ -2484,7 +2594,7 @@ function cmdRedact(args) {
     console.log('nothing changed')
     return
   }
-  const hash = commitMemory(eng, `redact ${term.slice(0, 40)}`, { files: touched })
+  const hash = commitMemory(eng, `redact ${hits.length} line(s)`, { files: touched })
   console.log(`redacted ${hits.length} line(s) in ${touched.join(', ')}${hash ? ` @${hash}` : ''}`)
   console.log('rotate the real credential if this was a secret - history may still contain it')
 }
@@ -2585,6 +2695,15 @@ function cmdGarden(args) {
       sessionBlocks,
     })
   }
+  const dirty = memoryDirtyManual(eng)
+  if (dirty.length) {
+    proposals.push({
+      id: 'bless-manual',
+      kind: 'apply',
+      text: `Bless ${dirty.length} hand-written file(s) into the ledger: ${dirty.slice(0, 5).join(', ')}${dirty.length > 5 ? '…' : ''}`,
+      files: dirty,
+    })
+  }
   if (!proposals.length) {
     console.log('\nNothing to tidy.')
     return
@@ -2611,6 +2730,12 @@ function cmdGarden(args) {
         touched.add('risks.md')
         console.log(`applied: retired ${n} duplicate open-risk echo(s) → ## Retired`)
       }
+      continue
+    }
+    if (p.id === 'bless-manual') {
+      applied++
+      for (const f of p.files) touched.add(f)
+      console.log(`applied: bless ${p.files.join(', ')}`)
       continue
     }
     if (p.id !== 'archive-sessions') continue
@@ -2744,6 +2869,10 @@ function cmdStatus(args) {
     }
   }
   if (!all) console.log('\n(current engagement only - pass --all for the full portfolio)')
+  if (!all) {
+    const current = resolveEngagement()
+    if (current) for (const line of hygieneTriageLines(current)) console.log(line)
+  }
   console.log('\ntrust: worst active [signal:x] across stakeholders (latest per person) - a green from B cannot clear an amber/red on A; keyword heuristic only when none exists.')
 }
 
@@ -2801,7 +2930,9 @@ function cmdDashboard(args) {
     // line instead of sharing one, a shorter cap just meant more sentences
     // cut off mid-thought for no reason.
     e.brief = firstLine(readClean(e.dir, 'brief.md'), 220)
-    e.reality = firstLine(readClean(e.dir, 'reality.md'), 220)
+    const reality = parseReality(readClean(e.dir, 'reality.md'), 220)
+    e.reality = reality.line
+    e.realityMissing = reality.missing
     e.overlay = detectOverlay(e.dir)
     e.days = daysElapsed(e.dir)
     e.phaseLabel = phaseLabel(e.signals.phase)
@@ -2839,6 +2970,10 @@ function cmdDashboard(args) {
   }
   console.log(`fieldbook → ${outPath}`)
   console.log(`${engagements.length} engagement(s) rendered · ${counts.RED} red / ${counts.amber} amber / ${counts.green} green · 0 tokens (pure render)`)
+  if (!all) {
+    const current = resolveEngagement()
+    if (current) for (const line of hygieneTriageLines(current)) console.log(line)
+  }
   if (args.includes('--open')) {
     // arg-array form: the path is never interpolated into a shell string.
     const [bin, pre] = process.platform === 'darwin' ? ['open', []]
@@ -2985,7 +3120,8 @@ function cmdVault(args) {
     const ctx = readClean(e.dir, 'context.md')
     e.next = (sectionBody(ctx, 'Next action', { lastNonEmpty: true }).split('\n').find(l => l.trim()) || '').trim()
     e.brief = firstLine(readClean(e.dir, 'brief.md'), 400)
-    e.reality = firstLine(readClean(e.dir, 'reality.md'), 400)
+    const reality = parseReality(readClean(e.dir, 'reality.md'), 400)
+    e.reality = reality.line || reality.missing
     e.overlay = detectOverlay(e.dir)
     e.days = daysElapsed(e.dir)
     e.stakeholders = extractStakeholders(e.dir)
@@ -3186,19 +3322,20 @@ function printUsage() {
   fde resume --init <name> create + bind engagement for this workspace (rebind replaces)
   fde resume --bind        show what this workspace is bound to, and what resolves
   fde triage               TRIAGE block only (hooks / Cursor session entry)
-  fde log <type> <text>    append decision|risk|delivery|contact (contact takes --signal red|amber|green; --force to allow secret-like text)
+  fde log <type> <text>    append decision|risk|delivery|contact (contact takes --signal red|amber|green; delivery "a|b|c" writes the value ledger; --force to allow secret-like text)
+  fde log risk --retire    move matching open-risk bullets to ## Retired
   fde log phase <phase>    set engagement phase (land|discover|plan|ship|prove|close)
   fde log --undo           remove the last CLI log/debrief entry from memory
   fde debrief [file]       meeting notes → memory (prefixed lines; --dry-run; --force)
-  fde debrief --smart      heuristic propose (prefix + light keywords); agent routes, CLI gates → --apply
+  fde debrief --smart      heuristic propose (prints decision:/risk:/delivery:/contact:/next:); --apply after confirm
   fde ingest stage …       stage raw pull into <engagement>/.inbox/ (not .fde/)
   fde ingest list          list staged inbox items
   fde ingest propose <id>  smart-propose a staged item → .debrief-propose (confirm before apply)
   fde ingest apply         same as: fde debrief --apply
   fde prep [label]         grounded walk-in brief from existing .fde/ only
-  fde doctor               lint engagement memory (stale signals, gaps)
-  fde redact <term>        preview/remove lines containing a buried term (pass --apply to commit)
-  fde tidy [--apply]       propose safe consolidations (contract: no new facts; git-reversible)
+  fde doctor               lint engagement memory (stale signals, gaps). status/dashboard/resume print the same issues
+  fde redact <term>        preview/remove lines containing a buried term (pass --apply to commit; subject never repeats the term)
+  fde tidy [--apply]       propose consolidations; blesses hand-written dirty files when you apply
   fde owner [set email]    who keeps this engagement record
   fde receipts <term>      "what did we agree?" with dates
   fde status [--all]       value ledger, then trust (pass --all for full portfolio)

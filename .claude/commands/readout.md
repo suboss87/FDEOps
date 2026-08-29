@@ -1,5 +1,5 @@
 ---
-description: Friday sponsor update. Value ledger first.
+description: Friday sponsor update. Promised, measured, accepted.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Situation: **Friday or sponsor update**.

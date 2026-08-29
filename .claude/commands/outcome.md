@@ -1,5 +1,5 @@
 ---
-description: Prove the outcome. Promised, measured, accepted
+description: Get the number accepted. Promised, measured, accepted.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **prove**.

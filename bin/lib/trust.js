@@ -48,12 +48,46 @@ function createTrustApi(deps) {
     return { ok: true, warn: '' }
   }
 
-  // Subject key for a signal-history line - first real name word (same spirit as
-  // extractStakeholders). A green about Randy must not clear an amber about Denise.
+  // Event labels are not people. "INCIDENT: … Marcus escalated" must key on
+  // Marcus, or a recovered engagement stays RED in front of the sponsor.
+  const SIGNAL_EVENT_KEYS = new Set([
+    'incident', 'recovery', 'alert', 'update', 'note', 'status', 'escalation',
+    'blocker', 'outage', 'fire', 'issue', 'sev', 'sev1', 'sev2', 'p1', 'p2', 'p3',
+    'resolved', 'risk', 'decision', 'delivery', 'contact',
+  ])
+
+  function personFromSignalText(text) {
+    let cleaned = String(text || '')
+      .replace(/\[@[^\]]+\]/g, '')
+      .replace(/\([^)]*\)/g, '')
+      .replace(/\[signal:[^\]]+\]/gi, '')
+      .replace(/\[\d{4}-\d{2}-\d{2}\]/g, '')
+      .replace(/^([A-Z]{2,}[A-Z0-9_-]*):?\s+/, '')
+      .trim()
+    const names = cleaned.match(/\b[A-Z][a-z]{1,20}(?:\s+[A-Z][a-z]{1,20})?\b/g) || []
+    for (const name of names) {
+      const first = name.split(/\s+/)[0].toLowerCase()
+      if (SIGNAL_EVENT_KEYS.has(first)) continue
+      return name
+    }
+    return ''
+  }
+
+  // Subject key for a signal-history line. Prefer a proper name in the bullet.
+  // A green about Randy must not clear an amber about Denise.
   // Strip author tags [@email-local] so attribution never becomes the subject key.
   function signalSubjectKey(text) {
+    const person = personFromSignalText(text)
+    if (person) {
+      const frag = person.split(/\s+/)[0].replace(/[^a-z0-9]/gi, '').toLowerCase()
+      if (frag.length >= 3) return frag
+    }
     const cleaned = String(text).replace(/\[@[^\]]+\]/g, '').replace(/\([^)]*\)/g, '')
-    const words = cleaned.split(/\s+/).filter(w => w && !/^(dr|mr|mrs|ms)\.?$/i.test(w))
+      .replace(/^([A-Z]{2,}[A-Z0-9_-]*):?\s+/, '')
+    const words = cleaned.split(/\s+/).filter(w => {
+      const n = w.replace(/[^a-z0-9]/gi, '').toLowerCase()
+      return n.length >= 3 && !SIGNAL_EVENT_KEYS.has(n) && !/^(dr|mr|mrs|ms)$/i.test(w)
+    })
     const frag = (words[0] || '').replace(/[^a-z0-9]/gi, '').toLowerCase()
     return frag.length >= 3 ? frag : ('anon:' + cleaned.slice(0, 48).toLowerCase())
   }
@@ -196,6 +230,7 @@ function createTrustApi(deps) {
 
   return {
     stakeholdersMemoryHealth,
+    personFromSignalText,
     signalSubjectKey,
     parsePhase,
     countOpenRisks,
