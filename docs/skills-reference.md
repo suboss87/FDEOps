@@ -1,4 +1,4 @@
-# fdeops Reference - one skill, 31 skills across 6 stages
+# fdeops Reference - one skill, 30 skills across 6 stages
 
 v3 ships **one skill**: `@fde` ([skills/fde/SKILL.md](../skills/fde/SKILL.md)). You describe the situation; it routes to a phase and follows that phase's skill from [skills/fde/references/](../skills/fde/references/). Engagement memory lives in `~/fde-engagements/<name>/.fde/` (one folder per customer).
 
@@ -40,14 +40,13 @@ Each reference is a **skill, not advice**: the thinking the agent does, the arti
 | [pick-three](../skills/fde/references/pick-three.md) | 20 things are "urgent"; pick 3 for Now, make trade-offs visible | 20 things are "urgent," need to pick the 3 that matter |
 
 ### Ship
-*Safe implementation on someone else's codebase, then go-live.*
+*On their codebase (greenfield or brownfield), then go-live.*
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [small-prs](../skills/fde/references/small-prs.md) | One small PR (100-300 lines, one user action), proven on staging they operate, visible every 2-3 days | Large feature, need visible progress every 2-3 days |
 | [what-breaks](../skills/fde/references/what-breaks.md) | Trace dependencies, classify impact (CONTAINED -> IRREVERSIBLE) | What could go wrong, touching shared infrastructure, need to assess impact |
 | [rescue](../skills/fde/references/rescue.md) | Production fire, trust fire, wrong-brief-mid-build, **or full pivot** | Production down, urgent - or stakeholder gone quiet, trust slipping |
-| [ship](../skills/fde/references/ship.md) | **Intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP) + pre-flight + canary + rollback + **scale-readiness** + **progressive adoption** | Ready to deploy, going live, pre-flight check |
+| [ship](../skills/fde/references/ship.md) | One change they can see, proven on staging they operate, then **intent vs diff** + pre-flight + canary + rollback | Start building, update their checkout, first module, visible progress, going live, pre-flight |
 | [review](../skills/fde/references/review.md) | Stage 1 **intent vs diff** (KEEP/JUSTIFY/SPLIT/DROP), then safety | Review this change, is it safe, does it match what we agreed, scope creep in the PR |
 | [rollback](../skills/fde/references/rollback.md) | Test the escape route on staging before you need it at 2am | "We can always revert" - need to actually test the escape route |
 
@@ -91,7 +90,7 @@ Each reference is a **skill, not advice**: the thinking the agent does, the arti
 
 ## Engagement phases (quick reference)
 
-The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above. POC, small PRs, proof on their staging, and eval stay on `@fde` - they are not a side pack.
+The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above. POC, the change on their repo, proof on their staging, go-live, and eval stay on `@fde` - they are not a side pack.
 
 | Phase | Enter when | Method highlights | Writes |
 |-------|-----------|-------------------|--------|
@@ -103,7 +102,7 @@ The 9 phases most engagements actually run through, with what gets written where
 | [close](../skills/fde/references/close.md) | Engagement ending | Retrospective with receipts; pattern extraction; the 2am handoff | `retrospectives/` `patterns.md` `handoff.md` |
 | [plan](../skills/fde/references/plan.md) | Scope clear, needs sequencing | Backwards from success; fragile first; PR-sized tasks; acceptance-criteria gate | `decisions.md` |
 | [review](../skills/fde/references/review.md) | Change needs a merge gate | Stage 1 KEEP/JUSTIFY/SPLIT/DROP vs stated intent, then 5-dimension safety; review-fix loop until clean | `decisions.md` |
-| [ship](../skills/fde/references/ship.md) | Ready to deploy | Intent vs diff receipt, then pre-flight/CAB; canary with rollback-on-anomaly; pulse before closing the laptop | `delivery.md` |
+| [ship](../skills/fde/references/ship.md) | Writing or updating on their repo, or ready to deploy | One change they can see (greenfield or brownfield), proven on their staging; then intent vs diff, pre-flight/CAB, canary with rollback-on-anomaly | `decisions.md` `delivery.md` |
 
 ---
 

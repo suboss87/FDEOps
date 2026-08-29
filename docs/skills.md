@@ -8,14 +8,14 @@ One skill (`@fde`) routes by situation - you never pick a skill by name. Three l
 
 The full map is below; per-skill details live in [skills-reference.md](./skills-reference.md).
 
-## Engagement skills (31 skills across 6 stages)
+## Engagement skills (30 skills across 6 stages)
 
 | Stage | Skills | What it covers |
 |--------|--------|---------------|
 | **Land** | land, audit, who-decides, earn-trust, hold-scope | First days: access, credibility, scope |
 | **Discover** | discover, test-assumptions, score-use-cases, poc | Finding the real problem behind the brief |
 | **Plan** | plan, business-case, three-options, pick-three | Sequencing work, getting sponsor alignment |
-| **Ship** | small-prs, what-breaks, rescue, ship, review, rollback | Small PRs, go-live, rollback - not generic debug/build |
+| **Ship** | ship, what-breaks, rescue, review, rollback | One change they can see on their repo, then go-live - not generic debug/build |
 | **Prove** | readout, demo-prep, debrief, board-memo, dashboard, ingest, connect | The outcome; pulling from source MCPs |
 | **Close** | close, runbook, switch-clients, encode-pattern, red-team | They can run it without you |
 

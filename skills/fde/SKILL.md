@@ -1,6 +1,6 @@
 ---
 name: fde
-description: Keeps the engagement record for client work. Use when they name a client or stakeholder. Use when they debrief a meeting or paste notes. Use when they ask what was agreed. Use when they run a POC, land a small PR on the client's codebase, prove it on their staging, or need evals before a model acts. Use when they prep a readout, when trust shifts, or they say @fde. Route and run the local fde CLI (or npx --yes fdeops). Never ask them to type commands. Not for ordinary code edits in an unbound repo.
+description: Keeps the engagement record for client work. Use when they name a client or stakeholder. Use when they debrief a meeting or paste notes. Use when they ask what was agreed. Use when they run a POC, change the client's codebase, prove it on their staging, go live, or need evals before a model acts. Use when they prep a readout, when trust shifts, or they say @fde. Route and run the local fde CLI (or npx --yes fdeops). Never ask them to type commands. Not for ordinary code edits in an unbound repo.
 ---
 
 # @fde
@@ -17,7 +17,7 @@ The **engagement record** for one client, from first meeting to signed outcome. 
 
 ## When NOT to use
 
-A one-line typo or compile error in a file that will not ship. On a bound client: stay here for POC, small PRs, characterisation, eval, go-live, rollback, and acceptance.
+A one-line typo or compile error in a file that will not ship. On a bound client: stay here for POC, characterisation, the change on their repo, eval, go-live, rollback, and acceptance.
 
 ## Use these first
 
@@ -32,13 +32,13 @@ After a meeting: `fde debrief --smart` → confirm → `--apply`. Walk-in: `fde 
 
 ## Ground loop
 
-On someone else's site the work is not "write code, remember later." Every small PR stays on `@fde`:
+On someone else's site the work is not "write code, remember later." Every change on a bound client stays on `@fde`:
 
 1. **Name it** in `decisions.md` (plan) or kill it in a day (poc).
-2. **Characterise their code** before you change it. Their tests, their runner.
+2. **Characterise their code** before you change it. Brownfield: their tests, their runner. Greenfield: the empty tree, first path they can click.
 3. **Prove it on their staging.** Staging they operate, a screen the signer in `success.md` can reject.
-4. **If a model judges:** `evals.md` Verdict SHIP before that PR is done (eval-pack).
-5. **Log delivery.** Outcome is promised → measured → accepted, not a green CI.
+4. **If a model judges:** `evals.md` Verdict SHIP before that change is done (eval-pack).
+5. **Log delivery.** Outcome is promised → measured → accepted, not a green CI. Then go live with a rollback you have run (`ship`).
 
 A throwaway file can skip the loop. Bound client work cannot.
 
@@ -147,10 +147,9 @@ Read **one** reference and follow it. Do not improvise from memory.
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| Large feature, visible progress every 2-3 days, small PRs, their tests, POC follow-through | small-prs | `references/small-prs.md` |
 | What could go wrong, touching shared infrastructure, need to assess impact | what-breaks | `references/what-breaks.md` |
 | Production down, urgent - OR stakeholder gone quiet, trust slipping | rescue | `references/rescue.md` |
-| Ready to deploy, going live, pre-flight check | ship | `references/ship.md` |
+| Start building, update their checkout, first module, visible progress, their tests, POC follow-through, ready to deploy, going live, pre-flight | ship | `references/ship.md` |
 | Review this change, is it safe, does it match what we agreed | review | `references/review.md` |
 | Diff grew / scope creep in the PR / "did we only build what we said" / KEEP JUSTIFY SPLIT DROP | review (+ ship if going live) | `references/review.md` Stage 1 · `references/ship.md` Intent vs diff |
 | Wrap the session / share the thinking / catch teammates up / before I open the PR | (memory contract - session digest) | SKILL.md **On exit** - write TL;DR + decisions/why into `.fde/`; no transcript sync |
@@ -196,7 +195,7 @@ Ready to build with no `terrain.md` / plan: discover or plan first. Takeover wit
 ## Principles
 
 - Never ask the FDE to pick a phase. That's your job.
-- Ground loop on a bound client: name → characterise → prove on their staging → log. Do not hand the PR to a generic coding pack.
+- Ground loop on a bound client: name → characterise → prove on their staging → go live → log. Do not hand their repo to a generic coding pack.
 - Read `context.md` before speaking. One sharp question - never a barrage.
 - Never invent people, meetings, or numbers - `unknown - ask:` beats a polished lie.
 - Every phase ends with its artifact written. No artifact, no "done."
