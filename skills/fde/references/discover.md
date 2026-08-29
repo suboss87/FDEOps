@@ -31,15 +31,28 @@ Q: <one question that changes where you dig>
 GUESS: <your answer, so they can correct it>
 ```
 
-Stop when you can write the decision sentence under **Frame the decision first**. If a name, quote, or metric is still missing, write `unknown - ask:` - never invent ops folklore to make the map look complete.
+Stop when you can write the four lines under **Frame the decision first**. If a name, quote, or metric is still missing, write `unknown - ask:` - never invent ops folklore to make the map look complete.
 
 ## Frame the decision first
 
-Before any scanning, write one sentence at the top of your working notes:
+Same SCQA spine as readout (`S → C → Q → A`), aimed at the floor, not a deck. Write it **before** any scan. Confirm with the FDE, then dig.
 
-> "What will the sponsor do differently because of this discovery?"
+| Line | What it is | Fail if |
+|------|------------|---------|
+| **Situation** | What they already treat as true - the workaround, the sheet, the owner who left | It could be copied from the RFP |
+| **Complication** | What broke, so they cannot stay here | No tension, or three problems joined by "and" |
+| **Question** | One decision the named signer must make | It smuggles the solution ("how do we add alerting") |
+| **Answer-space** | Shape of a satisfying answer: confirm brief / descope / rescope / pause | A novel, or "insights" |
 
-If you can't name the decision this informs (descope? rescope? pick use case A over B? touch module X first?), you're collecting trivia, not discovering. Every output of this phase is aimed at that decision.
+Tests on **Question** - rewrite until all five hold:
+
+1. **Decision-shaped** - answering it changes what someone does.
+2. **Single** - one thing, not three.
+3. **Scoped** - who, where, by when.
+4. **Answerable** - evidence could settle it in this engagement.
+5. **Neutral** - does not assume the fix.
+
+Cannot write the Question → keep interrogating. Do not `fde scan`. Every later output of this phase aims at that Question. Sub-questions go to the operating map or `assumptions.md`, not into the Question.
 
 ## Method - part 1: the codebase (you do this work)
 
@@ -147,12 +160,17 @@ Score every candidate use case before anything gets prototyped:
 
 ## Artifact (this IS the memory - write it as you work)
 
-**`reality.md`** - the readout the FDE takes into the sponsor meeting:
+**`reality.md`** - the readout the FDE takes into the sponsor meeting. Keep the three schema lines the dashboard reads (`Working theory` / `Evidence` / `Differs from brief how`). Then the decision frame:
+
 ```markdown
 # Reality (actual problem)
-**Decision this informs:** <one line>
-**Confirmed:** <real problem> (evidence: <workaround/data/quote, source, day>)
-**Stated brief was wrong/right because:** <delta, with evidence>
+**Working theory:** <the real problem, one sentence>
+**Evidence:** <workaround/data/quote, source, day>
+**Differs from brief how:** <delta, with evidence>
+**Situation:** <what the floor already treats as true>
+**Complication:** <what forces a decision now>
+**Question:** <one decision-shaped sentence>
+**Answer-space:** confirm brief / descope / rescope / pause - and what a yes looks like
 **Implication for build:** <thin-slice direction>
 **Validated with:** <who, when>
 ```
@@ -180,11 +198,11 @@ Every line carries its evidence. `(churn: 47/90d)` `(ops lead, Day 5)` `(stated,
 ## Checkpoint (before any build)
 
 Present to the FDE, five things, one paragraph each - no padding:
-1. The real problem, with the two strongest pieces of evidence.
+1. The Question, then the real problem, with the two strongest pieces of evidence.
 2. The top 3 risk areas of the codebase, one line of why each.
 3. What must not be touched without characterisation tests.
 4. The exception-led operating map: the two breaks that matter most, who owns the workaround, and where shadow systems live.
-5. The recommendation: confirm brief / descope / rescope - and the decision it puts in front of the sponsor.
+5. The Answer-space: confirm brief / descope / rescope - and the decision it puts in front of the sponsor.
 
 If discovery revealed the problem is 3× the brief: the FDE tells the customer **before** telling themselves it's manageable. Lead with evidence, offer three paths (descope / rescope / pause-and-plan), confirm any reset in writing - update `success.md` and `brief.md` before continuing.
 
@@ -198,13 +216,14 @@ Acme's brief blamed missing monitoring. Discovery goes to the workaround first.
 
 `git log` shows the reconciliation module at 47 commits/90d with no tests, all from one author who left in February. Marco (ops lead) turns out to keep a spreadsheet: every morning he re-runs the job manually and eyeballs the totals - a habit nobody mentioned because to him it is just the job. That spreadsheet is the system of record when the job fails, which is the actual finding.
 
-`reality.md`: **Confirmed:** the job has no owner, and the manual re-run masks failures for a day (evidence: Marco's sheet, Day 5; two silent failures since March, finance escalation Mar 14). **Stated brief was wrong because:** alerting existed last year and was disabled - adding it again without an owner reproduces the same outcome. `terrain.md` gets the hotspot row and an operating-map row: `job fails silently → Marco notices next morning → re-runs by hand → spreadsheet is truth → LOAD-BEARING (Marco, Day 5)`.
+`reality.md` keeps the schema, then the frame. **Working theory:** the job has no owner, and the manual re-run masks failures for a day. **Evidence:** Marco's sheet, Day 5; two silent failures since March, finance escalation Mar 14. **Differs from brief how:** alerting existed last year and was disabled - adding it again without an owner reproduces the same outcome. **Situation:** Marco re-runs the job every morning and the spreadsheet is truth when it fails. **Complication:** two silent failures since March already hit finance, and the author of the module left in February. **Question:** should Priya fund a named owner on the failure path, or fund alerting and accept the same miss in six months? **Answer-space:** fund ownership / fund alerting-as-theatre / pause until she names who acks. `terrain.md` gets the hotspot row and an operating-map row: `job fails silently → Marco notices next morning → re-runs by hand → spreadsheet is truth → LOAD-BEARING (Marco, Day 5)`.
 
-Checkpoint to the FDE names the sponsor decision this creates: fund ownership, or fund alerting and accept the same failure in six months.
+Checkpoint to the FDE leads with that Question, not a tour of the repo.
 
 ## Principles
 
 - The brief is a hypothesis until evidence confirms it.
+- No scan until the Question is one decision the signer must make.
 - The workaround is more honest than the requirements document.
 - Churn data + the human's "don't touch that" pointing at the same module = the map is true.
 - Never modify code before the terrain map exists.

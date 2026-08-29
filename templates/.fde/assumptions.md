@@ -8,4 +8,4 @@
 **Blast radius:** `CRITICAL` · `LOAD-BEARING` · `CONVENIENCE`  
 **Status:** `OPEN` · `TESTING` · `CONFIRMED` · `DISPROVED` · `PARKED`
 
-**Rule:** a CRITICAL assumption still OPEN blocks plan. DISPROVED → update `reality.md` / `success.md` and log the reset in `decisions.md` the same day.
+**Rule:** a CRITICAL assumption still OPEN blocks plan. `How we test` is the kill observation (the result that stops the work) - plan copies it as `Kill if`. DISPROVED → update `reality.md` / `success.md` and log the reset in `decisions.md` the same day.

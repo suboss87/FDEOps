@@ -14,22 +14,22 @@ Each command loads the same `@fde` skill. You never pick from 31 names.
 
 | What you're doing | Command | Key principle |
 |-------------------|---------|-----------|
-| Land the embed | `/brief` | Who signs done |
-| Find the real problem | `/discover` | Brief is a hypothesis |
-| Plan the sequence | `/plan` | Backwards from done |
-| Ship a slice | `/ship` | Live with a rollback |
-| Prove the outcome | `/outcome` | Promised, measured, accepted |
-| Close the embed | `/close` | They run it without you |
+| First week on site | `/brief` | Name who signs done |
+| Find the real problem | `/discover` | Treat the brief as a hypothesis |
+| Sequence the work | `/plan` | Work backwards from done |
+| Ship to their production | `/ship` | Go live with a rollback you have run |
+| Get the number accepted | `/outcome` | Promised, measured, accepted |
+| Hand off so they run it | `/close` | They operate it without you |
 
 Also:
 
 | What you're doing | Command | Key principle |
 |-------------------|---------|-----------|
-| Sponsor went silent | `/trust` | Process or trust |
-| Scope dispute | `/receipts` | Dated, or a gap |
+| Sponsor went quiet | `/trust` | Process gap, or they stopped trusting you |
+| When did we agree? | `/receipts` | A dated line, or it did not happen |
 | After a meeting | `/debrief` | Notes into the record |
-| Walk-in | `/prep` | One page from the record |
-| Friday readout | `/readout` | Promised, measured, accepted |
+| Prep before the meeting | `/prep` | One page from the record |
+| Friday sponsor update | `/readout` | Promised, measured, accepted |
 
 Skills also activate on English: naming a client, running a POC, slicing a feature, asking what was agreed. A throwaway one-liner in an unbound repo can skip `@fde`. A client slice cannot.
 
@@ -111,7 +111,7 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
-| [discover](skills/fde/references/discover.md) | Repo + workaround + the real problem | Brief feels wrong, shadow processes |
+| [discover](skills/fde/references/discover.md) | Question first, then repo + workaround | Brief feels wrong, shadow processes |
 | [test-assumptions](skills/fde/references/test-assumptions.md) | Untested assumptions by blast radius | Brief feels too neat |
 | [score-use-cases](skills/fde/references/score-use-cases.md) | Value × urgency × alignment / complexity | Everything is P0 |
 | [poc](skills/fde/references/poc.md) | Kill the killer assumption in a day | POC, spike, need to de-risk |
@@ -120,7 +120,7 @@ The commands above are the entry points. Under the hood, `@fde` activates these 
 
 | Skill | What It Does | Use When |
 |--------|--------------|----------|
-| [plan](skills/fde/references/plan.md) | Backwards from done, PR-sized | What order, what is done |
+| [plan](skills/fde/references/plan.md) | Backwards from done, Kill if on each slice | What order, what is done |
 | [business-case](skills/fde/references/business-case.md) | Cost of nothing → investment → return | Defend budget or timeline |
 | [three-options](skills/fde/references/three-options.md) | Three genuine options | "What should we do?" |
 | [pick-three](skills/fde/references/pick-three.md) | Pick three from twenty urgents | Everything is urgent |

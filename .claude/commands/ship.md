@@ -1,5 +1,5 @@
 ---
-description: Ship a slice. Live with a rollback.
+description: Ship to their production. Go live with a rollback you have run.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **ship**.

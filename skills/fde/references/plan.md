@@ -22,7 +22,7 @@ An FDE plan is not a sprint backlog. The technical sequence is the easy part. Th
 
 ## Method (you do this work)
 
-**0. Lock scope first.** Read `success.md` and `assumptions.md`. If out-of-scope is undefined, define it now with the FDE - a plan on undefined scope accumulates silent commitments. If any CRITICAL assumption is still `OPEN`, stop and run test-assumptions / discover before sequencing work.
+**0. Lock scope first.** Read `success.md`, `assumptions.md`, and the **Question** on `reality.md`. If out-of-scope is undefined, define it now with the FDE - a plan on undefined scope accumulates silent commitments. If any CRITICAL assumption is still `OPEN`, stop and run test-assumptions / discover before sequencing work. If `reality.md` has no Question, stop and finish discover - you are sequencing trivia.
 
 **1. Work backwards from success.** What's the last thing that must be true before done? And before that? That's the dependency chain - not a wish list.
 
@@ -54,6 +54,7 @@ Delivers: <what someone can see/test>
 Accepts: <happy path> / <unhappy path>
 Touches: <files/systems - blast radius declared upfront>
 Risk: <what could go wrong + fallback>
+Kill if: <the observation that voids this slice - copy from assumptions.md How we test, or the check that means stop>
 Verify: <specific check>
 Value promised: <business unit change this slice claims>
 
@@ -72,7 +73,7 @@ Value promised: <business unit change this slice claims>
 No kill list → not a finished plan. Reopen with the FDE until the deferrals are written.
 ## Checkpoint
 
-Walk the FDE through: sequence + why this order, where the fragile work sits, where the touchpoints land, the acceptance gate on task 1, and the kill list. One question: "Which stakeholder sees the first visible slice, and when?" Second: "Who accepted what we are not doing?"
+Walk the FDE through: sequence + why this order, where the fragile work sits, where the touchpoints land, the acceptance gate and **Kill if** on task 1, and the kill list. One question: "Which stakeholder sees the first visible slice, and when?" Second: "Who accepted what we are not doing?" Third: "What observation stops task 1 this week?"
 
 ## Method - estimation (when the sponsor asks "how long, how much?")
 
@@ -96,6 +97,7 @@ Every FDE gets asked this in week one. The honest answer is a range, not a numbe
 - Add 30% buffer for integration work (it always takes longer).
 - Add 50% buffer for AI/ML work (eval cycles are unpredictable).
 - Name assumptions explicitly: "assumes API docs are accurate", "assumes staging environment exists."
+- Each named assumption needs a **kill observation**: the result that voids the estimate. Copy it from `assumptions.md` → How we test. No kill observation = it is not an assumption, it is hope.
 - Revisit estimates every 2 weeks. An estimate that never updates is fiction.
 
 Write estimates to `decisions.md` under `## Sizing`. Include the assumptions - when they break, the estimate changes and the FDE has evidence for the conversation.
@@ -135,7 +137,7 @@ Never quietly update tasks. Name the reset: update `reality.md` and `success.md`
 
 Acme, after discover: the reconciliation job is unowned, Marco's spreadsheet is the real fallback.
 
-**Now** is three tasks, not eight. Task 1 is *failures reach a named human* - delivers a page to a rota, accepts "kill the job mid-run → the on-call is paged within 15 min", touches the job wrapper and the alert config, rollback is re-disable the route, verify by killing it in staging. Value promised: `risk-mitigation - a silent failure becomes a 15-minute one`.
+**Now** is three tasks, not eight. Task 1 is *failures reach a named human* - delivers a page to a rota, accepts "kill the job mid-run → the on-call is paged within 15 min", touches the job wrapper and the alert config, rollback is re-disable the route, **Kill if:** a real failure page is acked by nobody on the rota (the *finance would act* assumption, DISPROVED if Marco is the only name that answers), verify by killing it in staging. Value promised: `risk-mitigation - a silent failure becomes a 15-minute one`.
 
 The kill list in `decisions.md` is where the plan earns its keep: the rewrite of the reconciliation service that Tom keeps proposing goes there - *deferred, the failure mode is ownership not architecture (Priya accepted, Jun 12)* - along with the finance dashboard finance asked for directly. Both stay visible so the same argument is not re-litigated in week 4 without a receipt.
 
@@ -148,5 +150,6 @@ First visible slice goes to Marco, not Priya: he is the one whose morning change
 - Every 2-3 tasks, a stakeholder touchpoint. Trust decays without visibility.
 - No written acceptance criteria, no build.
 - No kill list, no finished plan.
-- Estimates are ranges, not promises. Name the assumptions.
+- No **Kill if** on a Now slice, that slice is hope.
+- Estimates are ranges, not promises. Name the assumptions and the observation that voids them.
 - Migrations: leaf nodes first, core last. Rollback before cutover.

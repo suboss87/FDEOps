@@ -1,5 +1,5 @@
 ---
-description: Find the real problem. Brief is a hypothesis.
+description: Find the real problem. Treat the brief as a hypothesis.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **discover**.
@@ -8,7 +8,7 @@ If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once
 
 Say: "If this works, who in their company would have to agree that it worked?"
 
-Run `fde resume` (fallback: `npx --yes fdeops resume`). Read `references/discover.md` and follow it. Evidence from the repo and the room - not the slide deck.
+Run `fde resume` (fallback: `npx --yes fdeops resume`). Read `references/discover.md` and follow it. Frame Situation / Complication / Question before you scan. Evidence from the repo and the room - not the slide deck.
 
 Confirm before any write to `.fde/`. Do not invent stakeholders or quotes.
 

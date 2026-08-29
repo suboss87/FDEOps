@@ -3064,7 +3064,7 @@ test('a redacted vault strips internal tokens from next action, brief and realit
   const eng = engagementPath(sandbox, 'acme')
   fs.appendFileSync(path.join(eng, 'context.md'), '\n## Next action\n\nchase the sign-off [@alice] [signal:red]\n')
   fs.writeFileSync(path.join(eng, 'brief.md'), '# Brief\n\nreplace the batch job [signal:amber]\n')
-  fs.writeFileSync(path.join(eng, 'reality.md'), '# Reality\n\nthe batch job is load-bearing [@bob]\n')
+  fs.writeFileSync(path.join(eng, 'reality.md'), '# Reality\n\n**Working theory:** the batch job is load-bearing [@bob]\n')
 
   assert.equal(runFde(sandbox, ['vault', '--redacted']).status, 0)
   const out = path.join(sandbox.home, 'fde-vault-redacted')
@@ -3100,4 +3100,149 @@ test('a symlinked parent cannot smuggle the vault into the engagements root', ()
   const res2 = runFde(sandbox, ['vault', '--out', path.join(homeLink, '..', path.basename(sandbox.home))])
   assert.equal(res2.status, 1, res2.stdout + res2.stderr)
   assert.match(res2.stderr, /deleted and rebuilt|engagements root/)
+})
+
+test('signal key follows the person, not INCIDENT/recovery event words', () => {
+  const sandbox = makeSandbox('signal-incident')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'incco']).status, 0)
+  assert.equal(runFde(sandbox, [
+    'log', 'contact',
+    'INCIDENT: overnight AP batch failed, Marcus Hale escalated',
+    '--signal', 'red',
+  ]).status, 0)
+  assert.equal(runFde(sandbox, [
+    'log', 'contact',
+    'recovery confirmed by Marcus Hale, batch green two nights running',
+    '--signal', 'green',
+  ]).status, 0)
+
+  const prep = runFde(sandbox, ['prep'])
+  assert.equal(prep.status, 0, prep.stderr)
+  assert.match(prep.stdout, /Marcus/)
+  assert.doesNotMatch(prep.stdout, /\[red\] INCIDENT/)
+  assert.doesNotMatch(prep.stdout, /\[green\] recovery/)
+
+  const status = runFde(sandbox, ['status'])
+  assert.equal(status.status, 0, status.stderr)
+  assert.doesNotMatch(status.stdout, /\[RED\s*\]/)
+  assert.match(status.stdout, /\[green\s*\]/)
+})
+
+test('redact --apply commit subject does not contain the secret', () => {
+  const sandbox = makeSandbox('redact-subject')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'redactlog']).status, 0)
+  const eng = engagementPath(sandbox, 'redactlog')
+  const secret = 'AKIAIOSFODNN7EXAMPLE'
+  assert.equal(runFde(sandbox, ['log', 'decision', `leaked ${secret} into chat`, '--force']).status, 0)
+  const applied = runFde(sandbox, ['redact', secret, '--apply'])
+  assert.equal(applied.status, 0, applied.stderr)
+  const log = gitInEng(eng, ['log', '--oneline', '-5'])
+  assert.equal(log.status, 0, log.stderr)
+  assert.doesNotMatch(log.stdout, new RegExp(secret))
+  assert.doesNotMatch(log.stdout, /AKIA/)
+  assert.match(log.stdout, /redact \d+ line/)
+})
+
+test('log refuses a postgres URL and an api_key assignment', () => {
+  const sandbox = makeSandbox('secret-url')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'urlco']).status, 0)
+  const pg = runFde(sandbox, ['log', 'decision', 'dsn postgresql://user:PASSWORD@db.internal:5432/app'])
+  assert.notEqual(pg.status, 0)
+  assert.match(pg.stderr, /refused/)
+  const key = runFde(sandbox, ['log', 'risk', 'rotate api_key=not-an-openai-shape-but-still-a-secret'])
+  assert.notEqual(key.status, 0)
+  assert.match(key.stderr, /refused/)
+})
+
+test('dashboard does not render a schema-less reality.md as what is actually true', () => {
+  const sandbox = makeSandbox('reality-schema')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'realco']).status, 0)
+  const eng = engagementPath(sandbox, 'realco')
+  fs.writeFileSync(path.join(eng, 'brief.md'), '# Brief\n**Stated problem:** build a dispatch dashboard\n')
+  fs.writeFileSync(
+    path.join(eng, 'reality.md'),
+    '# Reality\n**Stated problem:** build a dispatch dashboard\nThe spreadsheet is still the system of record.\n'
+  )
+  const out = path.join(sandbox.dir, 'fieldbook.html')
+  const dash = runFde(sandbox, ['dashboard', '--out', out])
+  assert.equal(dash.status, 0, dash.stderr)
+  const html = fs.readFileSync(out, 'utf8')
+  assert.match(html, /UNREADABLE|does not match the schema/i)
+  assert.match(html, /fb-why-missing/)
+  assert.doesNotMatch(html, /fb-why-reality">/)
+})
+
+test('debrief --smart prints the prefix vocabulary before the preview', () => {
+  const sandbox = makeSandbox('smart-vocab')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'vocabco']).status, 0)
+  const notes = path.join(sandbox.dir, 'notes.md')
+  fs.writeFileSync(notes, 'talked about the audit date\n')
+  const smart = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.match(smart.stdout, /decision:/)
+  assert.match(smart.stdout, /risk:/)
+  assert.match(smart.stdout, /delivery:/)
+  assert.match(smart.stdout, /contact:/)
+  assert.match(smart.stdout, /next:/)
+})
+
+test('log delivery with pipes writes a value-ledger row', () => {
+  const sandbox = makeSandbox('log-ledger')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'ledco']).status, 0)
+  const logged = runFde(sandbox, [
+    'log', 'delivery',
+    'retry slice | cost-save | 4h/week | 3.2h/week | Denise | Marco sheet | revert 412',
+  ])
+  assert.equal(logged.status, 0, logged.stderr)
+  const eng = engagementPath(sandbox, 'ledco')
+  const md = fs.readFileSync(path.join(eng, 'delivery.md'), 'utf8')
+  assert.match(md, /retry slice/)
+  assert.match(md, /cost-save/)
+  assert.match(md, /Denise/)
+  const section = md.split(/## Value ledger/)[1].split(/^## /m)[0]
+  assert.match(section, /retry slice/)
+})
+
+test('log risk --retire moves the matching open risk under Retired', () => {
+  const sandbox = makeSandbox('risk-retire')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'retco']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'risk', 'cutover window still unsigned']).status, 0)
+  const retired = runFde(sandbox, ['log', 'risk', '--retire', 'cutover window'])
+  assert.equal(retired.status, 0, retired.stderr)
+  const eng = engagementPath(sandbox, 'retco')
+  const md = fs.readFileSync(path.join(eng, 'risks.md'), 'utf8')
+  const open = md.split(/^##\s+Retired/m)[0]
+  const rest = md.split(/^##\s+Retired/m)[1] || ''
+  assert.doesNotMatch(open, /cutover window still unsigned/)
+  assert.match(rest, /cutover window still unsigned/)
+})
+
+test('tidy proposes blessing handwritten dirty files', () => {
+  const sandbox = makeSandbox('tidy-bless')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'blessco']).status, 0)
+  const eng = engagementPath(sandbox, 'blessco')
+  fs.appendFileSync(path.join(eng, 'brief.md'), '\nHand-written sponsor line.\n')
+  const preview = runFde(sandbox, ['tidy'])
+  assert.equal(preview.status, 0, preview.stderr)
+  assert.match(preview.stdout, /bless|hand-written|brief\.md/i)
+  assert.doesNotMatch(preview.stdout, /Nothing to tidy/)
+  const applied = runFde(sandbox, ['tidy', '--apply'])
+  assert.equal(applied.status, 0, applied.stderr)
+  const dirty = gitInEng(eng, ['status', '--porcelain'])
+  assert.equal(dirty.stdout.trim(), '')
+})
+
+test('status and dashboard consult doctor instead of ignoring it', () => {
+  const sandbox = makeSandbox('doctor-consult')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'docco']).status, 0)
+  const eng = engagementPath(sandbox, 'docco')
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
+  fs.writeFileSync(
+    path.join(eng, 'context.md'),
+    '# Engagement context\n**Phase:** ship\n\n## Next action\n- canary the parity fix\n'
+  )
+  const status = runFde(sandbox, ['status'])
+  assert.match(status.stdout + status.stderr, /hygiene:|doctor|issue/i)
+  const dash = runFde(sandbox, ['dashboard'])
+  assert.match(dash.stdout + dash.stderr, /hygiene:|doctor|issue/i)
 })
