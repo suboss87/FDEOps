@@ -17,9 +17,9 @@ Six commands map to the embed. Each one loads `@fde`, which opens the skill for 
 | Work | Command | Stage | Principle |
 |------|---------|-------|-----------|
 | Engage | `/brief` | Land | Name who signs done |
-| Diagnose | `/discover` | Discover | Treat the brief as a hypothesis |
-| Align | `/plan` | Plan | Work backwards from done |
-| Deliver | `/ship` | Ship | One visible change, then go live |
+| Diagnose | `/discover` | Discover | Check the brief is the real job |
+| Align | `/plan` | Plan | Work backwards from success |
+| Deliver | `/ship` | Ship | Seen on their staging, then live |
 | Realize | `/outcome` | Outcome | Promised, measured, accepted |
 | Transfer | `/close` | Close | They operate it without you |
 
@@ -310,11 +310,11 @@ Local only - `git` + files, no network, no telemetry. Plain markdown. The model 
 
 ## Principles
 
-- **One map** - any scale, greenfield or brownfield, any industry. Overlays carry the vertical
-- **The artifact is the memory** - producing the work and recording it are one action
+- **Same six stages** - any scale, new or existing, any industry. Extra notes for your sector
+- **The write-up is the record** - doing the work and writing it down are one action
 - **Ground loop** - name the change, characterise their code, prove it on their staging, go live, log the outcome
 - **Skills, not autonomy** - the kit says what to check; judgment stays yours
-- **Brief is a hypothesis** - discover before building the wrong thing
+- **Check the brief is the real job** - discover before building the wrong thing
 - **Evidence on every claim** - these files get defended in the room
 - **One customer, one folder** - context never bleeds
 

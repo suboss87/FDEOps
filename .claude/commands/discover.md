@@ -1,5 +1,5 @@
 ---
-description: Diagnose. Treat the brief as a hypothesis.
+description: Diagnose. Check the brief is the real job.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **discover**.
