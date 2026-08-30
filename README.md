@@ -2,7 +2,7 @@
 
 **Forward deployed engineering skills for AI coding agents.**
 
-You embed on someone else's site with an AI coding agent. One `@fde` skill runs the work from the brief to a signed outcome: discovery, POC, their codebase (greenfield or brownfield), go-live, eval. You confirm; then it is on the record. The workspace still compiles and commits. `@fde` does not leave.
+You work at a customer. The AI coding agent writes code in their repo. `@fde` is the one skill for the client work around that code: the brief, who can say yes, what went live, whether they signed off. You confirm each write. The files live on your laptop. Their project still compiles. `@fde` does not leave when you start coding.
 
 <img width="1536" height="1024" alt="fdeops" src="https://github.com/user-attachments/assets/2bcb8739-55ee-445d-8a1a-8b38433b7b58" />
 
