@@ -17,7 +17,7 @@ The full map is below; per-skill details live in [skills-reference.md](./skills-
 | **Land** (Engage) | land, audit, who-decides, earn-trust, hold-scope | First days: access, credibility, scope |
 | **Discover** (Diagnose) | discover, test-assumptions, score-use-cases, poc | Finding the real problem behind the brief |
 | **Plan** (Align) | plan, business-case, three-options, pick-three | Sequencing work, getting sponsor alignment |
-| **Ship** (Deliver) | ship, what-breaks, rescue, review, rollback | One visible change on their repo, then go-live |
+| **Ship** (Deliver) | ship, what-breaks, rescue, review, rollback | Visible on their staging, then go-live |
 | **Outcome** (Realize) | readout, demo-prep, debrief, board-memo, dashboard, ingest, connect | Get the number accepted; dated receipts |
 | **Close** (Transfer) | close, runbook, switch-clients, encode-pattern, red-team | They can run it without you |
 
