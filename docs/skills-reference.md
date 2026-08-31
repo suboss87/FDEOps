@@ -40,7 +40,7 @@ Each reference is a **skill, not a prompt**: the thinking the agent does, the ar
 | [pick-three](../skills/fde/references/pick-three.md) | Prioritize three | 20 things are "urgent," need to pick the 3 that matter |
 
 ### Ship
-*Deliver. On their codebase (greenfield or brownfield), then go-live.*
+*Deliver. On their codebase, their staging, then go-live.*
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
@@ -88,9 +88,9 @@ Each reference is a **skill, not a prompt**: the thinking the agent does, the ar
 
 ---
 
-## Engagement phases (quick reference)
+## Core path (quick reference)
 
-The 9 phases most engagements actually run through, with what gets written where. This is a shorter cut through the table above. POC, the change on their repo, proof on their staging, go-live, and eval stay on `@fde` - they are not a side pack.
+The skills most engagements actually run through, with what gets written where. This is a shorter cut through the table above. POC, the change on their repo, proof on their staging, go-live, and eval stay on `@fde` - they are not a side pack.
 
 | Phase | Enter when | What it does | Writes |
 |-------|-----------|-------------------|--------|
