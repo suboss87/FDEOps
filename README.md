@@ -1,39 +1,12 @@
 # FDEOps
 
-**The client work around the code the AI coding agent writes in their repo.**
+**Forward deployed engineering skills for AI coding agents.**
 
-You're on site. The AI coding agent writes code in their repo. This is everything around that code that still gets you fired if you skip it: the brief, who can say yes, their staging then live, whether they signed off, whether they can run it after you leave. Notes stay on your laptop. Their repo stays theirs. You confirm before anything is written down.
+You're on a customer site. The AI coding agent writes code in their repo. This kit is the work around that code: the brief, who can say yes, proof on their staging then live, whether they signed off, whether they can run it after you leave.
+
+Notes stay on your laptop. Their repo stays theirs. You confirm before anything is written down.
 
 <img width="1536" height="1024" alt="fdeops" src="https://github.com/user-attachments/assets/2bcb8739-55ee-445d-8a1a-8b38433b7b58" />
-
----
-
-## Commands
-
-One command per stage. Skills load automatically.
-
-Six commands map to the embed. Each one loads `@fde`, which opens the skill for that moment: a thin brief pulls land, a wrong brief pulls discover, a Friday number pulls readout. Sprint or programme. Greenfield or brownfield. Any industry. You never pick from 30 names.
-
-| Work | Command | Stage | Principle |
-|------|---------|-------|-----------|
-| Engage | `/brief` | Land | Name who signs done |
-| Diagnose | `/discover` | Discover | Check the brief is the real job |
-| Align | `/plan` | Plan | Work backwards from success |
-| Deliver | `/ship` | Ship | Seen on their staging, then live |
-| Realize | `/outcome` | Outcome | Promised, measured, accepted |
-| Transfer | `/close` | Close | They operate it without you |
-
-Also:
-
-| Work | Command | Principle |
-|------|---------|-----------|
-| Diagnose trust | `/trust` | Process gap, or they stopped trusting you |
-| Find the receipt | `/receipts` | A dated line, or it did not happen |
-| Capture the meeting | `/debrief` | Notes into the record |
-| Prepare the meeting | `/prep` | One page from the record |
-| Report the outcome | `/readout` | Promised, measured, accepted |
-
-Skills also activate on English: naming a client, running a POC, changing their checkout, going live, asking what was agreed. A throwaway one-liner in an unbound repo can skip `@fde`. Bound client work cannot.
 
 ---
 
@@ -43,50 +16,52 @@ Skills also activate on English: naming a client, running a POC, changing their 
 npx skills add suboss87/fdeops --skill fde
 ```
 
-Then one chat. Name the client. The AI coding agent binds.
+Then one chat. Name the client:
 
 ```text
-@fde this is Acme
+@fde this is client01
 ```
 
-Paste kickoff notes in the same thread. `@fde` routes; you confirm judgment. Same folder every time: `~/fde-engagements/<client>/.fde/`. Workflow: [docs/USAGE.md](docs/USAGE.md).
+That creates `~/fde-engagements/client01/.fde/` on your laptop. Paste kickoff notes in the same thread. `@fde` picks what to check. You still decide.
+
+Day to day: [docs/USAGE.md](docs/USAGE.md).
 
 <details>
-<summary><b>Claude Code (recommended)</b></summary>
+<summary><b>Claude Code</b></summary>
 
 ```text
 /plugin marketplace add suboss87/fdeops
 /plugin install fdeops@fdeops
 ```
 
-Hooks load where you left off. Slash commands match the map above.
+Hooks resume where you left off. Slash commands match the table below.
 
 </details>
 
 <details>
 <summary><b>Cursor</b></summary>
 
+After the skill install, in the **client repo** you have open (pointer, not a second pack):
+
 ```bash
-npx skills add suboss87/fdeops --skill fde
+npx fdeops adapters .
 ```
 
-Or `npx fdeops adapters .`. See [adapters/](adapters/README.md).
+See [adapters/](adapters/README.md).
 
 </details>
 
 <details>
-<summary><b>Other agents</b></summary>
+<summary><b>Air-gap, PATH, override</b></summary>
 
 ```bash
-npx skills add suboss87/fdeops --skill fde
+git clone https://github.com/suboss87/fdeops.git && node bin/install.js
 ```
 
-Gemini, Copilot, Codex, local LLMs: [adapters/](adapters/README.md). Air-gapped: `git clone https://github.com/suboss87/fdeops.git && node bin/install.js`.
-
-Fallback if the agent cannot bind:
+If the agent cannot create the folder:
 
 ```bash
-npx fdeops resume --init acme   # ~/fde-engagements/acme + bind this checkout
+npx fdeops resume --init client01   # ~/fde-engagements/client01
 ```
 
 Requires Node.js >= 18. Override: `FDEOPS_ENGAGEMENT`. See [docs/install.md](docs/install.md). Try the loop: `npx fdeops demo`.
@@ -95,13 +70,34 @@ Requires Node.js >= 18. Override: `FDEOPS_ENGAGEMENT`. See [docs/install.md](doc
 
 ---
 
+## Commands
+
+One command per stage. Skills load automatically.
+
+Six stages, same order every job: Land, Discover, Plan, Ship, Outcome, Close.
+
+| What you're doing | Command | Stage |
+|-------------------|---------|-------|
+| First days. Get the brief. Name who signs. | `/brief` | Land |
+| Check the brief is the real job. | `/discover` | Discover |
+| Sequence from done, not from the ticket. | `/plan` | Plan |
+| Prove it on their staging, then go live. | `/ship` | Ship |
+| What you promised, measured, and who accepted. | `/outcome` | Outcome |
+| Hand it over. They run it without you. | `/close` | Close |
+
+Same `@fde`, when you need them: `/debrief` (notes into the record), `/prep` (one page before you walk in), `/trust` (process gap, or they stopped trusting you), `/receipts` (a dated line, or it did not happen), `/readout` (Friday page for the sponsor; not a seventh stage).
+
+You can also just say it: naming a client, a POC, changing their checkout, going live, asking what was agreed. A typo in a repo that is not a client job can skip this. A named client, a POC, or go-live cannot.
+
+---
+
 ## All 30 Skills
 
-The catalog. 30 skills spanning the embed. Not prompts - structured workflows with steps, an artifact, and a checkpoint. Type English or a slash command. `@fde` activates the right skill. You never pick one by name.
+Thirty situations, grouped by stage. Not prompts - each one has steps, a file it writes, and a checkpoint with you. Type English or a slash command. `@fde` opens the matching skill. You never pick one by name.
 
 Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 
-### Land - Engage
+### Land
 
 | Skill | What it does | Use when |
 |--------|--------------|----------|
@@ -111,7 +107,7 @@ Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 | [earn-trust](skills/fde/references/earn-trust.md) | Earn access | Need access or credibility |
 | [hold-scope](skills/fde/references/hold-scope.md) | Hold scope | "Also can you…", timeline unchanged |
 
-### Discover - Diagnose
+### Discover
 
 | Skill | What it does | Use when |
 |--------|--------------|----------|
@@ -120,7 +116,7 @@ Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 | [score-use-cases](skills/fde/references/score-use-cases.md) | Score use cases | Everything is P0 |
 | [poc](skills/fde/references/poc.md) | Validate the solution | POC, spike, need to de-risk |
 
-### Plan - Align
+### Plan
 
 | Skill | What it does | Use when |
 |--------|--------------|----------|
@@ -129,7 +125,7 @@ Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 | [three-options](skills/fde/references/three-options.md) | Generate options | "What should we do?" |
 | [pick-three](skills/fde/references/pick-three.md) | Prioritize three | Everything is urgent |
 
-### Ship - Deliver
+### Ship
 
 | Skill | What it does | Use when |
 |--------|--------------|----------|
@@ -139,7 +135,7 @@ Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 | [review](skills/fde/references/review.md) | Review the change | Before merge, scope creep |
 | [rollback](skills/fde/references/rollback.md) | Rehearse rollback | "We can always revert" |
 
-### Outcome - Realize
+### Outcome
 
 | Skill | What it does | Use when |
 |--------|--------------|----------|
@@ -151,7 +147,7 @@ Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 | [ingest](skills/fde/references/ingest.md) | Ingest sources | Transcript, Notion, Slack |
 | [connect](skills/fde/references/connect.md) | Connect a source | Connect Granola |
 
-### Close - Transfer
+### Close
 
 | Skill | What it does | Use when |
 |--------|--------------|----------|
@@ -161,7 +157,7 @@ Full detail: [docs/skills-reference.md](docs/skills-reference.md).
 | [encode-pattern](skills/fde/references/encode-pattern.md) | Encode the pattern | It will apply again |
 | [red-team](skills/fde/references/red-team.md) | Challenge the plan | "Poke holes in this" |
 
-Overlays (on signal, not on request): [ai](skills/fde/references/ai.md) · [artifacts](skills/fde/references/artifacts.md) · [fintech](skills/fde/references/fintech.md) · [healthcare](skills/fde/references/healthcare.md) · [gov](skills/fde/references/gov.md) · [eval-pack](skills/fde/references/eval-pack.md)
+Overlays (on signal, not on request): [ai](skills/fde/references/ai.md) · [artifacts](skills/fde/references/artifacts.md) · [fintech](skills/fde/references/fintech.md) · [healthcare](skills/fde/references/healthcare.md) · [gov](skills/fde/references/gov.md). AI companion (not a sixth overlay): [eval-pack](skills/fde/references/eval-pack.md).
 
 Optional pull: you add the source MCP; we **pull** on request. [mcp/recipes/](mcp/recipes/)
 
@@ -169,33 +165,84 @@ Optional pull: you add the source MCP; we **pull** on request. [mcp/recipes/](mc
 
 ## How Skills Work
 
-One skill. One reference file per situation. One folder per client.
+One `@fde`. One file per situation. One folder per client.
 
 ```
-  /brief   or   "@fde this is Acme"
-           │
-           ▼
-  skills/fde/SKILL.md          hosts load this one file
+  "@fde this is client01"      creates ~/fde-engagements/client01/.fde/
+  /brief  or  English          the AI coding agent loads skills/fde/SKILL.md
            │  routes. you never pick a skill by name
            ▼
-  references/land.md           one skill, then stop
+  references/<one>.md          one skill, then stop
            │
            ▼
   fde CLI (local)              dates, gates, redacts. no network
            │  after you confirm
            ▼
-  ~/fde-engagements/<client>/.fde/
+  ~/fde-engagements/client01/.fde/
 ```
 
-**One skill routes.** Hosts load `@fde`. It reads the situation and opens one `references/*.md`. Slash commands and English both land here. You never pick a skill by name.
+**A dated line, or it did not happen.** Promised → measured → accepted. If it is not in `.fde/`, it is not on the record.
 
-**Evidence, not memory.** Promised → measured → accepted. A dated line in `.fde/`, or it did not happen. Nothing is done on vibes.
+**Confirm, then it is written.** The CLI stays on your laptop: git and files, no network. The AI coding agent runs the command. You say yes. Then it is in the folder.
 
-**Confirm before write.** Local CLI: git and files, no network. `.fde/` on your laptop. The AI coding agent runs the command. You confirm. Then it is on the record.
+**The record is on your laptop.** Change hosts, install `@fde` on the new one, keep talking. The notes are not inside any vendor.
 
-**Progressive disclosure.** `SKILL.md` is the entry. One skill file loads when routed. Writes and status cost zero model tokens.
+One skill hosts load: `skills/fde/SKILL.md`. It opens one file in `skills/fde/references/` and stops. Slash commands live in `.claude/commands/`. The local CLI is `bin/fde.js` (git + files, no network). Layout: [docs/REPO_LAYOUT.md](docs/REPO_LAYOUT.md).
 
-Change hosts, install `@fde` on the new one, bind if needed, keep talking. The record is not inside any vendor.
+---
+
+## Engagement memory (`.fde/`)
+
+One folder per client. Plain markdown. Grep it, copy it, take it into a meeting.
+
+| File | Holds |
+|------|-------|
+| `context.md` | Where you are |
+| `brief.md` / `success.md` | What they asked; what “done” is and who signs |
+| `reality.md` / `terrain.md` | The real problem; the map |
+| `stakeholders.md` | `[signal:green\|amber\|red]` |
+| `trust-profile.md` | Sacred data, AI policy, approval chain |
+| `decisions.md` / `risks.md` / `delivery.md` | Dated choices; live risks; what shipped and how it rolls back |
+
+Schema: [docs/schema.md](docs/schema.md). Local HTML: `npx fdeops dashboard`.
+
+---
+
+## Who this is for
+
+You sit with a customer's team. An AI coding agent writes in their repo. You need a record of the brief, who can say yes, what went live, and whether they signed off.
+
+If you ship your own company's product from HQ, with no customer team that has to run it after you leave, you do not need this kit.
+
+---
+
+## Your data stays yours
+
+The **CLI** is local: git + files, no network, no telemetry. The **host model** sees `.fde/` the agent loads (usually a bounded `context.md`) and any client code you open. It must not see `<private>` blocks - redacted from CLI, dashboard, and hooks; do not paste them or open them with file tools. Nothing is written until you confirm. `~/fde-engagements` is in `$HOME`; iCloud/Dropbox is an NDA incident waiting.
+
+[PRIVACY.md](PRIVACY.md) · [SECURITY.md](SECURITY.md)
+
+---
+
+## Why FDEOps?
+
+AI coding agents are built for a repo, not for a client. Left alone they skip who signs, whether the brief is true, and whether anyone accepted the number. Monday they start from the ticket again.
+
+This is the kit you take on site. `@fde` runs the client work around the code. A local command dates every decision. The notes are markdown on your laptop. You confirm; then it is on the record.
+
+---
+
+## Principles
+
+- **Who signs** - name them in the first days
+- **Brief vs real job** - check the floor, not only the slide
+- **Back from done** - sequence from signed-off, not from the ticket
+- **Their staging then live** - prove it where they operate, then go live
+- **Promised, measured, accepted** - a number nobody signed is claimed, not delivered
+- **They run it** - if they cannot operate it without you, you are not done
+- **A dated line, or it did not happen** - these files get defended in the room
+- **One customer, one folder** - context never bleeds
+- **The kit says what to check. You still decide.**
 
 ---
 
@@ -258,65 +305,12 @@ fdeops/
 ├── bin/                                   # local CLI: git + files, no network
 ├── hooks/                                 # session-start / session-stop / pre-compact
 ├── adapters/                              # Cursor, Gemini, Copilot, Codex pointers
-├── templates/.fde/                        # memory files created on bind
+├── templates/.fde/                        # memory files created on first client
 ├── examples/                              # fictional walkthroughs
 ├── mcp/                                   # optional ingest + source recipes
 ├── evals/                                 # routing checks
 └── docs/                                  # usage, schema, install
 ```
-
----
-
-## Why FDEOps?
-
-AI coding agents are built for a repo, not for a client. Left alone they skip who signs done, whether the brief is true, and whether anyone accepted the number. Monday morning they start from the ticket again.
-
-FDEOps is the catalog you take on site. One `@fde` skill runs the embed from discovery to signed outcome: POC, their codebase, go-live, eval when a model judges, promised → measured → accepted. A local CLI dates every decision. `.fde/` is markdown on your laptop. You confirm; then it is on the record.
-
----
-
-## Engagement memory (`.fde/`)
-
-One folder per client. Plain markdown. Grep it, copy it, defend it.
-
-| File | Holds |
-|------|-------|
-| `context.md` | Where you are |
-| `brief.md` / `success.md` | What they asked; what “done” is and who signs |
-| `reality.md` / `terrain.md` | The real problem; the map |
-| `stakeholders.md` | `[signal:green\|amber\|red]` |
-| `trust-profile.md` | Sacred data, AI policy, approval chain |
-| `decisions.md` / `risks.md` / `delivery.md` | Dated choices; live risks; what shipped and how it rolls back |
-
-Schema: [docs/schema.md](docs/schema.md). Local HTML: `npx fdeops dashboard`.
-
----
-
-## Who this is for
-
-You embed with a customer and an AI coding agent. Take this on the ground. Discovery through signed outcome lives in `@fde`. One `.fde/` per client so they do not blur.
-
-If you only write code in your own repo with no client record to defend, you do not need this kit.
-
----
-
-## Your data stays yours
-
-Local only - `git` + files, no network, no telemetry. Plain markdown. The model sees client code only when you point the AI coding agent at it. `<private>` is redacted from CLI, dashboard, and hooks. Nothing is written until you confirm. `~/fde-engagements` is in `$HOME`; iCloud/Dropbox is an NDA incident waiting.
-
-[PRIVACY.md](PRIVACY.md) · [SECURITY.md](SECURITY.md)
-
----
-
-## Principles
-
-- **Same six stages** - any scale, new or existing, any industry. Extra notes for your sector
-- **The write-up is the record** - doing the work and writing it down are one action
-- **Ground loop** - name the change, characterise their code, prove it on their staging, go live, log the outcome
-- **Skills, not autonomy** - the kit says what to check; judgment stays yours
-- **Check the brief is the real job** - discover before building the wrong thing
-- **Evidence on every claim** - these files get defended in the room
-- **One customer, one folder** - context never bleeds
 
 ---
 
