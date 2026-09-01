@@ -1,5 +1,5 @@
 ---
-description: Transfer operations. They operate it without you.
+description: They operate it without you.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **close**.

@@ -47,6 +47,7 @@ The difference between a 5-year FDE and a 15-year FDE is not talent - it's encod
 | **Specific enough?** | Contains concrete steps, not just principles | "Build trust" / "Communicate well" - too vague to act on |
 | **Repeatable?** | Applies to a class of situations, not just this one | Only worked because of a unique circumstance |
 | **Falsifiable?** | You can tell when the pattern is working or not | No way to measure whether applying it helped |
+| **Monday bag?** | You would refuse the next similar embed without this in your bag - a named move plus an artifact you can drop on day one (pipe questions, CAB dance, eval golden shape, floor-drill script) | "We learned to communicate." Patterns that only live in this client's `.fde/` do not compound |
 
 **4. Classify by stage.** Patterns sort into the same stages as the skills:
 

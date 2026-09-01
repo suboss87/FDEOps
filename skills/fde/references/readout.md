@@ -12,15 +12,16 @@
 
 | Block | What to write | Source |
 |-------|---------------|--------|
-| **S - Situation** | Where we are against `success.md`, in their words | success.md, delivery value ledger |
+| **S - Situation** | Where we are against `success.md`, in their words - including whether the floor still uses the old path | success.md, delivery value ledger, reality.md workaround |
 | **C - Complication** | What changed, what is at risk, or what we learned (bad news first) | risks.md, assumptions DISPROVED/OPEN, stakeholders signal |
 | **Q - Question / Ask** | The one decision or help you need from them | decisions.md, access/sign-off needs |
 | **A - Answer** | What you recommend / what happens next week (≤3 bullets) | plan Now lane, delivery promised→measured |
 
 Then add, still on the same page:
 1. **Value this week** - from the value ledger: promised → measured (or "pending") → **accepted by whom**, with evidence citation. A measured number nobody on the customer side has agreed to is written as `claimed`, and the Ask never rests on it - if the whole case for the next phase is a claimed number, the real ask this week is "who signs off that this is real?".
-2. **Kill / defer reminder** - one line from the plan kill list so scope fights stay visible.
-3. **Hostile Q prep** - three questions a skeptical sponsor will ask, with one-line answers from memory.
+2. **Are they using it?** - Situation must say whether the workaround is still open: spreadsheet still running, shadow paste still happening, named operator completed Tuesday's job on the new path without you at the keyboard. A measured metric with the old path still live is `claimed`. That week's Ask is not "fund phase 2." It is "who on their side stops the old way, by when."
+3. **Kill / defer reminder** - one line from the plan kill list so scope fights stay visible.
+4. **Hostile Q prep** - three questions a skeptical sponsor will ask, with one-line answers from memory.
 
 Exec voice: no jargon, no hedging, every claim traceable (`(shipped Tue, delivery.md)`). Draft in the **FDE's voice, for the FDE to send** - never send anything yourself.
 
