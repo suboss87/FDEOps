@@ -54,6 +54,16 @@ Tests on **Question** - rewrite until all five hold:
 
 Cannot write the Question → keep interrogating. Do not `fde scan`. Every later output of this phase aims at that Question. Sub-questions go to the operating map or `assumptions.md`, not into the Question.
 
+## Parts of the problem (decompose only)
+
+After the Question is locked, and **before** `fde scan` or any option: write what the problem is made of. No advice, no playbook, no solution.
+
+If the stated brief hides a deeper job, name that deeper job in one sentence and **wait**. Do not silently replace their problem with yours.
+
+In `terrain.md` under `## Parts`, list the smallest useful pieces that still change what you examine next. Typical cuts: people, process step, system, data, time, cost. For each piece: what it contains, and how it connects to the Question. Stop when a further split would not change where you dig.
+
+Do not mark pieces as facts or assumptions here. That is `test-assumptions`. Do not assemble options here. That is `three-options`.
+
 ## Method - part 1: the codebase (you do this work)
 
 **First move: `fde scan`** - it runs everything below deterministically in seconds (churn×tests, "temporary" archaeology, AI components, secrets redacted, previous attempts). Your job is then **interpretation**: read its output against the brief, follow the hotspots into the code, and connect the technical findings to the human signals in part 2.

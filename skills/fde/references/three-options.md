@@ -2,7 +2,7 @@
 
 **Enter when:** a significant technical or strategic decision needs to be made, the FDE is asked "what should we do?", the team is stuck between approaches, or a fork in the engagement requires the sponsor's input.
 
-**Read first:** `reality.md`, `terrain.md`, `success.md`, `context.md`. Load `business-case.md` if the decision has cost implications.
+**Read first:** `reality.md`, `terrain.md`, `assumptions.md`, `success.md`, `context.md`. Load `business-case.md` if the decision has cost implications.
 
 One option is a request for trust. Two options is a false choice. Three options is a conversation between professionals. The FDE who presents three genuine options earns the decision-maker's respect - and their protection when things get hard.
 
@@ -12,24 +12,30 @@ One option is a request for trust. Two options is a false choice. Three options 
 
 > "Decision: approach for the payment migration. Decided by: CTO. Needed by: Friday. Deferral cost: blocks the next sprint and delays the pilot by two weeks."
 
-**2. Generate three genuine options.** Not "good / medium / bad" - three approaches with real trade-offs:
+**2. Generate three genuine options from what survived.** Read `assumptions.md` (CONFIRMED / DISPROVED) and `terrain.md` `## Parts`. The playbook is unavailable. Assemble from those blocks only.
 
-| Option archetype | Description | When it fits |
-|-----------------|-------------|-------------|
-| **Conservative** | Lowest risk, smallest change, longest timeline | When trust is thin or the system is fragile |
-| **Pragmatic** | Balanced risk/reward, proven patterns, moderate timeline | When the team is competent and the deadline is real |
-| **Ambitious** | Highest reward, most change, highest risk | When the sponsor has appetite and the team has capacity |
+Not "good / medium / bad." Not three speeds of the same plan (Conservative / Pragmatic / Ambitious of one architecture). Three approaches that differ in **structure** - rearrange the same surviving parts.
 
-Each option must be one the FDE would genuinely recommend under different circumstances. If you can't defend an option, replace it - padding is visible.
+Each option must be one the FDE would genuinely recommend under different circumstances. If you cannot defend an option, replace it - padding is visible.
+
+For each option, name:
+- which surviving blocks it is built from
+- which CONVENTION it refuses to obey
+- its single biggest point of failure
+- any new building block, labelled as a new assumption (`UNKNOWN` in `assumptions.md`) - do not smuggle one in as a fact
+
+If all three are the same system at different risk levels, you wrote the playbook. Start over.
 
 **3. Structure each option identically.** Same dimensions, same format - so comparison is instant:
 
 ```markdown
-### Option A: <name> (Conservative)
+### Option A: <name>
+- **Blocks:** <which surviving assumptions / parts it is built from>
+- **Convention refused:** <the "we just…" it will not obey>
 - **What:** <the approach in one paragraph>
 - **Timeline:** <estimate with basis>
 - **Cost:** <effort, infrastructure, external>
-- **Risk:** <what could go wrong and the mitigation>
+- **Biggest failure:** <the single point that kills this option>
 - **Trade-off:** <what you give up by choosing this>
 - **Best when:** <the condition that makes this the right choice>
 ```
@@ -85,6 +91,7 @@ Recommendation: pragmatic, conditional - *if* Raj is on the design, otherwise sa
 ## Principles
 
 - Three options, never one. One option is a request for trust; three is a real decision.
+- Assemble from surviving blocks. Three speeds of the same plan is the playbook - start over.
 - Each option must be genuinely defensible - no straw men.
 - Same structure for each option. Comparison should take 30 seconds.
 - Recommend one. State why. Accept the override gracefully.

@@ -20,7 +20,7 @@ After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same rou
 |------|---------|------------|
 | `context.md` | Compact state; loaded every session; dated debrief blocks | every stage + the `session-stop` hook (auto-capture) + `fde debrief` |
 | `brief.md` | Stated problem (hypothesis) | land |
-| `assumptions.md` | Brief claims under test: OPEN / CONFIRMED / DISPROVED | land (seed), test-assumptions, discover |
+| `assumptions.md` | Brief claims under test: Kind FACT / CONVENTION / UNKNOWN; OPEN / CONFIRMED / DISPROVED | land (seed), test-assumptions, discover |
 | `success.md` | Definition of done + primary value bucket + out of scope | land |
 | `stakeholders.md` | Champions, resistance, `[signal:green\|amber\|red]` trust tokens | land (updated continuously), `fde log contact --signal`, `fde debrief` |
 | `trust-profile.md` | Sacred data, AI policy (`<private>` tags) | land, overlays |

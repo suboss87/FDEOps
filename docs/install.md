@@ -19,7 +19,7 @@ npx skills add suboss87/fdeops --skill fde
 Then one chat - name the client. That creates `~/fde-engagements/<client>/.fde/`. You never type the CLI:
 
 ```text
-@fde this is Acme
+@fde this is client01
 ```
 
 Claude Code (hooks before you type; slash commands on the README map):
@@ -50,7 +50,7 @@ Type `@fde` in the AI chat and start working.
 | Claude Code | `/plugin install fdeops@fdeops`  - skill, slash commands, hooks. CLI via `npx fdeops …`. `node bin/install.js` only if you want a disk copy under `~/.claude/` |
 | Cursor / other agents | `npx skills add suboss87/fdeops --skill fde`, then `npx fdeops adapters <client-workspace>` |
 | Air-gap | `git clone … && node bin/install.js` |
-| Bind (any host, after the skill exists) | Chat: `@fde this is Acme`. Terminal fallback: `npx fdeops resume --init <name>` |
+| Bind (any host, after the skill exists) | Chat: `@fde this is client01`. Terminal fallback: `npx fdeops resume --init <name>` |
 | Quick trial, no install | `npx fdeops scan` (uses **fdeops v3.0.0 or later from npm**) |
 
 ---

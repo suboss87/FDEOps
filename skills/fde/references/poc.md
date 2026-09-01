@@ -8,7 +8,9 @@ A green check on synthetic data is not a validated solution. The person who can 
 
 ## Method (you do this work)
 
-**0. Name the killer assumption.** With the FDE: "What's the belief that kills the project if it's wrong?" Prototype **that** - not the pretty demo.
+**0. Name the killer assumption.** With the FDE: "What's the belief that kills the project if it's wrong?" Prototype **that** - not the pretty demo. If `three-options` just ran: the cheapest test is for the recommended option first, unless they pick another.
+
+**0b. Pass / fail before you build.** For the test you will run, write three lines in `prototype-log.md` first: what you will actually do (who you talk to, what you show, on whose screen); the result that **kills** this option; the result that keeps it alive. What you would learn either way. If every option's test would fail, name which `assumptions.md` block to reopen - do not invent a fourth playbook.
 
 **1. Pick by score when several use cases compete.** Use the scoring model from `discover.md` - (Value × Data readiness) / Complexity. If discover already scored, reuse; never re-score independently.
 
@@ -37,6 +39,7 @@ Tell the FDE: did the riskiest assumption hold · what the customer's reaction a
 ## Principles
 
 - Speed of learning beats code quality. Never more than a day.
+- Write pass/fail before you build. A demo with no kill line is a show.
 - Show it rough. Polish misleads.
 - Prototype the killer assumption, not the demo.
 - Kill fast; log the learning.

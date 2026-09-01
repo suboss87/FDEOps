@@ -129,8 +129,8 @@ Work names (engage, diagnose, align, deliver, realize, transfer) are the same ma
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| Diagnose, don't know the real problem, brief feels wrong, shadow processes, frame discovery, understand the problem space, data not ready, data estate, catalog the data | discover | `references/discover.md` |
-| The brief feels too neat, assumptions untested, "we just need…", test assumptions | test-assumptions | `references/test-assumptions.md` |
+| Diagnose, don't know the real problem, brief feels wrong, shadow processes, frame discovery, understand the problem space, data not ready, data estate, catalog the data, parts of the problem, decompose | discover | `references/discover.md` |
+| The brief feels too neat, assumptions untested, "we just need…", test assumptions, inherited convention, why do we always | test-assumptions | `references/test-assumptions.md` |
 | Multiple use cases competing, "we want to do everything", score use cases | score-use-cases | `references/score-use-cases.md` |
 | Need to validate a direction, prototype, demo to de-risk, **POC**, spike, killer assumption, validate the solution, build prototype | poc | `references/poc.md` |
 
@@ -140,7 +140,7 @@ Work names (engage, diagnose, align, deliver, realize, transfer) are the same ma
 |----------|-------|-----------|
 | Align, break this down, what order, sequence the build, plan the roadmap, create user stories, write the tasks | plan | `references/plan.md` |
 | Sponsor needs justification, need to defend budget or timeline, build the business case | business-case | `references/business-case.md` |
-| Significant decision, multiple approaches, "what should we do?", generate solutions, generate options | three-options | `references/three-options.md` |
+| Significant decision, multiple approaches, "what should we do?", generate solutions, generate options, not the playbook, from the surviving facts | three-options | `references/three-options.md` |
 | 20 things are "urgent," need to pick the 3 that matter, prioritize three | pick-three | `references/pick-three.md` |
 
 ### Ship
