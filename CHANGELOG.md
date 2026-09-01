@@ -5,7 +5,10 @@
 Same public map as 3.20: Commands, then All 30 Skills, then How Skills Work. Hero is hallway English. Six skills got harder field gates. Same six stages. Same 30 skills.
 
 - README hero: the client work around the code that still gets you fired if you skip it. Catalog and project tree stay on the front door.
-- Discover: data estate always; the pipe; their words in `terrain.md`.
+- Discover: data estate always; the pipe; their words in `terrain.md`. Parts of the problem before scan (no solutions).
+- Test-assumptions: kind FACT / CONVENTION / UNKNOWN before blast radius.
+- Three-options: assemble from surviving blocks, not three speeds of the same plan.
+- POC: write pass/fail lines before you build.
 - Ship: run their command in this turn or you cannot write that it passed. Monday-shaped staging. No unsupervised loop on their production.
 - Review: their PR comments are to check, not to obey.
 - Readout: old path still live = claimed. Runbook: named operator runs Tuesday's job from the 2am doc, hands off. Eval-pack: side effect without a named human on their side is NO-SHIP.

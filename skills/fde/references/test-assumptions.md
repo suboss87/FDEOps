@@ -8,7 +8,7 @@ Every engagement is built on assumptions. Most are invisible until they're wrong
 
 ## Method (you do this work)
 
-**1. Extract the assumptions.** Read `brief.md` and `reality.md` line by line. Every statement that isn't backed by evidence is an assumption. Common hiding places:
+**1. Extract the assumptions.** Read `brief.md`, `reality.md`, and `terrain.md` `## Parts` line by line. Every statement that isn't backed by evidence is an assumption. Treat every "obvious" block as a convention until a receipt proves it. Common hiding places:
 
 | Where assumptions hide | Example | The real question |
 |----------------------|---------|-------------------|
@@ -19,7 +19,17 @@ Every engagement is built on assumptions. Most are invisible until they're wrong
 | **The data claim** | "We have good data for this" | Defined how? Validated when? By whom? Sample checked? |
 | **The "just"** | "We just need to add a feature" | On what system? With what dependencies? What breaks? |
 
-**2. Classify each assumption by blast radius:**
+**2. Kind first, then blast radius.** For each row, classify:
+
+| Kind | Meaning |
+|------|---------|
+| **FACT** | A dated receipt, a measurement, or the repo. You can point at it. |
+| **CONVENTION** | How they have always done it. The playbook. "We just…" |
+| **UNKNOWN** | No evidence either way. |
+
+Order the list load-bearing first. For each CONVENTION or UNKNOWN, one line: what breaks if it is wrong, and what opens if you **invert** it (stop obeying it). A FACT with no receipt is UNKNOWN - do not promote it to protect the brief.
+
+Then classify blast radius:
 
 ```
 CRITICAL - if wrong, the engagement fails or the approach changes fundamentally
@@ -55,11 +65,11 @@ Evidence first, then the question. Let them reach the conclusion.
 **`assumptions.md`** - this IS the register (create if land did not). Keep one live table; do not only bury results in `reality.md`:
 
 ```markdown
-| # | Assumption | Blast radius | How we test | Status | Evidence |
-|---|------------|--------------|-------------|--------|----------|
-| 1 | API is the bottleneck | CRITICAL | p95 instrumentation 24h | DISPROVED | 80% wait in DB layer (Day N) |
-| 2 | Team will adopt new tool | LOAD-BEARING | 3 individual interviews | CONFIRMED | 2/3 describe a use case unprompted |
-| 3 | Data clean enough for ML | CRITICAL | 200-record sample | PARTIAL → OPEN follow-up | 12% nulls on key field; cleaning task added |
+| # | Assumption | Kind | Blast radius | How we test | Status | Evidence |
+|---|------------|------|--------------|-------------|--------|----------|
+| 1 | API is the bottleneck | CONVENTION | CRITICAL | p95 instrumentation 24h | DISPROVED | 80% wait in DB layer (Day N) |
+| 2 | Team will adopt new tool | UNKNOWN | LOAD-BEARING | 3 individual interviews | CONFIRMED | 2/3 describe a use case unprompted |
+| 3 | Data clean enough for ML | UNKNOWN | CRITICAL | 200-record sample | PARTIAL → OPEN follow-up | 12% nulls on key field; cleaning task added |
 ```
 
 Status values: `OPEN` · `TESTING` · `CONFIRMED` · `DISPROVED` · `PARKED`. A CRITICAL row still `OPEN` blocks plan.
@@ -85,6 +95,7 @@ Result: acked in 40 minutes, by Marco, not finance. Assumption DISPROVED, and th
 ## Principles
 
 - Every "just" is an assumption. Every "should" is an assumption.
+- Kind before blast radius. A FACT with no receipt is UNKNOWN.
 - Kill the riskiest, cheapest-to-test assumption first.
 - Evidence first, then the question. Let the customer reach the conclusion.
 - A brief with zero disproved assumptions wasn't audited - it was accepted.
