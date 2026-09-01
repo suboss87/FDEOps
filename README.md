@@ -12,11 +12,21 @@ Notes stay on your laptop. Their repo stays theirs. You confirm before anything 
 
 ## Quick Start
 
+**Try it first, nothing installed.** In any repo:
+
+```bash
+npx fdeops scan
+```
+
+Two minutes. It prints what to look at on day one and the questions to ask. Local only, nothing written.
+
+**Then install the skill:**
+
 ```bash
 npx skills add suboss87/fdeops --skill fde
 ```
 
-Then one chat. Name the client:
+One chat. Name the client:
 
 ```text
 @fde this is client01
