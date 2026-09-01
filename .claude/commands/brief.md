@@ -1,5 +1,5 @@
 ---
-description: Engage. Interrogate the brief. Name who signs done.
+description: Name who signs done. First meeting, new client.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **land**.

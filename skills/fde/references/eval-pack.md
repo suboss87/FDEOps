@@ -22,9 +22,9 @@ Intelligence without evidence is token-maxing with a nicer name. An FDE earns tr
 
 **3. Score pass/fail, not vibes.** Run the suite. Record count pass / fail. Failures get a failure-mode tag (missing data, wrong record, format drift, hallucination, retrieval miss, unsafe action, other).
 
-**4. Human-in-the-loop gate.** Name which outcomes require human approve before side effects. If none, write why that is allowed under `trust-profile.md` AI policy - do not invent permission.
+**4. Human-in-the-loop gate.** Name which outcomes require human approve before side effects. Judgement that has a side effect (write, send, transfer, ticket, deploy, pay, page) is **NO-SHIP** without a named human on their side in the loop. Do not write "none - allowed under policy" to bless lights-out write-access. Staging may run a supervised loop with a kill switch, a cost cap, and a golden set from **their** failures. Production stays gated until they have a written policy, a named owner, and dated eval receipts on real traffic.
 
-**5. Ship rule.** Until `evals.md` shows Verdict **SHIP** with a dated run (critical fails = 0) and HITL filled when policy requires it, AI-touching ship stays **fix-first**. Log a one-line eval receipt in `delivery.md` → `## Ship receipts`.
+**5. Ship rule.** Until `evals.md` shows Verdict **SHIP** with a dated run (critical fails = 0) and HITL filled, AI-touching ship stays **fix-first**. Eval fails do not sit in a backlog - they reopen plan (descope, move the judgement, or kill the path). Log a one-line eval receipt in `delivery.md` → `## Ship receipts`. No "probably fine."
 
 ## Artifact - `evals.md`
 
@@ -39,5 +39,5 @@ Present to the FDE: suite size, pass rate, top failure mode, HITL gate, Verdict 
 - No golden set, no AI ship.
 - Pass/fail beats “looks good.”
 - Failure modes are the product - the happy path is table stakes.
-- HITL is a gate, not a slide.
+- HITL is a gate, not a slide. Side effects without a named human on their side are NO-SHIP.
 - Non-AI work does not need this file.

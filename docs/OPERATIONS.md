@@ -16,11 +16,13 @@
 
 ## First hour
 
-```bash
-node bin/install.js                  # once per machine (skills + hooks)
-cd <client-workspace>
-fde resume --init <engagement-name>  # once per workspace
+Install from the [README Quick Start](../README.md#quick-start) (plugin or `npx skills add suboss87/fdeops --skill fde`). Then in chat:
+
+```text
+@fde this is Acme
 ```
+
+That creates `~/fde-engagements/acme/.fde/` and binds this workspace. Terminal fallback: `npx fdeops resume --init <engagement-name>`. Air-gap disk copy: `node bin/install.js`.
 
 Work in your normal workspace. In the **AI chat**, type `@fde` with what is happening **now**.
 

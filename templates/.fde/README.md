@@ -5,7 +5,7 @@
 Create with:
 
 ```bash
-node bin/install.js init <engagement-name>   # from fdeops repo; or npx fdeops@latest init when npm ≥ 3.0.0
+fde resume --init <engagement-name>   # or: npx fdeops resume --init <engagement-name>
 ```
 
 Stays on **your machine** - not in shared git by default.

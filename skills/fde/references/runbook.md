@@ -60,6 +60,7 @@ Rollback: <exact command and expected time>
 |---------|-------|-----------|----------|--------|
 | **Architecture walkthrough** | Why, not what. The decisions, the trade-offs, the things that almost went wrong. | Full team | 60-90 min | Recording + Q&A log |
 | **Operational drill** | Deploy, rollback, incident response. They do it, you watch. | On-call team | 60 min | Drill report with confidence level |
+| **Floor drill** | They run the real job (the exception on the operating map) while you watch, hands off. Then they teach the next person. If they cannot, the runbook is a PDF. | Named operator on the floor | 45-60 min | They used the 2am doc during the drill, or the embed is not closed |
 | **Edge-case handover** | The things that aren't in any document. The workarounds, the fragile spots, the "ask Sarah because she's the only one who knows." | Team lead + 1 | 30 min | Additions to `handoff.md` |
 
 **4. The confidence check.** After the knowledge transfer, score the team's readiness:
@@ -68,11 +69,12 @@ Rollback: <exact command and expected time>
 |------|------------------|----------|
 | Daily operations | | Can they deploy and rollback without help? |
 | Incident response | | Did they complete the drill within acceptable time? |
+| Floor job | | Did the named operator complete Tuesday's real exception without you at the keyboard? |
 | Architecture decisions | | Can they explain why the system is built this way? |
 | AI components (if any) | | Do they know how to monitor, retrain, and disable? |
 | Stakeholder management | | Do they know who to update and how? |
 
-**Average below 3.5 → the handoff is not complete.** Extend if possible; if not, document the gaps and name the risk.
+**Average below 3.5 → the handoff is not complete.** Extend, or tell the sponsor the embed is not closed. Do not document the gap and leave.
 
 **5. The successor brief.** If a new FDE is taking over, write a brief that gets them operational in one hour:
 
@@ -132,7 +134,7 @@ If you see 2+: accelerate the handoff immediately. The longer you stay past usef
 
 - The goal of every engagement is to make yourself replaceable.
 - The 2am document is the real handoff - everything else supports it.
-- Knowledge transfer is three sessions, not a doc dump.
+- Knowledge transfer is four sessions, not a doc dump. The floor drill is the one that matters.
 - A confidence score below 3.5 means the handoff isn't done.
 - The successor brief gets the next FDE operational in one hour or it's too long.
 - Clean exit: no personal credentials left behind, ever.

@@ -1,12 +1,12 @@
 ---
-description: Align. Sequence the work. Work backwards from success.
+description: Sequence from done, not from the ticket.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **plan**.
 
 If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI.
 
-Run `fde resume` (fallback: `npx --yes fdeops resume`). Read `references/plan.md` and follow it. Sequence backwards from done, one change they can see at a time, who signs. Each Now item names `Kill if`.
+Run `fde resume` (fallback: `npx --yes fdeops resume`). Read `references/plan.md` and follow it. Sequence from done, not from the ticket. Who signs. Each Now item names `Kill if`.
 
 Do not invent a plan the record cannot support. Missing success criteria → `unknown - ask: <question>`.
 

@@ -1,5 +1,5 @@
 ---
-description: Diagnose. Check the brief is the real job.
+description: Check the brief is the real job.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **discover**.

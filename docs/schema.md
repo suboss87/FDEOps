@@ -18,7 +18,7 @@ After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same rou
 
 | File | Purpose | Written by |
 |------|---------|------------|
-| `context.md` | Compact state; loaded every session; dated debrief blocks | every phase + the `session-stop` hook (auto-capture) + `fde debrief` |
+| `context.md` | Compact state; loaded every session; dated debrief blocks | every stage + the `session-stop` hook (auto-capture) + `fde debrief` |
 | `brief.md` | Stated problem (hypothesis) | land |
 | `assumptions.md` | Brief claims under test: OPEN / CONFIRMED / DISPROVED | land (seed), test-assumptions, discover |
 | `success.md` | Definition of done + primary value bucket + out of scope | land |
@@ -56,7 +56,7 @@ The rationale is the line a successor cannot reconstruct from the code.
 
 | File | Purpose | Written by |
 |------|---------|------------|
-| `chaos-log.md` | Incidents, root cause | rescue, debug |
+| `chaos-log.md` | Incidents, root cause | rescue |
 | `handoff.md` | Team takeover knowledge | close |
 | `patterns.md` | Reusable patterns | close |
 | `audit.md` | Mid-engagement: real vs assumed | audit |
@@ -73,9 +73,9 @@ The rationale is the line a successor cannot reconstruct from the code.
 ## Rules
 
 1. **`<private>...</private>`** - redacted from CLI, dashboard, and hook-injected context. Nothing inside a block is ever routed into `decisions.md`/`risks.md`/`delivery.md`/`stakeholders.md`; `fde debrief`/`fde ingest` seal it verbatim into `context.md` instead, and hold it out of the agent-facing `.debrief-propose` in an owner-only (`0600`) `.debrief-private` sidecar that only `--apply` reads; a `.debrief-seal` receipt records how many blocks were sealed, so `--apply` refuses rather than silently dropping one if the sidecar disappears. Do not load raw blocks into the model via file tools or paste.
-2. Phases load files **on demand**, not the whole directory.
+2. Stages load files **on demand**, not the whole directory.
 3. **Do not** mix two customers in one `.fde/`.
-4. **Deliverable = memory:** `--init` creates only the core files; phase artifacts (`audit.md`, `chaos-log.md`, `handoff.md`, `evals.md`, …) are created by their phases when they run - formats live in [skills/fde/references/](../skills/fde/references/).
+4. **Deliverable = memory:** `--init` creates only the core files; stage artifacts (`audit.md`, `chaos-log.md`, `handoff.md`, `evals.md`, …) are created by their stages when they run - formats live in [skills/fde/references/](../skills/fde/references/).
 5. Every claim carries its evidence: `(ops lead, Day 5)` · `(churn: 47/90d)` · `(stated, unverified)`.
 6. **Trust signals are tokens:** the latest dated `[signal:green|amber|red]` in `stakeholders.md` drives `fde status` / `fde dashboard`; tokens older than 21 days show as stale. Keyword matching is only the fallback when no token exists.
 7. **Assumptions are not receipts:** `assumptions.md` and `brief.md` are claims. `fde receipts` labels them separately from dated agreements.

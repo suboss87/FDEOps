@@ -3,23 +3,19 @@
 fdeops implements this methodology as an installable field kit: skills plus `.fde/` artifacts so one **human engineer** can run client work end to end with an **AI coding agent** (not a human “agent” on the team).
 
 ## What Is an FDE?
-Forward Deployed Engineers embed directly with customers, bridging the gap between product capability and enterprise reality. Originated as a discipline at companies deploying engineers directly into customer operations. a16z called it "the hottest job in tech."
+An FDE sits with the customer, in their repo, until their people can run what shipped. FDEOps is the kit for that loop: six stages, a local record, an AI coding agent that does not get to skip who signs, what is live, and whether they accepted.
 
 ## How fdeops talks
 
 fdeops is **conversational** - a senior colleague thinking with you, not a form. Skills teach intent and judgment; they are not scripts to read aloud.
 
-## The FDE Principles Encoded in fdeops
-1. **Trust First:** technology serves people. Earn the right to touch production systems.
-2. **Explore Chaotically:** do things that don't scale; discover what works before encoding.
-3. **Observe Continuously:** real user needs hide in workarounds, not formal requirements.
-4. **Prototype to Learn:** rough demos beat polished wrong answers.
-5. **Bridge Business and Technology:** every decision must be traceable to customer value.
-6. **Map Before Moving:** never modify unknown terrain.
-7. **Embrace Chaos:** real enterprise environments are partially unmappable. Operate anyway.
-8. **Brownfield Safety:** legacy code is fragile; wrap, don't rewrite. Characterise before changing.
-9. **Ship with Rigour:** pre-flight, canary, tested rollback.
-10. **Extract Patterns:** every engagement feeds back into the collective intelligence.
+## The six stages encoded in fdeops
+1. **Land**  - Name who signs done.
+2. **Discover**  - Check the brief is the real job.
+3. **Plan**  - Sequence from done, not from the ticket.
+4. **Ship**  - Seen on their staging, then live. Not one PR to prod.
+5. **Outcome**  - Promised, measured, accepted. A number nobody signed is claimed.
+6. **Close**  - They operate it without you.
 
 ## Before Your First Meeting
 
@@ -35,7 +31,6 @@ The hour before you walk in (or log on) determines the quality of the next two w
 
 **One hypothesis:** Walk in with one falsifiable belief about what the real problem is. You'll probably be wrong. That's the point. It forces you to listen for the correction.
 
-## Further Reading
-- a16z: "Forward Deployed Engineer: The Hottest Job in Tech"
-- Boris Cherny on Lenny's Podcast (Claude Code creation)
-- Palantir FDE operations documentation
+## Further reading
+- [README](../README.md)  - the public map (commands, principles, who this is for)
+- [USAGE.md](./USAGE.md)  - what to type day to day

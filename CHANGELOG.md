@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.21.0 - 2026-09-01
+
+The public map is hallway English. Ship and review got harder field gates. Same six stages. Same 30 skills.
+
+- README hero: the client work around the code. Commands table: What you're doing | Type this | Remember. Dual consulting verbs are gone from the front door.
+- Quick Start before Commands. First hour: folder exists, one confirmed write, then `/brief`. Do not start coding.
+- Discover: data estate always; the pipe; their words in `terrain.md`.
+- Ship: run their command in this turn or you cannot write that it passed. Monday-shaped staging. No unsupervised loop on their production.
+- Review: their PR comments are to check, not to obey.
+- Readout: old path still live = claimed. Runbook: floor drill, do not document-and-leave. Eval-pack: side effect without a named human on their side is NO-SHIP.
+
 ## 3.20.0 - 2026-08-29
 
 The public map is a skill catalog. Lifecycle, then catalog, then how it works.
