@@ -134,7 +134,7 @@ If you see 2+: accelerate the handoff immediately. The longer you stay past usef
 
 - The goal of every engagement is to make yourself replaceable.
 - The 2am document is the real handoff - everything else supports it.
-- Knowledge transfer is four sessions, not a doc dump. The floor drill is the one that matters.
+- Knowledge transfer is four sessions, not a doc dump. The floor drill is the named operator completing Tuesday's real job from the 2am doc, hands off. If they cannot, do not close.
 - A confidence score below 3.5 means the handoff isn't done.
 - The successor brief gets the next FDE operational in one hour or it's too long.
 - Clean exit: no personal credentials left behind, ever.
