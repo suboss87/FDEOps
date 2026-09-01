@@ -1,5 +1,5 @@
 ---
-description: Realize. Promised, measured, accepted.
+description: Promised, measured, accepted. A number nobody signed is claimed, not delivered.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **outcome**.

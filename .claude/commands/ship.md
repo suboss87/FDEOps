@@ -1,5 +1,5 @@
 ---
-description: Deliver the increment. Then go live with a rollback you have run.
+description: Seen on their staging, then live. Rollback you have run.
 ---
 
 Load `@fde` (`skills/fde/SKILL.md`). Stage: **ship**.

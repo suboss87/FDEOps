@@ -2,20 +2,11 @@
 
 Copy the **structure**, not the company names. These files show what a real week-1 → week-2 arc looks like in `.fde/`.
 
-Follow [README § The basic workflow](../../README.md#the-basic-workflow) while you read.
+This is a **reference copy**. Do not install from this page. Do not init `garvey-payments` unless you are only reading along.
 
-## Setup (your machine)
+Follow [README § Quick Start](../../README.md#quick-start) for *your* client. Your files land at `~/fde-engagements/<your-client>/.fde/`. Then read Day 1 below to see what a first write looks like.
 
-```bash
-cd fdeops && node bin/install.js
-cd <your-client-workspace>
-fde resume --init garvey-payments   # creates the engagement and binds this workspace
-```
-
-Open your workspace for this embed. Type `@fde`.
-
-> Files below live under `~/fde-engagements/garvey-payments/.fde/` after `init`.  
-> This folder in the repo is a **reference copy** for readers.
+> Files below are a **reference copy** of `~/fde-engagements/garvey-payments/.fde/`.
 
 ---
 
@@ -48,11 +39,11 @@ Open your workspace for this embed. Type `@fde`.
 
 ---
 
-### Day 10 - Ship one change
+### Day 10 - Ship
 
 **You:** `@fde Ship thinnest path by Friday. Legacy `payments-eu` module, no tests in repo.`
 
-**AI coding agent should:** route engineering - characterise, one change they can see, `decisions.md` + `delivery.md`.
+**AI coding agent should:** route ship - prove it on their staging, then live; log `decisions.md` + `delivery.md`.
 
 | File | What gets written |
 |------|-------------------|

@@ -90,19 +90,18 @@ Each reference is a **skill, not a prompt**: the thinking the agent does, the ar
 
 ## Core path (quick reference)
 
-The skills most engagements actually run through, with what gets written where. This is a shorter cut through the table above. POC, the change on their repo, proof on their staging, go-live, and eval stay on `@fde` - they are not a side pack.
+The six stages stay land → discover → plan → ship → outcome → close. These are the skills most engagements actually run, with what gets written where. POC, the change on their repo, proof on their staging, go-live, and eval stay on `@fde`.
 
-| Phase | Enter when | What it does | Writes |
+| Skill | Enter when | What it does | Writes |
 |-------|-----------|-------------------|--------|
 | [land](../skills/fde/references/land.md) | New customer, first meeting | Interrogates the brief for what's missing; coaches the sponsor conversation; maps stakeholders and sacred data | `brief.md` `success.md` `stakeholders.md` `trust-profile.md` |
 | [discover](../skills/fde/references/discover.md) | Brief feels wrong, real problem unclear | Runs churn/test-gap/"temporary"-archaeology/AI-component scans; hunts the workaround; scores use cases | `reality.md` `terrain.md` |
-| [audit](../skills/fde/references/audit.md) | Taking over half-done work | Reads everything, tests every "this works" claim, finds tribal-knowledge holes via git authorship | `audit.md` `terrain.md` `reality.md` `context.md` |
-| [poc](../skills/fde/references/poc.md) | Direction needs validating | Prototypes the killer assumption same-day; kill criteria; 3-sentence business case | `prototype-log.md` `business-case.md` |
-| [rescue](../skills/fde/references/rescue.md) | Production fire, trust fire, or wrong-brief mid-build | Stabilise -> named unknowns -> minimum safe change; quiet-stakeholder protocol; three-path reset | `chaos-log.md` `risks.md` `decisions.md` |
+| [plan](../skills/fde/references/plan.md) | Scope clear, needs sequencing | Back from done; fragile first; PR-sized tasks; acceptance-criteria gate | `decisions.md` |
+| [ship](../skills/fde/references/ship.md) | Writing or updating on their repo, or ready to deploy | Seen on their staging, then live; intent vs diff, pre-flight/CAB, rollback you have run | `decisions.md` `delivery.md` |
+| [readout](../skills/fde/references/readout.md) | Friday, sponsor update, what's delivered | Promised → measured → accepted | `delivery.md` (ledger); presented via `fde status` |
 | [close](../skills/fde/references/close.md) | Engagement ending | Retrospective with receipts; pattern extraction; the 2am handoff | `retrospectives/` `patterns.md` `handoff.md` |
-| [plan](../skills/fde/references/plan.md) | Scope clear, needs sequencing | Backwards from success; fragile first; PR-sized tasks; acceptance-criteria gate | `decisions.md` |
-| [review](../skills/fde/references/review.md) | Change needs a merge gate | Stage 1 KEEP/JUSTIFY/SPLIT/DROP vs stated intent, then 5-dimension safety; review-fix loop until clean | `decisions.md` |
-| [ship](../skills/fde/references/ship.md) | Writing or updating on their repo, or ready to deploy | One change they can see (greenfield or brownfield), proven on their staging; then intent vs diff, pre-flight/CAB, canary with rollback-on-anomaly | `decisions.md` `delivery.md` |
+
+Also-ran skills on the same loop (not a second map): [audit](../skills/fde/references/audit.md) · [poc](../skills/fde/references/poc.md) · [rescue](../skills/fde/references/rescue.md) · [review](../skills/fde/references/review.md).
 
 ---
 
@@ -120,4 +119,4 @@ The skills most engagements actually run through, with what gets written where. 
 4. On exit (and before a PR) the agent runs a **session digest** - TL;DR, key decisions & why, scope/verification, gotchas, next action - into existing `.fde/` files (not chat transcripts into the product repo); the `session-stop` hook backstops a thin snapshot (hooks resolve the engagement via the workspace registry written by `fde resume --init`).
 5. One customer, one folder. Never merged.
 
-v2's 16 standalone skills were consolidated into the single `@fde` router in v3.
+One `@fde` router. Thirty skills across six stages.

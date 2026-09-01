@@ -153,8 +153,8 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   }
   if (!routed.size) fail('check.js could not parse the SKILL.md routing table')
 
-  // docs/skills-reference.md is the canonical per-method list: one row per
-  // method inside the six domain tables, ending at the Overlays section.
+  // docs/skills-reference.md is the canonical per-skill list: one row per
+  // skill inside the six stage tables, ending at the Overlays section.
   const reference = read('docs/skills-reference.md')
   const documented = new Set()
   let documentedRows = 0

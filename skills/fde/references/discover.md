@@ -127,9 +127,11 @@ When discovery requires a structured session with multiple stakeholders (alignme
 
 **After the room:** Summary in `decisions.md` within 2 hours. Decisions decay - what felt clear at 3pm is debatable by 5pm if unwritten.
 
-## Method - part 4: data estate assessment
+## Method - part 4: data estate and the pipe
 
-When the engagement involves AI, analytics, or data-heavy automation, assess the data estate before scoring use cases:
+Always map the estate before you score a use case - not only when someone said "AI." A path they cannot feed is a discover miss, not a ship surprise.
+
+**Their words first.** In `terrain.md`, write the names the floor uses for the workaround, the sheet, the exception path, and the person who left. Later plan/ship/review sentences use those names. Do not translate their floor into generic product language.
 
 **The 5 questions (ask the data owner, not the sponsor):**
 1. **Where does data live?** - List every source: databases, warehouses, SaaS exports, spreadsheets, S3 buckets, vendor APIs. Map it.
@@ -138,13 +140,15 @@ When the engagement involves AI, analytics, or data-heavy automation, assess the
 4. **What's the quality?** - Sample 100 rows from each critical source. Check: nulls, duplicates, format consistency, semantic correctness. A 60% null rate in a key field = that source is fiction.
 5. **What are the governance constraints?** - PII classification, retention policies, cross-border rules, consent basis. One missed constraint = a compliance stop later.
 
+**The pipe (what talks to what).** For each source that a use case depends on, write: the system it flows from and to, the contract (object, table, file, API), whose credentials, what happens when the vendor 500s or the Monday file does not land, and whether the join the sponsor described actually exists. Their IdP, CRM, and warehouse are delivery work when the path needs them - policy questions in `trust-profile.md` are not a substitute.
+
 **The data readiness matrix:**
 
-| Source | Location | Freshness | Owner | Quality (sample) | Governance | Verdict |
-|--------|----------|-----------|-------|-----------------|------------|---------|
-| _fill per source_ | | | | | | Ready / Needs work / Blocker |
+| Source | Location | Freshness | Owner | Quality (sample) | Governance | Pipe | Verdict |
+|--------|----------|-----------|-------|-----------------|------------|------|---------|
+| _fill per source_ | | | | | | | Ready / Needs work / Blocker |
 
-A use case that depends on a "Blocker" source doesn't get scored - it gets a data remediation conversation first. Write this to `terrain.md` under a `## Data estate` section.
+A use case that depends on a "Blocker" source **or a Blocker pipe** doesn't get scored - it gets a remediation conversation first. `what-breaks` finding an invisible integration at ship is already too late. Write this to `terrain.md` under a `## Data estate` section.
 
 ## When scope is a transformation, not a single problem
 

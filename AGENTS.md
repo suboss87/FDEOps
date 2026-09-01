@@ -4,7 +4,7 @@ This repository **is** fdeops - the engagement record for Forward Deployed Engin
 
 ## If you are helping use fdeops in an engagement
 
-Route via **`@fde`** - read `skills/fde/SKILL.md` (the single source of truth), pick the phase, do the work, and write `.fde/` memory. Never ask the human to pick a skill. Other tools get the same behavior through thin pointer files in [`adapters/`](adapters/README.md).
+Route via **`@fde`** - read `skills/fde/SKILL.md` (the single source of truth), route to one `references/*.md`, do the work, and write `.fde/` memory. Never ask the human to pick a skill. Other tools get the same behavior through thin pointer files in [`adapters/`](adapters/README.md).
 
 ## If you are contributing to this repository
 

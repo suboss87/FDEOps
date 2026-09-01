@@ -27,7 +27,7 @@ Skip POC only when the killer assumption already lives in the repo (typical brow
 
 **Done means:** the signer in `success.md` can reject this on staging they operate. A green check on your laptop is not delivery. Do not start the next change until this one is rejectable.
 
-If `terrain.md` **Data estate** lists a **Blocker** this change depends on: stop. That is discover, not ship. Do not build a path they cannot feed.
+If `terrain.md` **Data estate** lists a **Blocker** this change depends on (source or pipe): stop. That is discover, not ship. Do not build a path they cannot feed.
 
 ## Method - one change they can see
 
@@ -72,10 +72,12 @@ Read existing code in the area (search before creating)
 
 **Prove it on their staging.** A green check on your laptop is not delivery.
 
-- Run **their** test command, typecheck, or smallest proving path. Write the command and the result in `delivery.md`.
+- Run **their** test command, on **their** CI, with **their** fixtures. Write the command and the result in `delivery.md`. You do not add a runner they will not keep. If you have not run their command in this turn, you cannot write that it passed. Last session's green, "should pass," and "looks correct" are not a receipt.
 - If the signer in `success.md` cannot reject this on a screen they already use, it is not proven.
 - Staging they operate beats a local demo. If you have no staging: `unknown - ask:` who owns an environment, then stop pretending it shipped.
+- **Monday-shaped data.** Staging that is empty, synthetic, or last quarter is not next Tuesday. Before go-live, write what staging is missing (volume, PII, the batch that only runs in prod, the account that only exists in the warehouse) and what that means for the kill test. If the signer cannot reject it on a screen they already operate, with data that looks like next Tuesday, it is not proven.
 - Model in the path: `eval-pack` until `evals.md` says SHIP. Do not skip because "it looked right in chat."
+- A model drafts. A named human on their side ships. No unsupervised loop on their production. If the brief demands lights-out write-access, that is `who-decides` / `hold-scope`, not ship.
 
 The proof is whatever this client already believes, plus one new receipt they can replay.
 
@@ -213,6 +215,8 @@ grep -rnE "(api[_-]?key|secret|password|token)\s*[:=]\s*['\"][^'\"]{8,}" \
 ## Method - the deploy
 
 **Canary:** 1-5% of traffic, ≥10 minutes. Watch error rate, latency, and **the business metric this change affects**. Anything looks wrong → roll back immediately; investigate safely; redeploy when confident. Never investigate during the canary. Then stage up: 5% → 25% → 100%, each confirmed stable.
+
+**Canary receipt** (write it, or the canary did not happen): what was watched, on whose dashboard, for how long, and that the next change did not start in the window. If prod is a CAB console, vendor button, or their pipeline, write the owner and the click path - the host agent does not get to pretend it shipped.
 
 **Programme-scale rollout (transformations)** - different problem from one service:
 1. **Pilot** - one team, one use case; success metrics defined *before* it starts (after = fitting metrics to results).
