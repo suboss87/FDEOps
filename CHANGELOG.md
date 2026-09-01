@@ -2,14 +2,16 @@
 
 ## 3.21.0 - 2026-09-01
 
-The public map is hallway English. Ship and review got harder field gates. Same six stages. Same 30 skills.
+Same public map as 3.20: Commands, then All 30 Skills, then How Skills Work. Hero is hallway English. Six skills got harder field gates. Same six stages. Same 30 skills.
 
-- README hero: the client work around the code. Commands table: What you're doing | Type this | Remember. Dual consulting verbs are gone from the front door.
-- Quick Start before Commands. First hour: folder exists, one confirmed write, then `/brief`. Do not start coding.
-- Discover: data estate always; the pipe; their words in `terrain.md`.
+- README hero: the client work around the code that still gets you fired if you skip it. Catalog and project tree stay on the front door.
+- Discover: data estate always; the pipe; their words in `terrain.md`. Parts of the problem before scan (no solutions).
+- Test-assumptions: kind FACT / CONVENTION / UNKNOWN before blast radius.
+- Three-options: assemble from surviving blocks, not three speeds of the same plan.
+- POC: write pass/fail lines before you build.
 - Ship: run their command in this turn or you cannot write that it passed. Monday-shaped staging. No unsupervised loop on their production.
 - Review: their PR comments are to check, not to obey.
-- Readout: old path still live = claimed. Runbook: floor drill, do not document-and-leave. Eval-pack: side effect without a named human on their side is NO-SHIP.
+- Readout: old path still live = claimed. Runbook: named operator runs Tuesday's job from the 2am doc, hands off. Eval-pack: side effect without a named human on their side is NO-SHIP.
 
 ## 3.20.0 - 2026-08-29
 

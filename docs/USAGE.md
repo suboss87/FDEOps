@@ -1,8 +1,10 @@
-# Usage
+# fdeops usage guide
 
-`@fde` is what you type. `.fde/` is the client folder on your laptop. Start at the README: install, name the client, then the command table.
+**What it is:** the engagement layer for **you** (human FDE) + your **AI coding agent** - `@fde` routes skills; `.fde/` holds client-scoped memory on your machine.
 
 **Terminology:** [README § Who this is for](../README.md#who-this-is-for) - **"agent" = AI software, not a human.**
+
+**Start here:** [README](../README.md) - Quick Start → Commands → All 30 Skills.
 
 <p align="center"><img alt="A recorded fdeops session: kickoff notes routed into dated memory after you confirm" src="../media/session.gif" width="900" /></p>
 
@@ -14,8 +16,8 @@ Day-to-day reference below.
 
 ## New here? (5 minutes)
 
-1. Install from the README (plugin or `npx skills add suboss87/fdeops --skill fde`), then in chat: `@fde this is Acme`. That creates `~/fde-engagements/acme/.fde/`. Confirm one write. Terminal fallback: `fde resume --init <client-name>`
-2. Read **Quick Start** and **Commands** in the README
+1. Install from the README (plugin or `npx skills add suboss87/fdeops --skill fde`), then in chat: `@fde this is client01`. That creates `~/fde-engagements/client01/.fde/`. Terminal fallback: `fde resume --init <client-name>`
+2. Read **Commands**, **All 30 Skills**, and **Who this is for** in the README
 3. Skim [examples/garvey-payments/](../examples/garvey-payments/) Day 1 → Day 10
 4. Optional recon, zero config: `npx fdeops scan` in a repo
 5. Then: `@fde` + the actual situation (brief wrong, they went quiet, when did we agree, what's the outcome)
@@ -28,10 +30,10 @@ You do not pick a skill. **`@fde` routes the AI and loads the right one.**
 
 | You are… | Example message to the **AI coding agent** |
 |----------|---------------------------------------------|
-| Starting | `@fde this is Acme` then `@fde First meeting tomorrow. Brief says: …` |
+| Starting | `@fde this is client01` then `@fde First meeting tomorrow. Brief says: …` |
 | Unsure of real problem | `@fde Workshop done. Ops says they use a spreadsheet nightly.` |
 | Just out of a meeting | `@fde Debrief: <paste your raw notes>` |
-| Ready to code | `@fde` Change in module X. Prove it on their staging. Going live after Marco signs. |
+| Ready to code | `@fde` One change they can see by Friday in module X. Going live after Marco signs staging. |
 | Production broken | `@fde API 500 since 2pm deploy.` |
 | Sponsor went quiet | `@fde VP stopped replying; still building old scope.` |
 | Handing off | `@fde Engagement ends Friday. Need handoff doc.` |
@@ -66,7 +68,7 @@ When a transcript or email is too large to paste, or lives in Granola/Slack/Noti
 
 **Daily without MCP:** paste to `@fde` or `fde ingest stage` a file. That is the complete product.
 
-**Optional pull:** `@fde I want to connect Granola` (or Slack / Notion). You add **that** source MCP; FDEOps does not bundle it and does not push back. Then `@fde pull today's Acme transcript`. The agent fetches text and runs `fde ingest` in this bound workspace (stage → propose → you confirm → apply).
+**Optional pull:** `@fde I want to connect Granola` (or Slack / Notion). You add **that** source MCP; FDEOps does not bundle it and does not push back. Then `@fde pull today's client01 transcript`. The agent fetches text and runs `fde ingest` in this bound workspace (stage → propose → you confirm → apply).
 
 **Directly (zero tokens, you already have the file):**
 
@@ -97,7 +99,7 @@ That writes a `[signal:amber]` token into `stakeholders.md`. The **latest dated 
 
 **You do not need these for daily work.** Chat with `@fde`; the agent runs them. Use the terminal for one-time setup, air-gapped machines, or automation.
 
-**Humans - once / occasional** (prefer chat: `@fde this is Acme`):
+**Humans - once / occasional** (prefer chat: `@fde this is client01`):
 
 ```bash
 npx fdeops resume --init <client>   # fallback: create + bind this workspace from the terminal

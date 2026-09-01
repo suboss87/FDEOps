@@ -2,9 +2,10 @@
 
 <!-- Brief claims that are not yet evidence. Land seeds; test-assumptions / discover update. -->
 
-| # | Assumption | Blast radius | How we test | Status | Evidence |
-|---|------------|--------------|-------------|--------|----------|
+| # | Assumption | Kind | Blast radius | How we test | Status | Evidence |
+|---|------------|------|--------------|-------------|--------|----------|
 
+**Kind:** `FACT` · `CONVENTION` · `UNKNOWN`  
 **Blast radius:** `CRITICAL` · `LOAD-BEARING` · `CONVENIENCE`  
 **Status:** `OPEN` · `TESTING` · `CONFIRMED` · `DISPROVED` · `PARKED`
 

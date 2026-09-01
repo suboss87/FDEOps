@@ -99,12 +99,12 @@ If `stakeholders.md` already has a `## Signal history` section (it does from the
 
 **`trust-profile.md`** - sacred data (`<private>` tagged), fears heard, AI policy, approval chain. Sensitive: skip for status reads; use CLI/redacted surfaces; never paste raw `<private>` into prompts or subagents.
 
-**`assumptions.md`** - seed every unverified claim from the brief (and the day-1 hypothesis) as rows with blast radius CRITICAL / LOAD-BEARING / CONVENIENCE and status `OPEN`. Do not wait for test-assumptions - land makes the register exist. Example:
+**`assumptions.md`** - seed every unverified claim from the brief (and the day-1 hypothesis) as rows with Kind `UNKNOWN` (or `CONVENTION` if they said "we always"), blast radius CRITICAL / LOAD-BEARING / CONVENIENCE, and status `OPEN`. Do not wait for test-assumptions - land makes the register exist. Example:
 
 ```markdown
-| # | Assumption | Blast radius | How we test | Status | Evidence |
-|---|------------|--------------|-------------|--------|----------|
-| 1 | <claim from brief> | CRITICAL | <cheapest falsifying test> | OPEN | (stated, unverified) |
+| # | Assumption | Kind | Blast radius | How we test | Status | Evidence |
+|---|------------|------|--------------|-------------|--------|----------|
+| 1 | <claim from brief> | UNKNOWN | CRITICAL | <cheapest falsifying test> | OPEN | (stated, unverified) |
 ```
 
 One falsifiable hypothesis about the real problem also goes at the bottom of `brief.md` - discover / test-assumptions will test it.
