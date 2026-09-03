@@ -1576,16 +1576,28 @@ function setSigner(eng, who) {
   const p = path.join(eng, 'success.md')
   let md = readEng(eng, 'success.md')
   if (!md) md = '# Success definition\n\n'
+  const norm = (s) => String(s).replace(/\s+/g, ' ').trim().toLowerCase()
   const line = /^\*\*Stakeholder who signs off:\*\*\s*(.*)$/m
   const m = md.match(line)
   if (m && !m[1].trim()) {
     md = md.replace(line, `**Stakeholder who signs off:** ${who}`)
-  } else if (m && m[1].trim().toLowerCase().includes(who.toLowerCase())) {
-    return false
   } else if (m) {
+    // Whole-name compare against the primary and every "also named" line under
+    // it: "Sam" must not vanish inside "Samantha", and re-applying must not
+    // stack duplicates.
+    const start = md.indexOf(m[0]) + m[0].length
+    const alsoNamed = []
+    for (const l of md.slice(start).split('\n').slice(1)) {
+      const a = l.match(/^- also named:\s*(.+)$/)
+      if (!a) break
+      alsoNamed.push(a[1])
+    }
+    const known = [m[1], ...alsoNamed].map(norm)
+    if (known.includes(norm(who))) return false
     // A second, different name is a fact worth keeping next to the first, not
     // a silent overwrite - who signs is exactly the thing people argue about.
-    md = md.replace(line, `$&\n- also named: ${who}`)
+    const block = [m[0], ...alsoNamed.map(a => `- also named: ${a}`)].join('\n')
+    md = md.replace(block, `${block}\n- also named: ${who}`)
   } else {
     md = md.replace(/\n*$/, `\n\n**Stakeholder who signs off:** ${who}\n`)
   }
@@ -2236,16 +2248,28 @@ function findDuplicateOpenRisks(eng) {
 // the CLI can catch "we shipped code and told the record nothing" without AI:
 // registry gives the workspace(s) bound to this engagement, git gives commits
 // newer than the last dated delivery line. Local reads only.
-function latestDatedLine(md) {
-  const dates = (stripTemplateNoise(md).match(/\b\d{4}-\d{2}-\d{2}\b/g) || []).sort()
-  return dates.length ? dates[dates.length - 1] : ''
+// Only dates that stamp an entry count: a ledger row's Date cell, a dated
+// bullet, a dated heading. "trial night 2026-06-02" inside a Measured cell is a
+// promise, not a receipt - and a future promise must not hide today's commits.
+function latestDeliveryDate(md) {
+  const today = new Date().toISOString().slice(0, 10)
+  let latest = ''
+  for (const raw of stripTemplateNoise(md).split('\n')) {
+    const t = raw.trim()
+    const m = t.match(/^[-*]\s*\[(\d{4}-\d{2}-\d{2})\]/) ||
+      t.match(/^#{1,6}\s+(\d{4}-\d{2}-\d{2})\b/) ||
+      t.match(/^\|\s*(\d{4}-\d{2}-\d{2})\s*\|/)
+    if (!m || m[1] > today) continue
+    if (m[1] > latest) latest = m[1]
+  }
+  return latest
 }
 
 function silentCommitIssues(eng) {
   const slug = path.basename(path.dirname(eng))
   const workspaces = readRegistry().filter(r => r.slug === slug).map(r => r.workspace)
   if (!workspaces.length) return []
-  const lastDelivery = latestDatedLine(readClean(eng, 'delivery.md'))
+  const lastDelivery = latestDeliveryDate(readClean(eng, 'delivery.md'))
   const out = []
   for (const ws of workspaces) {
     let st
@@ -2254,7 +2278,13 @@ function silentCommitIssues(eng) {
     // The memory folder is itself a git repo; never lint it as the client repo.
     if (path.resolve(ws) === path.resolve(eng) || path.resolve(ws) === path.dirname(path.resolve(eng))) continue
     if (sh('git rev-parse --is-inside-work-tree', ws) !== 'true') continue
-    const since = lastDelivery ? `--since="${lastDelivery} 23:59:59"` : "--since='30 days ago'"
+    // Memory git knows the exact moment delivery.md last changed; dates in the
+    // file are day-grained and would miss a commit made later the same day.
+    // No dated line at all = no receipt; the template's init commit does not count.
+    const stamp = lastDelivery ? sh('git log -1 --format=%cI -- delivery.md', eng) : ''
+    const since = stamp ? `--since="${stamp}"`
+      : lastDelivery ? `--since="${lastDelivery} 23:59:59"`
+        : "--since='30 days ago'"
     const commits = sh(`git log ${since} --format=%h -- .`, ws).split('\n').filter(Boolean).length
     if (!commits) continue
     const where = path.basename(ws)
