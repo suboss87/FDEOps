@@ -3266,6 +3266,9 @@ test('doctor silent-commit check ignores future promise dates inside a ledger ro
   assert.equal(runFde(sandbox, [
     'log', 'delivery', 'retry | cost-save | one night | pending - trial 2099-01-01 | pending | staging run | flag off',
   ]).status, 0)
+  // git timestamps are second-grained; a commit in the receipt's own second is
+  // treated as the receipt's work. Step clearly past it.
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1500)
   fs.writeFileSync(path.join(ws, 'b.js'), 'b\n')
   assert.equal(git(['add', '-A']).status, 0)
   assert.equal(git(['commit', '-qm', 'feat: after the receipt']).status, 0)
