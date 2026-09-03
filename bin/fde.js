@@ -2251,16 +2251,16 @@ function findDuplicateOpenRisks(eng) {
 // Only dates that stamp an entry count: a ledger row's Date cell, a dated
 // bullet, a dated heading. "trial night 2026-06-02" inside a Measured cell is a
 // promise, not a receipt - and a future promise must not hide today's commits.
-function latestDeliveryDate(md) {
+function latestDeliveryEntry(md) {
   const today = new Date().toISOString().slice(0, 10)
-  let latest = ''
+  let latest = { date: '', line: '' }
   for (const raw of stripTemplateNoise(md).split('\n')) {
     const t = raw.trim()
     const m = t.match(/^[-*]\s*\[(\d{4}-\d{2}-\d{2})\]/) ||
-      t.match(/^#{1,6}\s+(\d{4}-\d{2}-\d{2})\b/) ||
+      t.match(/^#{1,6}\s+\[?(\d{4}-\d{2}-\d{2})(?:\]|\b)/) ||
       t.match(/^\|\s*(\d{4}-\d{2}-\d{2})\s*\|/)
     if (!m || m[1] > today) continue
-    if (m[1] > latest) latest = m[1]
+    if (m[1] >= latest.date) latest = { date: m[1], line: t }
   }
   return latest
 }
@@ -2269,7 +2269,8 @@ function silentCommitIssues(eng) {
   const slug = path.basename(path.dirname(eng))
   const workspaces = readRegistry().filter(r => r.slug === slug).map(r => r.workspace)
   if (!workspaces.length) return []
-  const lastDelivery = latestDeliveryDate(readClean(eng, 'delivery.md'))
+  const entry = latestDeliveryEntry(readClean(eng, 'delivery.md'))
+  const lastDelivery = entry.date
   const out = []
   for (const ws of workspaces) {
     let st
@@ -2278,10 +2279,13 @@ function silentCommitIssues(eng) {
     // The memory folder is itself a git repo; never lint it as the client repo.
     if (path.resolve(ws) === path.resolve(eng) || path.resolve(ws) === path.dirname(path.resolve(eng))) continue
     if (sh('git rev-parse --is-inside-work-tree', ws) !== 'true') continue
-    // Memory git knows the exact moment delivery.md last changed; dates in the
+    // Memory git knows the exact moment that entry was written; dates in the
     // file are day-grained and would miss a commit made later the same day.
-    // No dated line at all = no receipt; the template's init commit does not count.
-    const stamp = lastDelivery ? sh('git log -1 --format=%cI -- delivery.md', eng) : ''
+    // Pickaxe on the entry text, not the file: a later status edit to
+    // delivery.md must not become the cutoff and hide commits before it.
+    const stamp = entry.line
+      ? sh(`git log -1 --format=%cI -S${JSON.stringify(entry.line)} -- delivery.md`, eng)
+      : ''
     const since = stamp ? `--since="${stamp}"`
       : lastDelivery ? `--since="${lastDelivery} 23:59:59"`
         : "--since='30 days ago'"

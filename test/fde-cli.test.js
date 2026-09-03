@@ -3271,6 +3271,14 @@ test('doctor silent-commit check ignores future promise dates inside a ledger ro
   assert.equal(git(['commit', '-qm', 'feat: after the receipt']).status, 0)
   const doctor = runFde(sandbox, ['doctor'])
   assert.match(doctor.stdout, /code moved, ledger did not/)
+
+  // A later committed status note on delivery.md is not a receipt: the cutoff
+  // stays at the dated entry, so the commit above is still reported.
+  fs.appendFileSync(path.join(eng, 'delivery.md'), '\nStatus: waiting on security ticket.\n')
+  assert.equal(spawnSync('git', ['-C', eng, 'add', 'delivery.md']).status, 0)
+  assert.equal(spawnSync('git', ['-C', eng, '-c', 'user.name=t', '-c', 'user.email=t@t.t', 'commit', '-qm', 'status note']).status, 0)
+  const later = runFde(sandbox, ['doctor'])
+  assert.match(later.stdout, /code moved, ledger did not/)
 })
 
 test('triage prints unreadable memory once, under memory, not trust', () => {
