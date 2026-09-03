@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "fdeops",
-  "version": "3.21.0",
+  "version": "3.22.0",
   "description": "Forward deployed engineering skills for AI coding agents. One @fde skill for the client work around the code. You confirm; then it lands in .fde/ on your laptop.",
   "author": {
     "name": "Subash Natarajan",

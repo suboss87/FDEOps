@@ -6,6 +6,8 @@ You're on a customer site. The AI coding agent writes code in their repo. This k
 
 Notes stay on your laptop. Their repo stays theirs. You confirm before anything is written down.
 
+Keep the coding pack you already use. Install this next to it. FDEOps is the client work. The other pack writes the code.
+
 <img width="1536" height="1024" alt="fdeops" src="https://github.com/user-attachments/assets/2bcb8739-55ee-445d-8a1a-8b38433b7b58" />
 
 ---

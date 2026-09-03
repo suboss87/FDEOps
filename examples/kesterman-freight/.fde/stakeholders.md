@@ -9,10 +9,10 @@
 
 ## Signal history
 
-- [2026-06-12] [signal:green] Randy opened the sheet on-screen unprompted - floor trusts us with the real workflow
-- [2026-06-15] [signal:green] Denise agreed to re-scope against reality.md in one meeting, no pushback
-- [2026-06-26] [signal:amber] Denise skipped Thursday demo, no delegate sent, no reschedule
-- [2026-07-01] [signal:amber] Denise stopped replying to demo invites; third scope add arrived the same day via email
-- [2026-07-02] [signal:amber] Randy + Karen sync: Randy says Denise is "heads-down on the Nashville depot audit" (his read, unverified)
+- [2026-06-12] [signal:green] Randy Teague opened the sheet on-screen unprompted - floor trusts us with the real workflow
+- [2026-06-15] [signal:green] Denise Kowalczyk agreed to re-scope against reality.md in one meeting, no pushback
+- [2026-06-26] [signal:amber] Denise Kowalczyk skipped Thursday demo, no delegate sent, no reschedule
+- [2026-07-01] [signal:amber] Denise Kowalczyk stopped replying to demo invites; third scope add arrived the same day via email
+- [2026-07-02] [signal:amber] Randy Teague + Karen Mroz sync: Randy says Denise is "heads-down on the Nashville depot audit" (his read, unverified)
 
 **Trust:** amber (since 2026-06-26). Working theory: attention drain, not dissatisfaction - verify directly before the 2026-07-09 demo.
