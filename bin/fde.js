@@ -2283,9 +2283,12 @@ function silentCommitIssues(eng) {
     // file are day-grained and would miss a commit made later the same day.
     // Pickaxe on the entry text, not the file: a later status edit to
     // delivery.md must not become the cutoff and hide commits before it.
-    const stamp = entry.line
+    const raw = entry.line
       ? sh(`git log -1 --format=%cI -S${JSON.stringify(entry.line)} -- delivery.md`, eng)
       : ''
+    // git --since is inclusive at second grain; a commit in the same second as
+    // the receipt is the receipt's own work, not a silent one.
+    const stamp = raw && !Number.isNaN(Date.parse(raw)) ? new Date(Date.parse(raw) + 1000).toISOString() : ''
     const since = stamp ? `--since="${stamp}"`
       : lastDelivery ? `--since="${lastDelivery} 23:59:59"`
         : "--since='30 days ago'"
