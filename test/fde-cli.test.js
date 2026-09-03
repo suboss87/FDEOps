@@ -3204,6 +3204,80 @@ test('debrief --smart prints the prefix vocabulary before the preview', () => {
   assert.match(smart.stdout, /next:/)
 })
 
+test('debrief --smart routes "Priya signs off" into success.md and stakeholders.md', () => {
+  const sandbox = makeSandbox('smart-signer')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'signco']).status, 0)
+  const notes = path.join(sandbox.dir, 'notes.md')
+  fs.writeFileSync(notes, [
+    'Kickoff with Priya (VP Eng) and Marco (ops lead).',
+    'Priya signs off. Budget fixed. Staging exists but has no EU data.',
+    'The API is slow on Mondays.',
+  ].join('\n') + '\n')
+  const smart = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.match(smart.stdout, /signer:/)
+  assert.match(smart.stdout, /success\.md.*Stakeholder who signs off:\*\* Priya/)
+  assert.doesNotMatch(smart.stdout, /signs off:\*\* (The|Staging)/)
+  const applied = runFde(sandbox, ['debrief', '--apply'])
+  assert.equal(applied.status, 0, applied.stderr)
+  const eng = engagementPath(sandbox, 'signco')
+  assert.match(fs.readFileSync(path.join(eng, 'success.md'), 'utf8'), /\*\*Stakeholder who signs off:\*\* Priya/)
+  assert.match(fs.readFileSync(path.join(eng, 'stakeholders.md'), 'utf8'), /Priya signs off/)
+  // The original sentence is still on the record as context - nothing dropped.
+  assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /Budget fixed/)
+  const prep = runFde(sandbox, ['prep', 'Friday'])
+  assert.match(prep.stdout, /Priya/)
+})
+
+test('debrief signer: does not overwrite a different signer already on record', () => {
+  const sandbox = makeSandbox('signer-keep')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'keepco']).status, 0)
+  const eng = engagementPath(sandbox, 'keepco')
+  const before = fs.readFileSync(path.join(eng, 'success.md'), 'utf8')
+  fs.writeFileSync(path.join(eng, 'success.md'), before.replace(/\*\*Stakeholder who signs off:\*\*.*/, '**Stakeholder who signs off:** Denise'))
+  const applied = runFde(sandbox, ['debrief'], { input: 'signer: Randy\n' })
+  assert.equal(applied.status, 0, applied.stderr)
+  const md = fs.readFileSync(path.join(eng, 'success.md'), 'utf8')
+  assert.match(md, /signs off:\*\* Denise/)
+  assert.match(md, /also named: Randy/)
+})
+
+test('doctor flags commits in the bound repo after the last delivery line', () => {
+  const sandbox = makeSandbox('silent-commits')
+  const ws = sandbox.workspace
+  const git = (args) => spawnSync('git', ['-C', ws, ...args], {
+    encoding: 'utf8',
+    env: { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t.t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t.t' },
+  })
+  assert.equal(git(['init', '-q']).status, 0)
+  fs.writeFileSync(path.join(ws, 'a.js'), 'a\n')
+  assert.equal(git(['add', '-A']).status, 0)
+  assert.equal(git(['commit', '-qm', 'feat: retry worker']).status, 0)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'silentco']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
+  const eng = engagementPath(sandbox, 'silentco')
+  fillOperatingMap(eng)
+  const quiet = runFde(sandbox, ['doctor'])
+  assert.match(quiet.stdout, /commit\(s\) in workspace.*code moved, ledger did not/)
+  assert.equal(runFde(sandbox, [
+    'log', 'delivery', 'retry | risk-mitigation | zero Excel nights | pending | staging run | flag off',
+  ]).status, 0)
+  const receipted = runFde(sandbox, ['doctor'])
+  assert.doesNotMatch(receipted.stdout, /code moved, ledger did not/)
+})
+
+test('triage labels a quoted risk as top risk, not trust', () => {
+  const sandbox = makeSandbox('triage-label')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'labelco']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'risk', 'staging has no EU data so we cannot prove it there yet']).status, 0)
+  const out = runFde(sandbox, ['resume'])
+  assert.match(out.stdout, /top risk: .*staging has no EU data/)
+  assert.doesNotMatch(out.stdout, /^\s+trust: .*staging has no EU data/m)
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Priya went quiet', '--signal', 'amber']).status, 0)
+  const withSignal = runFde(sandbox, ['resume'])
+  assert.match(withSignal.stdout, /^\s+trust: .*Priya went quiet/m)
+})
+
 test('log delivery with pipes writes a value-ledger row', () => {
   const sandbox = makeSandbox('log-ledger')
   assert.equal(runFde(sandbox, ['resume', '--init', 'ledco']).status, 0)

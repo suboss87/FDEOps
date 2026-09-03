@@ -9,8 +9,8 @@
 
 ## Signal history
 
-- [2026-06-30] [signal:green] Sam cleared his calendar for the full kickoff, brought the board deck numbers
-- [2026-07-01] [signal:amber] Renata declined the architecture working session, "conflicting priority" - no reschedule offered
-- [2026-07-03] [signal:red] Renata declined the second working session; told Sam "we already have a design for this" - engagement was scoped without her, her team runs prod, and she found out from the calendar invite
+- [2026-06-30] [signal:green] Sam Whitfield cleared his calendar for the full kickoff, brought the board deck numbers
+- [2026-07-01] [signal:amber] Renata Fischer declined the architecture working session, "conflicting priority" - no reschedule offered
+- [2026-07-03] [signal:red] Renata Fischer declined the second working session; told Sam Whitfield "we already have a design for this" - engagement was scoped without her, her team runs prod, and she found out from the calendar invite
 
-**Trust:** RED (Renata, since 2026-07-03). She is the best source of truth in the building - the passed-over internal architect. Nothing ships to prod without her team. Fix this before any architecture work.
+**Trust:** RED (Renata Fischer, since 2026-07-03). She is the best source of truth in the building - the passed-over internal architect. Nothing ships to prod without her team. Fix this before any architecture work.

@@ -42,6 +42,8 @@ On someone else's site the work is not "write code, remember later." Every chang
 
 A throwaway file can skip the loop. Bound client work cannot.
 
+**Skip is loud.** Bound + a change that will ship + no this-turn line in `delivery.md` = not done. Say that. Do not call it shipped. A coding pack may write the function; `@fde` still owns done.
+
 ## Human surface vs agent plumbing
 
 **FDE (human):** `@fde` + English, or `/brief` `/discover` `/plan` `/ship` `/outcome` `/close` `/debrief` `/prep` `/trust` `/receipts` `/readout`. Never a skill catalog.
@@ -196,8 +198,8 @@ Ready to build with no `terrain.md` / plan: discover or plan first. Takeover wit
 
 - Never ask the FDE to pick a phase. That's your job.
 - Same six stages at any scale. Overlays carry the industry. Greenfield and brownfield change the first move inside ship, not the map.
-- Ground loop on a bound client: name → characterise → prove on their staging → go live → log. Do not hand their repo to a generic coding pack.
-- Do not call a change done until the signer in `success.md` can reject it on staging they operate.
+- Ground loop on a bound client: name → characterise → prove on their staging → go live → log. A coding pack may write the function. `@fde` still owns done. When they disagree, their repo and the signer win.
+- Do not call a change done until the signer in `success.md` can reject it on staging they operate. No this-turn receipt in `delivery.md` is a failed test, not a note to write later.
 - Read `context.md` before speaking. One sharp question - never a barrage.
 - Never invent people, meetings, or numbers - `unknown - ask:` beats a polished lie.
 - Every phase ends with its artifact written. No artifact, no "done."

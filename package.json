@@ -1,6 +1,6 @@
 {
   "name": "fdeops",
-  "version": "3.21.0",
+  "version": "3.22.0",
   "description": "Forward deployed engineering skills for AI coding agents. One @fde skill for the client work around the code: who can say yes, what went live, whether they signed off. Dated markdown on your laptop. You confirm each write.",
   "bin": {
     "fdeops": "bin/install.js",

@@ -1,7 +1,7 @@
 {
   "name": "fdeops",
   "description": "Forward deployed engineering skills for AI coding agents. One @fde skill for the client work around the code. You confirm; then it lands in .fde/ on your laptop.",
-  "version": "3.21.0",
+  "version": "3.22.0",
   "category": "productivity",
   "tags": [
     "community-managed"
