@@ -194,6 +194,9 @@ function createTrustApi(deps) {
     }) || '').replace(/\|/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80)
     // Prefer trust trigger / memory warn over a random risk line; always keep mem.warn available
     const reason = (trustReason || mem.warn) ? (trustReason || mem.warn) : topRisk
+    // What the triage line is actually quoting. A risk bullet printed under
+    // "trust:" read as a stakeholder problem that did not exist.
+    const reasonKind = trustReason ? 'trust' : mem.warn ? 'memory' : topRisk ? 'risk' : ''
     const openRisks = countOpenRisks(eng)
     const nextAction = nextActionLine(ctx)
     let updated = 'never', ageDays = Infinity
@@ -203,7 +206,7 @@ function createTrustApi(deps) {
     } catch (_) {}
     const dirty = memoryDirtyManual(eng)
     return {
-      phase, trust, signalAge, stale, topRisk, reason, memoryWarn: mem.warn,
+      phase, trust, signalAge, stale, topRisk, reason, reasonKind, memoryWarn: mem.warn,
       dirtyFiles: dirty, openRisks, nextAction, updated, ageDays,
     }
   }
@@ -215,9 +218,9 @@ function createTrustApi(deps) {
     const lines = [
       `TRIAGE  [${label.padEnd(6)}]  phase:${phase}  updated:${s.updated}  open risks:${s.openRisks}`,
     ]
-    if (s.reason) {
-      const age = s.signalAge != null ? ` (${s.signalAge}d old${s.stale ? ', STALE - reconfirm' : ''})` : ''
-      lines.push(`  trust: ${s.reason}${age}`)
+    if (s.reason && s.reasonKind !== 'memory') {
+      const age = s.reasonKind === 'trust' && s.signalAge != null ? ` (${s.signalAge}d old${s.stale ? ', STALE - reconfirm' : ''})` : ''
+      lines.push(`  ${s.reasonKind === 'risk' ? 'top risk' : 'trust'}: ${s.reason}${age}`)
     }
     // Always surface corruption / unreadable memory - even when trust still reads green
     if (s.memoryWarn) lines.push(`  memory: ${s.memoryWarn}`)

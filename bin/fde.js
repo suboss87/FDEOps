@@ -1515,14 +1515,20 @@ function smartProposeText(input) {
       out.push(`decision: ${bare.replace(/^decided:\s+/i, '')}`)
       continue
     }
-    if (/^(decision|risk|delivery|contact|next):\s*/i.test(bare)) {
-      let routed = bare.replace(/^(decision|risk|delivery|contact|next):\s*/i, (m, t) => `${t.toLowerCase()}: `)
+    if (/^(decision|risk|delivery|contact|next|signer):\s*/i.test(bare)) {
+      let routed = bare.replace(/^(decision|risk|delivery|contact|next|signer):\s*/i, (m, t) => `${t.toLowerCase()}: `)
       if (/^contact:/i.test(routed) && !/\[signal:(red|amber|green)\]/i.test(routed)) {
         const sig = inferContactSignal(routed)
         if (sig) routed = routed.replace(/\s*$/, ` [signal:${sig}]`)
       }
       out.push(routed)
       continue
+    }
+    // Sentence-level: a signer named mid-paragraph gets its own routed line and
+    // the original stays as context, so nothing is invented or lost.
+    for (const sentence of bare.split(/(?<=[.!?])\s+/)) {
+      const who = signerFromLine(sentence)
+      if (who) { out.push(`signer: ${who}`); break }
     }
     if (/^(next action|follow-?ups?|action items?|todo):\s*/i.test(bare) ||
         /\b(next action|walk in with|follow up with)\b/i.test(bare)) {
@@ -1547,6 +1553,44 @@ function smartProposeText(input) {
     }
   }
   return out.join('\n') + (out.length ? '\n' : '')
+}
+
+// "Priya signs off" is the most expensive sentence in a kickoff and used to land
+// in context.md as a note. signer: fills the success.md line the whole kit
+// keys on, and logs the person as a contact so prep/status can see them.
+const SIGNER_RX = /^(?<who>[A-Z][\w.'-]+(?:\s+[A-Z][\w.'-]+){0,3}(?:\s*\([^)]{1,40}\))?)\s+(?:signs?(?:\s+off)?|approves|has (?:the )?final say|can say yes|owns the decision|is the (?:sponsor|signer|decision[- ]maker))\b/
+
+function signerFromLine(text) {
+  const t = String(text || '').trim()
+  const m = t.match(SIGNER_RX)
+  if (!m) return ''
+  const who = m.groups.who.trim()
+  // "Staging exists" / "The API is slow" also match "Capital Word + verb"; a
+  // sentence-initial common noun is not a person.
+  if (/^(The|This|That|It|We|They|Staging|Budget|Prod|Production|Nobody|Someone|Everyone)\b/.test(who)) return ''
+  return who
+}
+
+function setSigner(eng, who) {
+  ensureMemoryGit(eng)
+  const p = path.join(eng, 'success.md')
+  let md = readEng(eng, 'success.md')
+  if (!md) md = '# Success definition\n\n'
+  const line = /^\*\*Stakeholder who signs off:\*\*\s*(.*)$/m
+  const m = md.match(line)
+  if (m && !m[1].trim()) {
+    md = md.replace(line, `**Stakeholder who signs off:** ${who}`)
+  } else if (m && m[1].trim().toLowerCase().includes(who.toLowerCase())) {
+    return false
+  } else if (m) {
+    // A second, different name is a fact worth keeping next to the first, not
+    // a silent overwrite - who signs is exactly the thing people argue about.
+    md = md.replace(line, `$&\n- also named: ${who}`)
+  } else {
+    md = md.replace(/\n*$/, `\n\n**Stakeholder who signs off:** ${who}\n`)
+  }
+  withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
+  return true
 }
 
 function setNextAction(eng, text) {
@@ -1665,7 +1709,7 @@ function readSealedProposal(eng) {
 function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
   const d = new Date()
   const date = d.toISOString().slice(0, 10)
-  const counts = { decision: 0, risk: 0, delivery: 0, contact: 0, next: 0 }
+  const counts = { decision: 0, risk: 0, delivery: 0, contact: 0, next: 0, signer: 0 }
   const ctxLines = []
   let nextAction = ''
   ensureMemoryGit(eng)
@@ -1678,14 +1722,26 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
   for (const raw of routable.split('\n')) {
     let line = raw.trim()
     if (!line) continue
-    const bare = line.replace(/^[-*+]\s+/, '').replace(/^\*\*(decision|risk|delivery|contact|next):?\*\*:?\s*/i, '$1: ')
-    const m = bare.match(/^(decision|risk|delivery|contact|next):\s*(.+)$/i)
+    const bare = line.replace(/^[-*+]\s+/, '').replace(/^\*\*(decision|risk|delivery|contact|next|signer):?\*\*:?\s*/i, '$1: ')
+    const m = bare.match(/^(decision|risk|delivery|contact|next|signer):\s*(.+)$/i)
     if (m) {
       const type = m[1].toLowerCase()
       let body = m[2]
       const hit = findSecretHit(body)
       if (hit && !force) {
         console.error(`skipped ${type} line - looks like a ${hit}. Redact it, or re-run with --force.`)
+        continue
+      }
+      if (type === 'signer') {
+        const who = body.replace(/\s+signs?(?:\s+off)?\b.*$/i, '').trim() || body.trim()
+        if (dry) {
+          console.log(`→ success.md  **Stakeholder who signs off:** ${previewLine(who)}`)
+          console.log(`→ stakeholders.md  ${previewLine(datedEntry(eng, date, `${who} signs off`))}`)
+        } else {
+          setSigner(eng, who)
+          appendLogEntry(eng, 'contact', datedEntry(eng, date, `${who} signs off`), { skipCommit: true })
+        }
+        counts.signer++
         continue
       }
       if (type === 'next') {
@@ -1760,7 +1816,7 @@ function cmdDebrief(args) {
     if (smart) {
     const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
     console.log('SMART PROPOSE (heuristic - review before apply; no new facts invented beyond line rewrites)\n')
-    console.log('Prefix vocabulary (lines that route): decision:  risk:  delivery:  contact:  next:')
+    console.log('Prefix vocabulary (lines that route): decision:  risk:  delivery:  contact:  next:  signer:')
     console.log('Everything else → context.md. Keep the prefixes; the preview gate stays.\n')
     routeDebriefInput(eng, clean, { dry: true, force, sealed: blocks })
     if (!apply) {
@@ -1776,7 +1832,7 @@ function cmdDebrief(args) {
   const { counts, ctxLines, privateBlocks } = routeDebriefInput(eng, input, { dry, force, sealed })
   if (!dry) {
     const hash = commitMemory(eng, 'debrief', {
-      files: ['decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'context.md', SIGNAL_LEDGER],
+      files: ['decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'success.md', 'context.md', SIGNAL_LEDGER],
     })
     try { fs.unlinkSync(path.join(eng, DEBRIEF_PROPOSE)) } catch (_) {}
     try { fs.unlinkSync(path.join(eng, DEBRIEF_PRIVATE)) } catch (_) {}
@@ -1784,7 +1840,7 @@ function cmdDebrief(args) {
     if (hash) console.log(`memory @${hash}`)
   }
   const plural = {
-    decision: 'decisions', risk: 'risks', delivery: 'deliveries', contact: 'contacts', next: 'next actions',
+    decision: 'decisions', risk: 'risks', delivery: 'deliveries', contact: 'contacts', next: 'next actions', signer: 'signers',
   }
   const parts = Object.keys(counts).filter(t => counts[t])
     .map(t => `${counts[t]} ${counts[t] === 1 ? (t === 'next' ? 'next action' : t) : plural[t]}`)
@@ -2176,6 +2232,41 @@ function findDuplicateOpenRisks(eng) {
   return [...byKey.values()].filter(g => g.length >= 2)
 }
 
+// The bound client repo moved and delivery.md did not. This is the one place
+// the CLI can catch "we shipped code and told the record nothing" without AI:
+// registry gives the workspace(s) bound to this engagement, git gives commits
+// newer than the last dated delivery line. Local reads only.
+function latestDatedLine(md) {
+  const dates = (stripTemplateNoise(md).match(/\b\d{4}-\d{2}-\d{2}\b/g) || []).sort()
+  return dates.length ? dates[dates.length - 1] : ''
+}
+
+function silentCommitIssues(eng) {
+  const slug = path.basename(path.dirname(eng))
+  const workspaces = readRegistry().filter(r => r.slug === slug).map(r => r.workspace)
+  if (!workspaces.length) return []
+  const lastDelivery = latestDatedLine(readClean(eng, 'delivery.md'))
+  const out = []
+  for (const ws of workspaces) {
+    let st
+    try { st = fs.statSync(ws) } catch (_) { continue }
+    if (!st.isDirectory()) continue
+    // The memory folder is itself a git repo; never lint it as the client repo.
+    if (path.resolve(ws) === path.resolve(eng) || path.resolve(ws) === path.dirname(path.resolve(eng))) continue
+    if (sh('git rev-parse --is-inside-work-tree', ws) !== 'true') continue
+    const since = lastDelivery ? `--since="${lastDelivery} 23:59:59"` : "--since='30 days ago'"
+    const commits = sh(`git log ${since} --format=%h -- .`, ws).split('\n').filter(Boolean).length
+    if (!commits) continue
+    const where = path.basename(ws)
+    out.push(
+      lastDelivery
+        ? `${commits} commit(s) in ${where} since the last delivery line (${lastDelivery}) - code moved, ledger did not; log the receipt or say why nothing shipped`
+        : `${commits} commit(s) in ${where} in 30d and delivery.md has no dated line - code moved, ledger did not; fde log delivery "slice | bucket | promised | measured | accepted | evidence | rollback"`
+    )
+  }
+  return out
+}
+
 // Deterministic fieldbook hygiene - shared by doctor + session TRIAGE.
 // Silent when clean OR brand-new (no dated work yet). Never auto-rewrites.
 // High-value moments: week-start (via triage), ship/close, after real work accrues.
@@ -2246,9 +2337,11 @@ function collectDoctorIssues(eng) {
       'duplicate ## Next action headings in context.md - fill the first (template) section and remove extras; triage reads the last non-empty'
     )
   }
-  if ((s.phase === 'close' || s.phase === 'ship') && s.openRisks > 0) {
+  // Open, owned risks are normal mid-ship (triage already shows the count every
+  // session). The gate is close: nothing still live when you call the embed done.
+  if (s.phase === 'close' && s.openRisks > 0) {
     issues.push(
-      `phase is ${s.phase} with ${s.openRisks} open risk(s) - retire, hand off, or move still-live ones before calling the embed done`
+      `phase is close with ${s.openRisks} open risk(s) - retire, hand off, or move still-live ones before calling the embed done`
     )
   }
   if (s.phase === 'close' || s.phase === 'ship') {
@@ -2268,6 +2361,7 @@ function collectDoctorIssues(eng) {
         `phase is ${s.phase} with AI in scope but no eval receipt (evals.md Verdict or delivery Eval / Ship receipts) - required before green ship/close`
       )
     }
+    issues.push(...silentCommitIssues(eng))
   }
   const dupes = findDuplicateOpenRisks(eng)
   if (dupes.length) {

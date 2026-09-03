@@ -56,6 +56,10 @@ Each change is independently revertible.
 - [ ] Rollback named: revert this change, or something more specific
 - [ ] No dependency on an unmerged change (if dependent, state it and land in order)
 - [ ] `Kill if` is written - the observation that stops this change
+- [ ] Before-receipt captured: the failing output, number, or screen as it is today, dated in `delivery.md`, before you change anything
+- [ ] Open PRs and uncommitted work in the area checked (`gh pr list`, `gh pr diff <n> --name-only`); overlap goes to `decisions.md` before you start
+
+Your coding pack writes the function. This skill owns done. When they disagree with this repo, the repo wins.
 
 **The loop.** In this order:
 
@@ -72,7 +76,7 @@ Read existing code in the area (search before creating)
 
 **Prove it on their staging.** A green check on your laptop is not delivery.
 
-- Run **their** test command, on **their** CI, with **their** fixtures. Write the command and the result in `delivery.md`. You do not add a runner they will not keep. If you have not run their command in this turn, you cannot write that it passed. Last session's green, "should pass," and "looks correct" are not a receipt.
+- Run **their** test command, on **their** CI, with **their** fixtures. Write the command and the result in `delivery.md` in this turn. You do not add a runner they will not keep. If you have not run their command in this turn, you cannot write that it passed. Last session's green, "should pass," and "looks correct" are not a receipt. Missing this-turn line = not proven. Same as a failing test.
 - If the signer in `success.md` cannot reject this on a screen they already use, it is not proven.
 - Staging they operate beats a local demo. If you have no staging: `unknown - ask:` who owns an environment, then stop pretending it shipped.
 - **Monday-shaped data.** Staging that is empty, synthetic, or last quarter is not next Tuesday. Before go-live, write what staging is missing (volume, PII, the batch that only runs in prod, the account that only exists in the warehouse) and what that means for the kill test. If the signer cannot reject it on a screen they already operate, with data that looks like next Tuesday, it is not proven.

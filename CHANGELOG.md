@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.22.0 - 2026-09-03
+
+Skip is loud. The CLI now catches the two things a stranger's first week showed it missing: the signer vanishing into a note, and code moving while the ledger stayed silent. Same six stages. Same 30 skills.
+
+- `debrief --smart`: "Priya signs off" becomes `signer: Priya` - fills **Stakeholder who signs off** in `success.md` and logs the contact. A second, different signer is kept beside the first, never overwritten. New `signer:` prefix in the vocabulary.
+- `doctor` (ship/close): commits in the bound client repo newer than the last dated `delivery.md` line → "code moved, ledger did not." Registry + git, local only.
+- `doctor`: open, owned risks mid-ship no longer fail; the gate is close.
+- Triage: a quoted risk is labelled `top risk:`, not `trust:`.
+- Examples: all three pass `fde doctor` (schema `reality.md`, value bucket, operating map, **Accepted by** column, full names in signal history). `npm run check` runs doctor on every example so they cannot rot.
+- `@fde` and `ship`: a coding pack may write the function; `@fde` owns done. Before-receipt captured before you change anything; open PRs checked; no this-turn receipt is a failed test.
+- README: keep the coding pack you already use, install this next to it. `npx fdeops scan` is the first thing on the page.
+
 ## 3.21.0 - 2026-09-01
 
 Same public map as 3.20: Commands, then All 30 Skills, then How Skills Work. Hero is hallway English. Six skills got harder field gates. Same six stages. Same 30 skills.

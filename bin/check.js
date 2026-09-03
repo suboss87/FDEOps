@@ -409,6 +409,28 @@ for (const f of exampleFiles) {
 }
 ok('examples walkthrough files')
 
+// The examples are the first .fde/ a newcomer reads. They must pass the kit's
+// own doctor, or the kit is telling people to do what its showcase does not.
+// Tolerated: things a frozen reference copy cannot have (an owner, a memory
+// git, a fresh trust signal).
+{
+  const { spawnSync } = require('child_process')
+  const tolerated = /no \.owner|not git-versioned|trust signal is STALE/
+  for (const ex of fs.readdirSync(path.join(root, 'examples'))) {
+    const eng = path.join(root, 'examples', ex, '.fde')
+    if (!fs.existsSync(eng)) continue
+    const r = spawnSync(process.execPath, [path.join(root, 'bin', 'fde.js'), 'doctor'], {
+      encoding: 'utf8',
+      env: { ...process.env, FDEOPS_ENGAGEMENT: eng, HOME: fs.mkdtempSync(path.join(require('os').tmpdir(), 'fdeops-check-')) },
+    })
+    const issues = (r.stdout || '').split('\n')
+      .map(l => l.match(/^\s+\d+\.\s+(.*)$/)).filter(Boolean).map(m => m[1])
+      .filter(i => !tolerated.test(i))
+    if (issues.length) fail(`examples/${ex} fails its own doctor:\n    - ${issues.join('\n    - ')}`)
+    else ok(`examples/${ex} passes fde doctor`)
+  }
+}
+
 if (fs.existsSync(path.join(root, 'tasks', 'plan.md'))) {
   fail('tasks/plan.md should not be in public tree (move to docs/internal)')
 }
