@@ -196,7 +196,7 @@ function createTrustApi(deps) {
     const reason = (trustReason || mem.warn) ? (trustReason || mem.warn) : topRisk
     // What the triage line is actually quoting. A risk bullet printed under
     // "trust:" read as a stakeholder problem that did not exist.
-    const reasonKind = trustReason ? 'trust' : mem.warn ? 'memory' : topRisk ? 'risk' : ''
+    const reasonKind = mem.warn && trustReason === mem.warn ? 'memory' : trustReason ? 'trust' : mem.warn ? 'memory' : topRisk ? 'risk' : ''
     const openRisks = countOpenRisks(eng)
     const nextAction = nextActionLine(ctx)
     let updated = 'never', ageDays = Infinity

@@ -3240,6 +3240,60 @@ test('debrief signer: does not overwrite a different signer already on record', 
   const md = fs.readFileSync(path.join(eng, 'success.md'), 'utf8')
   assert.match(md, /signs off:\*\* Denise/)
   assert.match(md, /also named: Randy/)
+
+  // Re-applying the same secondary signer is idempotent; a name that is a
+  // substring of another ("Sam" in "Samantha") is still its own person.
+  assert.equal(runFde(sandbox, ['debrief'], { input: 'signer: Randy\nsigner: Samantha\nsigner: Sam\n' }).status, 0)
+  const again = fs.readFileSync(path.join(eng, 'success.md'), 'utf8')
+  assert.equal((again.match(/also named: Randy/g) || []).length, 1)
+  assert.match(again, /also named: Samantha/)
+  assert.match(again, /^- also named: Sam$/m)
+})
+
+test('doctor silent-commit check ignores future promise dates inside a ledger row', () => {
+  const sandbox = makeSandbox('future-date')
+  const ws = sandbox.workspace
+  const git = (args) => spawnSync('git', ['-C', ws, ...args], {
+    encoding: 'utf8',
+    env: { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t.t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t.t' },
+  })
+  assert.equal(git(['init', '-q']).status, 0)
+  assert.equal(runFde(sandbox, ['resume', '--init', 'futureco']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
+  const eng = engagementPath(sandbox, 'futureco')
+  fillOperatingMap(eng)
+  // Row dated today, Measured cell promises a trial next year.
+  assert.equal(runFde(sandbox, [
+    'log', 'delivery', 'retry | cost-save | one night | pending - trial 2099-01-01 | pending | staging run | flag off',
+  ]).status, 0)
+  // git timestamps are second-grained; a commit in the receipt's own second is
+  // treated as the receipt's work. Step clearly past it.
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1500)
+  fs.writeFileSync(path.join(ws, 'b.js'), 'b\n')
+  assert.equal(git(['add', '-A']).status, 0)
+  assert.equal(git(['commit', '-qm', 'feat: after the receipt']).status, 0)
+  const doctor = runFde(sandbox, ['doctor'])
+  assert.match(doctor.stdout, /code moved, ledger did not/)
+
+  // A later committed status note on delivery.md is not a receipt: the cutoff
+  // stays at the dated entry, so the commit above is still reported.
+  fs.appendFileSync(path.join(eng, 'delivery.md'), '\nStatus: waiting on security ticket.\n')
+  assert.equal(spawnSync('git', ['-C', eng, 'add', 'delivery.md']).status, 0)
+  assert.equal(spawnSync('git', ['-C', eng, '-c', 'user.name=t', '-c', 'user.email=t@t.t', 'commit', '-qm', 'status note']).status, 0)
+  const later = runFde(sandbox, ['doctor'])
+  assert.match(later.stdout, /code moved, ledger did not/)
+})
+
+test('triage prints unreadable memory once, under memory, not trust', () => {
+  const sandbox = makeSandbox('triage-memory')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'memco']).status, 0)
+  const eng = engagementPath(sandbox, 'memco')
+  fs.writeFileSync(path.join(eng, 'stakeholders.md'), Buffer.from([0x23, 0x20, 0x00, 0xff, 0x00]))
+  const out = runFde(sandbox, ['resume'])
+  const trustLines = out.stdout.split('\n').filter(l => /^\s+trust: /.test(l))
+  const memoryLines = out.stdout.split('\n').filter(l => /^\s+memory: /.test(l))
+  assert.equal(trustLines.length, 0, out.stdout)
+  assert.equal(memoryLines.length, 1, out.stdout)
 })
 
 test('doctor flags commits in the bound repo after the last delivery line', () => {
