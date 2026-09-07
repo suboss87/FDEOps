@@ -292,8 +292,8 @@ function cmdAdapters(targetDir, opts = {}) {
 
 function cmdInit(engagementName) {
   if (!engagementName) {
-    console.error('  Usage: node bin/install.js init <engagement-name>')
-    console.error('  Example: node bin/install.js init retailbank-payments')
+    console.error('  Usage: fdeops init <engagement-name>')
+    console.error('  Example: fdeops init retailbank-payments')
     process.exit(1)
   }
   const slug = slugify(engagementName)
@@ -318,9 +318,15 @@ function cmdInit(engagementName) {
   else if (merged > 0) console.log(`  (${merged} missing template file(s) added)`)
   console.log('')
   console.log('  Next:')
-  console.log('  1. Open your workspace for this engagement')
-  console.log(`  2. Point your AI coding agent at: FDEOPS_ENGAGEMENT=${fdeDir}`)
-  console.log('  3. In the AI chat (not email), type: @fde and describe what is happening')
+  console.log('  1. cd into the workspace you will work in for this client')
+  console.log(`  2. Bind it once - no env var to remember afterwards:  fde resume --init ${slug}`)
+  console.log('  3. In the AI chat, say what happened. The agent runs the CLI.')
+  console.log('')
+  // Creating the memory does not bind a workspace: the registry maps a workspace
+  // path to a slug, and this command runs wherever the human happened to be.
+  // Saying so here is the difference between a bound engagement and a silent
+  // "NO ENGAGEMENT" in every later session.
+  console.log(`  (until it is bound, commands need: export FDEOPS_ENGAGEMENT=${fdeDir})`)
   console.log('')
 }
 
@@ -334,14 +340,14 @@ function cmdInstall(opts = {}) {
   console.log('  CLI → ~/.claude/fdeops/fde.js  (try: node ~/.claude/fdeops/fde.js scan)')
   console.log('')
   console.log('  Create an engagement (stays off customer infrastructure):')
-  console.log('    node bin/install.js init <engagement-name>')
+  console.log('    fdeops init <engagement-name>')
   console.log('')
   console.log('  Example:')
-  console.log('    node bin/install.js init garvey-payments')
-  console.log('  (npm 3.0.0+: npx fdeops@latest init <engagement-name>)')
+  console.log('    fdeops init garvey-payments')
+  console.log('  (from a clone, without installing: node bin/install.js init <engagement-name>)')
   console.log('')
   console.log('  Use another AI tool (Cursor, Codex, Gemini CLI, Copilot)? Wire it up:')
-  console.log('    node bin/install.js adapters <engagement-workspace>')
+  console.log('    fdeops adapters <engagement-workspace>')
   console.log('')
   console.log('  Then open your workspace and use @fde')
   console.log('  Docs: docs/install.md')

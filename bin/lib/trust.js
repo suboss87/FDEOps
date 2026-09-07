@@ -3,6 +3,7 @@
 function createTrustApi(deps) {
   const {
     fs, path, readClean, readEng, parseMdTable, sectionBody, SIGNAL_LEDGER, memoryDirtyManual,
+    stripTemplateNoise, stripLegendLines,
   } = deps
 
   // phase / trust / top risk / freshness - identical heuristic for status + dashboard.
@@ -172,6 +173,9 @@ function createTrustApi(deps) {
     }
     const mem = stakeholdersMemoryHealth(eng)
     let trust, signalAge = null, stale = false, trustReason = ''
+    // Green must mean "asked, and fine" - never "never touched". An untouched
+    // engagement on a portfolio screen is the one colour that must not lie.
+    let noSignal = false
     if (!mem.ok && !worst) {
       trust = 'amber'
       trustReason = mem.warn
@@ -186,6 +190,15 @@ function createTrustApi(deps) {
       const sLines = stake.split('\n').filter(l => !(/green/i.test(l) && /red|amber/i.test(l)))
       trust = sLines.some(l => /\bred\b/i.test(l)) ? 'RED'
         : sLines.some(l => /amber|gone quiet|routing around|escalat/i.test(l)) ? 'amber' : 'green'
+      if (trust === 'green') {
+        // Template comments and "**Trust signal:** green | amber | red" legends are
+        // not somebody telling you they are fine.
+        const said = stripLegendLines(stripTemplateNoise(stake)).split('\n').filter(l => {
+          const t = l.trim()
+          return t && !t.startsWith('#') && !t.startsWith('|') && t.length > 8
+        }).length
+        noSignal = said === 0
+      }
     }
     const topRisk = (risks.split('\n').find(l => {
       const t = l.trim()
@@ -206,14 +219,14 @@ function createTrustApi(deps) {
     } catch (_) {}
     const dirty = memoryDirtyManual(eng)
     return {
-      phase, trust, signalAge, stale, topRisk, reason, reasonKind, memoryWarn: mem.warn,
+      phase, trust, noSignal, signalAge, stale, topRisk, reason, reasonKind, memoryWarn: mem.warn,
       dirtyFiles: dirty, openRisks, nextAction, updated, ageDays,
     }
   }
 
   function resumeTriage(eng) {
     const s = computeSignals(eng)
-    const label = s.trust + (s.stale ? '?' : '')
+    const label = (s.noSignal ? 'new' : s.trust) + (s.stale ? '?' : '')
     const phase = s.phase === '?' ? 'unset' : s.phase
     const lines = [
       `TRIAGE  [${label.padEnd(6)}]  phase:${phase}  updated:${s.updated}  open risks:${s.openRisks}`,
