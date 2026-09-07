@@ -796,6 +796,11 @@ function parseReality(md, maxLen) {
   return { line: '', missing: '' }
 }
 
+// Same columns as templates/.fde/delivery.md - a row without them above it is
+// read as the header line, so the value it carries disappears.
+const VALUE_LEDGER_HEADER = '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |'
+const VALUE_LEDGER_RULE = '|------|-------|--------|----------|----------|-------------|----------|----------|'
+
 function appendValueLedgerRow(eng, cells) {
   ensureMemoryGit(eng)
   const p = path.join(eng, 'delivery.md')
@@ -826,10 +831,14 @@ function appendValueLedgerRow(eng, cells) {
   // written to an empty template heading above it is a row no gate can see.
   const target = [...sections].reverse().find(s => s.filled) || sections[sections.length - 1]
   if (!target) {
-    md = appendUnderSection(md, 'Value ledger', row)
+    md = appendUnderSection(md, 'Value ledger', `${VALUE_LEDGER_HEADER}\n${VALUE_LEDGER_RULE}\n${row}`)
+  } else if (target.lastTable !== -1) {
+    lines.splice(target.lastTable + 1, 0, row)
+    md = lines.join('\n')
   } else {
-    const at = target.lastTable !== -1 ? target.lastTable : target.heading
-    lines.splice(at + 1, 0, ...(target.lastTable !== -1 ? [row] : ['', row]))
+    // No table under the chosen heading: a lone row would be read as the header
+    // line and the value would vanish. Lay the canonical table first.
+    lines.splice(target.heading + 1, 0, '', VALUE_LEDGER_HEADER, VALUE_LEDGER_RULE, row)
     md = lines.join('\n')
   }
   withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })

@@ -3393,6 +3393,20 @@ test('a non-AI ship is not held for an eval receipt by ordinary delivery English
   assert.match(runFde(sandbox, ['doctor']).stdout, /eval/i)
 })
 
+test('a ledger section with prose but no table gets the table, not a headerless row', () => {
+  const sandbox = makeSandbox('log-prose-ledger')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'proseco']).status, 0)
+  const eng = engagementPath(sandbox, 'proseco')
+  const p = path.join(eng, 'delivery.md')
+  fs.appendFileSync(p, '\n## Value ledger\n\nDenise wants this measured weekly.\n')
+  assert.equal(runFde(sandbox, [
+    'log', 'delivery',
+    'retry queue | cost-save | 2h/week | 1.8h/week | Denise | sheet | flag off',
+  ]).status, 0)
+  // a lone row reads as the header line, so status would show no value at all
+  assert.match(runFde(sandbox, ['status']).stdout, /2h\/week → 1\.8h\/week/)
+})
+
 test('type inference is not model inference, and an AI code policy is not a model in the product', () => {
   const sandbox = makeSandbox('ai-policy-field')
   assert.equal(runFde(sandbox, ['resume', '--init', 'inferco']).status, 0)
