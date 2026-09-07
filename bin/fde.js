@@ -805,17 +805,31 @@ function appendValueLedgerRow(eng, cells) {
   const cols = []
   for (let i = 0; i < 7; i++) cols.push((cells[i] || '').replace(/\|/g, '\\|').trim() || ' ')
   const row = `| ${date} | ${cols.join(' | ')} |`
+  // Write into the same section the readers take: the last filled ## Value ledger.
+  // A row appended to the empty template heading above a filled one is a row no
+  // gate can see.
   const lines = md.split('\n')
-  let inLedger = false
-  let lastTableLine = -1
+  const sections = []
+  let cur = null
   for (let i = 0; i < lines.length; i++) {
-    if (/^##\s+Value ledger\b/i.test(lines[i])) { inLedger = true; continue }
-    if (inLedger && /^##\s+/.test(lines[i])) break
-    if (inLedger && /^\|/.test(lines[i].trim())) lastTableLine = i
+    if (/^##\s+Value ledger\b/i.test(lines[i])) {
+      cur = { heading: i, lastTable: -1, filled: false }
+      sections.push(cur)
+      continue
+    }
+    if (!cur) continue
+    if (/^##\s+/.test(lines[i])) { cur = null; continue }
+    if (lines[i].trim()) cur.filled = true
+    if (/^\|/.test(lines[i].trim())) cur.lastTable = i
   }
-  if (lastTableLine === -1) md = appendUnderSection(md, 'Value ledger', row)
-  else {
-    lines.splice(lastTableLine + 1, 0, row)
+  // sectionBody(..., lastNonEmpty) takes the last section with a body, so a row
+  // written to an empty template heading above it is a row no gate can see.
+  const target = [...sections].reverse().find(s => s.filled) || sections[sections.length - 1]
+  if (!target) {
+    md = appendUnderSection(md, 'Value ledger', row)
+  } else {
+    const at = target.lastTable !== -1 ? target.lastTable : target.heading
+    lines.splice(at + 1, 0, ...(target.lastTable !== -1 ? [row] : ['', row]))
     md = lines.join('\n')
   }
   withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
@@ -2646,6 +2660,10 @@ function engagementTouchesAI(eng) {
   const trust = readClean(eng, 'trust-profile.md')
   const aiSec = stripTemplateNoise(sectionBody(trust, 'AI policy', { lastNonEmpty: true }) || '')
   if (aiSec.trim().length > 20) return true
+  // Not **AI code policy:** - that field is about the FDE's own agent writing
+  // code ("permitted with human review"), which every engagement now has. AI in
+  // the shipped product is a different claim, and only the record's own words
+  // below can make it.
   // brief/success/risks included: an engagement is often declared AI in the brief
   // or in a risk ("nobody can say what the accuracy was") and never again.
   const blob = stripTemplateNoise([
@@ -2656,7 +2674,9 @@ function engagementTouchesAI(eng) {
     readClean(eng, 'risks.md'),
     readClean(eng, 'assumptions.md'),
   ].join('\n'))
-  return /\b(llm|rag|embedding|inference|model card|model output|model drift|agentic|openai|anthropic|vector database|vector db|prompt|fine-tun\w*|hallucinat\w*)\b/i.test(blob)
+  // No bare "prompt": "prompt response" / "prompt payment" is ordinary delivery
+  // English and would fail every non-AI ship on a missing eval receipt.
+  return /\b(llm|rag|embedding|model card|model output|model drift|agentic|openai|anthropic|vector database|vector db|fine-tun\w*|hallucinat\w*)\b|\bmodel inference\b|\binference (?:api|endpoint|server|engine)\b|\b(?:system|model|user)\s+prompts?\b|\bprompt (?:engineering|injection|template)/i.test(blob)
 }
 
 // The repo says AI even when the record does not. Read-only, capped, local: the
@@ -2721,7 +2741,7 @@ function recordDigest(eng) {
   const signer = ((success.match(/^\*\*Stakeholder who signs off:\*\*\s*(.*)$/m) || [])[1] || '').trim()
   // "(none)" rather than a missing line: on session start, nobody named to sign
   // off is the fact worth seeing, not an absence to scroll past.
-  const lines = [`  signer: ${signer || '(none)'}`]
+  const lines = [`  signer: ${signer.slice(0, 110) || '(none)'}`]
   const { rows } = parseValueLedger(eng)
   const promisedRow = [...rows].reverse().find(r => r.promised)
   if (promisedRow) {
