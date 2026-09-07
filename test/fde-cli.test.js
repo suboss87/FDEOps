@@ -3393,6 +3393,56 @@ test('a non-AI ship is not held for an eval receipt by ordinary delivery English
   assert.match(runFde(sandbox, ['doctor']).stdout, /eval/i)
 })
 
+test('an empty labelled field reads as empty, not as the line under it', () => {
+  const sandbox = makeSandbox('empty-field')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'freshco']).status, 0)
+  const eng = engagementPath(sandbox, 'freshco')
+  // the shipped template: both fields present and empty
+  const triage = runFde(sandbox, ['triage']).stdout
+  assert.match(triage, /signer: \(none\)/)
+  assert.doesNotMatch(triage, /promised: \*\*/)
+  // a contact-shaped line under the empty field is not a signer either
+  const p = path.join(eng, 'success.md')
+  fs.writeFileSync(p, '# Success definition\n\n**Stakeholder who signs off:**\n\n## Notes\n\nRandy Teague, IT lead - signs off on the floor\n')
+  assert.match(runFde(sandbox, ['triage']).stdout, /signer: \(none\)/)
+  // and debrief fills the field itself instead of filing the name elsewhere
+  const debrief = runFde(sandbox, ['debrief'], { input: 'signer: Ines Brandt signs off\n' })
+  assert.equal(debrief.status, 0, debrief.stderr)
+  assert.match(fs.readFileSync(p, 'utf8'), /^\*\*Stakeholder who signs off:\*\* Ines Brandt$/m)
+  assert.match(runFde(sandbox, ['triage']).stdout, /signer: Ines Brandt/)
+})
+
+test('a template copy of the ledger appended below filled work does not shadow it', () => {
+  const sandbox = makeSandbox('ledger-shadow')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'shadowco']).status, 0)
+  const eng = engagementPath(sandbox, 'shadowco')
+  assert.equal(runFde(sandbox, [
+    'log', 'delivery',
+    'retry queue | cost-save | 2h/week | 1.8h/week | Denise | sheet | flag off',
+  ]).status, 0)
+  const p = path.join(eng, 'delivery.md')
+  // an agent pastes the template section again: a header and a legend, no rows
+  fs.appendFileSync(p, [
+    '',
+    '## Value ledger',
+    '',
+    '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |',
+    '|------|-------|--------|----------|----------|-------------|----------|----------|',
+    '',
+    '**Bucket:** `cost-save` · `risk-mitigation` · `revenue-uplift`',
+    '',
+  ].join('\n'))
+  assert.match(runFde(sandbox, ['status']).stdout, /2h\/week → 1\.8h\/week/)
+  // and the next row joins the rows, not the empty copy
+  assert.equal(runFde(sandbox, [
+    'log', 'delivery',
+    'dispatch cache | cost-save | 1h/week | 0.9h/week | Denise | sheet | flag off',
+  ]).status, 0)
+  const status = runFde(sandbox, ['status']).stdout
+  assert.match(status, /2h\/week → 1\.8h\/week/)
+  assert.match(status, /1h\/week → 0\.9h\/week/)
+})
+
 test('a ledger section with prose but no table gets the table, not a headerless row', () => {
   const sandbox = makeSandbox('log-prose-ledger')
   assert.equal(runFde(sandbox, ['resume', '--init', 'proseco']).status, 0)
