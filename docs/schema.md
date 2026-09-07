@@ -77,7 +77,7 @@ The rationale is the line a successor cannot reconstruct from the code.
 3. **Do not** mix two customers in one `.fde/`.
 4. **Deliverable = memory:** `--init` creates only the core files; stage artifacts (`audit.md`, `chaos-log.md`, `handoff.md`, `evals.md`, …) are created by their stages when they run - formats live in [skills/fde/references/](../skills/fde/references/).
 5. Every claim carries its evidence: `(ops lead, Day 5)` · `(churn: 47/90d)` · `(stated, unverified)`.
-6. **Trust signals are tokens:** the latest dated `[signal:green|amber|red]` in `stakeholders.md` drives `fde status` / `fde dashboard`; tokens older than 21 days show as stale. Keyword matching is only the fallback when no token exists.
+6. **Trust signals are tokens:** the latest dated `[signal:green|amber|red]` in `stakeholders.md` drives `fde status` / `fde dashboard`; tokens older than 21 days show as stale. With no token, prose keywords can still raise amber/red, but nothing reads `green` - an engagement nobody has asked reads `new`.
 7. **Assumptions are not receipts:** `assumptions.md` and `brief.md` are claims. `fde receipts` labels them separately from dated agreements.
 8. **Plans need a kill list; deliveries need a value ledger.** No finished plan without Now/Next/Later/Kill. No ship without bucket + promised → measured → evidence (measured may be pending). AI-touching ships also need an eval receipt (`evals.md` or Ship receipts); non-AI ships leave eval as `n/a`.
 
