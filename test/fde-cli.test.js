@@ -3349,6 +3349,137 @@ test('log delivery with pipes writes a value-ledger row', () => {
   assert.match(section, /retry slice/)
 })
 
+test('a logged ledger row lands in the section the gates read, not the empty one above it', () => {
+  const sandbox = makeSandbox('log-dup-ledger')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'dupledco']).status, 0)
+  const eng = engagementPath(sandbox, 'dupledco')
+  const p = path.join(eng, 'delivery.md')
+  fs.appendFileSync(p, [
+    '',
+    '## Value ledger',
+    '',
+    '| Date | What | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |',
+    '|------|------|--------|----------|----------|-------------|----------|----------|',
+    '| 2026-07-01 | first slice | cost-save | 4h/week | 3.9h/week | Denise | sheet | flag |',
+    '',
+  ].join('\n'))
+  assert.equal(runFde(sandbox, [
+    'log', 'delivery',
+    'second slice | cost-save | 2h/week | 1.8h/week | Denise | sheet | flag off',
+  ]).status, 0)
+  const md = fs.readFileSync(p, 'utf8')
+  const sections = md.split(/^## Value ledger$/m).slice(1)
+  assert.equal(sections.length, 2)
+  assert.match(sections[1], /second slice/)
+  assert.doesNotMatch(sections[0].split(/^## /m)[0], /second slice/)
+  // and the row the gates read is the one just written
+  assert.match(runFde(sandbox, ['status']).stdout, /2h\/week → 1\.8h\/week/)
+  // dated work, so doctor is past the day-1 quiet path and says the record is ambiguous
+  assert.equal(runFde(sandbox, ['log', 'decision', 'ledger stays one section']).status, 0)
+  assert.match(runFde(sandbox, ['doctor']).stdout, /duplicate ## Value ledger/)
+})
+
+test('a non-AI ship is not held for an eval receipt by ordinary delivery English', () => {
+  const sandbox = makeSandbox('promptword')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'promptco']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
+  assert.equal(runFde(sandbox, [
+    'log', 'delivery', 'settlement retry gives ops a prompt response instead of a next-day file',
+  ]).status, 0)
+  assert.doesNotMatch(runFde(sandbox, ['doctor']).stdout, /eval/i)
+  assert.equal(runFde(sandbox, [
+    'log', 'decision', 'the ranking service calls an LLM, so accuracy is in scope',
+  ]).status, 0)
+  assert.match(runFde(sandbox, ['doctor']).stdout, /eval/i)
+})
+
+test('an empty labelled field reads as empty, not as the line under it', () => {
+  const sandbox = makeSandbox('empty-field')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'freshco']).status, 0)
+  const eng = engagementPath(sandbox, 'freshco')
+  // the shipped template: both fields present and empty
+  const triage = runFde(sandbox, ['triage']).stdout
+  assert.match(triage, /signer: \(none\)/)
+  assert.doesNotMatch(triage, /promised: \*\*/)
+  // a contact-shaped line under the empty field is not a signer either
+  const p = path.join(eng, 'success.md')
+  fs.writeFileSync(p, '# Success definition\n\n**Stakeholder who signs off:**\n\n## Notes\n\nRandy Teague, IT lead - signs off on the floor\n')
+  assert.match(runFde(sandbox, ['triage']).stdout, /signer: \(none\)/)
+  // and debrief fills the field itself instead of filing the name elsewhere
+  const debrief = runFde(sandbox, ['debrief'], { input: 'signer: Ines Brandt signs off\n' })
+  assert.equal(debrief.status, 0, debrief.stderr)
+  assert.match(fs.readFileSync(p, 'utf8'), /^\*\*Stakeholder who signs off:\*\* Ines Brandt$/m)
+  assert.match(runFde(sandbox, ['triage']).stdout, /signer: Ines Brandt/)
+})
+
+test('a template copy of the ledger appended below filled work does not shadow it', () => {
+  const sandbox = makeSandbox('ledger-shadow')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'shadowco']).status, 0)
+  const eng = engagementPath(sandbox, 'shadowco')
+  assert.equal(runFde(sandbox, [
+    'log', 'delivery',
+    'retry queue | cost-save | 2h/week | 1.8h/week | Denise | sheet | flag off',
+  ]).status, 0)
+  const p = path.join(eng, 'delivery.md')
+  // an agent pastes the template section again: a header and a legend, no rows
+  fs.appendFileSync(p, [
+    '',
+    '## Value ledger',
+    '',
+    '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |',
+    '|------|-------|--------|----------|----------|-------------|----------|----------|',
+    '',
+    '**Bucket:** `cost-save` · `risk-mitigation` · `revenue-uplift`',
+    '',
+  ].join('\n'))
+  assert.match(runFde(sandbox, ['status']).stdout, /2h\/week → 1\.8h\/week/)
+  // and the next row joins the rows, not the empty copy
+  assert.equal(runFde(sandbox, [
+    'log', 'delivery',
+    'dispatch cache | cost-save | 1h/week | 0.9h/week | Denise | sheet | flag off',
+  ]).status, 0)
+  const status = runFde(sandbox, ['status']).stdout
+  assert.match(status, /2h\/week → 1\.8h\/week/)
+  assert.match(status, /1h\/week → 0\.9h\/week/)
+})
+
+test('a ledger section with prose but no table gets the table, not a headerless row', () => {
+  const sandbox = makeSandbox('log-prose-ledger')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'proseco']).status, 0)
+  const eng = engagementPath(sandbox, 'proseco')
+  const p = path.join(eng, 'delivery.md')
+  fs.appendFileSync(p, '\n## Value ledger\n\nDenise wants this measured weekly.\n')
+  assert.equal(runFde(sandbox, [
+    'log', 'delivery',
+    'retry queue | cost-save | 2h/week | 1.8h/week | Denise | sheet | flag off',
+  ]).status, 0)
+  // a lone row reads as the header line, so status would show no value at all
+  assert.match(runFde(sandbox, ['status']).stdout, /2h\/week → 1\.8h\/week/)
+})
+
+test('type inference is not model inference, and an AI code policy is not a model in the product', () => {
+  const sandbox = makeSandbox('ai-policy-field')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'inferco']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
+  assert.equal(runFde(sandbox, [
+    'log', 'decision', 'we lean on TypeScript inference instead of hand-written generics',
+  ]).status, 0)
+  assert.doesNotMatch(runFde(sandbox, ['doctor']).stdout, /eval/i)
+  // "my agent may write code" is not "the product calls a model"
+  const eng = engagementPath(sandbox, 'inferco')
+  const p = path.join(eng, 'trust-profile.md')
+  fs.writeFileSync(p, fs.readFileSync(p, 'utf8').replace(
+    /^\*\*AI code policy:\*\*.*$/m,
+    '**AI code policy:** AI-assisted code permitted with human review'
+  ))
+  assert.doesNotMatch(runFde(sandbox, ['doctor']).stdout, /eval/i)
+  // the record saying the product ranks with a model does put evals in scope
+  assert.equal(runFde(sandbox, [
+    'log', 'decision', 'the dispatch ranker calls an LLM in production',
+  ]).status, 0)
+  assert.match(runFde(sandbox, ['doctor']).stdout, /eval/i)
+})
+
 test('log risk --retire moves the matching open risk under Retired', () => {
   const sandbox = makeSandbox('risk-retire')
   assert.equal(runFde(sandbox, ['resume', '--init', 'retco']).status, 0)
