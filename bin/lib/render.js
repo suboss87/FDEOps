@@ -97,7 +97,8 @@ function formatLogDate(iso) {
   const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/)
   return m ? `${MONTHS[parseInt(m[2], 10) - 1]} ${parseInt(m[3], 10)}` : iso
 }
-function trustWord(t) { return t === 'green' ? 'steady' : t === 'amber' ? 'watch' : 'at risk' }
+// `new` is its own word: nobody has been asked yet, which is neither steady nor at risk.
+function trustWord(t) { return t === 'green' ? 'steady' : t === 'amber' ? 'watch' : t === 'new' ? 'new' : 'at risk' }
 function dotClassFor(trust) { return trust === 'RED' ? 'red' : trust }
 
 // Two-pane fieldbook: left rail (search + today + per-client nav), right main
@@ -222,10 +223,11 @@ strong{font-weight:600}
 .dot.green{background:var(--green)}
 .dot.amber{background:var(--amber);border-radius:2px}
 .dot.red{background:transparent;border:1.5px solid var(--red)}
+.dot.new{background:transparent;border:1.5px solid var(--ink-faint)}
 .dot-sm{width:7px;height:7px}
 .dot-md{width:8px;height:8px}
 .dot-lg{width:9px;height:9px}
-.t-green{color:var(--green)}.t-amber{color:var(--amber)}.t-red{color:var(--red)}.t-accent{color:var(--accent)}.t-faint{color:var(--ink-faint)}.t-soft{color:var(--ink-soft)}
+.t-green{color:var(--green)}.t-amber{color:var(--amber)}.t-red{color:var(--red)}.t-accent{color:var(--accent)}.t-faint{color:var(--ink-faint)}.t-new{color:var(--ink-faint)}.t-soft{color:var(--ink-soft)}
 .fb-hints{margin-top:26px;display:flex;gap:14px;flex-wrap:wrap;font-family:'Geist Mono',monospace;font-size:10.5px;color:var(--ink-faint);border-top:1px solid var(--line);padding-top:12px}
 .fb-hints-spacer{margin-left:auto}
 .fb-palette-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-start;justify-content:center;padding-top:12vh}
@@ -586,9 +588,9 @@ function paletteItemsHtml(ordered) {
 
 function buildFieldbookHtml({ engagements, today }) {
   // rail + Today queue share one order: trust-first (red, amber, green)
-  const tierRank = { RED: 0, amber: 1, green: 2 }
+  const tierRank = { RED: 0, amber: 1, green: 2, new: 3 }
   const ordered = engagements.slice().sort((a, b) => tierRank[a.signals.trust] - tierRank[b.signals.trust])
-  const attentionCount = engagements.filter(e => e.signals.trust !== 'green').length
+  const attentionCount = engagements.filter(e => e.signals.trust !== 'green' && e.signals.trust !== 'new').length
   const highRiskTotal = engagements.reduce((n, e) => n + e.highRisks, 0)
 
   const railItems = ordered.map(railItemHtml).join('\n')

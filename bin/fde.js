@@ -45,6 +45,9 @@ const REGISTRY = path.join(ENGAGEMENTS_ROOT, '.registry')
 const DEBRIEF_MAX_BYTES = 256 * 1024
 const CODE_EXT = ['.js', '.ts', '.tsx', '.jsx', '.py', '.java', '.go', '.rb', '.cs', '.php']
 const CONF_EXT = CODE_EXT.concat(['.env', '.yaml', '.yml', '.json'])
+// Bare "inference" is banned here: TypeScript codebases are full of "type
+// inference" comments and the false positives poison the day-1 questions.
+const AI_CODE_RE = /openai|anthropic|\bllm\b|gpt-|claude|embedding|vector store|model inference|inference (?:api|endpoint|server|engine)/i
 // one routing table for structured appends - cmdLog and cmdDebrief share it
 const LOG_FILES = { decision: 'decisions.md', risk: 'risks.md', delivery: 'delivery.md', contact: 'stakeholders.md' }
 
@@ -910,6 +913,7 @@ const {
   countOpenRisks,
 } = createTrustApi({
   fs, path, readClean, readEng, parseMdTable, sectionBody, SIGNAL_LEDGER, memoryDirtyManual,
+  stripTemplateNoise, stripLegendLines,
 })
 
 // Stakeholders: columns are matched by header wording, not position - real
@@ -1168,8 +1172,14 @@ function cmdScan() {
   // NOTE: bare "inference" is banned from this regex - TypeScript codebases are
   // full of "type inference" comments and the false positives poison the day-1
   // questions. Model inference only, in explicit forms.
-  const ai = grepFiles(codeFiles, /openai|anthropic|\bllm\b|gpt-|claude|embedding|vector store|model inference|inference (?:api|endpoint|server|engine)/i, 10)
+  const ai = grepFiles(codeFiles, AI_CODE_RE, 10)
   ai.length ? ai.forEach(h => out.push(`  ${h.file}:${h.line}  ${h.text}`)) : out.push('  none found')
+  // The eval gate reads the record, not the repo. A finding here that never
+  // reaches .fde/ leaves ship/close green with no eval - so say the next move.
+  if (ai.length) {
+    out.push('  → the ship gate reads the record, not this scan. Put it there:')
+    out.push(`    fde log decision "AI in scope: ${path.basename(ai[0].file)} calls a model - eval receipt required before ship"`)
+  }
 
   // secrets (redacted)
   out.push('\nPOSSIBLE HARDCODED SECRETS (values redacted):')
@@ -1323,8 +1333,11 @@ function cmdResume(args) {
     console.log(`NO ENGAGEMENT for this workspace.\nexisting: ${list}\nAsk the human the client name (one question), then run: fde resume --init <client-name>\nDo not tell them to type that command.`)
     process.exit(2)
   }
-  // Monday-morning: triage + proactive hygiene (silent when clean), then memory.
+  // Monday-morning: triage + proactive hygiene (silent when clean), the record
+  // (sponsor / promise / decisions), then the session log.
   printTriageBlock(eng)
+  const digest = recordDigest(eng)
+  if (digest.length) console.log('\n' + digest.join('\n'))
   console.log(`\nENGAGEMENT: ${eng}\n`)
   // readClean, not fs.readFileSync: this output is what an agent loads as
   // context, so it goes through the same <private> redaction as the dashboard.
@@ -1449,6 +1462,14 @@ function cmdLog(args) {
   appendLogEntry(eng, type, entry)
   const hash = memoryHead(eng)
   console.log(`logged → ${LOG_FILES[type]}${signal ? ` (signal:${signal})` : ''}${hash ? ` @${hash}` : ''}`)
+  // A dated bullet is a note; the ship gate reads the ledger. Say what this did
+  // NOT do, once, so promised→measured→accepted does not quietly stay unassembled.
+  if (type === 'delivery' && !parseValueLedger(eng).rows.length) {
+    console.log('  note: no value ledger row yet - "accepted by" is what a sponsor argues with. Add the row in delivery.md ## Value ledger (promised | measured | accepted by).')
+  }
+  if (type === 'contact' && !signal) {
+    console.log('  note: no --signal, so trust is unchanged - prep and status show people who carry a signal.')
+  }
 }
 
 function setContextPhase(eng, phase) {
@@ -2167,8 +2188,10 @@ function cmdTriage() {
     console.error('no engagement - run: fde resume --init <name>')
     process.exit(2)
   }
-  // Session-start hooks call this - hygiene is proactive here (silent when clean).
+  // Session-start hooks call this - hygiene is proactive here (silent when clean),
+  // and the record digest travels with it so a fresh session knows who signs.
   printTriageBlock(eng)
+  for (const line of recordDigest(eng)) console.log(line)
   const owner = readOwner(eng) || writeOwnerIfMissing(eng)
   const head = memoryHead(eng)
   if (owner || head) {
@@ -2397,6 +2420,13 @@ function collectDoctorIssues(eng) {
       issues.push(
         `phase is ${s.phase} with AI in scope but no eval receipt (evals.md Verdict or delivery Eval / Ship receipts) - required before green ship/close`
       )
+    } else if (!engagementTouchesAI(eng)) {
+      const hit = workspaceAIHit(eng)
+      if (hit) {
+        issues.push(
+          `the bound workspace calls a model (${hit.file}) but nothing in the record says AI is in scope - the eval gate is off; record it: fde log decision "AI in scope: …"`
+        )
+      }
     }
     issues.push(...silentCommitIssues(eng))
   }
@@ -2414,6 +2444,14 @@ function collectDoctorIssues(eng) {
       `phase is ${s.phase} with empty operating map - fill terrain.md ## Operating map (exception-led): break → who notices → workaround → evidence`
     )
   }
+  // A second copy of a heading the gates read: they take the last filled one, so
+  // the record is ambiguous rather than lost. Say so once, here.
+  // Full heading names only: "Value" would also match "## Value ledger".
+  for (const [file, heading] of [['terrain.md', 'Operating map'], ['delivery.md', 'Value ledger']]) {
+    if (countSections(readClean(eng, file), heading) > 1) {
+      issues.push(`duplicate ## ${heading} headings in ${file} - merge into one section; the gates read the last filled one`)
+    }
+  }
   const aliases = findAmbiguousStakeholders(eng)
   if (aliases.length) {
     const sample = aliases[0].forms.slice(0, 3).join(' / ')
@@ -2427,9 +2465,11 @@ function collectDoctorIssues(eng) {
 }
 
 // True when ## Operating map has at least one real exception row (not the empty template).
+// lastNonEmpty: an agent that appends a filled section leaves the empty template
+// heading above it. Reading the first match called that work invisible.
 function hasOperatingMapContent(eng) {
   const terrain = stripTemplateNoise(readClean(eng, 'terrain.md'))
-  const body = sectionBody(terrain, 'Operating map')
+  const body = sectionBody(terrain, 'Operating map', { lastNonEmpty: true })
   if (!body.trim()) return false
   const table = parseMdTable(body)
   if (table) {
@@ -2519,7 +2559,7 @@ function hasValueBucket(eng) {
   if (bucketLine && VALUE_BUCKET_RE.test(bucketLine[1].trim())) return true
   if (!/\*\*Primary value bucket:\*\*/i.test(success) && VALUE_BUCKET_RE.test(success)) return true
 
-  const ledger = stripLegendLines(stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger') || ''))
+  const ledger = stripLegendLines(stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger', { lastNonEmpty: true }) || ''))
   const table = parseMdTable(ledger)
   if (table) {
     const bIdx = colIndex(table.headers, /bucket/i)
@@ -2546,7 +2586,7 @@ const PENDING_CELL_RE =
   /^(?:pending|tbd|to ?be ?(?:measured|confirmed|determined)|n\s*\/\s*a|na|none|unknown|not measured|\?+|\.{2,}|…|-+|-+|-+)(?:[^\w].*)?$/i
 
 function parseValueLedger(eng) {
-  const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger') || '')
+  const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger', { lastNonEmpty: true }) || '')
   const table = parseMdTable(ledger)
   if (!table) return { rows: [], columnMissing: false }
   const idx = {
@@ -2600,17 +2640,40 @@ function valueLedgerStatusLines(eng, opts = {}) {
   return lines
 }
 
-// AI in scope for ship/close hygiene - delivery/decisions/trust evidence only.
+// AI in scope for ship/close hygiene - the FDE's own words, wherever they wrote them.
 // Do not scan terrain.md: its template headers mention LLM and would false-positive every ship.
 function engagementTouchesAI(eng) {
   const trust = readClean(eng, 'trust-profile.md')
-  const aiSec = stripTemplateNoise(sectionBody(trust, 'AI policy') || '')
+  const aiSec = stripTemplateNoise(sectionBody(trust, 'AI policy', { lastNonEmpty: true }) || '')
   if (aiSec.trim().length > 20) return true
+  // brief/success/risks included: an engagement is often declared AI in the brief
+  // or in a risk ("nobody can say what the accuracy was") and never again.
   const blob = stripTemplateNoise([
     readClean(eng, 'delivery.md'),
     readClean(eng, 'decisions.md'),
+    readClean(eng, 'brief.md'),
+    readClean(eng, 'success.md'),
+    readClean(eng, 'risks.md'),
+    readClean(eng, 'assumptions.md'),
   ].join('\n'))
-  return /\b(llm|rag|embedding|inference|model card|agentic|openai|anthropic|vector database|vector db)\b/i.test(blob)
+  return /\b(llm|rag|embedding|inference|model card|model output|model drift|agentic|openai|anthropic|vector database|vector db|prompt|fine-tun\w*|hallucinat\w*)\b/i.test(blob)
+}
+
+// The repo says AI even when the record does not. Read-only, capped, local: the
+// point is to refuse to run a silent green ship over an unevaluated model.
+function workspaceAIHit(eng) {
+  const slug = path.basename(path.dirname(eng))
+  const ws = readRegistry().filter(r => r.slug === slug).map(r => r.workspace)
+  for (const dir of ws.slice(0, 3)) {
+    let files
+    try {
+      if (!fs.existsSync(dir)) continue
+      files = walk(dir, CODE_EXT, 1500)
+    } catch (_) { continue }
+    const hit = grepFiles(files, AI_CODE_RE, 1)[0]
+    if (hit) return { workspace: dir, file: hit.file }
+  }
+  return null
 }
 
 function hasEvalReceipt(eng) {
@@ -2623,9 +2686,9 @@ function hasEvalReceipt(eng) {
     if (/\|\s*G\d+\s*\|[^|\n]+\|[^|\n]+\|[^|\n]+\|[^|\n]+\|\s*pass\s*\|/i.test(e)) return true
   }
   const del = stripLegendLines(stripTemplateNoise(readClean(eng, 'delivery.md')))
-  if (/#{1,6}\s+Eval\b/i.test(del) && /\b(pass|SHIP|\d+\/\d+)\b/i.test(sectionBody(del, 'Eval') || del)) return true
+  if (/#{1,6}\s+Eval\b/i.test(del) && /\b(pass|SHIP|\d+\/\d+)\b/i.test(sectionBody(del, 'Eval', { lastNonEmpty: true }) || del)) return true
   if (/\beval (pack|receipt)[:\s].*\b(pass|SHIP)\b/i.test(del)) return true
-  const receipts = sectionBody(del, 'Ship receipts') || ''
+  const receipts = sectionBody(del, 'Ship receipts', { lastNonEmpty: true }) || ''
   if (/\bevals\.md\b/i.test(receipts) && /\b(pass|SHIP)\b/i.test(receipts) && !/\*\([^)]*evals\.md[^)]*\)\*/i.test(receipts)) {
     return true
   }
@@ -2646,6 +2709,31 @@ function hygieneTriageLines(eng) {
 function printTriageBlock(eng) {
   console.log(resumeTriage(eng))
   for (const line of hygieneTriageLines(eng)) console.log(line)
+}
+
+// What a session must not have to ask for: who signs, what was promised, what was
+// decided. Read-only, and from the same places the writers use - the signer is
+// success.md **Stakeholder who signs off** (what `signer:` fills), never a role
+// guess out of stakeholders.md, where contacts live. Bounded on purpose (<= 6
+// lines): this is injected into every session.
+function recordDigest(eng) {
+  const success = stripTemplateNoise(readClean(eng, 'success.md'))
+  const signer = ((success.match(/^\*\*Stakeholder who signs off:\*\*\s*(.*)$/m) || [])[1] || '').trim()
+  // "(none)" rather than a missing line: on session start, nobody named to sign
+  // off is the fact worth seeing, not an absence to scroll past.
+  const lines = [`  signer: ${signer || '(none)'}`]
+  const { rows } = parseValueLedger(eng)
+  const promisedRow = [...rows].reverse().find(r => r.promised)
+  if (promisedRow) {
+    lines.push(`  promised: ${formatValueLedgerLine(promisedRow).slice(0, 110)}`)
+  } else {
+    const target = ((success.match(/^\*\*Baseline\s*→\s*target:\*\*\s*(.*)$/m) || [])[1] || '').trim()
+    if (target) lines.push(`  promised: ${target.slice(0, 110)}`)
+  }
+  const decisions = readClean(eng, 'decisions.md').split('\n')
+    .filter(l => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(l.trim())).slice(-2)
+  for (const d of decisions) lines.push(`  decided: ${d.trim().replace(/^-\s*/, '').slice(0, 110)}`)
+  return ['RECORD (read-only - success, delivery, decisions)', ...lines]
 }
 
 function cmdDoctor() {
@@ -2985,12 +3073,14 @@ function cmdStatus(args) {
     rows.push({ name: engagementSlugFromPath(eng), phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: note, memoryWarn: s.memoryWarn, dirtyFiles: s.dirtyFiles, valueLines: valueLedgerStatusLines(eng) })
   }
   if (!rows.length) { console.log('no engagements yet'); return }
-  const order = { RED: 0, amber: 1, green: 2 }
+  // `new` sorts last: nothing to act on yet, unlike a green somebody confirmed.
+  const order = { RED: 0, amber: 1, green: 2, new: 3 }
   rows.sort((a, b) => order[a.trust] - order[b.trust])
   console.log((all ? 'FDE PORTFOLIO' : 'FDE STATUS') + ' - value first, then trust\n')
   for (const r of rows) {
     for (const line of r.valueLines) console.log(line)
     // "amber?" = structured signal went stale (>21d) - reconfirm before trusting it
+    // "new" = nobody has been asked yet; green is reserved for asked-and-fine.
     const label = r.trust + (r.stale ? '?' : '')
     const sig = r.signalAge != null ? `signal ${r.signalAge}d old${r.stale ? ' (STALE - reconfirm)' : ''}  ` : ''
     console.log(`  [${label.padEnd(6)}] ${r.name.padEnd(24)} phase:${(r.phase === '?' ? 'unset' : r.phase).padEnd(10)} updated:${r.updated.padEnd(8)} ${sig}${r.reason}`)
@@ -3045,7 +3135,7 @@ function cmdDashboard(args) {
     }
     engagements = gatherEngagements({ only: eng })
   }
-  const counts = { green: 0, amber: 0, RED: 0 }
+  const counts = { green: 0, amber: 0, RED: 0, new: 0 }
   engagements.forEach(e => { counts[e.signals.trust]++ })
   const today = render.formatToday(new Date())
 
@@ -3100,7 +3190,7 @@ function cmdDashboard(args) {
     failFs(e, 'write fieldbook', outPath)
   }
   console.log(`fieldbook → ${outPath}`)
-  console.log(`${engagements.length} engagement(s) rendered · ${counts.RED} red / ${counts.amber} amber / ${counts.green} green · 0 tokens (pure render)`)
+  console.log(`${engagements.length} engagement(s) rendered · ${counts.RED} red / ${counts.amber} amber / ${counts.green} green / ${counts.new} new · 0 tokens (pure render)`)
   if (!all) {
     const current = resolveEngagement()
     if (current) for (const line of hygieneTriageLines(current)) console.log(line)
@@ -3131,7 +3221,7 @@ function cliVersion() {
 }
 
 function valueLedgerRows(eng) {
-  const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger') || '')
+  const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger', { lastNonEmpty: true }) || '')
   const table = parseMdTable(ledger)
   if (!table) return []
   const sIdx = colIndex(table.headers, /slice/i)

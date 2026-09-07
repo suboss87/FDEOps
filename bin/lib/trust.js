@@ -3,6 +3,7 @@
 function createTrustApi(deps) {
   const {
     fs, path, readClean, readEng, parseMdTable, sectionBody, SIGNAL_LEDGER, memoryDirtyManual,
+    stripTemplateNoise, stripLegendLines,
   } = deps
 
   // phase / trust / top risk / freshness - identical heuristic for status + dashboard.
@@ -183,9 +184,14 @@ function createTrustApi(deps) {
         stale = signalAge > 21
       }
     } else {
-      const sLines = stake.split('\n').filter(l => !(/green/i.test(l) && /red|amber/i.test(l)))
+      // No structured signal anywhere. Prose still gets to raise an alarm - a
+      // written "gone quiet" is worth an amber - but it never earns a green:
+      // green must mean somebody was asked and said they were fine, and a day-1
+      // template calling someone a "champion" is not that. That reads `new`.
+      const sLines = stripLegendLines(stripTemplateNoise(stake)).split('\n')
+        .filter(l => !(/green/i.test(l) && /red|amber/i.test(l)))
       trust = sLines.some(l => /\bred\b/i.test(l)) ? 'RED'
-        : sLines.some(l => /amber|gone quiet|routing around|escalat/i.test(l)) ? 'amber' : 'green'
+        : sLines.some(l => /amber|gone quiet|routing around|escalat/i.test(l)) ? 'amber' : 'new'
     }
     const topRisk = (risks.split('\n').find(l => {
       const t = l.trim()

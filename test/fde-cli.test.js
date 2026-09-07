@@ -3392,3 +3392,176 @@ test('status and dashboard consult doctor instead of ignoring it', () => {
   const dash = runFde(sandbox, ['dashboard'])
   assert.match(dash.stdout + dash.stderr, /hygiene:|doctor|issue/i)
 })
+
+// --- field-report regressions: what three engagements showed the CLI getting wrong ---
+
+test('resume carries the record: who signs, what was promised, what was decided', () => {
+  const sandbox = makeSandbox('resumerecord')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Nordwind']).status, 0)
+
+  // Nobody named to sign off is the fact worth printing, not an absence to hide:
+  // skip is loud on session start too.
+  assert.match(runFde(sandbox, ['resume']).stdout, /signer: \(none\)/)
+
+  // The signer has one source of truth - success.md, written by `signer:` - and
+  // a contact who happens to say "signs the outcome" does not override it.
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Tobias Reuter, IT lead - signs the outcome, he says', '--signal', 'green']).status, 0)
+  assert.match(runFde(sandbox, ['resume']).stdout, /signer: \(none\)/, 'contacts live in stakeholders.md; the signer lives in success.md')
+
+  const debrief = runFde(sandbox, ['debrief'], { input: 'signer: Ines Brandt signs off\n' })
+  assert.equal(debrief.status, 0, debrief.stderr)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'scope is the Hamburg desk only, not Rotterdam']).status, 0)
+
+  // Monday morning, fresh session: the sponsor and the promise must not require
+  // a second command. `resume` used to print context.md's blank template only.
+  const resume = runFde(sandbox, ['resume'])
+  assert.equal(resume.status, 0, resume.stderr)
+  assert.match(resume.stdout, /RECORD/)
+  assert.match(resume.stdout, /signer: Ines Brandt/)
+  assert.match(resume.stdout, /Hamburg desk only/)
+
+  // the session-start hook path (fde triage) carries the same record
+  const triage = runFde(sandbox, ['triage'])
+  assert.match(triage.stdout, /signer: Ines Brandt/)
+  assert.match(triage.stdout, /Hamburg desk only/)
+})
+
+test('the promise on the record is the last filled ledger row, else the agreed target', () => {
+  const sandbox = makeSandbox('recordpromise')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Kestrel']).status, 0)
+  const eng = engagementPath(sandbox, 'kestrel')
+
+  // No ledger yet: what was agreed in success.md is the promise.
+  const success = fs.readFileSync(path.join(eng, 'success.md'), 'utf8')
+  fs.writeFileSync(path.join(eng, 'success.md'),
+    success.replace(/\*\*Baseline → target:\*\*.*/, '**Baseline → target:** 4h nightly batch → under 5 min p95, by Sept 30'))
+  assert.match(runFde(sandbox, ['resume']).stdout, /promised: 4h nightly batch → under 5 min p95/)
+
+  // Once the ledger has rows, the last filled Promised cell wins - and it says
+  // whether anyone customer-side accepted it.
+  fs.appendFileSync(path.join(eng, 'delivery.md'), [
+    '',
+    '## Value ledger',
+    '',
+    '| Date | Slice | Bucket | Promised | Measured | Accepted by |',
+    '|---|---|---|---|---|---|',
+    '| 2026-08-10 | shadow read | cost-save | lag < 30 min | 12 min | Ellie Fenwick |',
+    '| 2026-08-14 | read-side stream | cost-save | lag < 5 min p95 | 96s p95 | |',
+    '',
+  ].join('\n'))
+  const withLedger = runFde(sandbox, ['resume']).stdout
+  assert.match(withLedger, /promised: read-side stream: lag < 5 min p95/)
+  assert.match(withLedger, /claimed, not yet accepted/)
+})
+
+test('a private note never reaches the record digest', () => {
+  const sandbox = makeSandbox('resumerecordprivate')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Sealed']).status, 0)
+  const eng = engagementPath(sandbox, 'sealed')
+  fs.appendFileSync(path.join(eng, 'decisions.md'), '\n- [2026-08-01] <private>the CFO is being replaced in Q4</private>\n')
+  fs.appendFileSync(path.join(eng, 'stakeholders.md'), '\n## Signal history\n\n- [2026-08-01] Ines, VP Ops <private>drinks too much at dinners</private> [signal:green]\n')
+
+  for (const cmd of [['resume'], ['triage']]) {
+    const r = runFde(sandbox, cmd)
+    assert.doesNotMatch(r.stdout, /CFO is being replaced/, `${cmd[0]} leaked a sealed decision`)
+    assert.doesNotMatch(r.stdout, /drinks too much/, `${cmd[0]} leaked a sealed stakeholder note`)
+  }
+})
+
+test('a duplicate heading cannot shadow filled work: the gates read the last filled section', () => {
+  const sandbox = makeSandbox('dupheading')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Kestrel']).status, 0)
+  const eng = engagementPath(sandbox, 'kestrel')
+  assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
+
+  // An agent that appends a filled section leaves the empty template heading
+  // above it. doctor used to read the first (empty) one and call the work missing.
+  fs.appendFileSync(path.join(eng, 'terrain.md'), [
+    '',
+    '## Operating map (exception-led)',
+    '',
+    '| Exception / break | Who notices first | What they do today | Evidence |',
+    '|---|---|---|---|',
+    '| consumer lag spike | Ellie\'s Kafka alert | flip consumer off, batch still authoritative | runbook 2026-08-12 |',
+    '',
+  ].join('\n'))
+
+  const doctor = runFde(sandbox, ['doctor'])
+  assert.doesNotMatch(doctor.stdout, /empty operating map/, 'a filled section below the template heading is still filled')
+  assert.match(doctor.stdout, /duplicate ## Operating map headings in terrain\.md/, 'the ambiguity itself must be reported')
+})
+
+test('the eval gate is not silent when the record says nothing but the repo calls a model', () => {
+  const sandbox = makeSandbox('aiscope')
+  fs.writeFileSync(path.join(sandbox.workspace, 'rank.py'), 'import openai\n')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Nordwind AI']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
+
+  // The FDE wrote the engagement in the client's language ("SOP answer"), so the
+  // keyword gate concluded there was no AI in scope and asked for no eval.
+  const doctor = runFde(sandbox, ['doctor'])
+  assert.match(doctor.stdout, /bound workspace calls a model \(rank\.py\)/)
+  assert.match(doctor.stdout, /eval gate is off/)
+
+  // Once it is on the record, the normal eval-receipt gate takes over.
+  assert.equal(runFde(sandbox, ['log', 'decision', 'AI in scope: ranking calls an LLM']).status, 0)
+  const after = runFde(sandbox, ['doctor'])
+  assert.doesNotMatch(after.stdout, /eval gate is off/)
+  assert.match(after.stdout, /AI in scope but no eval receipt/)
+})
+
+test('scan says how a model finding reaches the record, because the gate reads the record', () => {
+  const sandbox = makeSandbox('scannudge')
+  fs.writeFileSync(path.join(sandbox.workspace, 'rank.py'), 'import openai\n')
+  const scan = runFde(sandbox, ['scan'])
+  assert.equal(scan.status, 0, scan.stderr)
+  assert.match(scan.stdout, /the ship gate reads the record, not this scan/)
+  assert.match(scan.stdout, /fde log decision "AI in scope: rank\.py/)
+})
+
+test('log delivery says what it did not do: no ledger row means no accepted-by', () => {
+  const sandbox = makeSandbox('ledgernudge')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Ledger']).status, 0)
+  const first = runFde(sandbox, ['log', 'delivery', 'promised reconciliation lag under 5 minutes p95'])
+  assert.match(first.stdout, /no value ledger row yet/)
+  assert.match(first.stdout, /accepted by/i)
+
+  const eng = engagementPath(sandbox, 'ledger')
+  fs.appendFileSync(path.join(eng, 'delivery.md'), [
+    '',
+    '## Value ledger',
+    '',
+    '| Date | Slice | Bucket | Promised | Measured | Accepted by |',
+    '|---|---|---|---|---|---|',
+    '| 2026-08-14 | read-side stream | cost-save | lag < 5 min p95 | 96s p95 | |',
+    '',
+  ].join('\n'))
+  const second = runFde(sandbox, ['log', 'delivery', 'shipped the consumer behind a flag'])
+  assert.doesNotMatch(second.stdout, /no value ledger row yet/, 'the nudge stops once the ledger exists')
+})
+
+test('green means asked and fine - an untouched engagement reads new', () => {
+  const sandbox = makeSandbox('emptynotgreen')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Untouched']).status, 0)
+  const triage = runFde(sandbox, ['triage'])
+  assert.match(triage.stdout, /TRIAGE\s+\[new/, 'a day-1 engagement has no trust signal to be green about')
+  assert.doesNotMatch(triage.stdout, /TRIAGE\s+\[green/)
+
+  // and it does not quote a trust reason it does not have
+  assert.doesNotMatch(triage.stdout, /\n\s+trust:/)
+
+  const status = runFde(sandbox, ['status', '--all'])
+  assert.match(status.stdout, /\[new\s*\]\s*untouched/)
+
+  // one green signal, and it is green - the label is earned, not assumed
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Ines happy with the narrower v1', '--signal', 'green']).status, 0)
+  assert.match(runFde(sandbox, ['triage']).stdout, /TRIAGE\s+\[green/)
+})
+
+test('creating an engagement says it is not yet bound to a workspace', () => {
+  const sandbox = makeSandbox('initdoor')
+  const init = runInstall(sandbox, ['init', 'Meridian Health'])
+  assert.equal(init.status, 0, init.stderr)
+  assert.match(init.stdout, /fde resume --init meridian-health/, 'the one door that binds must be named')
+  assert.doesNotMatch(init.stdout, /node bin\/install\.js/, 'an npm user has no clone to run that path from')
+})

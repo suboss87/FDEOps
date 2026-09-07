@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.22.1 - 2026-09-07
+
+Three engagements run end to end on the published package showed the gates reading a different fieldbook than the CLI writes. Same six stages. Same 30 skills.
+
+- `resume` / `triage`: a read-only RECORD block - who signs off, what was promised, the last decisions. The signer is `success.md` **Stakeholder who signs off** (the line 3.22.0's `signer:` fills), never guessed out of `stakeholders.md`, and prints `signer: (none)` when nobody is named. Monday's first screen no longer needs a second command to name the sponsor. Sealed notes stay sealed.
+- `doctor`: a filled section appended below its empty template heading counts as filled, and the duplicate heading is reported instead of silently shadowing the work.
+- `doctor` (ship/close): when the bound repo calls a model but nothing in the record says AI is in scope, the eval gate says so rather than passing green. AI in scope is now read from the brief, success, risks and assumptions too, not just delivery and decisions.
+- `scan`: a model finding says how to get it onto the record, because the ship gate reads the record and not the scan.
+- `log delivery`: says what it did not do - a dated line is not a value ledger row, and nothing has an **Accepted by**.
+- Triage / status / dashboard: with no `[signal:]` on record an engagement reads `new`, not green. Prose can still raise an amber; nothing earns a green except somebody being asked. A day-1 template calling someone a "champion" no longer prints a colour.
+- `fdeops init`: names the one command that binds a workspace, and stops printing a clone-only path an npm user cannot run.
+
 ## 3.22.0 - 2026-09-03
 
 Skip is loud. The CLI now catches the two things a stranger's first week showed it missing: the signer vanishing into a note, and code moving while the ledger stayed silent. Same six stages. Same 30 skills.
