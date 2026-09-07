@@ -636,13 +636,10 @@ const {
 // opts.lastNonEmpty: when duplicate headings exist (common skill trap: template
 // "## Next action" left empty, agent appends a second), prefer the last filled
 // body so triage/resume do not silently report "(none set)".
-function sectionBody(md, heading, opts) {
-  const preferLast = opts && opts.lastNonEmpty
+function sectionBodies(md, heading) {
   const lines = String(md || '').split('\n')
   const re = new RegExp('^#{1,6}\\s+' + heading + '\\b', 'i')
-  let first = ''
-  let lastFilled = ''
-  let seen = false
+  const out = []
   for (let i = 0; i < lines.length; i++) {
     if (!re.test(lines[i].trim())) continue
     const body = []
@@ -650,12 +647,16 @@ function sectionBody(md, heading, opts) {
       if (/^#{1,6}\s/.test(lines[j].trim())) break
       body.push(lines[j])
     }
-    const text = body.join('\n').trim()
-    if (!seen) { first = text; seen = true }
-    if (text) lastFilled = text
+    out.push(body.join('\n').trim())
   }
-  if (!seen) return ''
-  return preferLast ? (lastFilled || first) : first
+  return out
+}
+
+function sectionBody(md, heading, opts) {
+  const bodies = sectionBodies(md, heading)
+  if (!bodies.length) return ''
+  if (!(opts && opts.lastNonEmpty)) return bodies[0]
+  return [...bodies].reverse().find(Boolean) || bodies[0]
 }
 
 function countSections(md, heading) {
@@ -796,6 +797,19 @@ function parseReality(md, maxLen) {
   return { line: '', missing: '' }
 }
 
+// Same columns as templates/.fde/delivery.md - a row without them above it is
+// read as the header line, so the value it carries disappears.
+const VALUE_LEDGER_HEADER = '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |'
+const VALUE_LEDGER_RULE = '|------|-------|--------|----------|----------|-------------|----------|----------|'
+
+// A header and a legend are text, not value: a template copy of the ledger has
+// zero rows, and must not shadow filled work above it (or receive a row).
+function valueLedgerRowCount(body) {
+  const t = parseMdTable(stripTemplateNoise(String(body || '')))
+  if (!t) return 0
+  return t.rows.filter(r => r.some(c => String(c || '').trim())).length
+}
+
 function appendValueLedgerRow(eng, cells) {
   ensureMemoryGit(eng)
   const p = path.join(eng, 'delivery.md')
@@ -805,17 +819,37 @@ function appendValueLedgerRow(eng, cells) {
   const cols = []
   for (let i = 0; i < 7; i++) cols.push((cells[i] || '').replace(/\|/g, '\\|').trim() || ' ')
   const row = `| ${date} | ${cols.join(' | ')} |`
+  // Write into the same section the readers take: the last filled ## Value ledger.
+  // A row appended to the empty template heading above a filled one is a row no
+  // gate can see.
   const lines = md.split('\n')
-  let inLedger = false
-  let lastTableLine = -1
+  const sections = []
+  let cur = null
   for (let i = 0; i < lines.length; i++) {
-    if (/^##\s+Value ledger\b/i.test(lines[i])) { inLedger = true; continue }
-    if (inLedger && /^##\s+/.test(lines[i])) break
-    if (inLedger && /^\|/.test(lines[i].trim())) lastTableLine = i
+    if (/^##\s+Value ledger\b/i.test(lines[i])) {
+      cur = { heading: i, lastTable: -1, filled: false, body: [] }
+      sections.push(cur)
+      continue
+    }
+    if (!cur) continue
+    if (/^##\s+/.test(lines[i])) { cur = null; continue }
+    cur.body.push(lines[i])
+    if (lines[i].trim()) cur.filled = true
+    if (/^\|/.test(lines[i].trim())) cur.lastTable = i
   }
-  if (lastTableLine === -1) md = appendUnderSection(md, 'Value ledger', row)
-  else {
-    lines.splice(lastTableLine + 1, 0, row)
+  // Same choice parseValueLedger makes: the last section carrying rows, else the
+  // last with a body. A row written anywhere else is a row no gate can see.
+  const withRows = [...sections].reverse().find(s => valueLedgerRowCount(s.body.join('\n')))
+  const target = withRows || [...sections].reverse().find(s => s.filled) || sections[sections.length - 1]
+  if (!target) {
+    md = appendUnderSection(md, 'Value ledger', `${VALUE_LEDGER_HEADER}\n${VALUE_LEDGER_RULE}\n${row}`)
+  } else if (target.lastTable !== -1) {
+    lines.splice(target.lastTable + 1, 0, row)
+    md = lines.join('\n')
+  } else {
+    // No table under the chosen heading: a lone row would be read as the header
+    // line and the value would vanish. Lay the canonical table first.
+    lines.splice(target.heading + 1, 0, '', VALUE_LEDGER_HEADER, VALUE_LEDGER_RULE, row)
     md = lines.join('\n')
   }
   withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
@@ -1598,7 +1632,10 @@ function setSigner(eng, who) {
   let md = readEng(eng, 'success.md')
   if (!md) md = '# Success definition\n\n'
   const norm = (s) => String(s).replace(/\s+/g, ' ').trim().toLowerCase()
-  const line = /^\*\*Stakeholder who signs off:\*\*\s*(.*)$/m
+  // [^\S\n], not \s: \s crosses newlines, so an empty field captured the next
+  // line - and setSigner then read a filled field and filed the name as "also
+  // named" under whatever heading followed.
+  const line = /^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m
   const m = md.match(line)
   if (m && !m[1].trim()) {
     md = md.replace(line, `**Stakeholder who signs off:** ${who}`)
@@ -2586,8 +2623,13 @@ const PENDING_CELL_RE =
   /^(?:pending|tbd|to ?be ?(?:measured|confirmed|determined)|n\s*\/\s*a|na|none|unknown|not measured|\?+|\.{2,}|…|-+|-+|-+)(?:[^\w].*)?$/i
 
 function parseValueLedger(eng) {
-  const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger', { lastNonEmpty: true }) || '')
-  const table = parseMdTable(ledger)
+  // Last section with actual rows, not merely the last non-empty one: a template
+  // copy appended below filled work is a header and a legend - text, but no
+  // value - and it would otherwise shadow a real accepted row above it.
+  const bodies = sectionBodies(readClean(eng, 'delivery.md'), 'Value ledger')
+    .map(b => stripTemplateNoise(b || ''))
+  const withRows = [...bodies].reverse().find(b => valueLedgerRowCount(b))
+  const table = parseMdTable(withRows || [...bodies].reverse().find(Boolean) || '')
   if (!table) return { rows: [], columnMissing: false }
   const idx = {
     slice: colIndex(table.headers, /slice/i),
@@ -2646,6 +2688,10 @@ function engagementTouchesAI(eng) {
   const trust = readClean(eng, 'trust-profile.md')
   const aiSec = stripTemplateNoise(sectionBody(trust, 'AI policy', { lastNonEmpty: true }) || '')
   if (aiSec.trim().length > 20) return true
+  // Not **AI code policy:** - that field is about the FDE's own agent writing
+  // code ("permitted with human review"), which every engagement now has. AI in
+  // the shipped product is a different claim, and only the record's own words
+  // below can make it.
   // brief/success/risks included: an engagement is often declared AI in the brief
   // or in a risk ("nobody can say what the accuracy was") and never again.
   const blob = stripTemplateNoise([
@@ -2656,7 +2702,9 @@ function engagementTouchesAI(eng) {
     readClean(eng, 'risks.md'),
     readClean(eng, 'assumptions.md'),
   ].join('\n'))
-  return /\b(llm|rag|embedding|inference|model card|model output|model drift|agentic|openai|anthropic|vector database|vector db|prompt|fine-tun\w*|hallucinat\w*)\b/i.test(blob)
+  // No bare "prompt": "prompt response" / "prompt payment" is ordinary delivery
+  // English and would fail every non-AI ship on a missing eval receipt.
+  return /\b(llm|rag|embedding|model card|model output|model drift|agentic|openai|anthropic|vector database|vector db|fine-tun\w*|hallucinat\w*)\b|\bmodel inference\b|\binference (?:api|endpoint|server|engine)\b|\b(?:system|model|user)\s+prompts?\b|\bprompt (?:engineering|injection|template)/i.test(blob)
 }
 
 // The repo says AI even when the record does not. Read-only, capped, local: the
@@ -2718,16 +2766,16 @@ function printTriageBlock(eng) {
 // lines): this is injected into every session.
 function recordDigest(eng) {
   const success = stripTemplateNoise(readClean(eng, 'success.md'))
-  const signer = ((success.match(/^\*\*Stakeholder who signs off:\*\*\s*(.*)$/m) || [])[1] || '').trim()
+  const signer = ((success.match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').trim()
   // "(none)" rather than a missing line: on session start, nobody named to sign
   // off is the fact worth seeing, not an absence to scroll past.
-  const lines = [`  signer: ${signer || '(none)'}`]
+  const lines = [`  signer: ${signer.slice(0, 110) || '(none)'}`]
   const { rows } = parseValueLedger(eng)
   const promisedRow = [...rows].reverse().find(r => r.promised)
   if (promisedRow) {
     lines.push(`  promised: ${formatValueLedgerLine(promisedRow).slice(0, 110)}`)
   } else {
-    const target = ((success.match(/^\*\*Baseline\s*→\s*target:\*\*\s*(.*)$/m) || [])[1] || '').trim()
+    const target = ((success.match(/^\*\*Baseline[^\S\n]*→[^\S\n]*target:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').trim()
     if (target) lines.push(`  promised: ${target.slice(0, 110)}`)
   }
   const decisions = readClean(eng, 'decisions.md').split('\n')
