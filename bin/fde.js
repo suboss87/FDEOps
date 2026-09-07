@@ -2446,7 +2446,8 @@ function collectDoctorIssues(eng) {
   }
   // A second copy of a heading the gates read: they take the last filled one, so
   // the record is ambiguous rather than lost. Say so once, here.
-  for (const [file, heading] of [['terrain.md', 'Operating map'], ['delivery.md', 'Value ledger'], ['success.md', 'Value']]) {
+  // Full heading names only: "Value" would also match "## Value ledger".
+  for (const [file, heading] of [['terrain.md', 'Operating map'], ['delivery.md', 'Value ledger']]) {
     if (countSections(readClean(eng, file), heading) > 1) {
       issues.push(`duplicate ## ${heading} headings in ${file} - merge into one section; the gates read the last filled one`)
     }
@@ -2710,30 +2711,29 @@ function printTriageBlock(eng) {
   for (const line of hygieneTriageLines(eng)) console.log(line)
 }
 
-// What a session must not have to ask for: who signs, what we promised, what we
-// decided. context.md alone is session log and template headers - the sponsor and
-// the promise live in stakeholders.md and delivery.md, and resume never read them.
-// Bounded on purpose (<= 7 lines): this is injected into every session.
+// What a session must not have to ask for: who signs, what was promised, what was
+// decided. Read-only, and from the same places the writers use - the signer is
+// success.md **Stakeholder who signs off** (what `signer:` fills), never a role
+// guess out of stakeholders.md, where contacts live. Bounded on purpose (<= 6
+// lines): this is injected into every session.
 function recordDigest(eng) {
-  const lines = []
-  const people = extractStakeholders(eng)
-  const sponsor = people.find(p => /sponsor|signs|decide|chief|vp|head|coo|cto|cio/i.test(`${p.role} ${p.note}`)) || people[0]
-  if (sponsor) {
-    lines.push(`  signs off: ${sponsor.name}${sponsor.role ? ` (${sponsor.role})` : ''} [${sponsor.signal}]`)
-  }
+  const success = stripTemplateNoise(readClean(eng, 'success.md'))
+  const signer = ((success.match(/^\*\*Stakeholder who signs off:\*\*\s*(.*)$/m) || [])[1] || '').trim()
+  // "(none)" rather than a missing line: on session start, nobody named to sign
+  // off is the fact worth seeing, not an absence to scroll past.
+  const lines = [`  signer: ${signer || '(none)'}`]
   const { rows } = parseValueLedger(eng)
-  for (const r of rows.slice(0, 2)) lines.push(`  promised: ${formatValueLedgerLine(r).slice(0, 110)}`)
-  if (!rows.length) {
-    // No ledger yet: dated delivery bullets are where `fde log delivery` puts it.
-    const bullets = readClean(eng, 'delivery.md').split('\n')
-      .filter(l => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(l.trim())).slice(-2)
-    for (const b of bullets) lines.push(`  delivery: ${b.trim().slice(0, 110)}`)
+  const promisedRow = [...rows].reverse().find(r => r.promised)
+  if (promisedRow) {
+    lines.push(`  promised: ${formatValueLedgerLine(promisedRow).slice(0, 110)}`)
+  } else {
+    const target = ((success.match(/^\*\*Baseline\s*→\s*target:\*\*\s*(.*)$/m) || [])[1] || '').trim()
+    if (target) lines.push(`  promised: ${target.slice(0, 110)}`)
   }
   const decisions = readClean(eng, 'decisions.md').split('\n')
     .filter(l => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(l.trim())).slice(-2)
   for (const d of decisions) lines.push(`  decided: ${d.trim().replace(/^-\s*/, '').slice(0, 110)}`)
-  if (!lines.length) return []
-  return ['RECORD (from .fde/ - stakeholders, delivery, decisions)', ...lines]
+  return ['RECORD (read-only - success, delivery, decisions)', ...lines]
 }
 
 function cmdDoctor() {
@@ -3060,7 +3060,7 @@ function cmdStatus(args) {
       if (!fs.existsSync(eng)) continue
       const s = computeSignals(eng)
       const note = [s.memoryWarn, (s.dirtyFiles && s.dirtyFiles.length) ? `dirty:${s.dirtyFiles.length}` : '', s.reason || s.topRisk].filter(Boolean).join(' · ').slice(0, 70)
-      rows.push({ name: d, phase: s.phase, trust: s.trust, noSignal: s.noSignal, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: note, memoryWarn: s.memoryWarn, dirtyFiles: s.dirtyFiles, valueLines: valueLedgerStatusLines(eng, { compact: true }) })
+      rows.push({ name: d, phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: note, memoryWarn: s.memoryWarn, dirtyFiles: s.dirtyFiles, valueLines: valueLedgerStatusLines(eng, { compact: true }) })
     }
   } else {
     const eng = resolveEngagement()
@@ -3070,17 +3070,18 @@ function cmdStatus(args) {
     }
     const s = computeSignals(eng)
     const note = [s.memoryWarn, (s.dirtyFiles && s.dirtyFiles.length) ? `dirty:${s.dirtyFiles.length}` : '', s.reason || s.topRisk].filter(Boolean).join(' · ').slice(0, 70)
-    rows.push({ name: engagementSlugFromPath(eng), phase: s.phase, trust: s.trust, noSignal: s.noSignal, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: note, memoryWarn: s.memoryWarn, dirtyFiles: s.dirtyFiles, valueLines: valueLedgerStatusLines(eng) })
+    rows.push({ name: engagementSlugFromPath(eng), phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: note, memoryWarn: s.memoryWarn, dirtyFiles: s.dirtyFiles, valueLines: valueLedgerStatusLines(eng) })
   }
   if (!rows.length) { console.log('no engagements yet'); return }
-  const order = { RED: 0, amber: 1, green: 2 }
+  // `new` sorts last: nothing to act on yet, unlike a green somebody confirmed.
+  const order = { RED: 0, amber: 1, green: 2, new: 3 }
   rows.sort((a, b) => order[a.trust] - order[b.trust])
   console.log((all ? 'FDE PORTFOLIO' : 'FDE STATUS') + ' - value first, then trust\n')
   for (const r of rows) {
     for (const line of r.valueLines) console.log(line)
     // "amber?" = structured signal went stale (>21d) - reconfirm before trusting it
     // "new" = nobody has been asked yet; green is reserved for asked-and-fine.
-    const label = (r.noSignal ? 'new' : r.trust) + (r.stale ? '?' : '')
+    const label = r.trust + (r.stale ? '?' : '')
     const sig = r.signalAge != null ? `signal ${r.signalAge}d old${r.stale ? ' (STALE - reconfirm)' : ''}  ` : ''
     console.log(`  [${label.padEnd(6)}] ${r.name.padEnd(24)} phase:${(r.phase === '?' ? 'unset' : r.phase).padEnd(10)} updated:${r.updated.padEnd(8)} ${sig}${r.reason}`)
     if (r.memoryWarn) console.log(`           memory: ${r.memoryWarn}`)
@@ -3134,7 +3135,7 @@ function cmdDashboard(args) {
     }
     engagements = gatherEngagements({ only: eng })
   }
-  const counts = { green: 0, amber: 0, RED: 0 }
+  const counts = { green: 0, amber: 0, RED: 0, new: 0 }
   engagements.forEach(e => { counts[e.signals.trust]++ })
   const today = render.formatToday(new Date())
 
@@ -3189,7 +3190,7 @@ function cmdDashboard(args) {
     failFs(e, 'write fieldbook', outPath)
   }
   console.log(`fieldbook → ${outPath}`)
-  console.log(`${engagements.length} engagement(s) rendered · ${counts.RED} red / ${counts.amber} amber / ${counts.green} green · 0 tokens (pure render)`)
+  console.log(`${engagements.length} engagement(s) rendered · ${counts.RED} red / ${counts.amber} amber / ${counts.green} green / ${counts.new} new · 0 tokens (pure render)`)
   if (!all) {
     const current = resolveEngagement()
     if (current) for (const line of hygieneTriageLines(current)) console.log(line)

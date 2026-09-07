@@ -7,5 +7,11 @@
 | Platform lead | neutral | Offered repo access Day 2 |
 | Prior vendor (left) | unknown | Ask if partial migration exists |
 
-**Trust:** green Day 1 - no adverse signals yet.  
-**Action:** get finance on next call before committing API-only fix.
+**Action:** get the finance controller on the next call before committing an API-only fix.
+
+## Signal history
+
+<!-- A colour is earned by asking. With no dated [signal:] token an engagement reads `new`, not green. -->
+
+- [2026-07-02] [signal:green] the finance controller sat through the staging replay and asked for the cutover date herself
+- [2026-07-06] [signal:green] the CTO confirmed Friday's readout is still on, and added no scope

@@ -3398,23 +3398,60 @@ test('status and dashboard consult doctor instead of ignoring it', () => {
 test('resume carries the record: who signs, what was promised, what was decided', () => {
   const sandbox = makeSandbox('resumerecord')
   assert.equal(runFde(sandbox, ['resume', '--init', 'Nordwind']).status, 0)
-  assert.equal(runFde(sandbox, ['log', 'contact', 'Ines Brandt, VP Operations - sponsor, signs the outcome', '--signal', 'green']).status, 0)
+
+  // Nobody named to sign off is the fact worth printing, not an absence to hide:
+  // skip is loud on session start too.
+  assert.match(runFde(sandbox, ['resume']).stdout, /signer: \(none\)/)
+
+  // The signer has one source of truth - success.md, written by `signer:` - and
+  // a contact who happens to say "signs the outcome" does not override it.
+  assert.equal(runFde(sandbox, ['log', 'contact', 'Tobias Reuter, IT lead - signs the outcome, he says', '--signal', 'green']).status, 0)
+  assert.match(runFde(sandbox, ['resume']).stdout, /signer: \(none\)/, 'contacts live in stakeholders.md; the signer lives in success.md')
+
+  const debrief = runFde(sandbox, ['debrief'], { input: 'signer: Ines Brandt signs off\n' })
+  assert.equal(debrief.status, 0, debrief.stderr)
   assert.equal(runFde(sandbox, ['log', 'decision', 'scope is the Hamburg desk only, not Rotterdam']).status, 0)
-  assert.equal(runFde(sandbox, ['log', 'delivery', 'promised a dispatcher SOP answer under 5 seconds']).status, 0)
 
   // Monday morning, fresh session: the sponsor and the promise must not require
   // a second command. `resume` used to print context.md's blank template only.
   const resume = runFde(sandbox, ['resume'])
   assert.equal(resume.status, 0, resume.stderr)
   assert.match(resume.stdout, /RECORD/)
-  assert.match(resume.stdout, /signs off:.*Ines/i)
+  assert.match(resume.stdout, /signer: Ines Brandt/)
   assert.match(resume.stdout, /Hamburg desk only/)
-  assert.match(resume.stdout, /under 5 seconds/)
 
   // the session-start hook path (fde triage) carries the same record
   const triage = runFde(sandbox, ['triage'])
-  assert.match(triage.stdout, /signs off:.*Ines/i)
+  assert.match(triage.stdout, /signer: Ines Brandt/)
   assert.match(triage.stdout, /Hamburg desk only/)
+})
+
+test('the promise on the record is the last filled ledger row, else the agreed target', () => {
+  const sandbox = makeSandbox('recordpromise')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'Kestrel']).status, 0)
+  const eng = engagementPath(sandbox, 'kestrel')
+
+  // No ledger yet: what was agreed in success.md is the promise.
+  const success = fs.readFileSync(path.join(eng, 'success.md'), 'utf8')
+  fs.writeFileSync(path.join(eng, 'success.md'),
+    success.replace(/\*\*Baseline → target:\*\*.*/, '**Baseline → target:** 4h nightly batch → under 5 min p95, by Sept 30'))
+  assert.match(runFde(sandbox, ['resume']).stdout, /promised: 4h nightly batch → under 5 min p95/)
+
+  // Once the ledger has rows, the last filled Promised cell wins - and it says
+  // whether anyone customer-side accepted it.
+  fs.appendFileSync(path.join(eng, 'delivery.md'), [
+    '',
+    '## Value ledger',
+    '',
+    '| Date | Slice | Bucket | Promised | Measured | Accepted by |',
+    '|---|---|---|---|---|---|',
+    '| 2026-08-10 | shadow read | cost-save | lag < 30 min | 12 min | Ellie Fenwick |',
+    '| 2026-08-14 | read-side stream | cost-save | lag < 5 min p95 | 96s p95 | |',
+    '',
+  ].join('\n'))
+  const withLedger = runFde(sandbox, ['resume']).stdout
+  assert.match(withLedger, /promised: read-side stream: lag < 5 min p95/)
+  assert.match(withLedger, /claimed, not yet accepted/)
 })
 
 test('a private note never reaches the record digest', () => {
@@ -3509,6 +3546,9 @@ test('green means asked and fine - an untouched engagement reads new', () => {
   const triage = runFde(sandbox, ['triage'])
   assert.match(triage.stdout, /TRIAGE\s+\[new/, 'a day-1 engagement has no trust signal to be green about')
   assert.doesNotMatch(triage.stdout, /TRIAGE\s+\[green/)
+
+  // and it does not quote a trust reason it does not have
+  assert.doesNotMatch(triage.stdout, /\n\s+trust:/)
 
   const status = runFde(sandbox, ['status', '--all'])
   assert.match(status.stdout, /\[new\s*\]\s*untouched/)
