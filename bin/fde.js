@@ -1615,18 +1615,33 @@ function smartProposeText(input) {
 // success.md - that is the line Monday's RECORD reads.
 const SIGNER_VERB = '(?:signs?(?:\\s+off)?|approves|has (?:the )?final say|can say yes|owns the decision|is the (?:sponsor|signer|decision[- ]maker))'
 const SIGNER_NAME = '([A-Z][\\w.\'-]+(?:\\s+[A-Z][\\w.\'-]+){0,3})'
-const NOT_A_PERSON = /^(The|This|That|It|We|They|Staging|Budget|Prod|Production|Nobody|Someone|Everyone|Finance|Legal|Security|Platform|Engineering)\b/
+const NOT_A_PERSON = /^(The|This|That|It|We|They|She|He|Staging|Budget|Prod|Production|Nobody|Someone|Everyone|Finance|Legal|Security|Platform|Engineering)\b/
+const ROLE_TOKEN = /\b(VP|SVP|EVP|CTO|CFO|COO|CEO|CISO|Eng|Engineer|Director|Lead|Head|Manager|Controller|Ops|Legal|Finance|Sponsor)\b/i
+
+function looksLikePersonName(s) {
+  const t = String(s || '').trim()
+  if (!t || NOT_A_PERSON.test(t) || ROLE_TOKEN.test(t)) return false
+  return /^[A-Z][\w.'-]+(?:\s+[A-Z][\w.'-]+){0,2}$/.test(t)
+}
 
 function signerFromLine(text) {
   const t = String(text || '').replace(/^[-*+]\s+/, '').trim()
   if (!t) return ''
-  const paren = t.match(new RegExp('\\(' + SIGNER_NAME + '\\)\\s+' + SIGNER_VERB + '\\b', 'i'))
-  if (paren && !NOT_A_PERSON.test(paren[1])) return paren[1].trim()
+  // "Priya (VP Eng) signs off" → Priya. "Finance controller (Helena) signs off" → Helena.
+  const titled = t.match(new RegExp('\\b' + SIGNER_NAME + '\\s+\\(' + SIGNER_NAME + '\\)\\s+' + SIGNER_VERB + '\\b'))
+  if (titled) {
+    const before = titled[1].trim()
+    const inside = titled[2].trim()
+    if (looksLikePersonName(before) && ROLE_TOKEN.test(inside)) return before
+    if (looksLikePersonName(inside)) return inside
+    if (looksLikePersonName(before)) return before
+  }
+  const paren = t.match(new RegExp('\\(' + SIGNER_NAME + '\\)\\s+' + SIGNER_VERB + '\\b'))
+  if (paren && looksLikePersonName(paren[1])) return paren[1].trim()
   const named = t.match(new RegExp('\\b' + SIGNER_NAME + '\\s+' + SIGNER_VERB + '\\b'))
   if (!named) return ''
   const who = named[1].trim()
-  if (NOT_A_PERSON.test(who)) return ''
-  return who
+  return looksLikePersonName(who) ? who : ''
 }
 
 function setSigner(eng, who) {

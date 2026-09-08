@@ -3251,6 +3251,17 @@ test('debrief --smart routes kickoff English "Helena signs off" and "has final s
   assert.match(success, /also named: Anand Mehta/)
 })
 
+test('debrief --smart keeps Priya, not the role in parentheses', () => {
+  const sandbox = makeSandbox('signer-role')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'roleco']).status, 0)
+  const notes = path.join(sandbox.dir, 'notes.md')
+  fs.writeFileSync(notes, 'Priya (VP Eng) signs off.\nshe signs off.\n')
+  const smart = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.match(smart.stdout, /signs off:\*\* Priya/)
+  assert.doesNotMatch(smart.stdout, /signs off:\*\* (VP|she|She)/)
+})
+
 test('subcommand --help prints usage, not a meeting or a missing file', () => {
   const sandbox = makeSandbox('help-flag')
   assert.equal(runFde(sandbox, ['resume', '--init', 'helpco']).status, 0)
