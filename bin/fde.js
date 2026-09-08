@@ -1610,20 +1610,38 @@ function smartProposeText(input) {
   return out.join('\n') + (out.length ? '\n' : '')
 }
 
-// "Priya signs off" is the most expensive sentence in a kickoff and used to land
-// in context.md as a note. signer: fills the success.md line the whole kit
-// keys on, and logs the person as a contact so prep/status can see them.
-const SIGNER_RX = /^(?<who>[A-Z][\w.'-]+(?:\s+[A-Z][\w.'-]+){0,3}(?:\s*\([^)]{1,40}\))?)\s+(?:signs?(?:\s+off)?|approves|has (?:the )?final say|can say yes|owns the decision|is the (?:sponsor|signer|decision[- ]maker))\b/
+// Kickoff English, not only "signer: Priya". "Helena signs off", "Anand Mehta
+// has final say", "Finance controller (Helena) signs off" all have to fill
+// success.md - that is the line Monday's RECORD reads.
+const SIGNER_VERB = '(?:signs?(?:\\s+off)?|approves|has (?:the )?final say|can say yes|owns the decision|is the (?:sponsor|signer|decision[- ]maker))'
+const SIGNER_NAME = '([A-Z][\\w.\'-]+(?:\\s+[A-Z][\\w.\'-]+){0,3})'
+const NOT_A_PERSON = /^(The|This|That|It|We|They|She|He|Staging|Budget|Prod|Production|Nobody|Someone|Everyone|Finance|Legal|Security|Platform|Engineering)\b/
+const ROLE_TOKEN = /\b(VP|SVP|EVP|CTO|CFO|COO|CEO|CISO|Eng|Engineer|Director|Lead|Head|Manager|Controller|Ops|Legal|Finance|Sponsor)\b/i
+
+function looksLikePersonName(s) {
+  const t = String(s || '').trim()
+  if (!t || NOT_A_PERSON.test(t) || ROLE_TOKEN.test(t)) return false
+  return /^[A-Z][\w.'-]+(?:\s+[A-Z][\w.'-]+){0,2}$/.test(t)
+}
 
 function signerFromLine(text) {
-  const t = String(text || '').trim()
-  const m = t.match(SIGNER_RX)
-  if (!m) return ''
-  const who = m.groups.who.trim()
-  // "Staging exists" / "The API is slow" also match "Capital Word + verb"; a
-  // sentence-initial common noun is not a person.
-  if (/^(The|This|That|It|We|They|Staging|Budget|Prod|Production|Nobody|Someone|Everyone)\b/.test(who)) return ''
-  return who
+  const t = String(text || '').replace(/^[-*+]\s+/, '').trim()
+  if (!t) return ''
+  // "Priya (VP Eng) signs off" → Priya. "Finance controller (Helena) signs off" → Helena.
+  const titled = t.match(new RegExp('\\b' + SIGNER_NAME + '\\s+\\(' + SIGNER_NAME + '\\)\\s+' + SIGNER_VERB + '\\b'))
+  if (titled) {
+    const before = titled[1].trim()
+    const inside = titled[2].trim()
+    if (looksLikePersonName(before) && ROLE_TOKEN.test(inside)) return before
+    if (looksLikePersonName(inside)) return inside
+    if (looksLikePersonName(before)) return before
+  }
+  const paren = t.match(new RegExp('\\(' + SIGNER_NAME + '\\)\\s+' + SIGNER_VERB + '\\b'))
+  if (paren && looksLikePersonName(paren[1])) return paren[1].trim()
+  const named = t.match(new RegExp('\\b' + SIGNER_NAME + '\\s+' + SIGNER_VERB + '\\b'))
+  if (!named) return ''
+  const who = named[1].trim()
+  return looksLikePersonName(who) ? who : ''
 }
 
 function setSigner(eng, who) {
@@ -2134,7 +2152,7 @@ function cmdReceipts(args) {
     agreed.map(h => (h.match(/^\s*([^:]+):/) || [])[1]).filter(f => f && dirtySet.has(f))
   )]
   if (agreed.length) {
-    console.log('ON RECORD (dated - defensible):')
+    console.log('ON RECORD (dated):')
     agreed.forEach(h => {
       const file = (h.match(/^\s*([^:]+):/) || [])[1]
       console.log(h + (file && dirtySet.has(file) ? '  ⚠ dirty file' : ''))
@@ -2620,7 +2638,7 @@ function hasValueBucket(eng) {
 // "pending review", "TBD.", "n/a (blocked)" and "..." are all the same thing an
 // FDE means by an empty cell - nagging about them teaches people to ignore doctor.
 const PENDING_CELL_RE =
-  /^(?:pending|tbd|to ?be ?(?:measured|confirmed|determined)|n\s*\/\s*a|na|none|unknown|not measured|\?+|\.{2,}|…|-+|-+|-+)(?:[^\w].*)?$/i
+  /^(?:pending|tbd|to ?be ?(?:measured|confirmed|determined)|n\s*\/\s*a|na|none|unknown|not(?:\s+yet)?\s+measured|unmeasured|awaiting|\?+|\.{2,}|…|-+)(?:[^\w].*)?$/i
 
 function parseValueLedger(eng) {
   // Last section with actual rows, not merely the last non-empty one: a template
@@ -2704,7 +2722,7 @@ function engagementTouchesAI(eng) {
   ].join('\n'))
   // No bare "prompt": "prompt response" / "prompt payment" is ordinary delivery
   // English and would fail every non-AI ship on a missing eval receipt.
-  return /\b(llm|rag|embedding|model card|model output|model drift|agentic|openai|anthropic|vector database|vector db|fine-tun\w*|hallucinat\w*)\b|\bmodel inference\b|\binference (?:api|endpoint|server|engine)\b|\b(?:system|model|user)\s+prompts?\b|\bprompt (?:engineering|injection|template)/i.test(blob)
+  return /\bAI in scope\b|\b(llm|rag|embedding|model card|model output|model drift|agentic|openai|anthropic|vector database|vector db|fine-tun\w*|hallucinat\w*)\b|\bmodel inference\b|\binference (?:api|endpoint|server|engine)\b|\b(?:system|model|user)\s+prompts?\b|\bprompt (?:engineering|injection|template)/i.test(blob)
 }
 
 // The repo says AI even when the record does not. Read-only, capped, local: the
@@ -3618,6 +3636,10 @@ function printUsage() {
 }
 
 const [cmd, ...args] = process.argv.slice(2)
+if (args.includes('--help') || args.includes('-h') || cmd === 'help' || cmd === '--help' || cmd === '-h') {
+  printUsage()
+  process.exit(0)
+}
 switch (cmd) {
   case 'demo': cmdDemo(args); break
   case 'scan': cmdScan(); break

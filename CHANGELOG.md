@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.22.2 - 2026-09-08
+
+Kickoff English fills the signer. Receipts stop calling a dated line defensible. `--help` is help.
+
+- `debrief --smart`: "Finance controller (Helena) signs off" and "Anand Mehta has final say" become `signer:` lines. RECORD no longer prints `(none)` after a real kickoff sentence.
+- `fde receipts`: header is `ON RECORD (dated):`. Dated is retrieval, not verified customer approval.
+- `fde debrief --help`, `fde prep --help`, `fde log --help`: print usage. They no longer try to read a file named `--help` or prep a meeting called `--help`.
+- Value ledger: "not yet measured" / "pending" is not a claimed number.
+- `fde log decision "AI in scope: …"` (the line scan already prints) turns the eval gate on.
+
 ## 3.22.1 - 2026-09-07
 
 Three engagements run end to end on the published package showed the gates reading a different fieldbook than the CLI writes. Same six stages. Same 30 skills.
