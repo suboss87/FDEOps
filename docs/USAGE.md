@@ -135,7 +135,7 @@ fde doctor                        # check the fieldbook for gaps
 fde prep "sponsor sync"           # walk-in brief from existing memory
 fde log decision "…"
 fde log contact "…" --signal amber
-fde receipts "descope"            # dated agreements (ON RECORD)
+fde receipts "descope"            # dated lines (ON RECORD)
 fde dashboard --all               # every client, sorted by trust
 fde status [--all]                # value ledger, then trust
 fde vault [--redacted] [--out D]  # derived Obsidian vault of the whole portfolio (disposable)

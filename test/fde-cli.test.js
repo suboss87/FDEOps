@@ -701,7 +701,7 @@ test('demo runs the real CLI on a fake client, leaks no private block, and stays
   // the value promise: notes routed, memory reloaded cold, receipts dated
   assert.match(r.stdout, /ENGAGEMENT READY/)
   assert.match(r.stdout, /debrief routed/)
-  assert.match(r.stdout, /ON RECORD \(dated - defensible\)/)
+  assert.match(r.stdout, /ON RECORD \(dated\):/)
   assert.match(r.stdout, /MEETING PREP/)
   assert.match(r.stdout, /fieldbook-current\.html/)
   // no fabricated transcript: the record on disk holds what the demo printed
@@ -3227,6 +3227,75 @@ test('debrief --smart routes "Priya signs off" into success.md and stakeholders.
   assert.match(fs.readFileSync(path.join(eng, 'context.md'), 'utf8'), /Budget fixed/)
   const prep = runFde(sandbox, ['prep', 'Friday'])
   assert.match(prep.stdout, /Priya/)
+})
+
+test('debrief --smart routes kickoff English "Helena signs off" and "has final say"', () => {
+  const sandbox = makeSandbox('kickoff-signer')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'kickco']).status, 0)
+  const notes = path.join(sandbox.dir, 'notes.md')
+  fs.writeFileSync(notes, [
+    'Finance controller (Helena) signs off. Budget fixed.',
+    'Anand Mehta has final say.',
+    'The API is slow on Mondays.',
+  ].join('\n') + '\n')
+  const smart = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.match(smart.stdout, /signs off:\*\* Helena/)
+  assert.match(smart.stdout, /signs off:\*\* Anand Mehta/)
+  assert.doesNotMatch(smart.stdout, /signs off:\*\* (The|Finance|Staging)/)
+  const applied = runFde(sandbox, ['debrief', '--apply'])
+  assert.equal(applied.status, 0, applied.stderr)
+  const eng = engagementPath(sandbox, 'kickco')
+  const success = fs.readFileSync(path.join(eng, 'success.md'), 'utf8')
+  assert.match(success, /\*\*Stakeholder who signs off:\*\* Helena/)
+  assert.match(success, /also named: Anand Mehta/)
+})
+
+test('debrief --smart keeps Priya, not the role in parentheses', () => {
+  const sandbox = makeSandbox('signer-role')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'roleco']).status, 0)
+  const notes = path.join(sandbox.dir, 'notes.md')
+  fs.writeFileSync(notes, 'Priya (VP Eng) signs off.\nshe signs off.\n')
+  const smart = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.match(smart.stdout, /signs off:\*\* Priya/)
+  assert.doesNotMatch(smart.stdout, /signs off:\*\* (VP|she|She)/)
+})
+
+test('subcommand --help prints usage, not a meeting or a missing file', () => {
+  const sandbox = makeSandbox('help-flag')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'helpco']).status, 0)
+  for (const args of [['--help'], ['debrief', '--help'], ['prep', '--help'], ['log', '--help']]) {
+    const r = runFde(sandbox, args)
+    assert.equal(r.status, 0, `${args.join(' ')}: ${r.stderr}`)
+    assert.match(r.stdout, /fde - deterministic core/)
+    assert.doesNotMatch(r.stdout, /cannot read/)
+    assert.doesNotMatch(r.stdout, /MEETING PREP/)
+  }
+})
+
+test('receipts header is dated, not defensible', () => {
+  const sandbox = makeSandbox('receipts-dated')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'recco']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'sheet remains system of record until Denise signs']).status, 0)
+  const r = runFde(sandbox, ['receipts', 'Denise'])
+  assert.match(r.stdout, /ON RECORD \(dated\):/)
+  assert.doesNotMatch(r.stdout, /defensible/)
+})
+
+test('log delivery "not yet measured" is not a claimed number', () => {
+  const sandbox = makeSandbox('pending-measure')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'pendco']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
+  const eng = engagementPath(sandbox, 'pendco')
+  fillOperatingMap(eng)
+  const logged = runFde(sandbox, [
+    'log', 'delivery',
+    'retry | cost-save | one night | not yet measured | pending | staging | flag off',
+  ])
+  assert.equal(logged.status, 0, logged.stderr)
+  const doctor = runFde(sandbox, ['doctor'])
+  assert.doesNotMatch(doctor.stdout, /measured but not accepted/)
 })
 
 test('debrief signer: does not overwrite a different signer already on record', () => {
