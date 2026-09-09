@@ -58,6 +58,26 @@ function sh(cmd, cwd) {
   } catch (_) { return '' }
 }
 
+// Hex hashes only - never a shell. True when olderHash is an ancestor of newerHash.
+function gitIsAncestor(eng, olderHash, newerHash) {
+  if (!olderHash || !newerHash || olderHash === newerHash) return false
+  if (!/^[0-9a-f]{7,64}$/i.test(olderHash) || !/^[0-9a-f]{7,64}$/i.test(newerHash)) return false
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', olderHash, newerHash], {
+      cwd: eng, stdio: 'ignore', timeout: 15000,
+    })
+    return true
+  } catch (_) { return false }
+}
+
+function gitLogHash(eng, args) {
+  try {
+    return execFileSync('git', ['log', '-1', '--format=%H', ...args], {
+      cwd: eng, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 15000,
+    }).trim()
+  } catch (_) { return '' }
+}
+
 function slugify(name) {
   return String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'engagement'
 }
@@ -1781,6 +1801,101 @@ function writeProposal(eng, text) {
   return { proposePath, clean, blocks }
 }
 
+function approvedStamp(text) {
+  const m = String(text || '').match(/\[approved:\s*([^\]]+)\]/i)
+  return m ? m[1].trim() : ''
+}
+
+function stripApprovedStamp(text) {
+  return String(text || '').replace(/\s*\[approved:\s*[^\]]+\]/i, '').trim()
+}
+
+// One screen a human can confirm in two minutes. The file-by-file routing
+// still prints after this - agents edit prefixes; people read this.
+function printDebriefReview(text) {
+  const buckets = { decided: [], asked: [], open: [], next: [], signer: [] }
+  for (const raw of String(text || '').split('\n')) {
+    const line = raw.trim().replace(/^[-*+]\s+/, '')
+    if (!line) continue
+    const m = line.match(/^(decision|risk|delivery|contact|next|signer):\s*(.+)$/i)
+    if (!m) continue
+    const type = m[1].toLowerCase()
+    const body = m[2]
+    if (type === 'decision') {
+      const who = approvedStamp(body)
+      const core = previewLine(stripApprovedStamp(body), 90)
+      buckets.decided.push(who ? `${core}  (approved ${who})` : `${core}  (unconfirmed)`)
+    } else if (type === 'delivery') {
+      buckets.asked.push(previewLine(body, 100))
+    } else if (type === 'risk') {
+      buckets.open.push(previewLine(body, 100))
+    } else if (type === 'next') {
+      buckets.next.push(previewLine(body, 100))
+    } else if (type === 'signer') {
+      buckets.signer.push(previewLine(body, 80))
+    }
+  }
+  console.log('REVIEW (one screen - confirm once, then apply)\n')
+  const order = [
+    ['decided', buckets.decided],
+    ['asked', buckets.asked],
+    ['open', buckets.open],
+    ['next', buckets.next],
+    ['signer', buckets.signer],
+  ]
+  let any = false
+  for (const [label, items] of order) {
+    if (!items.length) continue
+    any = true
+    console.log(`  ${label}:`)
+    for (const item of items) console.log(`    - ${item}`)
+  }
+  if (!any) console.log('  (nothing prefixed yet - edit .debrief-propose, then apply)')
+  console.log('')
+}
+
+function latestDatedDecision(md) {
+  let latest = { date: '', line: '' }
+  for (const raw of String(md || '').split('\n')) {
+    const t = raw.trim()
+    const m = t.match(/^[-*]\s*\[(\d{4}-\d{2}-\d{2})\]/)
+    if (!m) continue
+    if (m[1] >= latest.date) latest = { date: m[1], line: t }
+  }
+  return latest
+}
+
+function formatDecisionRecord(line) {
+  const raw = String(line || '').trim().replace(/^[-*]\s*/, '')
+  const who = approvedStamp(raw)
+  const core = stripApprovedStamp(raw)
+  const stamp = who ? `(approved ${who})` : '(unconfirmed)'
+  return previewLine(`${core}  ${stamp}`, 110)
+}
+
+function changeReviewIssues(eng) {
+  const issues = []
+  const del = latestDeliveryEntry(readClean(eng, 'delivery.md'))
+  const dec = latestDatedDecision(readClean(eng, 'decisions.md'))
+  const delHash = del.line
+    ? sh(`git log -1 --format=%H -S${JSON.stringify(del.line)} -- delivery.md`, eng)
+    : ''
+  if (del.date && dec.date && dec.date > del.date && delHash) {
+    issues.push(
+      'a decision landed after the last delivery line - review whether what you are shipping still matches'
+    )
+  }
+  if (claimedValueRows(eng).claimed && delHash) {
+    const sigHash = gitLogHash(eng, ['-GStakeholder who signs off|also named:', '--', 'success.md'])
+    if (sigHash && gitIsAncestor(eng, delHash, sigHash)) {
+      issues.push(
+        'the signer line changed while a measured number is still unaccepted - pending acceptance may need a new yes'
+      )
+    }
+  }
+  return issues
+}
+
 function readSealCount(eng) {
   try {
     const n = parseInt(fs.readFileSync(path.join(eng, DEBRIEF_SEAL), 'utf8').trim(), 10)
@@ -1904,7 +2019,9 @@ function cmdDebrief(args) {
     if (smart) {
     const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
     console.log('SMART PROPOSE (heuristic - review before apply; no new facts invented beyond line rewrites)\n')
+    printDebriefReview(clean)
     console.log('Prefix vocabulary (lines that route): decision:  risk:  delivery:  contact:  next:  signer:')
+    console.log('Optional on a decision: [approved: Name YYYY-MM-DD]. Missing means unconfirmed.')
     console.log('Everything else → context.md. Keep the prefixes; the preview gate stays.\n')
     routeDebriefInput(eng, clean, { dry: true, force, sealed: blocks })
     if (!apply) {
@@ -2046,6 +2163,7 @@ function cmdIngest(args) {
     }
     const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
     console.log(`INGEST PROPOSE from ${path.basename(item)} (via:${source})\n`)
+    printDebriefReview(clean)
     routeDebriefInput(eng, clean, { dry: true, force: false, sealed: blocks })
     console.log(`\nproposal saved → ${proposePath}`)
     console.log('confirm:  fde ingest apply')
@@ -2516,6 +2634,7 @@ function collectDoctorIssues(eng) {
   }
   const reality = parseReality(readClean(eng, 'reality.md'), 220)
   if (reality.missing) issues.push(reality.missing)
+  issues.push(...changeReviewIssues(eng))
   return issues
 }
 
@@ -2768,7 +2887,7 @@ function hygieneTriageLines(eng) {
   const top = issues[0].replace(/\s+/g, ' ').trim().slice(0, 72)
   return [
     `  hygiene: ${issues.length} issue(s) - ${top}${issues[0].length > 72 ? '…' : ''}`,
-    '    → say "@fde clean up the fieldbook" when ready (agent runs fde doctor; nothing auto-rewrites)',
+    '    → say "@fde clean up the fieldbook" when ready (agent runs fde doctor; nothing auto-rewrites), or: fde doctor',
   ]
 }
 
@@ -2798,7 +2917,7 @@ function recordDigest(eng) {
   }
   const decisions = readClean(eng, 'decisions.md').split('\n')
     .filter(l => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(l.trim())).slice(-2)
-  for (const d of decisions) lines.push(`  decided: ${d.trim().replace(/^-\s*/, '').slice(0, 110)}`)
+  for (const d of decisions) lines.push(`  decided: ${formatDecisionRecord(d)}`)
   return ['RECORD (read-only - success, delivery, decisions)', ...lines]
 }
 
@@ -3614,7 +3733,7 @@ function printUsage() {
   fde log phase <phase>    set engagement phase (land|discover|plan|ship|outcome|close)
   fde log --undo           remove the last CLI log/debrief entry from memory
   fde debrief [file]       meeting notes → memory (prefixed lines; --dry-run; --force)
-  fde debrief --smart      heuristic propose (prints decision:/risk:/delivery:/contact:/next:); --apply after confirm
+  fde debrief --smart      heuristic propose; REVIEW first (decided/asked/open/next/signer); --apply after one confirm
   fde ingest stage …       stage raw pull into <engagement>/.inbox/ (not .fde/)
   fde ingest list          list staged inbox items
   fde ingest propose <id>  smart-propose a staged item → .debrief-propose (confirm before apply)

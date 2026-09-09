@@ -636,6 +636,11 @@ if (apManifest.$schema !== AP_PLUGIN_SCHEMA) {
   fail(`version mismatch package.json ${pkg.version} vs plugin.json ${apManifest.version}`)
 } else ok('agent plugins manifest')
 
+const ingestPkg = JSON.parse(read('mcp/fdeops-ingest/package.json'))
+if (ingestPkg.version !== pkg.version) {
+  fail(`version mismatch package.json ${pkg.version} vs mcp/fdeops-ingest ${ingestPkg.version}`)
+} else ok('ingest package version aligned')
+
 const apMcp = JSON.parse(read('mcp.json'))
 const apServers = apMcp.mcpServers || {}
 if (apMcp.$schema !== AP_MCP_SCHEMA) {

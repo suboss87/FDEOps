@@ -28,7 +28,7 @@ A one-line typo or compile error in a file that will not ship. On a bound client
 | **When did we agree?** | Don't argue from memory. Search the record. | `fde receipts <term>` | - |
 | **What's the outcome?** | A number nobody signed is claimed, not delivered. | `fde status` | `references/readout.md` |
 
-After a meeting: `fde debrief --smart` → confirm → `--apply`. Walk-in: `fde prep`. Friday: `fde status`.
+After a meeting: `fde debrief --smart` → one REVIEW screen (decided / asked / open / next / signer) → confirm once → `--apply`. Walk-in: `fde prep`. Friday: `fde status`.
 
 ## Ground loop
 
@@ -65,7 +65,7 @@ Writes need a bind (`FDEOPS_ENGAGEMENT` or registry). Never install fdeops on in
 |----------|---------|
 | where are we | `fde resume` |
 | day-1 look at the repo | `fde scan` |
-| debrief / pasted notes | `fde debrief --smart` → you rewrite prefixes → confirm → `--apply`. `--smart` is a gate, not a brain. `references/debrief.md` |
+| debrief / pasted notes | `fde debrief --smart` → REVIEW → confirm once → `--apply`. `--smart` is a gate, not a brain. `references/debrief.md` |
 | prep me for … | `fde prep "<label>"` |
 | when did we agree | `fde receipts <term>` |
 | sponsor update / the outcome | `fde status` |

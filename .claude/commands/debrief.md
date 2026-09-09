@@ -10,7 +10,7 @@ Run `fde debrief --smart` (fallback: `npx --yes fdeops debrief --smart`). `--sma
 
 Rewrite the propose output: add type prefixes where the record needs them. Strip noise; keep their words for quotes and decisions.
 
-Present the routing in plain language: what lands where in `.fde/`, what changed, what is still open. One screen, not a transcript dump.
+Present the REVIEW block first: decided, asked, open, next, signer. Confirm once. File routing stays underneath. Not a transcript dump.
 
 Only run `fde debrief --apply` (fallback: `npx --yes fdeops debrief --apply`) after the human confirms. Never auto-apply.
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.23.0 - 2026-09-09
+
+Follow-up you can confirm in two minutes. No state machine.
+
+- `debrief --smart` / ingest propose: a one-screen REVIEW first (decided, asked, open, next, signer). File-routing still prints underneath. Confirm once, then `--apply`.
+- Optional `[approved: Name YYYY-MM-DD]` on a decision line. RECORD marks missing approval as `(unconfirmed)`. The CLI does not infer a yes from prose.
+- `doctor`: a dated decision after the last committed delivery line, or a signer change while a measured number is still unaccepted, asks for a review. No dependency graph.
+
 ## 3.22.2 - 2026-09-08
 
 Kickoff English fills the signer. Receipts stop calling a dated line defensible. `--help` is help.
