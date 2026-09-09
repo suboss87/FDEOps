@@ -1053,6 +1053,11 @@ test('debrief --smart proposes then --apply writes after confirm', () => {
   const propose = runFde(sandbox, ['debrief', '--smart', notes])
   assert.equal(propose.status, 0, propose.stderr)
   assert.match(propose.stdout, /SMART PROPOSE/)
+  assert.match(propose.stdout, /REVIEW \(one screen/)
+  const reviewAt = propose.stdout.indexOf('REVIEW (one screen')
+  const vocabAt = propose.stdout.indexOf('Prefix vocabulary')
+  assert.ok(reviewAt >= 0 && reviewAt < vocabAt, 'REVIEW must print before the file-routing dump')
+  assert.match(propose.stdout, /decided:[\s\S]*unconfirmed/)
   assert.match(propose.stdout, /\[signal:amber\].*Denise|Denise.*\[signal:amber\]/)
   assert.match(propose.stdout, /\[signal:green\].*Randy|Randy.*\[signal:green\]/)
   assert.match(propose.stdout, /Next action/)
@@ -3190,13 +3195,17 @@ test('dashboard does not render a schema-less reality.md as what is actually tru
   assert.doesNotMatch(html, /fb-why-reality">/)
 })
 
-test('debrief --smart prints the prefix vocabulary before the preview', () => {
+test('debrief --smart prints REVIEW before the prefix vocabulary', () => {
   const sandbox = makeSandbox('smart-vocab')
   assert.equal(runFde(sandbox, ['resume', '--init', 'vocabco']).status, 0)
   const notes = path.join(sandbox.dir, 'notes.md')
   fs.writeFileSync(notes, 'talked about the audit date\n')
   const smart = runFde(sandbox, ['debrief', '--smart', notes])
   assert.equal(smart.status, 0, smart.stderr)
+  assert.match(smart.stdout, /REVIEW \(one screen/)
+  const reviewAt = smart.stdout.indexOf('REVIEW (one screen')
+  const vocabAt = smart.stdout.indexOf('Prefix vocabulary')
+  assert.ok(reviewAt >= 0 && reviewAt < vocabAt)
   assert.match(smart.stdout, /decision:/)
   assert.match(smart.stdout, /risk:/)
   assert.match(smart.stdout, /delivery:/)
@@ -3619,6 +3628,7 @@ test('resume carries the record: who signs, what was promised, what was decided'
   assert.match(resume.stdout, /RECORD/)
   assert.match(resume.stdout, /signer: Ines Brandt/)
   assert.match(resume.stdout, /Hamburg desk only/)
+  assert.match(resume.stdout, /unconfirmed/, 'a decision without [approved:] stays visibly unconfirmed')
 
   // the session-start hook path (fde triage) carries the same record
   const triage = runFde(sandbox, ['triage'])
@@ -3765,3 +3775,65 @@ test('creating an engagement says it is not yet bound to a workspace', () => {
   assert.match(init.stdout, /fde resume --init meridian-health/, 'the one door that binds must be named')
   assert.doesNotMatch(init.stdout, /node bin\/install\.js/, 'an npm user has no clone to run that path from')
 })
+
+test('debrief REVIEW keeps [approved:] and does not infer a yes from prose', () => {
+  const sandbox = makeSandbox('review-approved')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'apprco']).status, 0)
+  const notes = path.join(sandbox.dir, 'notes.md')
+  fs.writeFileSync(notes, [
+    'decision: freeze the API [approved: Helena 2026-09-08]',
+    'decision: Helena agreed to keep Excel as fallback',
+    'delivery: retry live on staging',
+    'risk: legal may reopen scope',
+    'next: send the recap before Thursday',
+    'signer: Helena',
+  ].join('\n') + '\n')
+  const smart = runFde(sandbox, ['debrief', '--smart', notes])
+  assert.equal(smart.status, 0, smart.stderr)
+  assert.match(smart.stdout, /REVIEW \(one screen/)
+  assert.match(smart.stdout, /freeze the API\s+\(approved Helena 2026-09-08\)/)
+  assert.match(smart.stdout, /Helena agreed to keep Excel as fallback\s+\(unconfirmed\)/)
+  assert.doesNotMatch(smart.stdout, /Helena agreed to keep Excel as fallback\s+\(approved/)
+  assert.match(smart.stdout, /asked:[\s\S]*retry live on staging/)
+  assert.match(smart.stdout, /open:[\s\S]*legal may reopen/)
+  assert.match(smart.stdout, /next:[\s\S]*send the recap/)
+  assert.match(smart.stdout, /signer:[\s\S]*Helena/)
+  const applied = runFde(sandbox, ['debrief', '--apply'])
+  assert.equal(applied.status, 0, applied.stderr)
+  const resume = runFde(sandbox, ['resume'])
+  assert.match(resume.stdout, /approved Helena 2026-09-08/)
+  assert.match(resume.stdout, /unconfirmed/)
+})
+
+test('doctor asks for a review when a later decision lands after a committed delivery', () => {
+  const sandbox = makeSandbox('review-decision')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'revdec']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'delivery', 'retry live on staging']).status, 0)
+  const sameDay = runFde(sandbox, ['doctor'])
+  assert.doesNotMatch(sameDay.stdout, /decision landed after the last delivery/)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'keep the flag off']).status, 0)
+  const stillSameDay = runFde(sandbox, ['doctor'])
+  assert.doesNotMatch(stillSameDay.stdout, /decision landed after the last delivery/, 'same-day debrief after a ship is not a doctor fail')
+  const eng = engagementPath(sandbox, 'revdec')
+  fs.appendFileSync(path.join(eng, 'decisions.md'), '\n- [2099-01-01] descope the reporting slice until the audit\n')
+  const later = runFde(sandbox, ['doctor'])
+  assert.match(later.stdout, /decision landed after the last delivery line/)
+})
+
+test('doctor asks for a review when the signer changes on an unaccepted number', () => {
+  const sandbox = makeSandbox('review-signer')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'revsig']).status, 0)
+  const before = runFde(sandbox, ['debrief'], { input: 'signer: Priya\n' })
+  assert.equal(before.status, 0, before.stderr)
+  assert.equal(runFde(sandbox, [
+    'log', 'delivery',
+    'retry | cost-save | 2h/week | 1.8h/week | | sheet | flag off',
+  ]).status, 0)
+  const claimedFirst = runFde(sandbox, ['doctor'])
+  assert.doesNotMatch(claimedFirst.stdout, /signer line changed/, 'signer named before the number is not a change')
+  const after = runFde(sandbox, ['debrief'], { input: 'signer: Helena\n' })
+  assert.equal(after.status, 0, after.stderr)
+  const changed = runFde(sandbox, ['doctor'])
+  assert.match(changed.stdout, /signer line changed while a measured number is still unaccepted/)
+})
+

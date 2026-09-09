@@ -38,7 +38,9 @@ After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same rou
 ### Decision entries
 
 `fde log decision "<text>"` appends a dated one-liner, which is enough for most
-choices. When the reasoning is the part that has to survive the engagement,
+choices. Optional `[approved: Name YYYY-MM-DD]` on that line is the only customer-yes
+the CLI treats as approval; without it, Monday's RECORD prints `(unconfirmed)`. Do not infer
+approval from "agreed" or a name in the prose. When the reasoning is the part that has to survive the engagement,
 write the long form under `## Decision log` instead:
 
 ```markdown
