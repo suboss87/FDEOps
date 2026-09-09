@@ -28,7 +28,7 @@ A one-line typo or compile error in a file that will not ship. On a bound client
 | **When did we agree?** | Don't argue from memory. Search the record. | `fde receipts <term>` | - |
 | **What's the outcome?** | A number nobody signed is claimed, not delivered. | `fde status` | `references/readout.md` |
 
-After a meeting: `fde debrief --smart` → one REVIEW screen (decided / asked / open / next / signer) → confirm once → `--apply`. Walk-in: `fde prep`. Friday: `fde status`.
+After a meeting: `fde debrief --smart` → one REVIEW screen (decided / asked / open / next / signer) → in chat, a four-row card (omit empty; Previously / Not yet agreed) → **Save this update?** (engineer accepted the record, not customer approval of every ask) → `--apply`. Walk-in: `fde prep`. Friday: `fde status`.
 
 ## Ground loop
 
@@ -43,6 +43,10 @@ On someone else's site the work is not "write code, remember later." Every chang
 A throwaway file can skip the loop. Bound client work cannot.
 
 **Skip is loud.** Bound + a change that will ship + no this-turn line in `delivery.md` = not done. Say that. Do not call it shipped. A coding pack may write the function; `@fde` still owns done.
+
+## Working with an engineering pack
+
+Use the customer's existing coding, testing, review, and repository instructions for implementation. Carry the confirmed outcome, scope boundary, acceptance criteria, and evidence requirements into that workflow. Reference its existing plan from `decisions.md`; do not create a competing backlog or repeat questions already answered. FDEOps owns the engagement record and acceptance status. A coding pack's green tests do not establish customer acceptance. Never claim compatibility was tested with a host or pack you have not run.
 
 ## Human surface vs agent plumbing
 
@@ -65,7 +69,7 @@ Writes need a bind (`FDEOPS_ENGAGEMENT` or registry). Never install fdeops on in
 |----------|---------|
 | where are we | `fde resume` |
 | day-1 look at the repo | `fde scan` |
-| debrief / pasted notes | `fde debrief --smart` → REVIEW → confirm once → `--apply`. `--smart` is a gate, not a brain. `references/debrief.md` |
+| debrief / pasted notes | `fde debrief --smart` → REVIEW → four-row chat card → Save this update? → `--apply`. `--smart` is a gate, not a brain. `references/debrief.md` |
 | prep me for … | `fde prep "<label>"` |
 | when did we agree | `fde receipts <term>` |
 | sponsor update / the outcome | `fde status` |

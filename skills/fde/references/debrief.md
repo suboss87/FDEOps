@@ -31,8 +31,14 @@
    - `next: send one-pager before Thursday 9am`
    - unprefixed lines stay context color only
 4. Show the **REVIEW** block first (decided / asked / open / next / signer). That is the one screen to confirm. File routing stays underneath.
-5. On FDE confirm → run `fde debrief --apply`.
-6. On reject → stop; ask what to change; do not apply.
+5. In **chat**, after that REVIEW, present a four-row card and omit empty rows:
+   - Decided
+   - Asked / open
+   - Next
+   - Signer
+   Then a **Previously:** line from the record, and **Not yet agreed** for anything still proposed. Ask **Save this update?** Saving means the engineer accepted this as the engagement record, not that the customer approved every ask. Uncertainty stays visible.
+6. On FDE confirm → run `fde debrief --apply`.
+7. On reject → stop; ask what to change; do not apply. Do not rebuild or replace the CLI REVIEW engine.
 
 No invented names or quotes. If the propose looks wrong, fix prefixes with judgment then re-apply or use the fallback path.
 

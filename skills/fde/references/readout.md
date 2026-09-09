@@ -6,7 +6,9 @@
 
 ## Method (you do this work)
 
-**First:** run `fde status`. It prints the value ledger before trust - promised → measured → accepted by, or `claimed, not yet accepted`. Those lines are the Situation. Do not invent a number the CLI did not print.
+**First:** run `fde status`. It prints the value ledger before trust - promised → measured → accepted by, or `claimed, not yet accepted`. Those lines locate the Situation; check their cited records before making the claim. CLI output summarizes recorded text, not independently verified acceptance. Do not invent a number the CLI did not print. If the CLI is unavailable, use the redacted source records and say so.
+
+**Qualify the evidence before drafting.** For each result, identify baseline source, measurement environment, observation window/sample, and the scope of acceptance. Report an informal baseline as reported and a staging sample as staging; neither establishes realized savings. “Looks good” without what was accepted is not outcome acceptance. Attribute an engineer's note as such; do not turn it into a direct customer receipt. If evidence conflicts, include the conflict and the next verification action rather than choosing the flattering version.
 
 **Always draft in SCQA.** One page maximum. No other shape.
 
@@ -23,7 +25,7 @@ Then add, still on the same page:
 3. **Kill / defer reminder** - one line from the plan kill list so scope fights stay visible.
 4. **Hostile Q prep** - three questions a skeptical sponsor will ask, with one-line answers from memory.
 
-Exec voice: no jargon, no hedging, every claim traceable (`(shipped Tue, delivery.md)`). Draft in the **FDE's voice, for the FDE to send** - never send anything yourself.
+Exec voice: no jargon, explicit uncertainty where evidence is incomplete, every claim traceable (`(shipped Tue, delivery.md)`). Draft in the **FDE's voice, for the FDE to send** - never send anything yourself.
 
 For board / renewal / sponsor's boss (longer pyramid): use `board-memo.md`. Do not invent a second weekly format.
 

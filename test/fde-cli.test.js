@@ -3837,3 +3837,48 @@ test('doctor asks for a review when the signer changes on an unaccepted number',
   assert.match(changed.stdout, /signer line changed while a measured number is still unaccepted/)
 })
 
+
+test('daily fieldbook exposes redacted value evidence and missing acceptance without claiming verification', () => {
+  const sandbox = makeSandbox('daily-evidence')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'acme']).status, 0)
+  const eng = engagementPath(sandbox, 'acme')
+  fs.writeFileSync(path.join(eng, 'delivery.md'), [
+    '# Delivery', '## Value ledger',
+    '| Slice | Bucket | Promised | Measured | Accepted by | Evidence |',
+    '|---|---|---|---|---|---|',
+    '| Reconciliation | cost-save | 2 hours | 40 minutes | pending | staging-run-17 |',
+    '| Export | risk-mitigation | no lost rows | 0 lost | Priya 2026-09-09 | <script>alert(1)</script> <private>SEALED_EVIDENCE</private> |',
+    '| Import | cost-save | 10 minutes | pending | pending | pending |',
+    '', '## Value ledger', '| Slice | Promised | Measured | Accepted by | Evidence |', '|---|---|---|---|---|',
+  ].join('\n'))
+  const out = path.join(sandbox.dir, 'daily.html')
+  const result = runFde(sandbox, ['dashboard', '--out', out])
+  assert.equal(result.status, 0, result.stderr)
+  const html = fs.readFileSync(out, 'utf8')
+  assert.match(html, /Delivery evidence/)
+  assert.match(html, /staging-run-17/)
+  assert.match(html, /Awaiting acceptance/)
+  assert.match(html, /Acceptance recorded/)
+  assert.match(html, /Not yet measured/)
+  assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/)
+  assert.doesNotMatch(html, /SEALED_EVIDENCE/)
+  assert.match(html, /Recorded in delivery\.md/)
+  assert.match(html, /data-prompt=/)
+  assert.match(html, /Confirm the workspace is bound to/)
+})
+
+test('daily fieldbook makes an empty engagement actionable and labels its snapshot', () => {
+  const sandbox = makeSandbox('daily-empty')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'fresh']).status, 0)
+  const out = path.join(sandbox.dir, 'daily.html')
+  assert.equal(runFde(sandbox, ['dashboard', '--out', out]).status, 0)
+  const html = fs.readFileSync(out, 'utf8')
+  assert.match(html, /No delivery evidence yet/)
+  assert.doesNotMatch(html, /<span class="fb-accent-label">What&#39;s actually true:<\/span> Evidence:/)
+  assert.doesNotMatch(html, /<span class="fb-accent-label">What's actually true:<\/span> Evidence:/)
+  assert.match(html, /Set the next action/)
+  assert.match(html, /Snapshot generated/)
+  assert.match(html, /aria-label="Search engagements and records"/)
+  assert.match(html, /role="dialog"/)
+  assert.match(html, /No matching engagements/)
+})

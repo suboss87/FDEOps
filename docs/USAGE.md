@@ -10,19 +10,91 @@
 
 Re-record: [`media/record-session.sh`](../media/record-session.sh).
 
-Day-to-day reference below.
+The examples below use `fde` as the short CLI form. Use `npx fdeops` in its place if the CLI is not on your PATH; for example, `fde prep "sponsor sync"` becomes `npx fdeops prep "sponsor sync"`. See [installation options](install.md).
 
 ---
 
 ## New here? (5 minutes)
 
-1. Install from the README (plugin or `npx skills add suboss87/fdeops --skill fde`), then in chat: `@fde this is client01`. That creates `~/fde-engagements/client01/.fde/`. Terminal fallback: `fde resume --init <client-name>`
-2. Read **Commands**, **All 30 Skills**, and **Who this is for** in the README
-3. Skim [examples/garvey-payments/](../examples/garvey-payments/) Day 1 → Day 10
-4. Optional recon, zero config: `npx fdeops scan` in a repo
-5. Then: `@fde` + the actual situation (brief wrong, they went quiet, when did we agree, what's the outcome)
+Start with a fictional engagement so you can inspect the result before using customer information. Requires Node.js 18+ and Git; `npx` can download the package on first use.
 
-You do not pick a skill. **`@fde` routes the AI and loads the right one.**
+### Minute 1: run the example
+
+```bash
+npx fdeops demo
+```
+
+The demo uses fictional Acme payments notes in `~/fde-engagements/.demo/` and runs the actual CLI commands. It resets its own sandbox on each run. It does not require an agent or an AI account.
+
+### Minutes 2-3: inspect what became a record
+
+In the output, find the review of proposed notes, the applied dated decisions, the meeting brief, and the receipt about dropping the rewrite. The demo applies its fictional notes automatically to illustrate the loop. On your real engagement, review the agent's proposed interpretation before confirming it.
+
+The example's success criteria are illustrative, not actual customer results. Notice the distinction between a target, a measurement, and customer acceptance.
+
+### Minute 4: open the fieldbook
+
+Open the HTML path printed at the end. Find Acme's next action, recent decisions, risks, and available success criteria. The page is a local snapshot of the records generated during the demo.
+
+To remove only the fictional demo later:
+
+```bash
+npx fdeops demo --clean
+```
+
+### Minute 5: try your own request
+
+Install the skill if you have not already:
+
+```bash
+npx skills add suboss87/fdeops --skill fde
+```
+
+With your customer workspace open, send your agent:
+
+```text
+@fde this is client01. Our operations team manually reconciles orders.
+They asked for an AI agent by Friday. Inspect the existing workflow first.
+Help me identify the smallest useful delivery, the unknowns that affect it,
+and how the customer will decide whether it worked.
+```
+
+Replace this fictional request with your actual situation. The first useful result is a reviewed problem statement, evidence and unknowns, a bounded next step, and a success criterion with an acceptance owner. An unknown baseline should stay unknown; a requested deadline is not proof that the scope is feasible.
+
+For more depth, follow the fictional [Garvey Payments engagement](../examples/garvey-payments/) from Day 1 to Day 10.
+
+You do not pick a skill. **`@fde` routes the AI and loads the relevant reference.**
+
+---
+
+## A daily routine
+
+| Moment | What to ask | What to check |
+|---|---|---|
+| Start of day | `@fde Where did we leave off with this client?` | Correct customer, current state, next action |
+| Before a call | `@fde Prep me for the sponsor meeting.` | Open questions, decisions, stakeholder context |
+| After a call | `@fde Debrief: <raw notes>` | Proposed changes match what was actually said |
+| Before building | `@fde Plan the smallest useful increment from the agreed success criteria.` | Scope, evidence, dependencies, acceptance owner |
+| Before a readout | `@fde Separate promised, measured, and accepted results, with sources.` | No unsupported outcome or approval claims |
+
+## Use the fieldbook every day
+
+Run these from a bound customer workspace:
+
+```bash
+npx fdeops dashboard --open         # current customer
+npx fdeops dashboard --all --open   # portfolio
+```
+
+If your browser does not open automatically, open the HTML path printed by the command. No web server or account is required.
+
+- Review attention cues for missing next actions and gaps in the available record. These are reminders to investigate, not conclusions about the customer.
+- Open an engagement to review its context, decisions, risks, and value ledger. A measured result and an accepted result are different states.
+- Use search to find an engagement or recorded detail.
+- Copy a meeting-prep, debrief, or readout prompt into your agent to do the follow-up work. Copying a prompt does not execute it or change records.
+- After applying notes or editing memory, run the dashboard command again and reload the page. It is a **read-only snapshot**, not a live editor. Check the generation date before relying on it.
+
+The HTML contains redacted engagement information, which can still be customer-confidential. Review it before sharing or presenting your screen. `.fde/` remains the source of truth.
 
 ---
 
@@ -39,7 +111,7 @@ You do not pick a skill. **`@fde` routes the AI and loads the right one.**
 | Handing off | `@fde Engagement ends Friday. Need handoff doc.` |
 | Two clients | `@fde This is for Project B - sponsor issue on payments.` |
 
-**You** type these. The **AI** executes routing and drafts. **You** approve what ships.
+**You** type these. The **AI** routes the situation, investigates, and drafts. Review proposed judgments before recording them; obtain the customer approvals required before shipping.
 
 ---
 
@@ -112,7 +184,7 @@ npx fdeops dashboard                # optional local HTML view of the fieldbook
 
 | You say | Agent runs |
 |---------|------------|
-| Debrief these notes | `fde debrief --smart …` → REVIEW (decided / asked / open / next / signer) → you confirm once → `--apply` |
+| Debrief these notes | `fde debrief --smart …` → REVIEW (decided / asked / open / next / signer) → four-row chat card → **Save this update?** (you accepted the record, not that the customer approved every ask) → `--apply` |
 | Make sure we're up to date / pull from Granola or email | Capability check → source MCP fetch → `fde ingest stage` → propose → confirm → apply |
 | Connect Granola / Notion / a new MCP / what can you pull | Guided `mcp.json` + [mcp/recipes/](../mcp/recipes/); save/reload in host; test stage only |
 | Prep me for the sponsor meeting | `fde prep "…"` |
@@ -126,7 +198,7 @@ npx fdeops dashboard                # optional local HTML view of the fieldbook
 ```bash
 fde triage                        # short status (also injected by session hooks)
 fde debrief notes.md              # if notes already use decision: / risk: / … prefixes
-fde debrief --smart notes.md      # REVIEW first, then file routing; confirm once → --apply
+fde debrief --smart notes.md      # REVIEW first, then file routing; chat card; confirm once → --apply
 fde ingest stage [--source NAME] [--title TEXT] [file|-]  # raw pull → .inbox/
 fde ingest list                   # staged items
 fde ingest propose <id>           # → .debrief-propose (same smart path)
@@ -173,7 +245,7 @@ cd ~/work/client-a && fde resume --init client-a
 cd ~/work/client-b && fde resume --init client-b
 ```
 
-One folder per client, one binding per workspace. Never merge contexts. `fde status` prints the value ledger (promised → measured → accepted), then trust; `fde dashboard` renders it into one offline HTML fieldbook.
+One folder per client, one binding per workspace. Never merge contexts. `fde status` prints the value ledger (promised → measured → accepted), then trust; `fde dashboard --all` renders the portfolio into one offline HTML fieldbook; without `--all`, it shows the bound engagement.
 
 ---
 
@@ -181,7 +253,7 @@ One folder per client, one binding per workspace. Never merge contexts. `fde sta
 
 ```bash
 fde vault              # → ~/fde-vault, then: Obsidian → Open folder as vault
-fde vault --redacted   # → ~/fde-vault-redacted, safe for a shared screen
+fde vault --redacted   # → ~/fde-vault-redacted; review before sharing
 ```
 
 Obsidian ignores any path starting with `.`, so pointing it at `~/fde-engagements` shows nothing - every record lives inside `.fde/`. `fde vault` therefore writes a **derived** vault: a `Portfolio` page across all clients, one page per engagement (phase, trust, next action, timeline, people), a `Questions` page (gone quiet, value nobody accepted, stale signals), plus frontmatter and `[[wikilinks]]` so search and graph view work with no plugins installed.
@@ -197,7 +269,7 @@ The rules that keep it from becoming a second memory:
 
 ## What fdeops does not do
 
-The skills are refined from real engagements, not autonomy - they tell you what to check, not what to decide. Concretely, fdeops does not:
+The skills guide investigation and delivery; they do not make business decisions or establish customer approval for you. Concretely, fdeops does not:
 
 - Replace **you** in meetings or politics
 - Grant repo access or stakeholder buy-in

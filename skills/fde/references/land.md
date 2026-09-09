@@ -2,7 +2,7 @@
 
 **Enter when:** new customer, first meeting, just got the brief, nothing started yet.
 
-**Read first:** `context.md` if it exists. Nothing else until you know what kind of engagement this is.
+**Read first:** `context.md` if it exists, then the supplied brief. Once the engagement type and AI/access policy are known, inspect the supplied repo/docs relevant to the ask before asking questions they can answer. This is a bounded evidence check, not a full discovery scan.
 
 ## Validation gate (confirm understanding, clarify where it elevates)
 
@@ -35,7 +35,7 @@ Wait for the reaction before the next question. Stop when confidence is high eno
 
 ## Method - part 1: interrogate the brief (you do this work)
 
-Read the brief the FDE gives you. What is **not** in it matters as much as what is. Produce the gap list yourself:
+Read the brief the FDE gives you. Separate **observed** (source/path and date), **reported** (who said it), and **hypothesis** (how to test it). A requested solution such as “build an agent” is not evidence of the cause. Ask only about gaps that change scope, access, acceptance, or the next investigation. What is **not** in the brief matters as much as what is. Produce the gap list yourself:
 
 - **No named decision-maker** → the FDE will spend two weeks building for someone who can't say yes. Flag it.
 - **"Straightforward cleanup" on an 8-year-old system** → the previous attempt is still visible in git history as a revert. Flag it.
@@ -77,7 +77,7 @@ Before the end of day 1, ship one visible thing: a small bug fix, a cleanup the 
 
 **`brief.md`** - what they said, who sent the FDE, the timeline, **and the gap list**.
 
-**`success.md`** - what done looks like, **primary value bucket** (`cost-save` | `risk-mitigation` | `revenue-uplift`), baseline → target, who actually signs off, what is explicitly out of scope. Agreed with the customer, not assumed.
+**`success.md`** - what done looks like, **primary value bucket** (`cost-save` | `risk-mitigation` | `revenue-uplift`), baseline → target, who actually signs off, what is explicitly out of scope. Record agreement only with its source and scope; otherwise label the target proposed. For each baseline, record source, date/window, environment, and sample size when relevant. An operator recollection is reported, not measured. If no baseline exists, name the measurement owner and cheapest way to obtain it; do not manufacture a number.
 
 For every target number, run the **gaming check** before it is written down: *how could this metric hit its target without the customer being any better off?* There is always an answer, and the answer is what the org will drift toward under pressure. Write the guard next to the metric:
 
@@ -113,7 +113,7 @@ One falsifiable hypothesis about the real problem also goes at the bottom of `br
 
 One page back to the FDE: success + value bucket + sign-off owner, out-of-scope boundary, sacred data, stakeholder map with veto power, AI posture, the hypothesis, the top CRITICAL assumptions still OPEN, and any exception-path seeds heard (break → workaround → owner) for discover to map into `terrain.md`. If it doesn't fit one page, the engagement isn't understood yet.
 
-If remote: trust-building takes ~40% longer - push for a short video call before anything asynchronous.
+If remote: agree how progress and blockers will be shared; use a short call when asynchronous context is insufficient.
 
 ## Worked example
 

@@ -34,6 +34,16 @@ console.log(`skill-routing contract - ${pack.cases.length} cases against skills/
 for (const c of pack.cases) {
   if (c.kind === 'happy') {
     const verbs = (c.expect && c.expect.cli) || []
+    if (!verbs.length) {
+      const reference = c.expect && c.expect.reference_hint
+      if (!reference || !/^[a-z-]+$/.test(reference) || !fs.existsSync(path.join(root, 'skills/fde/references', reference + '.md')) || !skill.includes(reference + '.md')) {
+        fail++
+        console.log(`✖  ${c.id}  missing documented reference or CLI expectation`)
+      } else {
+        console.log(`·  ${c.id}  reference ${reference}.md exists; selection requires a model trial`)
+      }
+      continue
+    }
     const missing = verbs.filter(v => !hasCliRoute(v))
     if (missing.length) {
       if (c.expect.optional) {

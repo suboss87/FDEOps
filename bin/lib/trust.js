@@ -56,6 +56,22 @@ function createTrustApi(deps) {
     'blocker', 'outage', 'fire', 'issue', 'sev', 'sev1', 'sev2', 'p1', 'p2', 'p3',
     'resolved', 'risk', 'decision', 'delivery', 'contact',
   ])
+  // Articles and weekdays are not people. "the finance controller…" and
+  // "Friday's readout" must key on the role/name, not the filler word.
+  const SIGNAL_NAME_NOISE = new Set([
+    'the', 'a', 'an', 'and', 'or', 'for', 'from', 'with', 'without', 'this', 'that',
+    'these', 'those', 'their', 'our',
+    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+    'today', 'tomorrow', 'yesterday', 'tonight',
+  ])
+
+  function isSignalNameNoise(word) {
+    const n = String(word || '').replace(/[^a-z0-9]/gi, '').toLowerCase()
+    if (SIGNAL_NAME_NOISE.has(n)) return true
+    // "Friday's" → fridays after stripping punctuation
+    if (n.endsWith('s') && SIGNAL_NAME_NOISE.has(n.slice(0, -1))) return true
+    return false
+  }
 
   function personFromSignalText(text) {
     let cleaned = String(text || '')
@@ -63,13 +79,18 @@ function createTrustApi(deps) {
       .replace(/\([^)]*\)/g, '')
       .replace(/\[signal:[^\]]+\]/gi, '')
       .replace(/\[\d{4}-\d{2}-\d{2}\]/g, '')
-      .replace(/^([A-Z]{2,}[A-Z0-9_-]*):?\s+/, '')
+      .replace(/^([A-Z]{2,}[A-Z0-9_-]*):\s+/, '')
       .trim()
     const names = cleaned.match(/\b[A-Z][a-z]{1,20}(?:\s+[A-Z][a-z]{1,20})?\b/g) || []
     for (const name of names) {
       const first = name.split(/\s+/)[0].toLowerCase()
-      if (SIGNAL_EVENT_KEYS.has(first)) continue
+      if (SIGNAL_EVENT_KEYS.has(first) || isSignalNameNoise(first) || isSignalNameNoise(name)) continue
       return name
+    }
+    const acronyms = cleaned.match(/\b[A-Z]{3,6}\b/g) || []
+    for (const acronym of acronyms) {
+      if (SIGNAL_EVENT_KEYS.has(acronym.toLowerCase()) || isSignalNameNoise(acronym)) continue
+      return acronym
     }
     return ''
   }
@@ -84,10 +105,11 @@ function createTrustApi(deps) {
       if (frag.length >= 3) return frag
     }
     const cleaned = String(text).replace(/\[@[^\]]+\]/g, '').replace(/\([^)]*\)/g, '')
-      .replace(/^([A-Z]{2,}[A-Z0-9_-]*):?\s+/, '')
+      .replace(/^([A-Z]{2,}[A-Z0-9_-]*):\s+/, '')
     const words = cleaned.split(/\s+/).filter(w => {
       const n = w.replace(/[^a-z0-9]/gi, '').toLowerCase()
-      return n.length >= 3 && !SIGNAL_EVENT_KEYS.has(n) && !/^(dr|mr|mrs|ms)$/i.test(w)
+      return n.length >= 3 && !SIGNAL_EVENT_KEYS.has(n) && !isSignalNameNoise(n)
+        && !/^(dr|mr|mrs|ms)$/i.test(w)
     })
     const frag = (words[0] || '').replace(/[^a-z0-9]/gi, '').toLowerCase()
     return frag.length >= 3 ? frag : ('anon:' + cleaned.slice(0, 48).toLowerCase())
@@ -243,6 +265,7 @@ function createTrustApi(deps) {
     stakeholdersMemoryHealth,
     personFromSignalText,
     signalSubjectKey,
+    isSignalNameNoise,
     parsePhase,
     countOpenRisks,
     nextActionLine,
