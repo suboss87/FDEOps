@@ -24,12 +24,13 @@
 2. Run `fde debrief --smart <notes.md>` (or `npx fdeops debrief --smart …`).
 3. Open `.debrief-propose`. If lines lack type prefixes, **rewrite them** before showing the FDE, e.g.:
    - `decision: agreed chargebacks stay phase 2 - Priya`
+   - `decision: freeze the API [approved: Priya 2026-09-08]` (optional; missing means unconfirmed)
    - `risk: legal may reopen scope if we slip the SOW date`
    - `contact: Priya pushed hard on Friday deck [signal:amber]`
    - `signer: Priya` (she can say yes; lands in `success.md`)
    - `next: send one-pager before Thursday 9am`
    - unprefixed lines stay context color only
-4. Show the **proposed** routing in plain language (what would become decisions, risks, contacts, next).
+4. Show the **REVIEW** block first (decided / asked / open / next / signer). That is the one screen to confirm. File routing stays underneath.
 5. On FDE confirm → run `fde debrief --apply`.
 6. On reject → stop; ask what to change; do not apply.
 

@@ -34,7 +34,7 @@ One chat. Name the client:
 @fde this is client01
 ```
 
-That creates `~/fde-engagements/client01/.fde/` on your laptop. Paste kickoff notes in the same thread. `@fde` picks what to check. You still decide.
+That creates `~/fde-engagements/client01/.fde/` on your laptop. Paste kickoff notes in the same thread. `@fde` picks what to check. You still decide. After a meeting you get one screen: what changed, new asks, open questions, next actions. Confirm once.
 
 Day to day: [docs/USAGE.md](docs/USAGE.md).
 
