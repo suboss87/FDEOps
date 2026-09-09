@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 3.24.0 - 2026-09-09
+
+The daily fieldbook is the review screen. Evidence stays evidence. People stay people.
 
 - Fieldbook: delivery evidence now shows promised, measured, acceptance, and source details. Today surfaces missing measurements, evidence, next actions, and stale trust records.
 - Copy meeting-prep, debrief, and outcome prompts into your coding agent; the fieldbook remains an offline, read-only snapshot with a generation timestamp.
