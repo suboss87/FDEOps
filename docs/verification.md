@@ -46,3 +46,7 @@ Automated `toolCheckPassed` means an expected tool was called and a response arr
 GitHub identity and Context7 library lookup both responded in the maintainer's environment. These are connector checks, not source-ingestion end-to-end tests or evidence about every user's credentials. The disabled legacy computer-use entry was left unchanged. Other configured host tools were not globally reconfigured or certified.
 
 For model judgment, use the broader [delivery evaluation](../evals/delivery/README.md) with repeated, blinded comparisons. No universal performance or best-in-class claim follows from passing software tests.
+
+## Daily-use simulations
+
+[Daily-use results](../evals/daily-use.md) cover independent agent simulations of onboarding, updates, client switching, handoff, and a real browser journey. They record reproduced failures, repairs, command counts, and remaining limits. These checks do not establish human time savings or repeat adoption.
