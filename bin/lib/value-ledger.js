@@ -26,6 +26,7 @@ function evidenceSource(evidence) {
 }
 
 function valueState({ measured, accepted, acceptanceStatus, evidence }) {
+  if (withdrawalMention({ measured, accepted, acceptanceStatus, evidence })) return 'claimed'
   if (!measured || PENDING_CELL_RE.test(measured)) return 'unmeasured'
   if (!acceptanceName(accepted) || !evidenceSource(evidence)) return 'claimed'
   // Explicit status is authoritative when the column exists. Unknown values
@@ -37,4 +38,37 @@ function valueState({ measured, accepted, acceptanceStatus, evidence }) {
   return 'accepted'
 }
 
-module.exports = { PENDING_CELL_RE, acceptanceName, evidenceSource, valueState }
+// These checks flag explicit conflicts for human review. They do not authenticate
+// approval, infer delegation, or revoke history when the current signer changes.
+function withdrawalMention(row) {
+  const text = [row.measured, row.accepted, row.acceptanceStatus, row.evidence].filter(Boolean).join(' ')
+    .replace(/\S*[/\\]\S*/g, '') // artifact names are sources, not withdrawal events
+    .replace(/\b(?:not|never)\s+(?:been\s+)?(?:withdrawn|retracted|revoked|superseded)\b/gi, '')
+  return /\b(?:withdrawn|retracted|revoked|superseded|retracts? (?:the )?(?:approval|acceptance|evidence)|withdraws? (?:the )?(?:approval|acceptance|evidence))\b/i.test(text)
+}
+
+function scopeIssue(row, goal) {
+  const promise = String(row.promised || goal || '')
+  const acceptance = String(row.accepted || '')
+  const limited = acceptance.match(/\b(staging|slides?(?: design)?|demo|prototype|poc)\s+only\b/i)
+  if (limited) {
+    const scope = limited[1].toLowerCase()
+    const matchingGoal = scope.startsWith('slide') ? /\bslides?\b/i.test(promise) : new RegExp('\\b' + scope + '\\b', 'i').test(promise)
+    if (!matchingGoal || /\b(?:production|clinical use|go.live)\b/i.test(promise)) return 'approval scope is limited; review against the promised outcome'
+  }
+  if (/\bproduction\b/i.test(promise) && /\b(?:staging|synthetic|prototype|poc)\b/i.test(String(row.measured || '')) && !/\bproduction\b/i.test(String(row.measured || ''))) return 'measurement scope differs from production promise; review required'
+  return ''
+}
+
+function reconcileValueRows(rows, goal = '') {
+  const key = row => String(row.slice || '').trim().toLowerCase()
+  const withdrawn = new Set(rows.filter(withdrawalMention).map(key).filter(Boolean))
+  return rows.map(row => {
+    let acceptanceIssue = scopeIssue(row, goal)
+    if (withdrawalMention(row)) acceptanceIssue = 'withdrawal recorded; review current acceptance'
+    else if (withdrawn.has(key(row))) acceptanceIssue = 'conflicting withdrawal for this slice; review history before relying on acceptance'
+    return acceptanceIssue ? { ...row, acceptanceIssue, state: row.state === 'unmeasured' ? 'unmeasured' : 'claimed' } : row
+  })
+}
+
+module.exports = { PENDING_CELL_RE, acceptanceName, evidenceSource, valueState, reconcileValueRows }

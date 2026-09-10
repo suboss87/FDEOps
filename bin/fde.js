@@ -2498,7 +2498,7 @@ function cmdHandoff(args, label = 'Handoff') {
     `## Signer and success - success.md\nSigner: ${signer || '(missing; do not infer)'}\n${success || '(missing)'}`,
     `## Next action - context.md\n${next || '(missing)'}\n\n## Open risks - risks.md\n${extractRisks(eng).map(r => '- ' + r.text).join('\n') || '(none recorded; not proof of no risk)'}`,
     label === 'Handoff' ? `## Operational handoff - handoff.md\n${stripTemplateNoise(readClean(eng, 'handoff.md')) || '(missing; record recovery steps and the operating owner before rotation)'}` : '',
-    `## Accepted value - recorded assertion with source\nOnly structured value-ledger rows are summarized here; review other notes in delivery.md before presenting or handing over this record.\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']').join('\n') || '(none)'}`,
+    `## Accepted value - recorded assertion with source\nOnly structured value-ledger rows are summarized here; review other notes in delivery.md before presenting or handing over this record.\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']' + (r.acceptanceIssue ? '; ' + r.acceptanceIssue : '')).join('\n') || '(none)'}`,
     `## ON RECORD decisions - source supplied, not automatic approval\n${records.map(decisionText).join('\n') || '(none)'}\n\n## CLAIM decisions - source missing\n${claims.map(decisionText).join('\n') || '(none)'}\nSelected ${selected.length} of ${decisions.length} dated decisions. Retrieve older or conflicting decisions with fde recall.`,
     `## Gaps before relying on this packet\n${gaps.map(g => '- ' + g).join('\n') || '(no deterministic lint gaps; human review still required)'}`,
   ], parsed.maxBytes)
@@ -3030,7 +3030,7 @@ function hasValueBucket(eng) {
 }
 
 // Shared classification keeps CLI, dashboard, and vault acceptance consistent.
-const { PENDING_CELL_RE, valueState, evidenceSource } = require('./lib/value-ledger')
+const { PENDING_CELL_RE, valueState, evidenceSource, reconcileValueRows } = require('./lib/value-ledger')
 
 function parseValueLedger(eng) {
   // Last section with actual rows, not merely the last non-empty one: a template
@@ -3060,9 +3060,9 @@ function parseValueLedger(eng) {
     const evidence = cell(row, idx.evidence)
     const acceptanceStatus = idx.acceptanceStatus === -1 ? undefined : cell(row, idx.acceptanceStatus)
     const state = valueState({ measured, accepted, acceptanceStatus, evidence })
-    rows.push({ slice, promised, measured, accepted, evidence, evidenceMissing: !evidenceSource(evidence), state })
+    rows.push({ slice, promised, measured, accepted, acceptanceStatus, evidence, evidenceMissing: !evidenceSource(evidence), state })
   }
-  return { rows, columnMissing: idx.accepted === -1 }
+  return { rows: reconcileValueRows(rows, readClean(eng, 'success.md')), columnMissing: idx.accepted === -1 }
 }
 
 function claimedValueRows(eng) {
@@ -3079,6 +3079,7 @@ function formatValueLedgerLine(r) {
   }
   const head = body ? `${name}: ${body}` : name
   if (r.state === 'accepted') return `${head} · accepted by ${r.accepted}`
+  if (r.acceptanceIssue) return `${head} · ${r.acceptanceIssue}`
   if (r.state === 'claimed') return `${head} · claimed, not yet accepted`
   return `${head} · not yet measured`
 }
