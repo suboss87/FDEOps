@@ -1306,30 +1306,23 @@ function cmdResume(args) {
     }
 
     try {
+      const installPaths = require('./lib/install-paths')
+      installPaths.checkTree(tpl, fdeDir)
       if (!existed) {
-        // Atomic create: build under a staging dir, then rename into place.
-        // Disk-full / permission mid-copy must not leave a half-built engagement.
-        fs.mkdirSync(ENGAGEMENTS_ROOT, { recursive: true })
-        const stagingRoot = path.join(ENGAGEMENTS_ROOT, `.init-${slug}-${process.pid}`)
-        const stagingEng = path.join(stagingRoot, slug)
-        const stagingFde = path.join(stagingEng, '.fde')
-        rmTreeQuiet(stagingRoot)
+        // Stage only the fieldbook. A pre-existing client folder can contain
+        // contracts or source files that initialization must never remove.
+        installPaths.mkdir(engRoot)
+        const stagingRoot = fs.mkdtempSync(path.join(ENGAGEMENTS_ROOT, `.init-${slug}-`))
+        const stagingFde = path.join(stagingRoot, '.fde')
         try {
-          fs.mkdirSync(stagingFde, { recursive: true })
+          fs.mkdirSync(stagingFde)
           fillTemplates(stagingFde)
-          // If a partial engRoot exists from an older failed run, remove it first.
-          if (fs.existsSync(engRoot)) rmTreeQuiet(engRoot)
-          fs.renameSync(stagingEng, engRoot)
+          fs.renameSync(stagingFde, fdeDir)
+        } finally {
           rmTreeQuiet(stagingRoot)
-        } catch (e) {
-          rmTreeQuiet(stagingRoot)
-          if (fs.existsSync(engRoot) && !fs.existsSync(path.join(engRoot, '.fde', 'context.md'))) {
-            rmTreeQuiet(engRoot)
-          }
-          failFs(e, 'create engagement', engRoot)
         }
       } else {
-        // Re-init / rebind: only fill missing template files in place.
+        // Re-init only fills missing templates; existing records are preserved.
         fillTemplates(fdeDir)
       }
     } catch (e) {
@@ -1412,18 +1405,18 @@ function cmdResume(args) {
 // each day for less marginal signal. This returns a bounded view - the curated
 // head (state / next action) plus the most recent activity - and hides the
 // middle of the log behind `fde resume --full`. Pure code, zero model tokens.
-// The session-start hook mirrors this same bound in bash; keep them in sync.
+// The session-start hook consumes this same view through fde resume.
 function resumeView(md) {
   const lines = md.split('\n')
   // A file ending in "\n" yields a trailing "" here; drop it so the line count
-  // matches the bash hook's `wc -l` and the two bounded views stay byte-aligned.
+  // counts content lines rather than the terminal newline.
   if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop()
   if (lines.length <= 160) return md
   // Anchor on the "## Session end" heading, NOT the "<!-- fdeops auto-capture -->"
   // comment: this text is read via readClean (stripPrivate strips HTML comments),
   // so the comment is gone by the time we get here. The heading is written on the
   // very next line by cmdCapture and the session-stop hook and survives redaction.
-  // The bash bounded_context() anchors on the same heading - keep them identical.
+  // Bound after sanitation so removed comments cannot shift the anchor.
   let headEnd = lines.findIndex(l => /^##\s+Session end\b/.test(l.trim()))
   if (headEnd === -1) headEnd = 120
   headEnd = Math.min(headEnd, 120)
@@ -2759,13 +2752,8 @@ function hasValueBucket(eng) {
   return false
 }
 
-// A measured number the FDE calculated is not a benefit the customer agreed to.
-// Rows carrying a real Measured value need a named customer-side owner in
-// "Accepted by", or they close as claimed - the distinction the renewal turns on.
-// "pending review", "TBD.", "n/a (blocked)" and "..." are all the same thing an
-// FDE means by an empty cell - nagging about them teaches people to ignore doctor.
-const PENDING_CELL_RE =
-  /^(?:pending|tbd|to ?be ?(?:measured|confirmed|determined)|n\s*\/\s*a|na|none|unknown|not(?:\s+yet)?\s+measured|unmeasured|awaiting|\?+|\.{2,}|…|-+)(?:[^\w].*)?$/i
+// Shared classification keeps CLI, dashboard, and vault acceptance consistent.
+const { PENDING_CELL_RE, valueState } = require('./lib/value-ledger')
 
 function parseValueLedger(eng) {
   // Last section with actual rows, not merely the last non-empty one: a template
@@ -2780,7 +2768,8 @@ function parseValueLedger(eng) {
     slice: colIndex(table.headers, /slice/i),
     promised: colIndex(table.headers, /promised/i),
     measured: colIndex(table.headers, /measured/i),
-    accepted: colIndex(table.headers, /accept/i),
+    accepted: colIndex(table.headers, /accepted by/i),
+    acceptanceStatus: colIndex(table.headers, /^acceptance status$/i),
     evidence: colIndex(table.headers, /evidence/i),
   }
   const cell = (row, i) => (i === -1 ? '' : String(row[i] || '').trim())
@@ -2791,12 +2780,9 @@ function parseValueLedger(eng) {
     const measured = cell(row, idx.measured)
     const accepted = cell(row, idx.accepted)
     if (!slice && !promised && !measured) continue
-    const measuredPending = !measured || PENDING_CELL_RE.test(measured)
-    const acceptedPending = idx.accepted === -1 || !accepted || PENDING_CELL_RE.test(accepted)
-    let state = 'unmeasured'
-    if (!measuredPending && acceptedPending) state = 'claimed'
-    else if (!measuredPending) state = 'accepted'
     const evidence = cell(row, idx.evidence)
+    const acceptanceStatus = idx.acceptanceStatus === -1 ? undefined : cell(row, idx.acceptanceStatus)
+    const state = valueState({ measured, accepted, acceptanceStatus, evidence })
     rows.push({ slice, promised, measured, accepted, evidence, evidenceMissing: !evidence || PENDING_CELL_RE.test(evidence), state })
   }
   return { rows, columnMissing: idx.accepted === -1 }
@@ -3419,24 +3405,10 @@ function cliVersion() {
 }
 
 function valueLedgerRows(eng) {
-  const ledger = stripTemplateNoise(sectionBody(readClean(eng, 'delivery.md'), 'Value ledger', { lastNonEmpty: true }) || '')
-  const table = parseMdTable(ledger)
-  if (!table) return []
-  const sIdx = colIndex(table.headers, /slice/i)
-  const pIdx = colIndex(table.headers, /promis/i)
-  const aIdx = colIndex(table.headers, /accept/i)
-  const rows = []
-  for (const row of table.rows) {
-    const slice = sIdx === -1 ? '' : String(row[sIdx] || '').trim()
-    const promised = pIdx === -1 ? '' : String(row[pIdx] || '').trim()
-    if (!slice && !promised) continue
-    const acceptedRaw = aIdx === -1 ? '' : String(row[aIdx] || '').trim()
-    rows.push({
-      slice, promised,
-      acceptedBy: !acceptedRaw || PENDING_CELL_RE.test(acceptedRaw) ? '' : acceptedRaw,
-    })
-  }
-  return rows
+  return parseValueLedger(eng).rows.map(row => ({
+    slice: row.slice, promised: row.promised,
+    acceptedBy: row.state === 'accepted' ? row.accepted : '',
+  }))
 }
 
 function isInside(child, parent) {

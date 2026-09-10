@@ -449,9 +449,9 @@ const hookCode = hook.replace(/^[ \t]*#.*$/gm, '')
 if (!hook.includes('FDEOPS_ENGAGEMENT')) {
   fail('session-start hook must read FDEOPS_ENGAGEMENT env var')
 } else ok('hook FDEOPS_ENGAGEMENT')
-if (!hookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" fde triage') ||
-    !hookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CMD" triage')) {
-  fail('session-start must run triage with its resolved engagement')
+if (!hookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" fde resume') ||
+    !hookCode.includes('FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CMD" resume')) {
+  fail('session-start must delegate bounded context and triage to resume with its resolved engagement')
 }
 // Token discipline: SessionStart must not dump the full skill (L1 progressive disclosure).
 // Strip comments before scanning for a real `cat …SKILL.md` / BOOTSTRAP inject.
