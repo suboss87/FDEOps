@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.28.0 - 2026-09-10
+
+- Keep explicitly withdrawn or conflicting delivery assertions out of accepted summaries, with the reason visible in CLI and fieldbook. Preserve history and flag scope mismatches for human review.
+- Save a structured delivery row through the same confirmed debrief; reject malformed row fields and reopen pending reviews with `debrief --review`. Warn before an exact sourced replay can duplicate records or replace a newer next action.
+- Include operational handoff notes in bounded successor exports and targeted recall. Share open-risk interpretation across summaries, excluding template examples and explicitly closed risks.
+- Retain recent and early evidence in long receipt searches; keep takeover investigations bounded.
+- Recognize concrete success checks without domain-specific verb ceremony, with an explicit Input / Pass when format when needed.
+
+
 ## 3.27.1 - 2026-09-10
 
 - Preserve pending debrief reviews until applied or explicitly replaced with `--replace-proposal`, including their private notes after caught replacement failures.

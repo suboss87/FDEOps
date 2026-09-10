@@ -2,6 +2,14 @@
 
 This records executed checks, not a claim that every agent or model is reliable. The CLI and fieldbook run locally without a model. Optional host connections have their own permissions and network behavior.
 
+## Three-project repairs - 2026-09-10
+
+Integrated macOS `npm run check`: 293 tests passed, zero failures, zero skips. Package-content checks include the runtime and MCP server and exclude simulation fixtures.
+
+Three independent fictional FDE scenarios exposed acceptance scope/withdrawal conflicts, repeated ledger maintenance, operational retrieval omissions and readiness wording friction. The repaired scenarios and independent review reproductions are recorded in [three-project simulations](../evals/three-project-simulations.md).
+
+The final scenario replays passed their scoped assertions. Real Chromium verified conflict reasons, unaffected accepted value and the client-specific outcome action at desktop and 390px mobile width, without page overflow, console errors or external requests. These are simulated workflow checks, not measured human time savings or new host/model certifications.
+
 ## Defensible delivery release - 2026-09-10
 
 - Integrated macOS `npm run check`: 253 tests passed, zero failures. Focused checks cover the final small integration edits; GitHub runs the complete suite before merge.
