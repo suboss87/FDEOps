@@ -36,6 +36,7 @@ test('palette shows the readable client name and malicious names remain text', (
   assert.doesNotMatch(html, /<img src=x/)
   assert.match(html, /class="fb-palette-label">&lt;img src=x onerror=alert\(1\)&gt;/)
   assert.match(html, /aria-controls="fb-client-rail"/)
+  assert.match(html, /data-target="__print__"/)
   assert.match(html, /datetime="2026-09-10T09:00:00.000Z"/)
 })
 
@@ -44,9 +45,10 @@ test('search and attention filtering keep navigation and overview in agreement, 
   const clientScript = require('../bin/lib/fieldbook-client')
   function element(data = {}) {
     const classes = new Set()
+    const attributes = new Map()
     return { dataset: data, hidden: false, value: '', textContent: '', events: {},
       classList: { toggle(name, force) { if (force) classes.add(name); else classes.delete(name) }, contains: name => classes.has(name), remove: name => classes.delete(name) },
-      addEventListener(name, callback) { this.events[name] = callback }, setAttribute() {}, removeAttribute() {}, focus() {},
+      addEventListener(name, callback) { this.events[name] = callback }, setAttribute(name, value) { attributes.set(name, value) }, getAttribute(name) { return attributes.get(name) }, removeAttribute(name) { attributes.delete(name) }, focus() {},
     }
   }
   const nav = [element({ target: 'today' }), element({ target: 'eng-acme', search: 'ACME Maya staging', attention: 'true' }), element({ target: 'eng-harbor', search: 'harbor elena handover', attention: 'false' })]
@@ -61,7 +63,15 @@ test('search and attention filtering keep navigation and overview in agreement, 
   const selectors = { '.fb-view': views, '.fb-nav': nav, '[data-client]': rows, '[data-filter-section]': [section], '[data-reset-filters]': [reset] }
   const main = element()
   const document = { documentElement: element(), getElementById: id => ids[id], querySelectorAll: selector => selectors[selector] || [], querySelector: selector => selector === '.fb-main' ? main : null, addEventListener() {} }
-  vm.runInNewContext('(' + clientScript.toString() + ')()', { document, location: { hash: '' }, window: { addEventListener() {} } })
+  const media = { matches: true, addEventListener(name, callback) { this.change = callback } }
+  vm.runInNewContext('(' + clientScript.toString() + ')()', { document, location: { hash: '' }, window: { addEventListener() {}, matchMedia: () => media } })
+  assert.equal(ids['fb-client-rail'].classList.contains('is-collapsed'), true)
+  ids['fb-clients-btn'].events.click()
+  assert.equal(ids['fb-client-rail'].classList.contains('is-collapsed'), false)
+  media.change({ matches: false })
+  assert.equal(ids['fb-clients-btn'].getAttribute('aria-expanded'), 'true')
+  media.change({ matches: true })
+  assert.equal(ids['fb-clients-btn'].getAttribute('aria-expanded'), 'false')
   const visible = list => list.filter(row => !row.classList.contains('hide'))
   ids['fb-search'].value = 'maya'
   ids['fb-search'].events.input()

@@ -291,7 +291,8 @@ html[data-fde-theme="dark"] .fb-action:first-child{color:#102219}
 .fb-now-action,.fb-now-session,.fb-why{max-width:70ch}
 #fb-clients-btn{display:none}.fb-btn{min-height:36px}.fb-action{min-height:40px}
 select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-@media(max-width:640px){#fb-clients-btn{display:inline-block}.fb-rail{max-height:45dvh}.fb-rail.is-collapsed{display:none}.fb-btn,.fb-action,.fb-filter-row select{min-height:44px}.fb-search{min-height:44px}.fb-palette-item{min-height:44px}.fb-rail-search{padding:10px 14px}.fb-snapshot{font-size:12px}.fb-nav{min-height:44px}}
+@media(max-width:640px){#fb-print-btn{display:none}#fb-clients-btn{display:inline-block}.fb-rail{max-height:45dvh}.fb-rail.is-collapsed{display:none}.fb-btn,.fb-action,.fb-filter-row select{min-height:44px}.fb-btn{min-width:44px}.fb-search{min-height:44px}.fb-palette-item{min-height:44px}.fb-rail-search{padding:10px 14px}.fb-snapshot{font-size:12px}.fb-nav{min-height:44px}}
+@media(max-width:440px){.fb-header .fb-tagline{display:none}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
 @media print{@page{margin:12mm}html,body,.fb-app{height:auto;overflow:visible;background:#fff;color:#000}.fb-header,.fb-rail,.fb-actions,.fb-hints,.fb-copy-status,.fb-dialog,.fb-skip{display:none!important}.fb-body,.fb-main{display:block;overflow:visible}.fb-main-inner{padding:0;max-width:none}.fb-top-grid{grid-template-columns:1fr}.fb-table-scroll{overflow:visible}.fb-value-table{min-width:0;table-layout:fixed;font-size:10px}.fb-value-table th,.fb-value-table td{padding:6px}.fb-view[hidden]{display:none!important}.fb-block{break-inside:avoid}.fb-vitals{background:#fff}*{color:#000!important;box-shadow:none!important}}
 
@@ -536,6 +537,7 @@ function paletteItemsHtml(ordered) {
   const items = [
     { kind: 'view', label: 'today', hint: 'portfolio queue', target: 'today' },
     ...ordered.map(e => ({ kind: 'open', label: e.name, hint: trustWord(e.signals.trust), target: 'eng-' + e.slug })),
+    { kind: 'action', label: 'Print current view', hint: 'print / PDF', target: '__print__' },
     { kind: 'action', label: 'toggle theme', hint: 'light / dark', target: '__theme__' },
   ]
   return items.map(it => `<button type="button" class="fb-palette-item" data-target="${escapeHtml(it.target)}" data-label="${escapeHtml(it.label)}" data-kind="${escapeHtml(it.kind)}">

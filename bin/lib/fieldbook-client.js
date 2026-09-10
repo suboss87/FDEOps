@@ -9,6 +9,7 @@ module.exports = function fieldbookClient() {
   const filter = document.getElementById('fb-filter')
   const rail = document.getElementById('fb-client-rail')
   const clientsButton = document.getElementById('fb-clients-btn')
+  const mobile = window.matchMedia('(max-width:640px)')
   const main = document.querySelector('.fb-main')
   const status = document.getElementById('fb-status')
   const palette = document.getElementById('fb-palette-dialog')
@@ -22,6 +23,8 @@ module.exports = function fieldbookClient() {
     rail.classList.toggle('is-collapsed', !show)
     clientsButton.setAttribute('aria-expanded', String(show))
   }
+  showClients(!mobile.matches)
+  mobile.addEventListener('change', event => showClients(!event.matches))
   clientsButton.addEventListener('click', () => showClients(clientsButton.getAttribute('aria-expanded') !== 'true'))
   function selectView(id, updateHash = true, focus = false) {
     if (id === 'fb-main') { id = 'today'; updateHash = false }
@@ -37,7 +40,7 @@ module.exports = function fieldbookClient() {
     main.scrollTop = 0
     if (focus) {
       document.querySelector('.fb-view:not([hidden]) h1').focus()
-      if (window.matchMedia('(max-width:640px)').matches) showClients(false)
+      if (mobile.matches) showClients(false)
     }
   }
   const hashId = () => location.hash.slice(1)
@@ -137,6 +140,7 @@ module.exports = function fieldbookClient() {
     if (!it) return
     palette.close()
     if (it.dataset.target === '__theme__') toggleTheme()
+    else if (it.dataset.target === '__print__') window.print()
     else selectView(it.dataset.target, true, true)
   }
   document.getElementById('fb-palette-btn').addEventListener('click', openPalette)
