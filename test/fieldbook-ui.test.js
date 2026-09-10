@@ -103,3 +103,29 @@ test('daily action prompts check current records and missing next actions stay e
   assert.match(ready, /data-nav="today">&larr; Back to overview/)
   assert.match(ready, /Reloading this page alone does not refresh the record/)
 })
+
+
+test('first-action policy prioritizes record gaps without inventing signer or acceptance', () => {
+  const { deliverySummary } = require('../bin/lib/delivery-gaps')
+  const missing = deliverySummary(client({ hasSigner: false, valueRows: [{ state: 'claimed', evidenceMissing: true }] }))
+  assert.equal(missing.firstAction.kind, 'signer')
+  assert.equal(missing.firstAction.source, 'success.md')
+  assert.ok(missing.gaps.some(g => g.kind === 'evidence'))
+  assert.ok(missing.gaps.some(g => g.kind === 'acceptance'))
+  assert.ok(!deliverySummary(client()).gaps.some(g => g.kind === 'signer'))
+  assert.equal(deliverySummary(client()).firstAction.text, 'Review staging evidence with Maya')
+  assert.equal(deliverySummary(client({ highRisks: 1, hasSigner: false })).firstAction.kind, 'blocker')
+  assert.equal(deliverySummary(client({ valueRows: [{ state: 'accepted', evidenceMissing: true }] })).firstAction.kind, 'evidence')
+  assert.equal(deliverySummary(client({ valueRows: [{ state: 'unmeasured' }] })).firstAction.kind, 'measurement')
+  assert.equal(deliverySummary(client({ signals: { trust: 'green', stale: true } })).firstAction.kind, 'stale-trust')
+})
+
+test('overview recommends one action while client detail preserves the recorded next action', () => {
+  const html = render([client({ valueRows: [{ state: 'claimed', slice: 'Retry', evidenceMissing: false }] })])
+  const overview = html.slice(html.indexOf('id="view-today"'), html.indexOf('id="view-eng-acme"'))
+  assert.match(overview, /Recommended first actions/)
+  assert.match(overview, /Ask the acceptance owner to review the measured outcome/)
+  assert.match(overview, /awaiting acceptance &middot; delivery.md/)
+  assert.equal((overview.match(/class="fb-row fb-queue-row"/g) || []).length, 1)
+  assert.match(html.slice(html.indexOf('id="view-eng-acme"')), /Review staging evidence with Maya/)
+})

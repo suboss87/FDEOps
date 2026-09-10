@@ -1,5 +1,7 @@
 "use strict"
 
+const { deliverySummary } = require('./delivery-gaps')
+
 // Pure, local HTML renderer for the FDE fieldbook. Data extraction stays in fde.js.
 
 function escapeHtml(s) {
@@ -199,6 +201,7 @@ strong{font-weight:600}
 .fb-queue-row:nth-child(even),.fb-flag-row:nth-child(even){background:var(--panel)}
 .fb-queue-slug{font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink-faint);flex:0 0 130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fb-queue-action{font-size:14px;line-height:1.45;color:var(--ink);flex:1 1 auto}
+.fb-queue-reason{display:block;font-size:12px;color:var(--ink-faint);margin-top:5px;line-height:1.5}
 .fb-queue-touched{font-family:'Geist Mono',monospace;font-size:10.5px;color:var(--ink-faint);flex:0 0 auto}
 .fb-flag-slug{font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink-faint);flex:0 0 130px}
 .fb-flag-text{font-family:'Geist Mono',monospace;font-size:12.5px}
@@ -308,13 +311,12 @@ function railItemHtml(e) {
 
 function queueRowHtml(e) {
   const dotClass = dotClassFor(e.signals.trust)
-  const noAction = !e.hasNext
-  const actionText = noAction ? 'Set the next action with your agent' : e.next
+  const action = e.firstAction
   const touchedClass = e.quiet ? 't-amber' : 't-faint'
   return `<button type="button" class="fb-row fb-queue-row" data-client="eng-${e.slug}" data-nav="eng-${e.slug}">
 <span class="dot dot-md ${dotClass}"></span>
 <span class="fb-queue-slug">${inlineMd(e.name)}</span>
-<span class="fb-queue-action${noAction ? ' t-amber' : ''}">${inlineMd(actionText)}</span>
+<span class="fb-queue-action">${inlineMd(action.text)}<span class="fb-queue-reason${action.tone ? ' t-' + action.tone : ''}">${escapeHtml(action.reason)} &middot; ${escapeHtml(action.source)}</span></span>
 <span class="fb-queue-touched ${touchedClass}">${escapeHtml(e.signals.updated)}</span>
 </button>`
 }
@@ -340,7 +342,8 @@ function todayViewHtml({ today, total, attentionCount, highRiskTotal, todayQueue
 <div class="fb-meta-line">${escapeHtml(today)} &middot; ${total} engagement${total === 1 ? '' : 's'} &middot; ${attentionCount} need you &middot; ${highRiskTotal} high risk${highRiskTotal === 1 ? '' : 's'} open</div>
 <p id="fb-results-empty" class="fb-empty-search" hidden>No clients match these filters. <button type="button" class="fb-btn" data-reset-filters>Clear filters</button></p>
 <div class="fb-block" data-filter-section>
-<div class="fb-sec">Next actions</div>
+<div class="fb-sec">Recommended first actions</div>
+<p class="fb-evidence-note">One starting point per client, based on the saved record. Confirm the gap before acting; these suggestions do not change recorded next actions.</p>
 ${todayQueue}
 </div>
 ${flagsHtml ? `<div class="fb-block" data-filter-section>
@@ -348,26 +351,6 @@ ${flagsHtml ? `<div class="fb-block" data-filter-section>
 ${flagsHtml}
 </div>` : ''}
 </div>`
-}
-
-function attentionFor(e) {
-  const items = []
-  const add = (text, tone = 'amber') => items.push({ text, tone })
-  if (e.signals.memoryWarn) add('Record needs repair: ' + e.signals.memoryWarn, 'red')
-  if (e.highRisks) add(`${e.highRisks} high risk${e.highRisks === 1 ? '' : 's'} open`, 'red')
-  if (e.signals.trust === 'RED' || e.signals.trust === 'amber') add('Check in with the customer: trust is ' + trustWord(e.signals.trust), e.signals.trust === 'RED' ? 'red' : 'amber')
-  if (e.signals.trust === 'new') add('No dated trust signal yet - ask someone')
-  if (!e.hasNext) add('Set the next action')
-  const rows = e.valueRows || []
-  const missingEvidence = rows.filter(r => r.evidenceMissing).length
-  if (missingEvidence) add(`${missingEvidence} outcome${missingEvidence === 1 ? '' : 's'} missing evidence`)
-  const claimed = rows.filter(r => r.state === 'claimed').length
-  const unmeasured = rows.filter(r => r.state === 'unmeasured').length
-  if (claimed) add(`${claimed} measured outcome${claimed === 1 ? '' : 's'} awaiting acceptance`)
-  if (unmeasured) add(`${unmeasured} outcome${unmeasured === 1 ? '' : 's'} not yet measured`)
-  if (e.signals.stale) add('Reconfirm the dated trust signal')
-  if (e.quiet) add('Record last updated ' + e.signals.updated)
-  return items
 }
 
 function agentActionsHtml(e) {
@@ -534,10 +517,13 @@ function paletteItemsHtml(ordered) {
 }
 
 function buildFieldbookHtml({ engagements, today, generatedAt = '' }) {
-  engagements = engagements.map(e => ({ ...e, attention: attentionFor(e) }))
-  // rail + Today queue share one order: trust-first (red, amber, green)
+  engagements = engagements.map(e => {
+    const { gaps, firstAction } = deliverySummary(e)
+    return { ...e, attention: gaps, firstAction }
+  })
+  // Rail and Today queue share an order: urgent record gaps first, then trust.
   const tierRank = { RED: 0, amber: 1, green: 2, new: 3 }
-  const ordered = engagements.slice().sort((a, b) => Number(b.attention.length > 0) - Number(a.attention.length > 0) || tierRank[a.signals.trust] - tierRank[b.signals.trust])
+  const ordered = engagements.slice().sort((a, b) => Number(b.firstAction.tone === 'red') - Number(a.firstAction.tone === 'red') || Number(b.attention.length > 0) - Number(a.attention.length > 0) || tierRank[a.signals.trust] - tierRank[b.signals.trust])
   const attentionCount = engagements.filter(e => e.attention.length > 0).length
   const highRiskTotal = engagements.reduce((n, e) => n + e.highRisks, 0)
 
