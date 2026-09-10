@@ -2052,8 +2052,8 @@ test('doctor requires operating map from plan onward; silent on discover', () =>
   const sandbox = makeSandbox('opmap-doctor')
   assert.equal(runFde(sandbox, ['resume', '--init', 'opmap']).status, 0)
   const eng = engagementPath(sandbox, 'opmap')
-  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
-  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\nDone when: pilot signed.\n')
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit [source: meeting 2026-09-10]']).status, 0)
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\n**Done when:** Replay a failed settlement; its alert arrives within 15 minutes.\n**Stakeholder who signs off:** Priya Shah\n')
   fs.writeFileSync(
     path.join(eng, 'context.md'),
     '# Engagement context\n**Phase:** discover\n\n## Next action\n- map Friday exception\n'
@@ -3783,6 +3783,7 @@ test('debrief REVIEW keeps [approved:] and does not infer a yes from prose', () 
   fs.writeFileSync(notes, [
     'decision: freeze the API [approved: Helena 2026-09-08]',
     'decision: Helena agreed to keep Excel as fallback',
+    'We need access to the test environment.',
     'delivery: retry live on staging',
     'risk: legal may reopen scope',
     'next: send the recap before Thursday',
@@ -3794,10 +3795,11 @@ test('debrief REVIEW keeps [approved:] and does not infer a yes from prose', () 
   assert.match(smart.stdout, /freeze the API\s+\(approved Helena 2026-09-08\)/)
   assert.match(smart.stdout, /Helena agreed to keep Excel as fallback\s+\(unconfirmed\)/)
   assert.doesNotMatch(smart.stdout, /Helena agreed to keep Excel as fallback\s+\(approved/)
-  assert.match(smart.stdout, /asked:[\s\S]*retry live on staging/)
+  assert.match(smart.stdout, /stated asks:[\s\S]*We need access/)
+  assert.match(smart.stdout, /reported delivery \(not customer acceptance\):[\s\S]*retry live on staging/)
   assert.match(smart.stdout, /open:[\s\S]*legal may reopen/)
-  assert.match(smart.stdout, /next:[\s\S]*send the recap/)
-  assert.match(smart.stdout, /signer:[\s\S]*Helena/)
+  assert.match(smart.stdout, /next action:[\s\S]*send the recap/)
+  assert.match(smart.stdout, /named signer \(authority, not approval\):[\s\S]*Helena/)
   const applied = runFde(sandbox, ['debrief', '--apply'])
   assert.equal(applied.status, 0, applied.stderr)
   const resume = runFde(sandbox, ['resume'])

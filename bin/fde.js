@@ -1632,12 +1632,23 @@ function smartProposeText(input) {
     // the original stays as context, so nothing is invented or lost.
     for (const sentence of bare.split(/(?<=[.!?])\s+/)) {
       const who = signerFromLine(sentence)
-      if (who) { out.push(`signer: ${who}`); break }
+      if (who) {
+        const source = (bare.match(/\[source:\s*[^\]]+\]/i) || [])[0] || ''
+        out.push(`signer: ${who}${source ? ` ${source}` : ''}`); break
+      }
     }
     if (/^(next action|follow-?ups?|action items?|todo):\s*/i.test(bare) ||
         /\b(next action|walk in with|follow up with)\b/i.test(bare)) {
       const next = bare.replace(/^(next action|follow-?ups?|action items?|todo):\s*/i, '').trim()
       out.push(`next: ${next}`)
+      continue
+    }
+    if (/^(?:scope|proposed scope|out of scope):\s*/i.test(bare)) {
+      out.push(`scope: ${bare}`)
+      continue
+    }
+    if (/\b(?:we need|we want|customer asks?|customer asked|please|can you|could you)\b/i.test(bare)) {
+      out.push(`ask: ${bare}`)
       continue
     }
     if (/\b(we (decided|agreed)|decided:|decision:|descope|agreed to|agreement was|freeze scope|freeze prompts)\b/i.test(bare)) {
@@ -1675,7 +1686,7 @@ function looksLikePersonName(s) {
 
 function signerFromLine(text) {
   const t = String(text || '').replace(/^[-*+]\s+/, '').trim()
-  if (!t) return ''
+  if (!t || /\?|\b(?:not|nobody|unclear|maybe|might|whether|could|should|if|unless|pending|unconfirmed)\b/i.test(t)) return ''
   // "Priya (VP Eng) signs off" → Priya. "Finance controller (Helena) signs off" → Helena.
   const titled = t.match(new RegExp('\\b' + SIGNER_NAME + '\\s+\\(' + SIGNER_NAME + '\\)\\s+' + SIGNER_VERB + '\\b'))
   if (titled) {
@@ -1845,12 +1856,12 @@ function stripApprovedStamp(text) {
 
 // One screen a human can confirm in two minutes. The file-by-file routing
 // still prints after this - agents edit prefixes; people read this.
-function printDebriefReview(text) {
-  const buckets = { decided: [], asked: [], open: [], next: [], signer: [] }
+function printDebriefReview(text, eng) {
+  const buckets = { decided: [], asked: [], scope: [], delivery: [], open: [], next: [], signer: [] }
   for (const raw of String(text || '').split('\n')) {
     const line = raw.trim().replace(/^[-*+]\s+/, '')
     if (!line) continue
-    const m = line.match(/^(decision|risk|delivery|contact|next|signer):\s*(.+)$/i)
+    const m = line.match(/^(decision|risk|delivery|contact|next|signer|ask|scope):\s*(.+)$/i)
     if (!m) continue
     const type = m[1].toLowerCase()
     const body = m[2]
@@ -1858,8 +1869,12 @@ function printDebriefReview(text) {
       const who = approvedStamp(body)
       const core = previewLine(stripApprovedStamp(body), 90)
       buckets.decided.push(who ? `${core}  (approved ${who})` : `${core}  (unconfirmed)`)
-    } else if (type === 'delivery') {
+    } else if (type === 'ask') {
       buckets.asked.push(previewLine(body, 100))
+    } else if (type === 'scope') {
+      buckets.scope.push(previewLine(body, 100))
+    } else if (type === 'delivery') {
+      buckets.delivery.push(previewLine(body, 100))
     } else if (type === 'risk') {
       buckets.open.push(previewLine(body, 100))
     } else if (type === 'next') {
@@ -1871,20 +1886,33 @@ function printDebriefReview(text) {
   console.log('REVIEW (one screen - confirm once, then apply)\n')
   const order = [
     ['decided', buckets.decided],
-    ['asked', buckets.asked],
+    ['stated asks', buckets.asked],
+    ['proposed scope', buckets.scope],
+    ['reported delivery (not customer acceptance)', buckets.delivery],
     ['open', buckets.open],
-    ['next', buckets.next],
-    ['signer', buckets.signer],
+    ['next action', buckets.next],
+    ['named signer (authority, not approval)', buckets.signer],
   ]
   let any = false
   for (const [label, items] of order) {
-    if (!items.length) continue
+    if (!items.length) {
+      if (['stated asks', 'proposed scope', 'next action', 'named signer (authority, not approval)'].includes(label)) console.log(`  ${label}: not stated`)
+      continue
+    }
     any = true
     console.log(`  ${label}:`)
     for (const item of items) console.log(`    - ${item}`)
   }
   if (!any) console.log('  (nothing prefixed yet - edit .debrief-propose, then apply)')
-  console.log('')
+  const recorded = eng ? parseValueLedger(eng).rows : []
+  const measured = recorded.some(row => row.state !== 'unmeasured')
+  const evidenced = recorded.some(row => !row.evidenceMissing)
+  const accepted = recorded.some(row => row.state === 'accepted')
+  console.log('  delivery picture (existing record; this proposal does not certify it):')
+  console.log(`    - measurement: ${measured ? 'recorded; check the value ledger' : 'missing - record the observed result'}`)
+  console.log(`    - evidence: ${evidenced ? 'recorded; review its source' : 'missing - cite the test, artifact, or source'}`)
+  console.log(`    - customer approval: ${accepted ? 'recorded for a prior outcome; not this proposal' : 'missing - request explicit acceptance after evidence review'}`)
+  console.log('  Saving this update confirms your record, not customer acceptance.\n')
 }
 
 function latestDatedDecision(md) {
@@ -2052,7 +2080,7 @@ function cmdDebrief(args) {
     if (smart) {
     const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
     console.log('SMART PROPOSE (heuristic - review before apply; no new facts invented beyond line rewrites)\n')
-    printDebriefReview(clean)
+    printDebriefReview(clean, eng)
     console.log('Prefix vocabulary (lines that route): decision:  risk:  delivery:  contact:  next:  signer:')
     console.log('Optional on a decision: [approved: Name YYYY-MM-DD]. Missing means unconfirmed.')
     console.log('Everything else → context.md. Keep the prefixes; the preview gate stays.\n')
@@ -2196,7 +2224,7 @@ function cmdIngest(args) {
     }
     const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
     console.log(`INGEST PROPOSE from ${path.basename(item)} (via:${source})\n`)
-    printDebriefReview(clean)
+    printDebriefReview(clean, eng)
     routeDebriefInput(eng, clean, { dry: true, force: false, sealed: blocks })
     console.log(`\nproposal saved → ${proposePath}`)
     console.log('confirm:  fde ingest apply')
@@ -2569,6 +2597,22 @@ function silentCommitIssues(eng) {
 // Deterministic fieldbook hygiene - shared by doctor + session TRIAGE.
 // Silent when clean OR brand-new (no dated work yet). Never auto-rewrites.
 // High-value moments: week-start (via triage), ship/close, after real work accrues.
+function successContractIssues(success) {
+  const issues = []
+  const text = stripTemplateNoise(String(success || ''))
+  const checks = [...text.matchAll(/^(?:\*\*)?(?:Done when|Acceptance check):(?:\*\*)?[^\S\n]*(.*)$/gim)].map(m => m[1].trim()).filter(Boolean)
+  const observable = checks.some(check => {
+    const stimulus = /\b(?:test|drill|replay|run|request|sample|given|when|simulate|inject|compare|restore)\b/i.test(check)
+    const result = /\b(?:returns?|rejects?|matches?|equals?|arrives?|alerts?|restores?|passes?|fails?|contains?|produces?|shows?|remains?|receives?)\b/i.test(check)
+    const target = /(?:\b(?:within|under|at most|at least|exactly|zero|no missing|no duplicate|all|every|none|true|false|pass|fail|http)\b|[<>=])/i.test(check)
+    return stimulus && result && target && !/\b(?:tbd|to be defined|improve|better|satisfactory|as expected|works well)\b/i.test(check)
+  })
+  if (!observable) issues.push('success.md needs a binary acceptance check: state a test/input and an observable pass/fail result under **Done when:** or **Acceptance check:**; numbers alone are not a check')
+  const signer = ((text.match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').replace(/\[source:[^\]]+\]/gi, '').replace(/\([^)]*\)/g, '').split(',')[0].trim()
+  if (!looksLikePersonName(signer) || /\b(?:pending|unknown|tbd|nobody|none|unassigned|unconfirmed)\b/i.test(signer)) issues.push('success.md needs a named customer-side signer under **Stakeholder who signs off:**; a team, role, or pending name is not authority')
+  return issues
+}
+
 function collectDoctorIssues(eng) {
   const issues = []
   const s = computeSignals(eng)
@@ -2626,7 +2670,11 @@ function collectDoctorIssues(eng) {
       issues.push(`${file} has ${unclosed} unclosed <private> - everything after it is sealed, including notes added later`)
     }
   }
+  const { hasSource } = require('./lib/provenance')
+  const unsourced = readClean(eng, 'decisions.md').split('\n').filter(line => /^[-*]\s*\[\d{4}-\d{2}-\d{2}\]/.test(line.trim()) && !hasSource(line))
+  if (unsourced.length) issues.push(`${unsourced.length} dated decision(s) remain CLAIM: source missing - add the actual meeting, transcript, email, or artifact reference; a log date is not evidence`)
   const success = readClean(eng, 'success.md')
+  if (/^(plan|ship|outcome|close)$/.test(s.phase)) issues.push(...successContractIssues(success))
   if (!firstLine(success, 80)) issues.push('success.md has no stated done-definition - fill before plan/ship')
   const ctxMd = readClean(eng, 'context.md')
   if (!sectionBody(ctxMd, 'Next action', { lastNonEmpty: true })) {
@@ -3640,13 +3688,15 @@ function cmdVault(args) {
 // here fabricates output: the fieldbook you see is what debrief/log actually
 // wrote, so the demo cannot drift from the product.
 const DEMO_SLUG = 'acme-payments'
-const DEMO_NOTES = `Kickoff call with Acme payments team - Priya (VP Eng, sponsor), Tom (staff eng)
+const DEMO_NOTES = `Fictional kickoff transcript - Acme payments, meeting 2026-09-10
 
-decision: settle on the existing Stripe connector instead of the in-house rewrite - Priya wants the Q3 audit clean first
-risk: nobody can name who owns the reconciliation job; it has failed silently twice since March
-delivery: read-only access to the payments repo and the last 90 days of audit logs
-contact: Priya is bought in but travelling for two weeks - Tom is the day-to-day decision maker
-next: get the reconciliation runbook from Tom before touching anything
+We need read-only access to the payments repo and the last 90 days of audit logs. [source: meeting 2026-09-10]
+We agreed to settle on the existing Stripe connector instead of the in-house rewrite - Priya wants the Q3 audit clean first. [source: meeting 2026-09-10]
+Proposed scope: repair reconciliation alerts; leave the connector rewrite out pending sponsor confirmation. [source: meeting 2026-09-10]
+Risk: nobody can name who owns the reconciliation job; it has failed silently twice since March. [source: meeting 2026-09-10]
+Priya Shah signs off on the acceptance test. [source: meeting 2026-09-10]
+Priya is travelling for two weeks - Tom is the day-to-day contact. [source: meeting 2026-09-10]
+Next action: get the reconciliation runbook from Tom before touching anything. [source: meeting 2026-09-10]
 
 <private>
 Priya hinted the previous vendor was let go mid-contract. Do not repeat this to the team.
@@ -3661,14 +3711,17 @@ const DEMO_LAND_ARTIFACTS = {
 
 **As stated:** clean up payment reconciliation before the Q3 audit.
 **What we heard instead:** nobody owns the reconciliation job, and it fails silently.
-**Out of scope (agreed):** the in-house connector rewrite.
+**Proposed out of scope:** the in-house connector rewrite; sponsor confirmation is still required.
 `,
   'success.md': `# Success
 
-- Reconciliation failures alert someone within 15 minutes, with a named owner.
-- The Q3 audit can trace any settlement discrepancy to a dated record.
+**Done when:** Replay a failed settlement in staging; its alert arrives at the on-call queue within 15 minutes.
+**Primary value bucket:** risk-mitigation
+**Baseline → target:** no reliable alert → an alert within 15 minutes of a simulated failure.
+**Explicitly out of scope:** connector rewrite (proposed; not customer-approved).
+**Stakeholder who signs off:** Priya Shah [source: meeting 2026-09-10]
 
-**Signed off by:** Priya (VP Eng) - 2026-08-07
+Acceptance is pending. The named signer identifies authority, not an approval.
 `,
 }
 
@@ -3722,11 +3775,13 @@ function cmdDemo(args) {
   fdeops demo - a fake client, real commands, nothing sent anywhere
 
   Sandbox:  ${root}
-  Fake client: Acme (payments platform). No data of yours is read or written.`)
+  Fake client: Acme (payments platform). This writes fictional notes, local Git history, and HTML inside the sandbox above.
+  It resets that sandbox on repeat runs; real client records stay untouched.
+  Allow under five minutes. Fictional proposal approval is automatic in this demo only.`)
 
   demoStep('1. Monday of week 1 - create the fieldbook for this client', ['resume', '--init', DEMO_SLUG], workspace, env)
   demoStep('2. You walk out of the kickoff with messy notes - hand them over', ['debrief', '--smart', notes], workspace, env)
-  demoStep('3. You confirm. Only now does anything enter the record', ['debrief', '--apply'], workspace, env)
+  demoStep('3. Demo automatically confirms the fictional record (not customer acceptance)', ['debrief', '--apply'], workspace, env)
   demoStep('4. Say where you are in the engagement', ['log', 'phase', 'land'], workspace, env)
   const engDir = path.join(root, DEMO_SLUG, '.fde')
   console.log(`\n${demoHead('5. During land, @fde drafts the brief and the definition of done with you')}`)
@@ -3747,11 +3802,12 @@ function cmdDemo(args) {
   // about uncommitted manual edits - correct behaviour, wrong lesson for a demo.
   const landHash = commitMemory(engDir, 'land: brief + success', { files: [...Object.keys(DEMO_LAND_ARTIFACTS), 'context.md'] })
   if (landHash) console.log(`  memory @${landHash}`)
-  demoStep('6. Two days later, the sponsor goes quiet', ['log', 'contact', 'Priya has not replied to two emails about the runbook', '--signal', 'amber'], workspace, env)
-  demoStep('7. Next morning, a fresh agent session with no memory of any of this', ['resume'], workspace, env)
-  demoStep('8. A meeting in ten minutes - what do you walk in knowing?', ['prep', 'sponsor check-in'], workspace, env)
-  demoStep('9. Six weeks later: "we never agreed to drop the rewrite"', ['receipts', 'rewrite'], workspace, env)
-  demoStep('10. The whole engagement on one page', ['dashboard'], workspace, env)
+  demoStep('6. Add a fictional measured result with evidence, still awaiting customer acceptance', ['log', 'delivery', 'Reconciliation alert | risk-mitigation | alert within 15 minutes | alert in 8 minutes | pending | PR#42 staging replay | revert alert rule'], workspace, env)
+  demoStep('7. Two days later, the sponsor goes quiet', ['log', 'contact', 'Priya has not replied to two emails about the runbook', '--signal', 'amber'], workspace, env)
+  demoStep('8. Next morning, a fresh agent session with no memory of any of this', ['resume'], workspace, env)
+  demoStep('9. A meeting in ten minutes - what do you walk in knowing?', ['prep', 'sponsor check-in'], workspace, env)
+  demoStep('10. Six weeks later: "we never agreed to drop the rewrite"', ['receipts', 'rewrite'], workspace, env)
+  demoStep('11. The whole engagement on one page', ['dashboard'], workspace, env)
   // cmdDashboard's default out path, computed rather than scraped from its output:
   // a HOME with a space in it truncates any whitespace-delimited parse.
   const html = path.join(root, 'fieldbook-current.html')
@@ -3760,8 +3816,10 @@ function cmdDemo(args) {
   ${demoHead('What just happened')}
 
   - Every line above came from the real CLI - no canned output.
-  - The kickoff notes became dated decisions, risks, deliveries and a stakeholder
-    signal, and you confirmed before any of it was written.
+  - The kickoff notes became proposed asks, scope, dated decisions, risks, and a
+    next action. This demo applied fictional notes automatically after showing REVIEW.
+  - PR#42 is fictional evidence for a measured result. The ledger still says claimed:
+    naming Priya as signer does not mean she accepted the result.
   - The <private> block in those notes never appears in resume, prep, receipts or
     the dashboard - it is sealed in context.md and redacted from anything an agent
     or a screen share can see.
