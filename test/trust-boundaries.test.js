@@ -72,7 +72,8 @@ test('explicit acceptance status needs signer, measurement and evidence; legacy 
   assert.equal(valueState({ ...accepted, evidence: 'pending' }), 'claimed')
   assert.equal(valueState({ ...accepted, accepted: 'approved' }), 'claimed')
   assert.equal(valueState({ ...accepted, measured: 'pending' }), 'unmeasured')
-  assert.equal(valueState({ measured: '5 min', accepted: 'Denise Chen, Aug 14' }), 'accepted')
+  for (const accepted of ['May', 'Jan', 'Denise Chen, Aug 14']) assert.equal(valueState({ measured: '5 min', accepted }), 'accepted')
+  assert.equal(valueState({ measured: '5 min', accepted: 'Priya Shah, approved 2026-09-10' }), 'accepted')
 })
 
 test('explicit revocation stays unaccepted in CLI, dashboard and vault', t => {
@@ -144,3 +145,28 @@ test('startup never reads raw context when its Node runtime cannot run', t => {
   assert.equal(result.status, 0)
   assert.equal(result.stdout, '')
 })
+
+for (const explicit of [false, true]) {
+  test(`approval prose without a named signer stays claimed across outputs (explicit=${explicit})`, t => {
+    const f = fixture(t)
+    const cells = ['approved 2026-09-10', '**approved** 2026-09-10', 'accepted September 10, 2026', 'signed off by customer', 'customer sponsor', 'customer sponsor 2026-09-10', 'customer approved 2026-09-10', 'sponsor signed off']
+    for (const accepted of cells) {
+      assert.equal(valueState({ measured: '5 min', accepted, evidence: 'email', ...(explicit ? { acceptanceStatus: 'accepted' } : {}) }), 'claimed', accepted)
+    }
+    fs.writeFileSync(path.join(f.eng, 'context.md'), '# Context\n**Phase:** outcome\n')
+    const extra = explicit ? ' Acceptance status |' : ''
+    const separator = explicit ? '---|' : ''
+    const rows = cells.map((cell, i) => `| Slice${i} | 10 min | 5 min | ${cell} | email |${explicit ? ' accepted |' : ''}`).join('\n')
+    fs.writeFileSync(path.join(f.eng, 'delivery.md'), `# Delivery\n## Value ledger\n| Slice | Promised | Measured | Accepted by | Evidence |${extra}\n|---|---|---|---|---|${separator}\n${rows}\n`)
+    const status = f.run(['status'])
+    assert.equal(status.status, 0, status.stderr)
+    assert.doesNotMatch(status.stdout, /accepted by/)
+    const output = path.join(f.dir, 'report.html')
+    assert.equal(f.run(['dashboard', '--out', output]).status, 0)
+    assert.doesNotMatch(fs.readFileSync(output, 'utf8'), /accepted by approved|accepted by customer/)
+    const vault = path.join(f.dir, 'vault')
+    assert.equal(f.run(['vault', '--out', vault]).status, 0)
+    const questions = fs.readFileSync(path.join(vault, 'Questions.md'), 'utf8')
+    for (let i = 0; i < cells.length; i++) assert.ok(questions.includes(`Slice${i}`))
+  })
+}
