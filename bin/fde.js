@@ -35,6 +35,7 @@ const { execSync, execFileSync } = require('child_process')
 const { createMemoryApi } = require('./lib/memory')
 const { createTrustApi } = require('./lib/trust')
 const vault = require('./lib/vault')
+const context = require('./lib/context')
 
 const HOME = os.homedir()
 // FDEOPS_ENGAGEMENTS_ROOT isolates init/status/dashboard (and the registry) for
@@ -1282,6 +1283,9 @@ function cmdScan() {
 }
 
 function cmdResume(args) {
+  let maxBytes
+  try { ({ args, maxBytes } = context.budgetArgs(args)) } catch (e) { console.error(e.message); process.exit(2) }
+
   const initIdx = args.indexOf('--init')
   if (initIdx !== -1) {
     const name = args[initIdx + 1]
@@ -1387,17 +1391,22 @@ function cmdResume(args) {
     console.log(`NO ENGAGEMENT for this workspace.\nexisting: ${list}\nAsk the human the client name (one question), then run: fde resume --init <client-name>\nDo not tell them to type that command.`)
     process.exit(2)
   }
-  // Monday-morning: triage + proactive hygiene (silent when clean), the record
-  // (sponsor / promise / decisions), then the session log.
-  printTriageBlock(eng)
-  const digest = recordDigest(eng)
-  if (digest.length) console.log('\n' + digest.join('\n'))
-  console.log(`\nENGAGEMENT: ${eng}\n`)
-  // readClean, not fs.readFileSync: this output is what an agent loads as
-  // context, so it goes through the same <private> redaction as the dashboard.
+  const intro = [resumeTriage(eng), ...hygieneTriageLines(eng), ...recordDigest(eng)].join('\n')
   const ctx = readClean(eng, 'context.md')
-  if (!ctx) { console.log('(context.md empty - new engagement)') }
-  else { console.log(args.includes('--full') ? ctx : resumeView(ctx)) }
+  if (args.includes('--full')) {
+    console.log(`${intro}\n\nENGAGEMENT: ${eng}\n\n${ctx || '(no context.md yet)'}`)
+    return
+  }
+  // Bound the complete command output, not only context.md's line count.
+  // Separate allocations keep a long history from crowding out current goals.
+  const success = readClean(eng, 'success.md')
+  const risks = readClean(eng, 'risks.md')
+  process.stdout.write(context.boundedSections([
+    `${intro}\n\nENGAGEMENT: ${eng}`,
+    success ? `CURRENT GOALS & ACCEPTANCE - success.md\n${success}` : '',
+    risks ? `RECORDED RISKS - risks.md\n${risks}` : '',
+    `WORKING CONTEXT - context.md\n${ctx ? resumeView(ctx) : '(no context.md yet)'}`,
+  ], maxBytes))
 }
 
 // Token discipline: context.md grows every session (the session-stop hook
@@ -2291,6 +2300,23 @@ function cmdReceipts(args) {
   } else if (!agreed.length) {
     console.log('\n(no dated agreement matched - only unverified claims above. If this was agreed, log it: fde log decision "...")')
   }
+}
+
+function cmdRecall(args) {
+  let maxBytes
+  try { ({ args, maxBytes } = context.budgetArgs(args)) } catch (e) { console.error(e.message); process.exit(2) }
+  const query = args.join(' ').trim()
+  if (!query || Buffer.byteLength(query) > 2048 || args.some(a => a.startsWith('--'))) {
+    console.error('usage: fde recall <topic> [--max-bytes 4096..65536]'); process.exit(2)
+  }
+  const eng = resolveEngagement()
+  if (!eng) { console.error('no engagement - bind a client before recall'); process.exit(2) }
+  const files = ['context.md', 'success.md', 'decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'brief.md', 'reality.md', 'assumptions.md', 'terrain.md']
+  const result = context.recallSections(files.map(file => ({ file, text: readClean(eng, file) })), query)
+  process.stdout.write(context.boundedSections([
+    `RECALL - ${eng}\n${result.total ? `${result.sections.length} of ${result.total} matching lines; refine the query if evidence is omitted.` : 'No matching record. This is not proof that the event never happened.'}\nSources are local record assertions; verify dates, supersession and approval scope.`,
+    ...result.sections,
+  ], maxBytes))
 }
 
 function cmdCapture() {
@@ -3728,6 +3754,7 @@ function printUsage() {
   fde redact <term>        preview/remove lines containing a buried term (pass --apply to commit; subject never repeats the term)
   fde tidy [--apply]       propose consolidations; blesses hand-written dirty files when you apply
   fde owner [set email]    who keeps this engagement record
+  fde recall <topic>       bounded, redacted source excerpts (--max-bytes 4096..65536)
   fde receipts <term>      "what did we agree?" with dates
   fde status [--all]       value ledger, then trust (pass --all for full portfolio)
   fde dashboard [--all] [--open] [--out <path>]  bound fieldbook (pass --all for every client)
@@ -3748,6 +3775,7 @@ switch (cmd) {
   case 'demo': cmdDemo(args); break
   case 'scan': cmdScan(); break
   case 'resume': cmdResume(args); break
+  case 'recall': cmdRecall(args); break
   case 'triage': cmdTriage(); break
   case 'log': cmdLog(args); break
   case 'debrief': cmdDebrief(args); break
