@@ -834,46 +834,49 @@ function valueLedgerRowCount(body) {
 function appendValueLedgerRow(eng, cells) {
   ensureMemoryGit(eng)
   const p = path.join(eng, 'delivery.md')
-  let md = readEng(eng, 'delivery.md')
-  if (!md) md = '# Delivery log\n\n## Value ledger\n\n'
-  const date = new Date().toISOString().slice(0, 10)
-  const cols = []
-  for (let i = 0; i < 7; i++) cols.push((cells[i] || '').replace(/\|/g, '\\|').trim() || ' ')
-  const row = `| ${date} | ${cols.join(' | ')} |`
-  // Write into the same section the readers take: the last filled ## Value ledger.
-  // A row appended to the empty template heading above a filled one is a row no
-  // gate can see.
-  const lines = md.split('\n')
-  const sections = []
-  let cur = null
-  for (let i = 0; i < lines.length; i++) {
-    if (/^##\s+Value ledger\b/i.test(lines[i])) {
-      cur = { heading: i, lastTable: -1, filled: false, body: [] }
-      sections.push(cur)
-      continue
+  let row
+  withFileLock(p, () => {
+    let md = readEng(eng, 'delivery.md')
+    if (!md) md = '# Delivery log\n\n## Value ledger\n\n'
+    const date = new Date().toISOString().slice(0, 10)
+    const cols = []
+    for (let i = 0; i < 7; i++) cols.push((cells[i] || '').replace(/\|/g, '\\|').trim() || ' ')
+    row = `| ${date} | ${cols.join(' | ')} |`
+    // Write into the same section the readers take: the last filled ## Value ledger.
+    // A row appended to the empty template heading above a filled one is a row no
+    // gate can see.
+    const lines = md.split('\n')
+    const sections = []
+    let cur = null
+    for (let i = 0; i < lines.length; i++) {
+      if (/^##\s+Value ledger\b/i.test(lines[i])) {
+        cur = { heading: i, lastTable: -1, filled: false, body: [] }
+        sections.push(cur)
+        continue
+      }
+      if (!cur) continue
+      if (/^##\s+/.test(lines[i])) { cur = null; continue }
+      cur.body.push(lines[i])
+      if (lines[i].trim()) cur.filled = true
+      if (/^\|/.test(lines[i].trim())) cur.lastTable = i
     }
-    if (!cur) continue
-    if (/^##\s+/.test(lines[i])) { cur = null; continue }
-    cur.body.push(lines[i])
-    if (lines[i].trim()) cur.filled = true
-    if (/^\|/.test(lines[i].trim())) cur.lastTable = i
-  }
-  // Same choice parseValueLedger makes: the last section carrying rows, else the
-  // last with a body. A row written anywhere else is a row no gate can see.
-  const withRows = [...sections].reverse().find(s => valueLedgerRowCount(s.body.join('\n')))
-  const target = withRows || [...sections].reverse().find(s => s.filled) || sections[sections.length - 1]
-  if (!target) {
-    md = appendUnderSection(md, 'Value ledger', `${VALUE_LEDGER_HEADER}\n${VALUE_LEDGER_RULE}\n${row}`)
-  } else if (target.lastTable !== -1) {
-    lines.splice(target.lastTable + 1, 0, row)
-    md = lines.join('\n')
-  } else {
-    // No table under the chosen heading: a lone row would be read as the header
-    // line and the value would vanish. Lay the canonical table first.
-    lines.splice(target.heading + 1, 0, '', VALUE_LEDGER_HEADER, VALUE_LEDGER_RULE, row)
-    md = lines.join('\n')
-  }
-  withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
+    // Same choice parseValueLedger makes: the last section carrying rows, else the
+    // last with a body. A row written anywhere else is a row no gate can see.
+    const withRows = [...sections].reverse().find(s => valueLedgerRowCount(s.body.join('\n')))
+    const target = withRows || [...sections].reverse().find(s => s.filled) || sections[sections.length - 1]
+    if (!target) {
+      md = appendUnderSection(md, 'Value ledger', `${VALUE_LEDGER_HEADER}\n${VALUE_LEDGER_RULE}\n${row}`)
+    } else if (target.lastTable !== -1) {
+      lines.splice(target.lastTable + 1, 0, row)
+      md = lines.join('\n')
+    } else {
+      // No table under the chosen heading: a lone row would be read as the header
+      // line and the value would vanish. Lay the canonical table first.
+      lines.splice(target.heading + 1, 0, '', VALUE_LEDGER_HEADER, VALUE_LEDGER_RULE, row)
+      md = lines.join('\n')
+    }
+    atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n')
+  })
   recordLastWrite(eng, 'delivery.md', row)
   commitMemory(eng, 'log delivery', { files: ['delivery.md'] })
 }
@@ -882,34 +885,36 @@ function retireOpenRisks(eng, needle) {
   const n = String(needle || '').toLowerCase()
   if (!n) return 0
   const p = path.join(eng, 'risks.md')
-  const md = readEng(eng, 'risks.md')
-  if (!md) return 0
-  const retired = []
-  const kept = []
-  let inRetired = false
-  for (const raw of md.split('\n')) {
-    const t = raw.trim()
-    if (/^#{1,6}\s+Retired\b/i.test(t)) { inRetired = true; kept.push(raw); continue }
-    if (!inRetired) {
-      const m = t.match(/^-\s*\[\d{4}-\d{2}-\d{2}\]\s*(?:\[@[^\]]+\]\s*)?(.*)$/)
-      if (m && m[1].toLowerCase().includes(n)) {
-        retired.push(raw)
-        continue
+  return withFileLock(p, () => {
+    const md = readEng(eng, 'risks.md')
+    if (!md) return 0
+    const retired = []
+    const kept = []
+    let inRetired = false
+    for (const raw of md.split('\n')) {
+      const t = raw.trim()
+      if (/^#{1,6}\s+Retired\b/i.test(t)) { inRetired = true; kept.push(raw); continue }
+      if (!inRetired) {
+        const m = t.match(/^-\s*\[\d{4}-\d{2}-\d{2}\]\s*(?:\[@[^\]]+\]\s*)?(.*)$/)
+        if (m && m[1].toLowerCase().includes(n)) {
+          retired.push(raw)
+          continue
+        }
       }
+      kept.push(raw)
     }
-    kept.push(raw)
-  }
-  if (!retired.length) return 0
-  let out = kept.join('\n')
-  if (!/^#{1,6}\s+Retired\b/im.test(out)) out = out.replace(/\n*$/, '\n\n## Retired\n')
-  const stamp = new Date().toISOString().slice(0, 10)
-  const block = retired.map(l => {
-    const body = l.trim().replace(/^-\s*/, '')
-    return `- [${stamp}] (retired) ${body}`
-  }).join('\n')
-  out = appendUnderSection(out, 'Retired', block)
-  withFileLock(p, () => { atomicWriteFile(p, out.endsWith('\n') ? out : out + '\n') })
-  return retired.length
+    if (!retired.length) return 0
+    let out = kept.join('\n')
+    if (!/^#{1,6}\s+Retired\b/im.test(out)) out = out.replace(/\n*$/, '\n\n## Retired\n')
+    const stamp = new Date().toISOString().slice(0, 10)
+    const block = retired.map(l => {
+      const body = l.trim().replace(/^-\s*/, '')
+      return `- [${stamp}] (retired) ${body}`
+    }).join('\n')
+    out = appendUnderSection(out, 'Retired', block)
+    atomicWriteFile(p, out.endsWith('\n') ? out : out + '\n')
+    return retired.length
+  })
 }
 
 // Engagement age from the .fde/ directory's own birth time - hidden (not
@@ -1442,25 +1447,35 @@ function cmdLogUndo() {
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
   const metaPath = path.join(eng, LAST_WRITE)
   let meta
-  try { meta = JSON.parse(fs.readFileSync(metaPath, 'utf8')) } catch (_) {
-    console.error('nothing to undo - no prior fde log/debrief write recorded')
+  try {
+    withFileLock(metaPath, () => {
+      try { meta = JSON.parse(fs.readFileSync(metaPath, 'utf8')) } catch (_) {
+        throw new Error('nothing to undo - no prior fde log/debrief write recorded')
+      }
+      if (!Object.values(LOG_FILES).includes(meta.file) || !meta.entry) {
+        throw new Error('corrupt .last-write - cannot undo')
+      }
+      const target = path.join(eng, meta.file)
+      withFileLock(target, () => {
+        const after = removeExactEntryLine(readEng(eng, meta.file), meta.entry)
+        if (after == null) {
+          throw new Error(`cannot undo - entry no longer in ${meta.file} (edited by hand?). Remove it manually.`)
+        }
+        atomicWriteFile(target, after.endsWith('\n') ? after : after + '\n')
+      })
+      if (/\[signal:(red|amber|green)\]/i.test(meta.entry)) {
+        const ledgerPath = path.join(eng, SIGNAL_LEDGER)
+        withFileLock(ledgerPath, () => {
+          const led = removeExactEntryLine(readEng(eng, SIGNAL_LEDGER), meta.entry)
+          if (led != null) atomicWriteFile(ledgerPath, led.endsWith('\n') ? led : led + '\n')
+        })
+      }
+      try { fs.unlinkSync(metaPath) } catch (_) {}
+    })
+  } catch (e) {
+    console.error(e.message)
     process.exit(1)
   }
-  if (!meta.file || !meta.entry) { console.error('corrupt .last-write - cannot undo'); process.exit(1) }
-  const target = path.join(eng, meta.file)
-  const before = readEng(eng, meta.file)
-  const after = removeExactEntryLine(before, meta.entry)
-  if (after == null) {
-    console.error(`cannot undo - entry no longer in ${meta.file} (edited by hand?). Remove it manually.`)
-    process.exit(1)
-  }
-  withFileLock(target, () => { atomicWriteFile(target, after.endsWith('\n') ? after : after + '\n') })
-  if (/\[signal:(red|amber|green)\]/i.test(meta.entry)) {
-    const ledgerPath = path.join(eng, SIGNAL_LEDGER)
-    const led = removeExactEntryLine(readEng(eng, SIGNAL_LEDGER), meta.entry)
-    if (led != null) withFileLock(ledgerPath, () => { atomicWriteFile(ledgerPath, led.endsWith('\n') ? led : led + '\n') })
-  }
-  try { fs.unlinkSync(metaPath) } catch (_) {}
   const undoFiles = [meta.file]
   if (/\[signal:(red|amber|green)\]/i.test(meta.entry)) undoFiles.push(SIGNAL_LEDGER)
   const hash = commitMemory(eng, `undo ${meta.file}`, { files: undoFiles })
@@ -1538,18 +1553,20 @@ function cmdLog(args) {
 function setContextPhase(eng, phase) {
   ensureMemoryGit(eng)
   const p = path.join(eng, 'context.md')
-  let md = readEng(eng, 'context.md')
-  if (!md) md = '# Engagement context\n\n'
-  if (/\*\*Phase:\*\*/i.test(md)) {
-    md = md.replace(/\*\*Phase:\*\*\s*.*/i, `**Phase:** ${phase}`)
-  } else {
-    md = md.replace(/\n*$/, `\n\n**Phase:** ${phase}\n`)
-  }
-  const today = new Date().toISOString().slice(0, 10)
-  if (/\*\*Last updated:\*\*/i.test(md)) {
-    md = md.replace(/\*\*Last updated:\*\*\s*.*/i, `**Last updated:** ${today}`)
-  }
-  withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
+  withFileLock(p, () => {
+    let md = readEng(eng, 'context.md')
+    if (!md) md = '# Engagement context\n\n'
+    if (/\*\*Phase:\*\*/i.test(md)) {
+      md = md.replace(/\*\*Phase:\*\*\s*.*/i, `**Phase:** ${phase}`)
+    } else {
+      md = md.replace(/\n*$/, `\n\n**Phase:** ${phase}\n`)
+    }
+    const today = new Date().toISOString().slice(0, 10)
+    if (/\*\*Last updated:\*\*/i.test(md)) {
+      md = md.replace(/\*\*Last updated:\*\*\s*.*/i, `**Last updated:** ${today}`)
+    }
+    atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n')
+  })
   const hash = commitMemory(eng, `phase ${phase}`, { files: ['context.md'] })
   // Proactive warn at the moment it matters - don't wait for Monday hygiene.
   if (phase === 'ship' || phase === 'close') {
@@ -1676,57 +1693,61 @@ function signerFromLine(text) {
 function setSigner(eng, who) {
   ensureMemoryGit(eng)
   const p = path.join(eng, 'success.md')
-  let md = readEng(eng, 'success.md')
-  if (!md) md = '# Success definition\n\n'
-  const norm = (s) => String(s).replace(/\s+/g, ' ').trim().toLowerCase()
-  // [^\S\n], not \s: \s crosses newlines, so an empty field captured the next
-  // line - and setSigner then read a filled field and filed the name as "also
-  // named" under whatever heading followed.
-  const line = /^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m
-  const m = md.match(line)
-  if (m && !m[1].trim()) {
-    md = md.replace(line, `**Stakeholder who signs off:** ${who}`)
-  } else if (m) {
-    // Whole-name compare against the primary and every "also named" line under
-    // it: "Sam" must not vanish inside "Samantha", and re-applying must not
-    // stack duplicates.
-    const start = md.indexOf(m[0]) + m[0].length
-    const alsoNamed = []
-    for (const l of md.slice(start).split('\n').slice(1)) {
-      const a = l.match(/^- also named:\s*(.+)$/)
-      if (!a) break
-      alsoNamed.push(a[1])
+  return withFileLock(p, () => {
+    let md = readEng(eng, 'success.md')
+    if (!md) md = '# Success definition\n\n'
+    const norm = (s) => String(s).replace(/\s+/g, ' ').trim().toLowerCase()
+    // [^\S\n], not \s: \s crosses newlines, so an empty field captured the next
+    // line - and setSigner then read a filled field and filed the name as "also
+    // named" under whatever heading followed.
+    const line = /^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m
+    const m = md.match(line)
+    if (m && !m[1].trim()) {
+      md = md.replace(line, `**Stakeholder who signs off:** ${who}`)
+    } else if (m) {
+      // Whole-name compare against the primary and every "also named" line under
+      // it: "Sam" must not vanish inside "Samantha", and re-applying must not
+      // stack duplicates.
+      const start = md.indexOf(m[0]) + m[0].length
+      const alsoNamed = []
+      for (const l of md.slice(start).split('\n').slice(1)) {
+        const a = l.match(/^- also named:\s*(.+)$/)
+        if (!a) break
+        alsoNamed.push(a[1])
+      }
+      const known = [m[1], ...alsoNamed].map(norm)
+      if (known.includes(norm(who))) return false
+      // A second, different name is a fact worth keeping next to the first, not
+      // a silent overwrite - who signs is exactly the thing people argue about.
+      const block = [m[0], ...alsoNamed.map(a => `- also named: ${a}`)].join('\n')
+      md = md.replace(block, `${block}\n- also named: ${who}`)
+    } else {
+      md = md.replace(/\n*$/, `\n\n**Stakeholder who signs off:** ${who}\n`)
     }
-    const known = [m[1], ...alsoNamed].map(norm)
-    if (known.includes(norm(who))) return false
-    // A second, different name is a fact worth keeping next to the first, not
-    // a silent overwrite - who signs is exactly the thing people argue about.
-    const block = [m[0], ...alsoNamed.map(a => `- also named: ${a}`)].join('\n')
-    md = md.replace(block, `${block}\n- also named: ${who}`)
-  } else {
-    md = md.replace(/\n*$/, `\n\n**Stakeholder who signs off:** ${who}\n`)
-  }
-  withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
-  return true
+    atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n')
+    return true
+  })
 }
 
 function setNextAction(eng, text) {
   ensureMemoryGit(eng)
   const bullet = `- ${stripControlChars(String(text).replace(/^[-*]\s+/, '').trim())}`
   const p = path.join(eng, 'context.md')
-  let md = readEng(eng, 'context.md')
-  if (!md) md = '# Engagement context\n\n'
-  // Collapse duplicate ## Next action headings (skill-append trap) into one.
-  md = stripAllSections(md, 'Next action')
-  if (/^##\s+Current state\b/im.test(md)) {
-    md = md.replace(
-      /(^##\s+Current state\b[^\n]*\n)([\s\S]*?)(?=^##\s|\s*$)/im,
-      (_, h, body) => `${h}${String(body).replace(/\n*$/, '\n')}\n## Next action\n\n${bullet}\n\n`
-    )
-  } else {
-    md = md.replace(/\n*$/, `\n\n## Next action\n\n${bullet}\n`)
-  }
-  withFileLock(p, () => { atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n') })
+  withFileLock(p, () => {
+    let md = readEng(eng, 'context.md')
+    if (!md) md = '# Engagement context\n\n'
+    // Collapse duplicate ## Next action headings (skill-append trap) into one.
+    md = stripAllSections(md, 'Next action')
+    if (/^##\s+Current state\b/im.test(md)) {
+      md = md.replace(
+        /(^##\s+Current state\b[^\n]*\n)([\s\S]*?)(?=^##\s|\s*$)/im,
+        (_, h, body) => `${h}${String(body).replace(/\n*$/, '\n')}\n## Next action\n\n${bullet}\n\n`
+      )
+    } else {
+      md = md.replace(/\n*$/, `\n\n## Next action\n\n${bullet}\n`)
+    }
+    atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n')
+  })
 }
 
 function looksLikeBinaryNoise(text) {
@@ -3002,19 +3023,15 @@ function cmdRedact(args) {
   }
   ensureMemoryGit(eng)
   const touched = []
-  const byFile = new Map()
-  for (const h of hits) {
-    if (!byFile.has(h.file)) byFile.set(h.file, new Set())
-    byFile.get(h.file).add(h.lineNo)
-  }
-  for (const [file, lineNos] of byFile) {
+  for (const file of new Set(hits.map(h => h.file))) {
     const abs = path.join(eng, file)
-    const before = readEng(eng, file)
-    const kept = before.split('\n').filter((_, i) => !lineNos.has(i + 1))
-    const after = kept.join('\n')
-    if (after === before) continue
-    withFileLock(abs, () => { atomicWriteFile(abs, after.endsWith('\n') || after === '' ? after : after + '\n') })
-    touched.push(file)
+    withFileLock(abs, () => {
+      const before = readEng(eng, file)
+      const after = before.split('\n').filter(line => !line.toLowerCase().includes(needle)).join('\n')
+      if (after === before) return
+      atomicWriteFile(abs, after.endsWith('\n') || after === '' ? after : after + '\n')
+      touched.push(file)
+    })
   }
   if (!touched.length) {
     console.log('nothing changed')
@@ -3165,37 +3182,39 @@ function cmdGarden(args) {
       continue
     }
     if (p.id !== 'archive-sessions') continue
-    const cutDates = new Set(p.sessionBlocks.map(b => b.date))
-    const keep = []
-    const archive = []
-    let mode = 'keep'
-    let buf = []
-    const flush = () => {
-      if (!buf.length) return
-      ;(mode === 'archive' ? archive : keep).push(...buf)
-      buf = []
-    }
-    for (const line of lines) {
-      const m = line.match(/^##\s+Session end\s+-\s+(\d{4}-\d{2}-\d{2})\b/)
-      if (m) {
-        flush()
-        mode = cutDates.has(m[1]) ? 'archive' : 'keep'
-      } else if (/^##\s+/.test(line) && mode === 'archive') {
-        flush()
-        mode = 'keep'
+    const archived = withFileLock(path.join(eng, 'context.md'), () => {
+      const cutDates = new Set(p.sessionBlocks.map(b => b.date))
+      const keep = []
+      const archive = []
+      let mode = 'keep'
+      let buf = []
+      const flush = () => {
+        if (!buf.length) return
+        ;(mode === 'archive' ? archive : keep).push(...buf)
+        buf = []
       }
-      buf.push(line)
-    }
-    flush()
-    if (!archive.length) continue
-    const archPath = path.join(eng, 'context-archive.md')
-    const prev = fs.existsSync(archPath) ? fs.readFileSync(archPath, 'utf8') : '# Context archive\n\n'
-    withFileLock(archPath, () => {
-      atomicWriteFile(archPath, prev.replace(/\n*$/, '\n\n') + archive.join('\n').trim() + '\n')
-    })
-    withFileLock(path.join(eng, 'context.md'), () => {
+      for (const line of readEng(eng, 'context.md').split('\n')) {
+        const m = line.match(/^##\s+Session end\s+-\s+(\d{4}-\d{2}-\d{2})\b/)
+        if (m) {
+          flush()
+          mode = cutDates.has(m[1]) ? 'archive' : 'keep'
+        } else if (/^##\s+/.test(line) && mode === 'archive') {
+          flush()
+          mode = 'keep'
+        }
+        buf.push(line)
+      }
+      flush()
+      if (!archive.length) return false
+      const archPath = path.join(eng, 'context-archive.md')
+      withFileLock(archPath, () => {
+        const prev = readEng(eng, 'context-archive.md') || '# Context archive\n\n'
+        atomicWriteFile(archPath, prev.replace(/\n*$/, '\n\n') + archive.join('\n').trim() + '\n')
+      })
       atomicWriteFile(path.join(eng, 'context.md'), keep.join('\n').replace(/\n*$/, '\n'))
+      return true
     })
+    if (!archived) continue
     applied++
     touched.add('context.md')
     touched.add('context-archive.md')
@@ -3209,47 +3228,49 @@ function cmdGarden(args) {
 // Keep the first open-risk bullet per fingerprint; move later echoes under ## Retired.
 function applyRiskDedupe(eng, clusters) {
   const p = path.join(eng, 'risks.md')
-  let md = readEng(eng, 'risks.md')
-  if (!md) return 0
-  const echoTexts = new Set()
-  for (const group of clusters) {
-    for (let i = 1; i < group.length; i++) echoTexts.add(group[i])
-  }
-  if (!echoTexts.size) return 0
-  const retiredLines = []
-  const kept = []
-  let inRetired = false
-  let moved = 0
-  for (const raw of md.split('\n')) {
-    const t = raw.trim()
-    if (/^#{1,6}\s+Retired\b/i.test(t)) {
-      inRetired = true
-      kept.push(raw)
-      continue
+  return withFileLock(p, () => {
+    let md = readEng(eng, 'risks.md')
+    if (!md) return 0
+    const echoTexts = new Set()
+    for (const group of clusters) {
+      for (let i = 1; i < group.length; i++) echoTexts.add(group[i])
     }
-    if (!inRetired) {
-      const m = t.match(/^-\s*\[\d{4}-\d{2}-\d{2}\]\s*(?:\[@[^\]]+\]\s*)?(.*)$/)
-      if (m && echoTexts.has(m[1].trim())) {
-        retiredLines.push(raw)
-        moved++
+    if (!echoTexts.size) return 0
+    const retiredLines = []
+    const kept = []
+    let inRetired = false
+    let moved = 0
+    for (const raw of md.split('\n')) {
+      const t = raw.trim()
+      if (/^#{1,6}\s+Retired\b/i.test(t)) {
+        inRetired = true
+        kept.push(raw)
         continue
       }
+      if (!inRetired) {
+        const m = t.match(/^-\s*\[\d{4}-\d{2}-\d{2}\]\s*(?:\[@[^\]]+\]\s*)?(.*)$/)
+        if (m && echoTexts.has(m[1].trim())) {
+          retiredLines.push(raw)
+          moved++
+          continue
+        }
+      }
+      kept.push(raw)
     }
-    kept.push(raw)
-  }
-  if (!moved) return 0
-  let out = kept.join('\n')
-  if (!/^#{1,6}\s+Retired\b/im.test(out)) {
-    out = out.replace(/\n*$/, '\n\n## Retired\n')
-  }
-  const stamp = new Date().toISOString().slice(0, 10)
-  const block = retiredLines.map(l => {
-    const body = l.trim().replace(/^-\s*/, '')
-    return `- [${stamp}] (tidy dedupe) ${body}`
-  }).join('\n')
-  out = appendUnderSection(out, 'Retired', block)
-  withFileLock(p, () => { atomicWriteFile(p, out.endsWith('\n') ? out : out + '\n') })
-  return moved
+    if (!moved) return 0
+    let out = kept.join('\n')
+    if (!/^#{1,6}\s+Retired\b/im.test(out)) {
+      out = out.replace(/\n*$/, '\n\n## Retired\n')
+    }
+    const stamp = new Date().toISOString().slice(0, 10)
+    const block = retiredLines.map(l => {
+      const body = l.trim().replace(/^-\s*/, '')
+      return `- [${stamp}] (tidy dedupe) ${body}`
+    }).join('\n')
+    out = appendUnderSection(out, 'Retired', block)
+    atomicWriteFile(p, out.endsWith('\n') ? out : out + '\n')
+    return moved
+  })
 }
 
 function engagementSlugFromPath(eng) {
