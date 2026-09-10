@@ -234,7 +234,7 @@ Each `.fde/` is a local git repo (no remote, no telemetry). Writes stage only th
   .inbox/           ← raw staged pulls (ingest); not the memory ledger
 ```
 
-The workspace registry (written by `fde resume --init`) tells the AI and the hooks which engagement this workspace belongs to - no environment variable needed. (Advanced override: [install.md § FDEOPS_ENGAGEMENT](./install.md#advanced-fdeops_engagement-override).)
+The workspace registry (written by `fde resume --init`) tells the AI and the hooks which engagement this workspace belongs to - no environment variable needed. (Advanced override: [install.md § FDEOPS_ENGAGEMENT](./install.md#fdeops_engagement-single-folder-override).)
 
 ---
 
