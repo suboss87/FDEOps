@@ -36,7 +36,7 @@ const { createMemoryApi } = require('./lib/memory')
 const { createTrustApi } = require('./lib/trust')
 const vault = require('./lib/vault')
 const context = require('./lib/context')
-const { sourceReference, hasSource } = require('./lib/provenance')
+const { sourceReference, hasSource, datedDecisions } = require('./lib/provenance')
 const { deliverySummary } = require('./lib/delivery-gaps')
 
 const HOME = os.homedir()
@@ -2309,9 +2309,15 @@ function cmdReceipts(args) {
   const dirty = new Set(memoryDirtyManual(eng))
   const records = [], claims = []
   for (const file of [...recordFiles, ...workingFiles]) {
-    readClean(eng, file).split('\n').forEach((line, i) => {
+    const document = readClean(eng, file)
+    const decisionSources = new Map()
+    if (file === 'decisions.md') for (const entry of datedDecisions(document)) {
+      const source = sourceReference(entry.text)
+      for (let line = entry.line; line < entry.line + entry.text.split('\n').length; line++) decisionSources.set(line, source)
+    }
+    document.split('\n').forEach((line, i) => {
       if (!line.toLowerCase().includes(term.toLowerCase())) return
-      const source = sourceReference(line)
+      const source = decisionSources.get(i + 1) || sourceReference(line)
       const hit = `  ${file}:${i + 1}  ${line.trim().slice(0, 160)}${source ? ` [source: ${source.slice(0, 160)}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
       ;(recordFiles.includes(file) && source ? records : claims).push(hit)
     })
@@ -2341,13 +2347,11 @@ function cmdHandoff(args, label = 'Handoff') {
   const signer = ((success.match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').trim()
   const ledger = parseValueLedger(eng).rows
   const rowText = r => `- ${r.slice || 'Unnamed slice'}: promised ${r.promised || '(missing)'}; measured ${r.measured || '(missing)'}; accepted by ${r.accepted || '(missing)'}; evidence ${r.evidence || '(missing)'}`
-  const decisions = readClean(eng, 'decisions.md').split('\n')
-    .map((line, i) => ({ line, at: i + 1 }))
-    .filter(d => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(d.line.trim()))
-  const selected = decisions.sort((a, b) => a.line.slice(3, 13).localeCompare(b.line.slice(3, 13))).slice(-8)
-  const records = selected.filter(d => hasSource(d.line))
-  const claims = selected.filter(d => !hasSource(d.line))
-  const decisionText = d => `${d.line} (decisions.md:${d.at}, redacted view)`
+  const decisions = datedDecisions(readClean(eng, 'decisions.md'))
+  const selected = decisions.slice(-8)
+  const records = selected.filter(d => hasSource(d.text))
+  const claims = selected.filter(d => !hasSource(d.text))
+  const decisionText = d => `${d.text} (decisions.md:${d.line}, redacted view)`
   const next = stripTemplateNoise(sectionBody(readClean(eng, 'context.md'), 'Next action', { lastNonEmpty: true }))
   const gaps = collectDoctorIssues(eng)
   const report = context.boundedSections([
@@ -3055,9 +3059,8 @@ function recordDigest(eng) {
     const target = ((success.match(/^\*\*Baseline[^\S\n]*→[^\S\n]*target:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').trim()
     if (target) lines.push(`  promised: ${target.slice(0, 110)}`)
   }
-  const decisions = readClean(eng, 'decisions.md').split('\n')
-    .filter(l => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(l.trim())).sort((a, b) => a.match(/\d{4}-\d{2}-\d{2}/)[0].localeCompare(b.match(/\d{4}-\d{2}-\d{2}/)[0])).slice(-2)
-  for (const d of decisions) lines.push(`  decided: ${formatDecisionRecord(d)}; source: ${previewLine(sourceReference(d) || '(missing)', 100)}`)
+  const decisions = datedDecisions(readClean(eng, 'decisions.md')).slice(-2)
+  for (const d of decisions) lines.push(`  decided: ${formatDecisionRecord(d.text)}; source: ${previewLine(sourceReference(d.text) || '(missing)', 100)}`)
   return ['RECORD (read-only - success, delivery, decisions)', ...lines]
 }
 

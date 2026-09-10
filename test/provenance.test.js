@@ -84,3 +84,16 @@ test('doctor --ready checks success before phase transition without writing', t 
   assert.match(r.stdout, /binary acceptance check/); assert.match(r.stdout, /named customer-side signer/)
   assert.equal(fs.readFileSync(path.join(f.eng, 'context.md'), 'utf8'), before)
 })
+test('handoff retains long-form decision sources and orders recent decisions by date', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'decisions.md'), '# Decisions\n### [2026-09-10] Keep the connector\n- Rationale: preserve the tested path\n- Source: [source: meeting 2026-09-09]\n<private>PRIVATE_LONGFORM</private>\n## 2026-09-08 - Reject the rewrite\n- Source: PR #42\n- [2026-01-01] Earlier unsupported idea\n')
+  for (const command of ['resume', 'handoff']) {
+    const r = f.run([command]); assert.equal(r.status, 0, r.stderr)
+    assert.match(r.stdout, /Keep the connector/); assert.match(r.stdout, /meeting 2026-09-09/)
+    assert.doesNotMatch(r.stdout, /PRIVATE_LONGFORM/)
+  }
+  const receipt = f.run(['receipts', 'Keep the connector'])
+  assert.match(receipt.stdout, /ON RECORD/); assert.match(receipt.stdout, /meeting 2026-09-09/)
+  const entries = require('../bin/lib/provenance').datedDecisions(fs.readFileSync(path.join(f.eng, 'decisions.md'), 'utf8'))
+  assert.deepEqual(entries.map(e => e.date), ['2026-01-01', '2026-09-08', '2026-09-10'])
+})
