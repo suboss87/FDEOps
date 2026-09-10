@@ -30,7 +30,7 @@ function budgetArgs(args) {
   return { args: rest, maxBytes }
 }
 function boundedSections(sections, maxBytes = DEFAULT_BYTES) {
-  const footer = '\n\nCONTEXT: selected excerpts, not the complete record or proof of approval. Use fde recall <topic> for relevant evidence. Verify current constraints and conflicting decisions before acting.\n'
+  const footer = '\n\nCONTEXT: selected excerpts, not the complete record or proof of approval. Use fde recall <topic> for relevant evidence. If policy or constraints are truncated, retrieve them before acting. Verify conflicting decisions.\n'
   let out = ''
   const filled = sections.filter(s => s && s.trim())
   for (let i = 0; i < filled.length; i++) {
@@ -55,11 +55,15 @@ function recallSections(documents, query, maxHits = 12) {
       const lower = line.toLocaleLowerCase()
       const score = words.reduce((n, word) => n + Number(lower.includes(word)), 0)
       if (!score) continue
-      hits.push({ file, line: i + 1, score, text: line.trim() })
+      const first = Math.max(0, i - 1)
+      const last = Math.min(lines.length, i + 3)
+      const excerpt = lines.slice(first, last).map(l => Buffer.byteLength(l) <= 1024 ? l : clipUtf8(l, 900) + OMITTED).join('\n')
+      hits.push({ file, line: first + 1, end: last, score, text: excerpt.trim() })
     }
   }
-  hits.sort((a, b) => b.score - a.score || a.file.localeCompare(b.file) || a.line - b.line)
-  // Round-robin files to avoid one verbose document hiding every other source.
+  hits.sort((a, b) => b.score - a.score || a.file.localeCompare(b.file) || b.line - a.line)
+  // Round-robin files, taking recent and older matches so a long topic does
+  // not hide its latest change or original constraint. Omission stays explicit.
   const groups = new Map()
   for (const hit of hits) {
     if (!groups.has(hit.file)) groups.set(hit.file, [])
@@ -69,11 +73,12 @@ function recallSections(documents, query, maxHits = 12) {
   while (selected.length < maxHits && [...groups.values()].some(g => g.length)) {
     for (const group of groups.values()) {
       if (group.length && selected.length < maxHits) selected.push(group.shift())
+      if (group.length && selected.length < maxHits) selected.push(group.pop())
     }
   }
   return {
     total: hits.length,
-    sections: selected.map(h => `${h.file}:${h.line} (line in redacted view)\n${h.text}`),
+    sections: selected.map(h => `${h.file}:${h.line}-${h.end} (lines in redacted view)\n${h.text}`),
   }
 }
 module.exports = { DEFAULT_BYTES, clipUtf8, budgetArgs, boundedSections, recallSections }

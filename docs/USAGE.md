@@ -292,7 +292,7 @@ The skills guide investigation and delivery; they do not make business decisions
 
 `fde resume` returns at most 16 KiB of UTF-8 output by default, including its current-goal and risk excerpts. `fde recall "retry approval"` searches the active client's sanitized records and returns bounded matching lines with file references. It does not search other clients or send data to a model.
 
-Use `--max-bytes 4096` with either command for a smaller allowance (supported range: 4096–65536). These are byte ceilings, not exact token counts: models tokenize differently. The coding host's instructions, conversation and other tool output still consume its context window.
+Use `--max-bytes 4096` with either command for a smaller allowance (supported range: 4096-65536). These are byte ceilings, not exact token counts: models tokenize differently. The coding host's instructions, conversation and other tool output still consume its context window.
 
 Truncation is explicit. A partial excerpt is not evidence that omitted constraints do not exist. Refine the query and verify source dates, conflicting decisions and approval scope before acting. References identify lines in the redacted view; private-block removal can change their position relative to the raw file. `fde resume --full` deliberately bypasses the output bound and can be large. Existing `receipts` remains available for a full literal record search.
 

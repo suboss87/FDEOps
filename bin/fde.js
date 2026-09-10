@@ -1404,10 +1404,12 @@ function cmdResume(args) {
   }
   // Bound the complete command output, not only context.md's line count.
   // Separate allocations keep a long history from crowding out current goals.
+  const policy = readClean(eng, 'trust-profile.md')
   const success = readClean(eng, 'success.md')
   const risks = readClean(eng, 'risks.md')
   process.stdout.write(context.boundedSections([
     `${intro}\n\nENGAGEMENT: ${eng}`,
+    policy ? `CLIENT POLICY - trust-profile.md\n${policy}` : '',
     success ? `CURRENT GOALS & ACCEPTANCE - success.md\n${success}` : '',
     risks ? `RECORDED RISKS - risks.md\n${risks}` : '',
     `WORKING CONTEXT - context.md\n${ctx ? resumeView(ctx) : '(no context.md yet)'}`,
@@ -2332,7 +2334,7 @@ function cmdRecall(args) {
   }
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - bind a client before recall'); process.exit(2) }
-  const files = ['context.md', 'success.md', 'decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'brief.md', 'reality.md', 'assumptions.md', 'terrain.md']
+  const files = ['context.md', 'trust-profile.md', 'success.md', 'decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'brief.md', 'reality.md', 'assumptions.md', 'terrain.md']
   const result = context.recallSections(files.map(file => ({ file, text: readClean(eng, file) })), query)
   process.stdout.write(context.boundedSections([
     `RECALL - ${eng}\n${result.total ? `${result.sections.length} of ${result.total} matching lines; refine the query if evidence is omitted.` : 'No matching record. This is not proof that the event never happened.'}\nSources are local record assertions; verify dates, supersession and approval scope.`,
