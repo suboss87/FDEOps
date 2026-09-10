@@ -41,6 +41,8 @@ After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same rou
 questions, and bare words such as `approved` do not identify acceptance.
 Legacy name-only rows remain readable; they record an assertion, not verified consent.
 
+Acceptance cells must put the customer-side name first (for example, `Priya Shah, approved 2026-09-10`). Approval prose such as `approved 2026-09-10`, or a generic role such as `customer sponsor`, does not identify a signer and remains claimed.
+
 For an explicit record, add an `Acceptance status` column to the value ledger:
 `pending`, `accepted`, `rejected`, or `revoked`. Only `accepted`, together with a
 signer, a measurement, and nonempty `Evidence`, is displayed as accepted. Empty or
