@@ -7,7 +7,7 @@
 - Put constraints first in the agent packet and include the classified value ledger. Make CLI triage and Today share one recommended first action with its reason and source.
 - Separate requests, scope and reported delivery in REVIEW; preserve explicit source references without inventing acceptance. Expand the fictional messy-notes demo.
 - Add `doctor --ready` for observable acceptance checks and a named signer before planning or building. Support revised multiline criteria.
-- Clarify the README around the delivery loop; retain the original poster and dark fieldbook. Add three thin workflow checklists, improve POC-to-production guidance and remove obsolete maintainer documentation.
+- Default the fieldbook to dark while preserving saved theme choices. Clarify the README around the delivery loop; retain the original poster and dark fieldbook. Add three thin workflow checklists, improve POC-to-production guidance and remove obsolete maintainer documentation.
 - Route `recall`, `defend` and `handoff` through the npm entry point.
 
 ## 3.26.0 - 2026-09-10
