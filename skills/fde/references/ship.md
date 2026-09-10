@@ -12,7 +12,7 @@ Do not ask them to pick a mode. Name where you are, then start at the matching s
 
 If going live, opening question: **has anyone actually *run* the rollback, or is it still a slide?** If only planned, that's today's work - say so plainly.
 
-A same-day throwaway that kills an assumption is `poc`. This skill is the real change on a repo they will own, then production.
+A bounded experiment that tests an assumption is `poc`. This skill turns a validated direction into a maintainable change on a repo they will own, then production. Inspect existing prototype code and retain suitable tested parts; replace unsafe shortcuts based on evidence. A successful demo alone does not satisfy the readiness gates below.
 
 ## Field (name it once, then the same loop)
 
