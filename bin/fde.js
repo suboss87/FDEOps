@@ -1463,14 +1463,14 @@ function cmdLogUndo() {
         if (after == null) {
           throw new Error(`cannot undo - entry no longer in ${meta.file} (edited by hand?). Remove it manually.`)
         }
-        atomicWriteFile(target, after.endsWith('\n') ? after : after + '\n')
-      })
+        atomicWriteFile(target, after.endsWith('\n') ? after : after + '\n', { soft: true })
+      }, { soft: true })
       if (/\[signal:(red|amber|green)\]/i.test(meta.entry)) {
         const ledgerPath = path.join(eng, SIGNAL_LEDGER)
         withFileLock(ledgerPath, () => {
           const led = removeExactEntryLine(readEng(eng, SIGNAL_LEDGER), meta.entry)
-          if (led != null) atomicWriteFile(ledgerPath, led.endsWith('\n') ? led : led + '\n')
-        })
+          if (led != null) atomicWriteFile(ledgerPath, led.endsWith('\n') ? led : led + '\n', { soft: true })
+        }, { soft: true })
       }
       try { fs.unlinkSync(metaPath) } catch (_) {}
     })
@@ -3184,38 +3184,44 @@ function cmdGarden(args) {
       continue
     }
     if (p.id !== 'archive-sessions') continue
-    const archived = withFileLock(path.join(eng, 'context.md'), () => {
-      const cutDates = new Set(p.sessionBlocks.map(b => b.date))
-      const keep = []
-      const archive = []
-      let mode = 'keep'
-      let buf = []
-      const flush = () => {
-        if (!buf.length) return
-        ;(mode === 'archive' ? archive : keep).push(...buf)
-        buf = []
-      }
-      for (const line of readEng(eng, 'context.md').split('\n')) {
-        const m = line.match(/^##\s+Session end\s+-\s+(\d{4}-\d{2}-\d{2})\b/)
-        if (m) {
-          flush()
-          mode = cutDates.has(m[1]) ? 'archive' : 'keep'
-        } else if (/^##\s+/.test(line) && mode === 'archive') {
-          flush()
-          mode = 'keep'
+    let archived
+    try {
+      archived = withFileLock(path.join(eng, 'context.md'), () => {
+        const cutDates = new Set(p.sessionBlocks.map(b => b.date))
+        const keep = []
+        const archive = []
+        let mode = 'keep'
+        let buf = []
+        const flush = () => {
+          if (!buf.length) return
+          ;(mode === 'archive' ? archive : keep).push(...buf)
+          buf = []
         }
-        buf.push(line)
-      }
-      flush()
-      if (!archive.length) return false
-      const archPath = path.join(eng, 'context-archive.md')
-      withFileLock(archPath, () => {
-        const prev = readEng(eng, 'context-archive.md') || '# Context archive\n\n'
-        atomicWriteFile(archPath, prev.replace(/\n*$/, '\n\n') + archive.join('\n').trim() + '\n')
-      })
-      atomicWriteFile(path.join(eng, 'context.md'), keep.join('\n').replace(/\n*$/, '\n'))
-      return true
-    })
+        for (const line of readEng(eng, 'context.md').split('\n')) {
+          const m = line.match(/^##\s+Session end\s+-\s+(\d{4}-\d{2}-\d{2})\b/)
+          if (m) {
+            flush()
+            mode = cutDates.has(m[1]) ? 'archive' : 'keep'
+          } else if (/^##\s+/.test(line) && mode === 'archive') {
+            flush()
+            mode = 'keep'
+          }
+          buf.push(line)
+        }
+        flush()
+        if (!archive.length) return false
+        const archPath = path.join(eng, 'context-archive.md')
+        withFileLock(archPath, () => {
+          const prev = readEng(eng, 'context-archive.md') || '# Context archive\n\n'
+          atomicWriteFile(archPath, prev.replace(/\n*$/, '\n\n') + archive.join('\n').trim() + '\n', { soft: true })
+        }, { soft: true })
+        atomicWriteFile(path.join(eng, 'context.md'), keep.join('\n').replace(/\n*$/, '\n'), { soft: true })
+        return true
+      }, { soft: true })
+    } catch (e) {
+      console.error(`tidy archive: ${e.message}`)
+      process.exit(1)
+    }
     if (!archived) continue
     applied++
     touched.add('context.md')
