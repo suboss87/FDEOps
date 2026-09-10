@@ -2078,8 +2078,14 @@ function repeatedDebriefStatements(eng, input) {
     if (!match || !/\[source:[^\]]+\]/i.test(match[2])) continue
     const body = match[2].trim()
     const file = LOG_FILES[match[1].toLowerCase()]
-    if (!records.has(file)) records.set(file, normalize(String(readEng(eng, file) || '')))
-    if (records.get(file).includes(normalize(body))) repeats.push(body)
+    if (!records.has(file)) {
+      const statements = String(readClean(eng, file) || '').split('\n').map(line => {
+        if (/^\s*\|/.test(line)) return normalize(line.trim().replace(/^\|\s*\d{4}-\d{2}-\d{2}\s*\|/, '').replace(/\|\s*$/, ''))
+        return normalize(line.replace(/^\s*[-*+]\s+/, '').replace(/^(?:\[(?:\d{4}-\d{2}-\d{2}|@[^\]]+|signal:[^\]]+)\]\s*)+/, ''))
+      })
+      records.set(file, new Set(statements))
+    }
+    if (records.get(file).has(normalize(body))) repeats.push(body)
   }
   return repeats
 }
@@ -2130,7 +2136,7 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [], allowReplay = 
         const who = body.replace(/\s+signs?(?:\s+off)?\b.*$/i, '').trim() || body.trim()
         if (dry) {
           console.log(`→ success.md  **Stakeholder who signs off:** ${previewLine(who)}`)
-          console.log(`→ stakeholders.md  ${previewLine(datedEntry(eng, date, `${who} signs off`))}`)
+          console.log(`→ stakeholders.md  ${previewLine(`- [${date}] ${who} signs off`)}`)
         } else {
           setSigner(eng, who)
           appendLogEntry(eng, 'contact', datedEntry(eng, date, `${who} signs off`), { skipCommit: true })
@@ -2153,7 +2159,7 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [], allowReplay = 
       }
       const sigInline = (body.match(/\[signal:(red|amber|green)\]/i) || [])[1]
       if (sigInline) body = body.replace(/\[signal:(red|amber|green)\]/i, '').trim()
-      const entry = datedEntry(eng, date, body, type === 'contact' && sigInline ? sigInline.toLowerCase() : '')
+      const entry = dry ? `- [${date}] ${body}` : datedEntry(eng, date, body, type === 'contact' && sigInline ? sigInline.toLowerCase() : '')
       if (dry) console.log(`→ ${LOG_FILES[type]}  ${previewLine(entry)}`)
       else appendLogEntry(eng, type, entry, { skipCommit: true })
       counts[type]++
@@ -2198,6 +2204,8 @@ function runDebrief(args, eng) {
   if (args.includes('--review')) {
     if (args.length !== 1 || allowReplay) throw new Error('use debrief --review alone to inspect the pending proposal')
     const proposal = path.join(eng, DEBRIEF_PROPOSE)
+    const refused = refuseSymlinkWrite(proposal, { soft: true })
+    if (refused) throw new Error(refused)
     if (!fs.existsSync(proposal)) throw new Error('nothing to review - run debrief --smart <notes> first')
     const { clean: input } = splitPrivate(fs.readFileSync(proposal, 'utf8'), { sealDangling: true })
     return boundedDebriefPreview(eng, () => {

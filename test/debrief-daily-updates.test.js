@@ -9,7 +9,7 @@ function fixture(t) {
   t.after(() => fs.rmSync(root, { recursive: true, force: true }))
   const home = path.join(root, 'home'); fs.mkdirSync(home)
   const env = { ...process.env, HOME: home, USERPROFILE: home, FDEOPS_ENGAGEMENT: '', FDEOS_ENGAGEMENT: '', FDEOPS_ENGAGEMENTS_ROOT: path.join(root, 'clients') }
-  const run = (args, input) => spawnSync(process.execPath, [path.resolve(__dirname, '../bin/fde.js'), ...args], { cwd: root, env, input, encoding: 'utf8' })
+  const run = (args, input) => spawnSync(process.execPath, [path.resolve(__dirname, '../bin/fde.js'), ...args], { cwd: root, env, input, encoding: 'utf8', timeout: 15000 })
   assert.equal(run(['resume', '--init', 'bank']).status, 0)
   return { run, eng: path.join(root, 'clients/bank/.fde') }
 }
@@ -23,6 +23,8 @@ test('one reviewed delivery writes the ledger with unknown acceptance preserved'
   const readout = f.run(['defend']).stdout
   assert.match(readout, /Replay: promised zero duplicates/)
   assert.match(readout, /accepted by pending/)
+  assert.equal(f.run(['debrief', '--smart'], notes).status, 0)
+  assert.match(f.run(['debrief', '--review']).stdout, /already recorded/)
 })
 test('invalid delivery columns fail before changing records', t => {
   const f = fixture(t); const before = fs.readFileSync(path.join(f.eng, 'delivery.md'), 'utf8')
@@ -51,4 +53,33 @@ test('pending review does not expose private lines added during editing', t => {
   const result = f.run(['debrief', '--review'])
   assert.equal(result.status, 0)
   assert.doesNotMatch(result.stdout + result.stderr, /PRIVATE_REVIEW_SENTINEL/)
+})
+
+test('review refuses symlink and nonregular proposal files', t => {
+  const f = fixture(t); const proposal = path.join(f.eng, '.debrief-propose')
+  const other = path.join(f.eng, 'other.txt'); fs.writeFileSync(other, 'risk: OTHER_CLIENT_SENTINEL\n')
+  fs.symlinkSync(other, proposal)
+  let result = f.run(['debrief', '--review'])
+  assert.notEqual(result.status, 0); assert.doesNotMatch(result.stdout, /OTHER_CLIENT_SENTINEL/)
+  fs.unlinkSync(proposal); fs.mkdirSync(proposal)
+  result = f.run(['debrief', '--review']); assert.notEqual(result.status, 0)
+})
+test('review ignores private membership and compares whole statements without writing owner', t => {
+  const f = fixture(t); const proposal = path.join(f.eng, '.debrief-propose')
+  fs.writeFileSync(path.join(f.eng, 'decisions.md'), '# Decisions\n<private>Freeze scope [source: transcript:42]</private>\n- [2026-09-10] Do not Freeze scope [source: transcript:42]\n')
+  fs.writeFileSync(proposal, 'decision: Freeze scope [source: transcript:42]\nsigner: Mara Chen\n')
+  fs.rmSync(path.join(f.eng, '.owner'), { force: true })
+  const result = f.run(['debrief', '--review'])
+  assert.equal(result.status, 0)
+  assert.doesNotMatch(result.stdout, /already recorded/)
+  assert.equal(fs.existsSync(path.join(f.eng, '.owner')), false)
+})
+
+test('review refuses a FIFO without blocking', { skip: process.platform === 'win32' }, t => {
+  const f = fixture(t); const proposal = path.join(f.eng, '.debrief-propose')
+  assert.equal(spawnSync('mkfifo', [proposal]).status, 0)
+  const result = f.run(['debrief', '--review'])
+  assert.equal(result.error, undefined)
+  assert.equal(result.status, 1)
+  assert.match(result.stderr, /not a regular file/)
 })
