@@ -133,3 +133,14 @@ test('initialization refuses linked client destinations without modifying them',
   assert.deepEqual(fs.readdirSync(outside), ['keep.txt'])
   assert.equal(fs.readFileSync(path.join(outside, 'keep.txt'), 'utf8'), 'UNCHANGED')
 })
+
+test('startup never reads raw context when its Node runtime cannot run', t => {
+  const f = fixture(t)
+  const bin = path.join(f.dir, 'bin')
+  fs.mkdirSync(bin)
+  fs.writeFileSync(path.join(bin, 'node'), '#!/bin/sh\nexit 127\n', { mode: 0o755 })
+  fs.writeFileSync(path.join(f.eng, 'context.md'), 'RAW_CONTEXT_MUST_NOT_APPEAR')
+  const result = f.hook({ PATH: `${bin}:/usr/bin:/bin` })
+  assert.equal(result.status, 0)
+  assert.equal(result.stdout, '')
+})
