@@ -264,39 +264,28 @@ for (const m of readme.matchAll(/(?:\]\(|src=")([^)"#\s]+)(?:\)|")/g)) {
 if (brokenLinks.length) fail(`README links to missing paths: ${brokenLinks.join(', ')}`)
 else ok('README links all resolve')
 
-for (const section of [
-  'How Skills Work',
-  'Quick Start',
-  'Engagement memory',
-  'Who this is for',
-  'Commands',
-  'Principles',
-]) {
-  if (!readme.includes(section)) fail(`README missing section: ${section}`)
+// Validate usable entry points, not a fixed heading order or marketing copy.
+// Host-specific commands and advanced setup belong in the linked guides.
+for (const target of ['docs/install.md', 'docs/USAGE.md', 'docs/REPO_LAYOUT.md', 'docs/verification.md', 'PRIVACY.md']) {
+  if (!readme.includes(target)) fail(`README must link its public guide: ${target}`)
 }
-if (!readme.includes('AI coding agent')) {
-  fail('README must say AI coding agent (not ambiguous "agent")')
+if (!readme.includes('AI coding agent') || !/FDE|Forward Deployed Engineer/i.test(readme)) {
+  fail('README must identify the tool and its intended users')
 }
-ok('README clarity sections')
-
+if (!/npx skills add suboss87\/fdeops --skill fde/.test(readme) || !/@fde\s+this is/.test(readme)) {
+  fail('README must show skill installation and how to start a client')
+}
 for (const cmd of ['/brief', '/discover', '/plan', '/ship', '/outcome', '/close', '/debrief', '/prep', '/trust', '/receipts', '/readout']) {
-  if (!readme.includes(cmd)) fail(`README must document slash command ${cmd}`)
+  if (!(readme + usage).includes(cmd)) fail(`Public usage documentation missing slash command ${cmd}`)
 }
 if (/(^|[^\w/])\/got\b/.test(readme)) fail('README must use /outcome, not /got')
-ok('README slash commands documented')
-
-// Front-door map is the embed left-to-right (Land → Close). After the GitHub
-// poster (#68) the table is the map: /brief /discover /plan /ship /outcome /close.
-const front = readme.slice(0, 4000)
-if (!['/brief', '/discover', '/plan', '/ship', '/outcome', '/close'].every(c => front.includes(c))) {
-  fail('README must include the Land→Close command map near the top')
-} else ok('README command-map diagram')
+ok('README entry points and documented commands')
 
 if (readme.includes('your-client-repo')) {
   fail('README must not instruct install in customer repo (your-client-repo)')
 } else ok('README no customer-repo install')
 
-if (!readme.includes('fde-engagements') || !/fdeops.*init.*engagement/i.test(readme)) {
+if (!readme.includes('fde-engagements') || !/fdeops.*resume --init/i.test(readme + read('docs/install.md'))) {
   fail('README must document fde-engagements + init flow')
 } else ok('README engagement path')
 
@@ -334,9 +323,9 @@ if (!fs.existsSync(path.join(root, 'docs', 'USAGE.md'))) {
   fail('docs/USAGE.md missing')
 } else ok('docs/USAGE.md')
 
-if (!readme.includes('FDEOPS_ENGAGEMENT')) {
-  fail('README must document FDEOPS_ENGAGEMENT')
-} else ok('README FDEOPS_ENGAGEMENT')
+if (!read('docs/install.md').includes('FDEOPS_ENGAGEMENT')) {
+  fail('Installation guide must document FDEOPS_ENGAGEMENT')
+} else ok('Installation override documented')
 
 const badPhrases = ['team of ten', 'solo 100x', '100x engineer']
 for (const phrase of badPhrases) {
@@ -355,12 +344,6 @@ for (const rx of derivativeFraming) {
 }
 if (/docs\/internal|PMF_360/i.test(readme)) {
   fail('README must not link docs/internal or PMF_360')
-}
-if (!/One command per stage/.test(readme) || !/Skills load automatically/.test(readme)) {
-  fail('README must formulate Commands as: one command per stage, skills load automatically')
-}
-if (!/Not prompts/.test(readme)) {
-  fail('README catalog must say skills are not prompts')
 }
 if (/\b(30|31|37)\s+methods\b|\broutes methods\b|\bphase methods\b|\bfield methods\b|\bengagement methods\b/.test(readme)) {
   fail('README must call the catalog skills, not methods')
