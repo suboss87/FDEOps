@@ -1994,7 +1994,7 @@ function readSealedProposal(eng) {
 // before the first append, and restore snapshots if an ordinary write fails.
 // This is not a power-loss transaction; no history is deleted or reset.
 function withDebriefRecords(eng, apply, files = ['decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md',
-  'success.md', 'context.md', SIGNAL_LEDGER, LAST_WRITE]) {
+  'success.md', 'context.md', SIGNAL_LEDGER, LAST_WRITE, DEBRIEF_PROPOSE, DEBRIEF_PRIVATE, DEBRIEF_SEAL]) {
   files = files.slice().sort()
   const snapshots = new Map()
   function lockAt(index) {
@@ -2021,7 +2021,7 @@ function withDebriefRecords(eng, apply, files = ['decisions.md', 'risks.md', 'de
           else if (fs.existsSync(target)) fs.unlinkSync(target)
         } catch (_) { failed.push(path.basename(target)) }
       }
-      if (failed.length) throw new Error(`${error.message}; recovery could not restore ${failed.join(', ')}. Inspect these records before retrying; the proposal is retained.`)
+      if (failed.length) throw new Error(`${error.message}; recovery could not restore ${failed.join(', ')}. Inspect these records and the pending proposal before retrying.`)
       throw new Error(`${error.message}; no record changes kept. The proposal is retained; retry after resolving the cause.`)
     } finally { debriefTransactionActive = false }
   }
@@ -2051,7 +2051,17 @@ function boundedDebriefPreview(eng, render, { proposal = true, maxBytes = 12000 
 function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
   if (!dry && !debriefTransactionActive) {
     ensureMemoryGit(eng)
-    return withDebriefRecords(eng, () => routeDebriefInput(eng, input, { dry, force, sealed }))
+    return withDebriefRecords(eng, () => {
+      const result = routeDebriefInput(eng, input, { dry, force, sealed })
+      // Consuming the review is part of the write. If cleanup fails, restoring
+      // both the records and proposal makes the next explicit apply safe.
+      for (const file of [DEBRIEF_PROPOSE, DEBRIEF_PRIVATE, DEBRIEF_SEAL]) {
+        try { fs.unlinkSync(path.join(eng, file)) } catch (error) {
+          if (error.code !== 'ENOENT') throw new Error(formatFsError(error, 'remove', file))
+        }
+      }
+      return result
+    })
   }
   const d = new Date()
   const date = d.toISOString().slice(0, 10)
@@ -2205,9 +2215,6 @@ function runDebrief(args, eng) {
     const hash = commitMemory(eng, 'debrief', {
       files: ['decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'success.md', 'context.md', SIGNAL_LEDGER],
     })
-    try { fs.unlinkSync(path.join(eng, DEBRIEF_PROPOSE)) } catch (_) {}
-    try { fs.unlinkSync(path.join(eng, DEBRIEF_PRIVATE)) } catch (_) {}
-  try { fs.unlinkSync(path.join(eng, DEBRIEF_SEAL)) } catch (_) {}
     if (hash) console.log(`memory @${hash}`)
   }
   const plural = {

@@ -137,3 +137,28 @@ test('combined smart apply, dry-run and ingest previews remain bounded', t => {
   assert.match(result.stdout, /omitted/)
   assert.match(result.stdout, /ingest apply/)
 })
+
+for (const blocked of ['.debrief-propose', '.debrief-private', '.debrief-seal']) {
+  test(`failed ${blocked} cleanup rolls back records and leaves a retryable review`, t => {
+    const f = fixture(t)
+    fs.writeFileSync(f.notes, 'decision: CLEANUP_ONCE\n<private>KEEP_SEALED</private>\n')
+    assert.equal(f.run(['debrief', '--smart', f.notes]).status, 0)
+    const files = ['decisions.md', 'context.md', '.debrief-propose', '.debrief-private', '.debrief-seal']
+    const before = files.map(file => fs.readFileSync(path.join(f.eng, file), 'utf8'))
+    const head = () => spawnSync('git', ['rev-parse', 'HEAD'], { cwd: f.eng, encoding: 'utf8' }).stdout.trim()
+    const beforeHead = head()
+    const shim = path.join(f.dir, 'fail-cleanup.cjs')
+    fs.writeFileSync(shim, `const fs = require('fs'); const unlink = fs.unlinkSync; let failed = false;
+fs.unlinkSync = function(file) {
+  if (!failed && String(file).endsWith(${JSON.stringify('/' + blocked)})) { failed = true; throw Object.assign(new Error('simulated cleanup denial'), { code: 'EACCES' }); }
+  return unlink.call(fs, file);
+};`)
+    const result = spawnSync(process.execPath, ['--require', shim, path.resolve(__dirname, '../bin/fde.js'), 'debrief', '--apply'], { cwd: f.cwd, env: f.env, encoding: 'utf8' })
+    assert.equal(result.status, 1)
+    assert.deepEqual(files.map(file => fs.readFileSync(path.join(f.eng, file), 'utf8')), before)
+    assert.equal(head(), beforeHead, 'failed apply must not commit records')
+    assert.equal(f.run(['debrief', '--apply']).status, 0)
+    assert.equal(fs.readFileSync(path.join(f.eng, 'decisions.md'), 'utf8').split('CLEANUP_ONCE').length - 1, 1)
+    for (const file of ['.debrief-propose', '.debrief-private', '.debrief-seal']) assert.equal(fs.existsSync(path.join(f.eng, file)), false)
+  })
+}
