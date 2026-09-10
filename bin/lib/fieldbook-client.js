@@ -6,6 +6,9 @@ module.exports = function fieldbookClient() {
   const views = all('.fb-view')
   const nav = all('.fb-nav')
   const search = document.getElementById('fb-search')
+  const filter = document.getElementById('fb-filter')
+  const rail = document.getElementById('fb-client-rail')
+  const clientsButton = document.getElementById('fb-clients-btn')
   const main = document.querySelector('.fb-main')
   const status = document.getElementById('fb-status')
   const palette = document.getElementById('fb-palette-dialog')
@@ -15,6 +18,11 @@ module.exports = function fieldbookClient() {
   let returnFocus = null
   let active = 0
   const currentId = () => document.querySelector('.fb-view:not([hidden])').id.replace('view-', '')
+  function showClients(show) {
+    rail.classList.toggle('is-collapsed', !show)
+    clientsButton.setAttribute('aria-expanded', String(show))
+  }
+  clientsButton.addEventListener('click', () => showClients(clientsButton.getAttribute('aria-expanded') !== 'true'))
   function selectView(id, updateHash = true, focus = false) {
     if (id === 'fb-main') { id = 'today'; updateHash = false }
     if (!document.getElementById('view-' + id)) id = 'today'
@@ -27,7 +35,10 @@ module.exports = function fieldbookClient() {
     })
     if (updateHash && location.hash !== '#' + id) location.hash = id
     main.scrollTop = 0
-    if (focus) document.querySelector('.fb-view:not([hidden]) h1').focus()
+    if (focus) {
+      document.querySelector('.fb-view:not([hidden]) h1').focus()
+      if (window.matchMedia('(max-width:640px)').matches) showClients(false)
+    }
   }
   const hashId = () => location.hash.slice(1)
   selectView(hashId() || 'today', false)
@@ -47,22 +58,34 @@ module.exports = function fieldbookClient() {
     const start = Math.max(0, i - 24), end = Math.min(raw.length, i + term.length + 40)
     return (start ? '…' : '') + esc(raw.slice(start, i)) + '<mark>' + esc(raw.slice(i, i + term.length)) + '</mark>' + esc(raw.slice(i + term.length, end)) + (end < raw.length ? '…' : '')
   }
-  search.addEventListener('input', () => {
+  function filterClients() {
     const term = search.value.trim().toLowerCase()
-    let count = 0
+    const matches = new Set()
     nav.filter(n => n.dataset.target !== 'today').forEach(n => {
-      const raw = n.dataset.search || ''
-      const hit = !term || raw.includes(term)
+      const raw = (n.dataset.search || '').toLowerCase()
+      const inGroup = filter.value === 'all' || (n.dataset.attention === 'true') === (filter.value === 'attention')
+      const hit = inGroup && (!term || raw.includes(term))
       n.classList.toggle('hide', !hit)
-      if (hit) count++
+      if (hit) matches.add(n.dataset.target)
       const reason = n.querySelector('.fb-nav-reason')
       if (term && hit) reason.innerHTML = snippet(raw, term)
       else reason.textContent = n.dataset.defaultReason || ''
       reason.classList.toggle('hide', !reason.textContent)
     })
-    document.getElementById('fb-search-empty').hidden = !term || count > 0
-    document.getElementById('fb-search-count').textContent = term ? count + ' matching engagement' + (count === 1 ? '' : 's') : ''
-  })
+    const count = matches.size
+    all('[data-client]').forEach(row => row.classList.toggle('hide', !matches.has(row.dataset.client)))
+    const filtering = Boolean(term) || filter.value !== 'all'
+    document.getElementById('fb-search-empty').hidden = !filtering || count > 0
+    const empty = document.getElementById('fb-results-empty')
+    if (empty) empty.hidden = !filtering || count > 0
+    all('[data-filter-section]').forEach(section => { section.hidden = !Array.from(section.querySelectorAll('[data-client]')).some(row => !row.classList.contains('hide')) })
+    const total = nav.length - 1
+    document.getElementById('fb-search-count').textContent = count + ' of ' + total + ' client' + (total === 1 ? '' : 's') + (filtering ? ' match' : '')
+  }
+  search.addEventListener('input', filterClients)
+  filter.addEventListener('change', filterClients)
+  all('[data-reset-filters]').forEach(button => button.addEventListener('click', () => { search.value = ''; filter.value = 'all'; filterClients() }))
+  filterClients()
 
   function toggleTheme() {
     const next = document.documentElement.dataset.fdeTheme === 'dark' ? 'light' : 'dark'
@@ -134,6 +157,10 @@ module.exports = function fieldbookClient() {
     try {
       await navigator.clipboard.writeText(text)
       status.textContent = 'Prompt copied. Paste it into your coding agent; review changes before saving.'
+      const label = button.textContent
+      button.textContent = 'Copied'
+      button.disabled = true
+      setTimeout(() => { button.textContent = label; button.disabled = false }, 1800)
     } catch (_) {
       const input = document.getElementById('fb-prompt-text')
       input.value = text
@@ -154,7 +181,7 @@ module.exports = function fieldbookClient() {
       return
     }
     if (event.target.closest('.fb-table-scroll')) return
-    if (event.key === '/') { event.preventDefault(); search.focus(); return }
+    if (event.key === '/') { event.preventDefault(); showClients(true); search.focus(); return }
     if (event.key === 'j' || event.key === 'k' || (event.target.closest('.fb-rail') && ['ArrowDown', 'ArrowUp'].includes(event.key))) {
       event.preventDefault()
       const ids = nav.filter(n => !n.classList.contains('hide')).map(n => n.dataset.target)
