@@ -34,6 +34,12 @@ The quality bar is less work reconstructing context, clearer customer acceptance
 
 Search filters the client list and overview; it does not silently switch the open client. The current heading and copied prompt retain that client's identity.
 
+## Agent-assisted method check
+
+A separate session followed the actual `@fde` router and debrief reference, using the local CLI on a fictional engagement. The agent reviewed notes requesting CSV upload, an unapproved ERP request, a five-minute staging result with PR #42, and unknown production measurement and acceptance authority. It edited the proposed record, re-previewed it, simulated approval of accurate recording only, applied it, and exported/retrieved the result.
+
+The update kept requests separate from agreed scope, left authority unknown, and did not invent a production result or customer acceptance. Seven CLI calls covered setup, staging, re-preview, apply, export, and retrieval; one proposal edit and one simulated confirmation were needed. This is the current assistant following the method, not an end-to-end test of a different agent host or a real participant study.
+
 ## Maintenance effort observed
 
 Using the CLI directly required one setup call, two calls plus review for a daily update, one dashboard regeneration, and one handoff export. Switching one shared workspace to another client requires a bind call; separate bound workspaces avoid that repeated step.
