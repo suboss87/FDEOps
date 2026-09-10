@@ -66,3 +66,9 @@ test('recall retains recent changes and old constraints when a topic has many ma
   assert.match(out.stdout, /ORIGINAL_CONSTRAINT/); assert.match(out.stdout, /LATEST_REVOCATION/)
   assert.match(out.stdout, /of 52 matching/)
 })
+test('recall gives every matching file a turn before taking second excerpts', () => {
+  const { recallSections } = require('../bin/lib/context')
+  const files = ['brief.md', 'context.md', 'decisions.md', 'delivery.md', 'risks.md', 'success.md', 'trust-profile.md']
+  const result = recallSections(files.map(file => ({ file, text: 'deployment first\ndeployment second' })), 'deployment')
+  for (const file of files) assert.ok(result.sections.some(s => s.startsWith(file + ':')), file)
+})

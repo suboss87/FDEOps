@@ -70,11 +70,12 @@ function recallSections(documents, query, maxHits = 12) {
     groups.get(hit.file).push(hit)
   }
   const selected = []
+  let oldest = false
   while (selected.length < maxHits && [...groups.values()].some(g => g.length)) {
     for (const group of groups.values()) {
-      if (group.length && selected.length < maxHits) selected.push(group.shift())
-      if (group.length && selected.length < maxHits) selected.push(group.pop())
+      if (group.length && selected.length < maxHits) selected.push(oldest ? group.pop() : group.shift())
     }
+    oldest = !oldest
   }
   return {
     total: hits.length,
