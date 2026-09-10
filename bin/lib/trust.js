@@ -3,7 +3,7 @@
 function createTrustApi(deps) {
   const {
     fs, path, readClean, readEng, parseMdTable, sectionBody, SIGNAL_LEDGER, memoryDirtyManual,
-    stripTemplateNoise, stripLegendLines,
+    stripTemplateNoise, stripLegendLines, extractRisks,
   } = deps
 
   // phase / trust / top risk / freshness - identical heuristic for status + dashboard.
@@ -129,27 +129,7 @@ function createTrustApi(deps) {
   }
 
   function countOpenRisks(eng) {
-    const md = readClean(eng, 'risks.md')
-    const body = md.split(/^#{1,6}\s+Retired\b/im)[0] || md
-    let n = 0
-    for (const raw of body.split('\n')) {
-      const t = raw.trim()
-      if (!t || t.startsWith('<!--') || /^#{1,6}\s/.test(t)) continue
-      if (/risk\s*\|\s*status|mitigation/i.test(t) || /^\|?[\s|:-]+$/.test(t)) continue
-      // Bullet risk with substance (skip empty "- " stubs). The bullet marker
-      // must be followed by space: "**Status:** open · closed" is a legend, and
-      // counting it as a risk reported one open risk on an empty register.
-      if (/^[-*]\s/.test(t)) {
-        if (t.replace(/^[-*]\s+/, '').trim()) n++
-        continue
-      }
-      // Table row: first cell must have risk text (day-1 "| | open | |" placeholders don't count).
-      if (/^\|/.test(t) && t.length > 12) {
-        const riskCell = t.split('|').map(c => c.trim())[1] || ''
-        if (riskCell) n++
-      }
-    }
-    return n
+    return extractRisks(eng).length
   }
 
   function nextActionLine(ctx) {
@@ -166,7 +146,7 @@ function createTrustApi(deps) {
   function computeSignals(eng) {
     // readClean, not readEng: status/dashboard echo topRisk and stakeholder lines
     // to the terminal and the rendered HTML - a <private> risk must never surface.
-    const ctx = readClean(eng, 'context.md'); const stake = readClean(eng, 'stakeholders.md'); const risks = readClean(eng, 'risks.md')
+    const ctx = readClean(eng, 'context.md'); const stake = readClean(eng, 'stakeholders.md')
     // Prefer structured tokens from stakeholders + CLI ledger (ledger survives wipes)
     const signalText = stake + '\n' + readClean(eng, SIGNAL_LEDGER)
     const phase = parsePhase(ctx)
@@ -215,11 +195,7 @@ function createTrustApi(deps) {
       trust = sLines.some(l => /\bred\b/i.test(l)) ? 'RED'
         : sLines.some(l => /amber|gone quiet|routing around|escalat/i.test(l)) ? 'amber' : 'new'
     }
-    const topRisk = (risks.split('\n').find(l => {
-      const t = l.trim()
-      return /^[-|]/.test(t) && t.length > 20 && !/^\|?[-\s|]+$/.test(t) &&
-        !/risk\s*\|\s*status|mitigation/i.test(t) && !t.startsWith('<!--')
-    }) || '').replace(/\|/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80)
+    const topRisk = (extractRisks(eng)[0]?.text || '').replace(/\s+/g, ' ').trim().slice(0, 80)
     // Prefer trust trigger / memory warn over a random risk line; always keep mem.warn available
     const reason = (trustReason || mem.warn) ? (trustReason || mem.warn) : topRisk
     // What the triage line is actually quoting. A risk bullet printed under

@@ -40,3 +40,13 @@ test('long receipts retain latest withdrawal and original assertion with explici
   assert.match(r.stdout, /approval withdrawn/); assert.match(r.stdout, /checkpoint 0 /)
   assert.match(r.stdout, /selected|omitted/i); assert.ok(Buffer.byteLength(r.stdout) <= 16384)
 })
+test('template examples and explicitly closed risks do not become live risks in any summary', t => {
+  const f = fixture(t)
+  f.write('risks.md', '# Risks\n<!-- Example:\n- COMMENT_EXAMPLE\n-->\n- [x] CHECKED_RECOVERY\n- Closed: CLOSED_RECOVERY\n- [2026-09-10] Resolved: RESOLVED_RECOVERY\n| Risk | Status | Owner |\n|---|---|---|\n| TABLE_CLOSED | closed | Omar |\n| LIVE_BLOCKER | mitigating | Omar |\n')
+  for (const args of [['triage'], ['handoff']]) {
+    const r = f.run(args); assert.equal(r.status, 0, r.stderr)
+    assert.match(r.stdout, /LIVE_BLOCKER/)
+    assert.doesNotMatch(r.stdout, /COMMENT_EXAMPLE|CHECKED_RECOVERY|CLOSED_RECOVERY|RESOLVED_RECOVERY|TABLE_CLOSED/)
+    if (args[0] === 'triage') assert.match(r.stdout, /open risks:1/)
+  }
+})

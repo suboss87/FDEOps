@@ -983,7 +983,7 @@ const {
   countOpenRisks,
 } = createTrustApi({
   fs, path, readClean, readEng, parseMdTable, sectionBody, SIGNAL_LEDGER, memoryDirtyManual,
-  stripTemplateNoise, stripLegendLines,
+  stripTemplateNoise, stripLegendLines, extractRisks,
 })
 
 // Stakeholders: columns are matched by header wording, not position - real
@@ -1099,14 +1099,14 @@ function extractStakeholders(eng) {
 
 // Risks: table rows AND dated CLI/debrief bullets. Empty template cells ignored.
 function extractRisks(eng) {
-  const md = readClean(eng, 'risks.md')
+  const md = stripTemplateNoise(readClean(eng, 'risks.md'))
   const body = md.split(/^#{1,6}\s+Retired\b/im)[0] || md
   const HIGH = /critical|blocker|exposure|breach|urgent|at risk|at stake|\brace\b|rollback|no test/i
   const out = []
   const seen = new Set()
   const push = (text) => {
     const t = String(text || '').trim()
-    if (!t || seen.has(t.toLowerCase())) return
+    if (!t || /^(?:\[[xX]\]\s|(?:closed|resolved|retired)\s*:)/i.test(t) || seen.has(t.toLowerCase())) return
     seen.add(t.toLowerCase())
     out.push({ text: t, severity: HIGH.test(t) ? 'high' : 'med' })
   }
@@ -1114,7 +1114,11 @@ function extractRisks(eng) {
   if (table) {
     const riskIdx = colIndex(table.headers, /^risk$/i)
     if (riskIdx !== -1) {
-      for (const cs of table.rows) push(cs[riskIdx])
+      const statusIdx = colIndex(table.headers, /^status$/i)
+      for (const cs of table.rows) {
+        if (statusIdx !== -1 && /^(closed|resolved|retired)$/i.test((cs[statusIdx] || '').trim())) continue
+        push(cs[riskIdx])
+      }
     }
   }
   for (const raw of body.split('\n')) {
