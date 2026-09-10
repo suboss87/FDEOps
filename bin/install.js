@@ -377,7 +377,7 @@ function cmdInstall(opts = {}) {
 // through to the CLI (fde.js reads process.argv itself, so require() is enough).
 const FDE_SUBCOMMANDS = [
   'demo', 'scan', 'resume', 'triage', 'log', 'debrief', 'ingest', 'prep', 'doctor', 'redact',
-  'tidy', 'garden', 'owner', 'receipts', 'capture', 'preserve', 'status', 'dashboard', 'vault', 'help',
+  'tidy', 'garden', 'owner', 'receipts', 'recall', 'handoff', 'defend', 'capture', 'preserve', 'status', 'dashboard', 'vault', 'help',
 ]
 
 const INSTALL_SUBCOMMANDS = ['init', 'adapters', 'install']

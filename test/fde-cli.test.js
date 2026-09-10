@@ -429,7 +429,7 @@ test('receipts separates dated agreements from unverified claims', () => {
   const sandbox = makeSandbox('receipts-claims')
   runFde(sandbox, ['resume', '--init', 'nw'])
   const eng = engagementPath(sandbox, 'nw')
-  fs.writeFileSync(path.join(eng, 'decisions.md'), '# Decisions\n- [2026-07-11] descope reporting until audit\n')
+  fs.writeFileSync(path.join(eng, 'decisions.md'), '# Decisions\n- [2026-07-11] descope reporting until audit [source: meeting 2026-07-11]\n')
   fs.writeFileSync(path.join(eng, 'brief.md'), '# Brief\nvendor promised TLS before the audit\n')
 
   const agreed = runFde(sandbox, ['receipts', 'descope'])
@@ -437,7 +437,7 @@ test('receipts separates dated agreements from unverified claims', () => {
 
   const claim = runFde(sandbox, ['receipts', 'TLS'])
   assert.match(claim.stdout, /CLAIMS & working notes/, 'a brief line must be labelled a claim')
-  assert.match(claim.stdout, /NOT an agreement/, 'the claim must be explicitly flagged as not an agreement')
+  assert.match(claim.stdout, /not proof of customer approval/, 'the claim must be explicitly flagged as not an agreement')
 })
 
 test('status defaults to the bound engagement; --all shows the portfolio', () => {
@@ -478,7 +478,7 @@ test('status leads with the value ledger, not trust hygiene', () => {
     '# Delivery\n## Value ledger\n' +
       '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
       '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
-      '| 2026-08-14 | Invoice cycle | cost-save | 6 days → 2 days | 2 days | Denise Chen, Aug 14 | ops | n/a |\n' +
+      '| 2026-08-14 | Invoice cycle | cost-save | 6 days → 2 days | 2 days | Denise Chen, Aug 14 | evidence/ops.csv | n/a |\n' +
       '| 2026-08-20 | Payment retry | risk-mitigation | 340 failures/wk → 12 | 12 | | pager | n/a |\n'
   )
   const s = runFde(sandbox, ['status'])
@@ -521,7 +521,7 @@ test('status leads with the value ledger, not trust hygiene', () => {
     '# Delivery\n## Value ledger\n' +
       '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
       '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
-      '| 2026-08-14 | Invoice cycle | cost-save | 6 days → 2 days | 2 days | Denise Chen, Aug 14 | ops | n/a |\n' +
+      '| 2026-08-14 | Invoice cycle | cost-save | 6 days → 2 days | 2 days | Denise Chen, Aug 14 | evidence/ops.csv | n/a |\n' +
       '| 2026-08-20 | Payment retry | risk-mitigation | 340 failures/wk → 12 | 12 | | pager | n/a |\n'
   )
   const ws2 = path.join(sandbox.dir, 'workspace-b')
@@ -701,7 +701,7 @@ test('demo runs the real CLI on a fake client, leaks no private block, and stays
   // the value promise: notes routed, memory reloaded cold, receipts dated
   assert.match(r.stdout, /ENGAGEMENT READY/)
   assert.match(r.stdout, /debrief routed/)
-  assert.match(r.stdout, /ON RECORD \(dated\):/)
+  assert.match(r.stdout, /ON RECORD \(dated, source-backed\):/)
   assert.match(r.stdout, /MEETING PREP/)
   assert.match(r.stdout, /fieldbook-current\.html/)
   // no fabricated transcript: the record on disk holds what the demo printed
@@ -1180,7 +1180,7 @@ test('receipts puts dated declined decisions under ON RECORD, not claims', () =>
   const sandbox = makeSandbox('receipts-declined')
   assert.equal(runFde(sandbox, ['resume', '--init', 'declineco']).status, 0)
   const eng = engagementPath(sandbox, 'declineco')
-  fs.writeFileSync(path.join(eng, 'decisions.md'), '# Decisions\n- [2026-07-11] sponsor declined the rollback drill\n')
+  fs.writeFileSync(path.join(eng, 'decisions.md'), '# Decisions\n- [2026-07-11] sponsor declined the rollback drill [source: meeting 2026-07-11]\n')
   fs.writeFileSync(path.join(eng, 'brief.md'), '# Brief\nvendor declined to share the audit packet\n')
 
   const receipts = runFde(sandbox, ['receipts', 'declined'])
@@ -1645,7 +1645,7 @@ test('triage hygiene: silent on fresh day-1; speaks after real work accrues gaps
   assert.doesNotMatch(fresh.stdout, /hygiene:/i, 'day-1 empty fieldbook stays silent')
 
   // Real work without next action / success → high-value week-start hygiene.
-  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit [source: meeting 2026-07-11]']).status, 0)
   assert.equal(runFde(sandbox, ['log', 'phase', 'discover']).status, 0)
   const eng = engagementPath(sandbox, 'hygco')
   fs.writeFileSync(
@@ -1707,13 +1707,13 @@ test('doctor ship/close: value bucket required; eval only when AI in scope', () 
   const sandbox = makeSandbox('doctor-value-eval')
   assert.equal(runFde(sandbox, ['resume', '--init', 'valco']).status, 0)
   const eng = engagementPath(sandbox, 'valco')
-  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit [source: meeting 2026-07-11]']).status, 0)
   assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
   fs.writeFileSync(
     path.join(eng, 'context.md'),
     '# Engagement context\n**Phase:** ship\n\n## Next action\n- canary the parity fix\n'
   )
-  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\nDone when: finance signs off.\n')
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\n**Done when:** Replay the finance sample; output matches all expected rows.\n**Stakeholder who signs off:** Denise Chen\n')
   fs.writeFileSync(path.join(eng, 'risks.md'), '# Risks\n')
 
   const noBucket = runFde(sandbox, ['doctor'])
@@ -1723,7 +1723,7 @@ test('doctor ship/close: value bucket required; eval only when AI in scope', () 
 
   fs.writeFileSync(
     path.join(eng, 'success.md'),
-    '# Success\nDone when: finance signs off.\n**Primary value bucket:** cost-save\n**Baseline → target:** 4h → 1h reconciliation\n'
+    '# Success\n**Done when:** Replay the finance sample; output matches all expected rows.\n**Stakeholder who signs off:** Denise Chen\n**Primary value bucket:** cost-save\n**Baseline → target:** 4h → 1h reconciliation\n'
   )
   const stillMap = runFde(sandbox, ['doctor'])
   assert.notEqual(stillMap.status, 0)
@@ -1779,7 +1779,7 @@ test('doctor calls out a measured benefit nobody on the customer side accepted',
   const sandbox = makeSandbox('doctor-claimed-value')
   assert.equal(runFde(sandbox, ['resume', '--init', 'claimco']).status, 0)
   const eng = engagementPath(sandbox, 'claimco')
-  assert.equal(runFde(sandbox, ['log', 'decision', 'route failures to on-call']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'route failures to on-call [source: meeting 2026-07-11]']).status, 0)
   assert.equal(runFde(sandbox, ['log', 'phase', 'ship']).status, 0)
   fs.writeFileSync(
     path.join(eng, 'context.md'),
@@ -1787,7 +1787,7 @@ test('doctor calls out a measured benefit nobody on the customer side accepted',
   )
   fs.writeFileSync(
     path.join(eng, 'success.md'),
-    '# Success\nDone when: finance signs off.\n**Primary value bucket:** risk-mitigation\n'
+    '# Success\n**Done when:** Replay the finance sample; output matches all expected rows.\n**Stakeholder who signs off:** Denise Chen\n**Primary value bucket:** risk-mitigation\n'
   )
   fs.writeFileSync(path.join(eng, 'risks.md'), '# Risks\n')
   fillOperatingMap(eng)
@@ -1796,7 +1796,7 @@ test('doctor calls out a measured benefit nobody on the customer side accepted',
     '# Delivery\n## Value ledger\n' +
     '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
     '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
-    `| 2026-07-01 | failure routing | risk-mitigation | 4h → 15min | ${measured} | ${accepted} | kill test | disable route |\n`
+    `| 2026-07-01 | failure routing | risk-mitigation | 4h → 15min | ${measured} | ${accepted} | evidence/kill-test.json | disable route |\n`
 
   // Still being measured: nothing to accept yet, so no nag.
   fs.writeFileSync(path.join(eng, 'delivery.md'), ledger('pending', ''))
@@ -1816,7 +1816,7 @@ test('doctor calls out a measured benefit nobody on the customer side accepted',
     '# Delivery\n## Value ledger\n' +
       '| Date | Slice | Bucket | Promised | Measured | Evidence | Rollback |\n' +
       '|------|-------|--------|----------|----------|----------|----------|\n' +
-      '| 2026-07-01 | failure routing | risk-mitigation | 4h → 15min | 12min over 2 incidents | kill test | disable route |\n'
+      '| 2026-07-01 | failure routing | risk-mitigation | 4h → 15min | 12min over 2 incidents | evidence/kill-test.json | disable route |\n'
   )
   const legacy = runFde(sandbox, ['doctor'])
   assert.notEqual(legacy.status, 0)
@@ -1835,7 +1835,7 @@ test('doctor calls out a measured benefit nobody on the customer side accepted',
     '# Delivery\n## Value ledger\n' +
       '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
       '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
-      '| 2026-07-01 | routing | risk-mitigation | 4h \\| 15min p95 | pending | | kill test | off |\n'
+      '| 2026-07-01 | routing | risk-mitigation | 4h \\| 15min p95 | pending | | evidence/kill-test.json | off |\n'
   )
   const pipedPending = runFde(sandbox, ['doctor'])
   assert.equal(pipedPending.status, 0, pipedPending.stdout + pipedPending.stderr)
@@ -1845,7 +1845,7 @@ test('doctor calls out a measured benefit nobody on the customer side accepted',
     '# Delivery\n## Value ledger\n' +
       '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
       '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
-      '| 2026-07-01 | routing | risk-mitigation | 4h → 15min | 40% \\| p95 | | kill test | off |\n'
+      '| 2026-07-01 | routing | risk-mitigation | 4h → 15min | 40% \\| p95 | | evidence/kill-test.json | off |\n'
   )
   const pipedMeasured = runFde(sandbox, ['doctor'])
   assert.notEqual(pipedMeasured.status, 0)
@@ -1858,7 +1858,7 @@ test('doctor calls out a measured benefit nobody on the customer side accepted',
       '| Date | Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback |\n' +
       '|------|-------|--------|----------|----------|-------------|----------|----------|\n' +
       '| 2026-06-20 | rate card | cost-save | trim spend | <private>SEALED-4242 saved</private> | | invoice | n/a |\n' +
-      '| 2026-07-01 | routing | risk-mitigation | 4h → 15min | 12min over 2 incidents | | kill test | off |\n'
+      '| 2026-07-01 | routing | risk-mitigation | 4h → 15min | 12min over 2 incidents | | evidence/kill-test.json | off |\n'
   )
   const sealedAbove = runFde(sandbox, ['doctor'])
   assert.notEqual(sealedAbove.status, 0)
@@ -1944,12 +1944,12 @@ test('doctor shouts when memory .git is corrupt (silent ledger death)', () => {
 test('receipts caveats ON RECORD hits in dirty memory files', () => {
   const sandbox = makeSandbox('receipts-dirty')
   assert.equal(runFde(sandbox, ['resume', '--init', 'dirtco']).status, 0)
-  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit [source: meeting 2026-07-11]']).status, 0)
   const eng = engagementPath(sandbox, 'dirtco')
   const decisions = fs.readFileSync(path.join(eng, 'decisions.md'), 'utf8')
   fs.writeFileSync(
     path.join(eng, 'decisions.md'),
-    decisions.replace('descope reporting until audit', 'descope reporting until audit (backdated hand edit)')
+    decisions.replace('descope reporting until audit [source: meeting 2026-07-11]', 'descope reporting until audit [source: meeting 2026-07-11] (backdated hand edit)')
   )
   const r = runFde(sandbox, ['receipts', 'descope'])
   assert.equal(r.status, 0, r.stderr)
@@ -2052,8 +2052,8 @@ test('doctor requires operating map from plan onward; silent on discover', () =>
   const sandbox = makeSandbox('opmap-doctor')
   assert.equal(runFde(sandbox, ['resume', '--init', 'opmap']).status, 0)
   const eng = engagementPath(sandbox, 'opmap')
-  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
-  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\nDone when: pilot signed.\n')
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit [source: meeting 2026-09-10]']).status, 0)
+  fs.writeFileSync(path.join(eng, 'success.md'), '# Success\n**Done when:** Replay a failed settlement; its alert arrives within 15 minutes.\n**Stakeholder who signs off:** Priya Shah\n')
   fs.writeFileSync(
     path.join(eng, 'context.md'),
     '# Engagement context\n**Phase:** discover\n\n## Next action\n- map Friday exception\n'
@@ -2081,7 +2081,7 @@ test('doctor flags stakeholder identity forks (Denise vs Denise Chen)', () => {
   const sandbox = makeSandbox('alias-doctor')
   assert.equal(runFde(sandbox, ['resume', '--init', 'aliasco']).status, 0)
   const eng = engagementPath(sandbox, 'aliasco')
-  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'descope reporting until audit [source: meeting 2026-07-11]']).status, 0)
   assert.equal(runFde(sandbox, ['log', 'phase', 'discover']).status, 0)
   fs.writeFileSync(path.join(eng, 'success.md'), '# Success\nDone when: pilot signed.\n')
   fs.writeFileSync(
@@ -3286,9 +3286,9 @@ test('subcommand --help prints usage, not a meeting or a missing file', () => {
 test('receipts header is dated, not defensible', () => {
   const sandbox = makeSandbox('receipts-dated')
   assert.equal(runFde(sandbox, ['resume', '--init', 'recco']).status, 0)
-  assert.equal(runFde(sandbox, ['log', 'decision', 'sheet remains system of record until Denise signs']).status, 0)
+  assert.equal(runFde(sandbox, ['log', 'decision', 'sheet remains system of record until Denise signs [source: meeting 2026-09-10]']).status, 0)
   const r = runFde(sandbox, ['receipts', 'Denise'])
-  assert.match(r.stdout, /ON RECORD \(dated\):/)
+  assert.match(r.stdout, /ON RECORD \(dated, source-backed\):/)
   assert.doesNotMatch(r.stdout, /defensible/)
 })
 
@@ -3628,7 +3628,7 @@ test('resume carries the record: who signs, what was promised, what was decided'
   assert.match(resume.stdout, /RECORD/)
   assert.match(resume.stdout, /signer: Ines Brandt/)
   assert.match(resume.stdout, /Hamburg desk only/)
-  assert.match(resume.stdout, /unconfirmed/, 'a decision without [approved:] stays visibly unconfirmed')
+  assert.match(resume.stdout, /CLAIM - source missing/, 'a decision without a source stays visibly a claim')
 
   // the session-start hook path (fde triage) carries the same record
   const triage = runFde(sandbox, ['triage'])
@@ -3783,6 +3783,7 @@ test('debrief REVIEW keeps [approved:] and does not infer a yes from prose', () 
   fs.writeFileSync(notes, [
     'decision: freeze the API [approved: Helena 2026-09-08]',
     'decision: Helena agreed to keep Excel as fallback',
+    'We need access to the test environment.',
     'delivery: retry live on staging',
     'risk: legal may reopen scope',
     'next: send the recap before Thursday',
@@ -3794,15 +3795,17 @@ test('debrief REVIEW keeps [approved:] and does not infer a yes from prose', () 
   assert.match(smart.stdout, /freeze the API\s+\(approved Helena 2026-09-08\)/)
   assert.match(smart.stdout, /Helena agreed to keep Excel as fallback\s+\(unconfirmed\)/)
   assert.doesNotMatch(smart.stdout, /Helena agreed to keep Excel as fallback\s+\(approved/)
-  assert.match(smart.stdout, /asked:[\s\S]*retry live on staging/)
+  assert.match(smart.stdout, /stated asks:[\s\S]*We need access/)
+  assert.match(smart.stdout, /reported delivery \(not customer acceptance\):[\s\S]*retry live on staging/)
   assert.match(smart.stdout, /open:[\s\S]*legal may reopen/)
-  assert.match(smart.stdout, /next:[\s\S]*send the recap/)
-  assert.match(smart.stdout, /signer:[\s\S]*Helena/)
+  assert.match(smart.stdout, /next action:[\s\S]*send the recap/)
+  assert.match(smart.stdout, /named signer \(authority, not approval\):[\s\S]*Helena/)
   const applied = runFde(sandbox, ['debrief', '--apply'])
   assert.equal(applied.status, 0, applied.stderr)
   const resume = runFde(sandbox, ['resume'])
-  assert.match(resume.stdout, /approved Helena 2026-09-08/)
-  assert.match(resume.stdout, /unconfirmed/)
+  assert.match(resume.stdout, /CLAIM - source missing/)
+  assert.doesNotMatch(resume.stdout, /approved Helena 2026-09-08/)
+  assert.match(resume.stdout, /Helena agreed/)
 })
 
 test('doctor asks for a review when a later decision lands after a committed delivery', () => {
@@ -3847,7 +3850,7 @@ test('daily fieldbook exposes redacted value evidence and missing acceptance wit
     '| Slice | Bucket | Promised | Measured | Accepted by | Evidence |',
     '|---|---|---|---|---|---|',
     '| Reconciliation | cost-save | 2 hours | 40 minutes | pending | staging-run-17 |',
-    '| Export | risk-mitigation | no lost rows | 0 lost | Priya 2026-09-09 | <script>alert(1)</script> <private>SEALED_EVIDENCE</private> |',
+    '| Export | risk-mitigation | no lost rows | 0 lost | Priya 2026-09-09 | PR #42 <script>alert(1)</script> <private>SEALED_EVIDENCE</private> |',
     '| Import | cost-save | 10 minutes | pending | pending | pending |',
     '', '## Value ledger', '| Slice | Promised | Measured | Accepted by | Evidence |', '|---|---|---|---|---|',
   ].join('\n'))

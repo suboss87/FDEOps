@@ -36,6 +36,8 @@ const { createMemoryApi } = require('./lib/memory')
 const { createTrustApi } = require('./lib/trust')
 const vault = require('./lib/vault')
 const context = require('./lib/context')
+const { sourceReference, hasSource, datedDecisions } = require('./lib/provenance')
+const { deliverySummary } = require('./lib/delivery-gaps')
 
 const HOME = os.homedir()
 // FDEOPS_ENGAGEMENTS_ROOT isolates init/status/dashboard (and the registry) for
@@ -1396,7 +1398,7 @@ function cmdResume(args) {
     console.log(`NO ENGAGEMENT for this workspace.\nexisting: ${list}\nAsk the human the client name (one question), then run: fde resume --init <client-name>\nDo not tell them to type that command.`)
     process.exit(2)
   }
-  const intro = [resumeTriage(eng), ...hygieneTriageLines(eng), ...recordDigest(eng)].join('\n')
+  const intro = [resumeTriage(eng), firstActionLine(eng), ...hygieneTriageLines(eng), ...recordDigest(eng)].join('\n')
   const ctx = readClean(eng, 'context.md')
   if (args.includes('--full')) {
     console.log(`${intro}\n\nENGAGEMENT: ${eng}\n\n${ctx || '(no context.md yet)'}`)
@@ -1408,10 +1410,11 @@ function cmdResume(args) {
   const success = readClean(eng, 'success.md')
   const risks = readClean(eng, 'risks.md')
   process.stdout.write(context.boundedSections([
-    `${intro}\n\nENGAGEMENT: ${eng}`,
     policy ? `CLIENT POLICY - trust-profile.md\n${policy}` : '',
+    `${intro}\n\nENGAGEMENT: ${eng}`,
     success ? `CURRENT GOALS & ACCEPTANCE - success.md\n${success}` : '',
-    risks ? `RECORDED RISKS - risks.md\n${risks}` : '',
+    risks ? `OPEN RISKS - risks.md\n${extractRisks(eng).map(r => r.text).join('\n') || '(none recorded)'}` : '',
+    `VALUE LEDGER - delivery.md\n${parseValueLedger(eng).rows.map(r => formatValueLedgerLine(r) + '; source: ' + (r.evidence || '(missing)')).join('\n') || '(none recorded)'}`,
     `WORKING CONTEXT - context.md\n${ctx ? resumeView(ctx) : '(no context.md yet)'}`,
   ], maxBytes))
 }
@@ -1631,12 +1634,23 @@ function smartProposeText(input) {
     // the original stays as context, so nothing is invented or lost.
     for (const sentence of bare.split(/(?<=[.!?])\s+/)) {
       const who = signerFromLine(sentence)
-      if (who) { out.push(`signer: ${who}`); break }
+      if (who) {
+        const source = (bare.match(/\[source:\s*[^\]]+\]/i) || [])[0] || ''
+        out.push(`signer: ${who}${source ? ` ${source}` : ''}`); break
+      }
     }
     if (/^(next action|follow-?ups?|action items?|todo):\s*/i.test(bare) ||
         /\b(next action|walk in with|follow up with)\b/i.test(bare)) {
       const next = bare.replace(/^(next action|follow-?ups?|action items?|todo):\s*/i, '').trim()
       out.push(`next: ${next}`)
+      continue
+    }
+    if (/^(?:scope|proposed scope|out of scope):\s*/i.test(bare)) {
+      out.push(`scope: ${bare}`)
+      continue
+    }
+    if (/\b(?:we need|we want|customer asks?|customer asked|please|can you|could you)\b/i.test(bare)) {
+      out.push(`ask: ${bare}`)
       continue
     }
     if (/\b(we (decided|agreed)|decided:|decision:|descope|agreed to|agreement was|freeze scope|freeze prompts)\b/i.test(bare)) {
@@ -1674,7 +1688,7 @@ function looksLikePersonName(s) {
 
 function signerFromLine(text) {
   const t = String(text || '').replace(/^[-*+]\s+/, '').trim()
-  if (!t) return ''
+  if (!t || /\?|\b(?:not|nobody|unclear|maybe|might|whether|could|should|if|unless|pending|unconfirmed)\b/i.test(t)) return ''
   // "Priya (VP Eng) signs off" → Priya. "Finance controller (Helena) signs off" → Helena.
   const titled = t.match(new RegExp('\\b' + SIGNER_NAME + '\\s+\\(' + SIGNER_NAME + '\\)\\s+' + SIGNER_VERB + '\\b'))
   if (titled) {
@@ -1844,12 +1858,12 @@ function stripApprovedStamp(text) {
 
 // One screen a human can confirm in two minutes. The file-by-file routing
 // still prints after this - agents edit prefixes; people read this.
-function printDebriefReview(text) {
-  const buckets = { decided: [], asked: [], open: [], next: [], signer: [] }
+function printDebriefReview(text, eng) {
+  const buckets = { decided: [], asked: [], scope: [], delivery: [], open: [], next: [], signer: [] }
   for (const raw of String(text || '').split('\n')) {
     const line = raw.trim().replace(/^[-*+]\s+/, '')
     if (!line) continue
-    const m = line.match(/^(decision|risk|delivery|contact|next|signer):\s*(.+)$/i)
+    const m = line.match(/^(decision|risk|delivery|contact|next|signer|ask|scope):\s*(.+)$/i)
     if (!m) continue
     const type = m[1].toLowerCase()
     const body = m[2]
@@ -1857,8 +1871,12 @@ function printDebriefReview(text) {
       const who = approvedStamp(body)
       const core = previewLine(stripApprovedStamp(body), 90)
       buckets.decided.push(who ? `${core}  (approved ${who})` : `${core}  (unconfirmed)`)
-    } else if (type === 'delivery') {
+    } else if (type === 'ask') {
       buckets.asked.push(previewLine(body, 100))
+    } else if (type === 'scope') {
+      buckets.scope.push(previewLine(body, 100))
+    } else if (type === 'delivery') {
+      buckets.delivery.push(previewLine(body, 100))
     } else if (type === 'risk') {
       buckets.open.push(previewLine(body, 100))
     } else if (type === 'next') {
@@ -1870,20 +1888,33 @@ function printDebriefReview(text) {
   console.log('REVIEW (one screen - confirm once, then apply)\n')
   const order = [
     ['decided', buckets.decided],
-    ['asked', buckets.asked],
+    ['stated asks', buckets.asked],
+    ['proposed scope', buckets.scope],
+    ['reported delivery (not customer acceptance)', buckets.delivery],
     ['open', buckets.open],
-    ['next', buckets.next],
-    ['signer', buckets.signer],
+    ['next action', buckets.next],
+    ['named signer (authority, not approval)', buckets.signer],
   ]
   let any = false
   for (const [label, items] of order) {
-    if (!items.length) continue
+    if (!items.length) {
+      if (['stated asks', 'proposed scope', 'next action', 'named signer (authority, not approval)'].includes(label)) console.log(`  ${label}: not stated`)
+      continue
+    }
     any = true
     console.log(`  ${label}:`)
     for (const item of items) console.log(`    - ${item}`)
   }
   if (!any) console.log('  (nothing prefixed yet - edit .debrief-propose, then apply)')
-  console.log('')
+  const recorded = eng ? parseValueLedger(eng).rows : []
+  const measured = recorded.some(row => row.state !== 'unmeasured')
+  const evidenced = recorded.some(row => !row.evidenceMissing)
+  const accepted = recorded.some(row => row.state === 'accepted')
+  console.log('  delivery picture (existing record; this proposal does not certify it):')
+  console.log(`    - measurement: ${measured ? 'recorded; check the value ledger' : 'missing - record the observed result'}`)
+  console.log(`    - evidence: ${evidenced ? 'recorded; review its source' : 'missing - cite the test, artifact, or source'}`)
+  console.log(`    - customer approval: ${accepted ? 'recorded for a prior outcome; not this proposal' : 'missing - request explicit acceptance after evidence review'}`)
+  console.log('  Saving this update confirms your record, not customer acceptance.\n')
 }
 
 function latestDatedDecision(md) {
@@ -1901,8 +1932,8 @@ function formatDecisionRecord(line) {
   const raw = String(line || '').trim().replace(/^[-*]\s*/, '')
   const who = approvedStamp(raw)
   const core = stripApprovedStamp(raw)
-  const stamp = who ? `(approved ${who})` : '(unconfirmed)'
-  return previewLine(`${core}  ${stamp}`, 110)
+  const stamp = !hasSource(raw) ? '(CLAIM - source missing)' : who ? `(approved ${who}; source recorded)` : '(unconfirmed; source recorded)'
+  return `${stamp} ${previewLine(core, 110)}`
 }
 
 function changeReviewIssues(eng) {
@@ -2051,7 +2082,7 @@ function cmdDebrief(args) {
     if (smart) {
     const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
     console.log('SMART PROPOSE (heuristic - review before apply; no new facts invented beyond line rewrites)\n')
-    printDebriefReview(clean)
+    printDebriefReview(clean, eng)
     console.log('Prefix vocabulary (lines that route): decision:  risk:  delivery:  contact:  next:  signer:')
     console.log('Optional on a decision: [approved: Name YYYY-MM-DD]. Missing means unconfirmed.')
     console.log('Everything else → context.md. Keep the prefixes; the preview gate stays.\n')
@@ -2195,7 +2226,7 @@ function cmdIngest(args) {
     }
     const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
     console.log(`INGEST PROPOSE from ${path.basename(item)} (via:${source})\n`)
-    printDebriefReview(clean)
+    printDebriefReview(clean, eng)
     routeDebriefInput(eng, clean, { dry: true, force: false, sealed: blocks })
     console.log(`\nproposal saved → ${proposePath}`)
     console.log('confirm:  fde ingest apply')
@@ -2269,60 +2300,80 @@ function cmdIngest(args) {
 }
 
 function cmdReceipts(args) {
-  const term = args.join(' ')
-  if (!term) { console.error('usage: fde receipts <search term>'); process.exit(1) }
+  const term = args.join(' ').trim()
+  if (!term) { console.error('usage: fde receipts <search term>'); process.exit(2) }
+  const eng = resolveEngagement()
+  if (!eng) { console.error('no engagement - bind a client first'); process.exit(2) }
+  const recordFiles = ['decisions.md', 'delivery.md', 'success.md', 'risks.md', 'stakeholders.md']
+  const workingFiles = ['brief.md', 'assumptions.md', 'reality.md', 'context.md']
+  const dirty = new Set(memoryDirtyManual(eng))
+  const records = [], claims = []
+  for (const file of [...recordFiles, ...workingFiles]) {
+    const document = readClean(eng, file)
+    const decisionSources = new Map()
+    if (file === 'decisions.md') for (const entry of datedDecisions(document)) {
+      const source = sourceReference(entry.text)
+      for (let line = entry.line; line < entry.line + entry.text.split('\n').length; line++) decisionSources.set(line, source)
+    }
+    document.split('\n').forEach((line, i) => {
+      if (!line.toLowerCase().includes(term.toLowerCase())) return
+      const source = decisionSources.get(i + 1) || sourceReference(line)
+      const hit = `  ${file}:${i + 1}  ${line.trim().slice(0, 160)}${source ? ` [source: ${source.slice(0, 160)}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
+      ;(recordFiles.includes(file) && source ? records : claims).push(hit)
+    })
+  }
+  const sections = ['RECEIPTS: a cited record is not proof of customer approval. File line numbers refer to the redacted view.']
+  if (records.length) sections.push('ON RECORD (dated, source-backed):\n' + records.join('\n'))
+  if (claims.length) sections.push('CLAIMS & working notes (verify source and approval before citing):\n' + claims.join('\n'))
+  if (!records.length && !claims.length) sections.push(`no record of "${term}" - a gap in the record, not proof of absence`)
+  process.stdout.write(context.boundedSections(sections))
+}
+
+// Portable snapshot; stdout is read-only. --out creates a new file and never
+// overwrites an engagement record, existing file, or symlink.
+function cmdHandoff(args, label = 'Handoff') {
+  let parsed
+  try { parsed = context.budgetArgs(args) } catch (e) { console.error(e.message); process.exit(1) }
+  let out = ''
+  if (parsed.args.length) {
+    if (parsed.args.length !== 2 || parsed.args[0] !== '--out' || !parsed.args[1] || parsed.args[1].startsWith('--')) {
+      console.error('usage: fde handoff [--out new-file.md] [--max-bytes 4096..65536]'); process.exit(1)
+    }
+    out = path.resolve(parsed.args[1])
+  }
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
-  const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
-  // "receipts" answers "what did we AGREE?" - so dated, agreed records are the
-  // receipt. brief.md is the client's hypothesis and reality.md/context.md are
-  // working notes; a hit there is a CLAIM, not an agreement. Keeping them in the
-  // same list let an FDE cite a sales promise as a receipt - so they get a
-  // separate, clearly-labelled section that is never mistaken for the record.
-  const AGREEMENTS = ['decisions.md', 'delivery.md', 'success.md', 'risks.md', 'stakeholders.md']
-  const CLAIMS = ['brief.md', 'assumptions.md', 'reality.md', 'context.md']
-  const collect = files => {
-    const hits = []
-    for (const f of files) {
-      if (!fs.existsSync(path.join(eng, f))) continue
-      // readClean, not raw read: receipts must not grep sealed <private> notes
-      // back out. Redaction can shift line numbers past a multi-line block; the
-      // file:line is advisory - not leaking a sealed secret is worth that.
-      readClean(eng, f).split('\n').forEach((l, i) => {
-        if (rx.test(l)) hits.push(`  ${f}:${i + 1}  ${l.trim().slice(0, 160)}`)
-      })
-    }
-    return hits
-  }
-  const agreed = collect(AGREEMENTS)
-  const claimed = collect(CLAIMS)
-  const dirty = memoryDirtyManual(eng)
-  const dirtySet = new Set(dirty)
-  const dirtyAgreedHits = [...new Set(
-    agreed.map(h => (h.match(/^\s*([^:]+):/) || [])[1]).filter(f => f && dirtySet.has(f))
-  )]
-  if (agreed.length) {
-    console.log('ON RECORD (dated):')
-    agreed.forEach(h => {
-      const file = (h.match(/^\s*([^:]+):/) || [])[1]
-      console.log(h + (file && dirtySet.has(file) ? '  ⚠ dirty file' : ''))
-    })
-    if (dirtyAgreedHits.length) {
-      console.log(
-        `⚠ memory dirty (uncommitted manual edits: ${dirtyAgreedHits.join(', ')}) - dated lines above may not match the tamper-evident ledger until reviewed`
-      )
-    }
-  }
-  if (claimed.length) {
-    if (agreed.length) console.log('')
-    console.log('CLAIMS & working notes (stated, NOT an agreement - verify before citing):')
-    claimed.forEach(h => console.log(h))
-  }
-  if (!agreed.length && !claimed.length) {
-    console.log(`no record of "${term}" - nothing was ever logged about it. A gap in the record, not proof of absence: if it WAS agreed, log it now, dated today.`)
-  } else if (!agreed.length) {
-    console.log('\n(no dated agreement matched - only unverified claims above. If this was agreed, log it: fde log decision "...")')
-  }
+  const success = stripTemplateNoise(readClean(eng, 'success.md'))
+  const signer = ((success.match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').trim()
+  const ledger = parseValueLedger(eng).rows
+  const rowText = r => `- ${r.slice || 'Unnamed slice'}: promised ${r.promised || '(missing)'}; measured ${r.measured || '(missing)'}; accepted by ${r.accepted || '(missing)'}; evidence ${r.evidence || '(missing)'}`
+  const decisions = datedDecisions(readClean(eng, 'decisions.md'))
+  const selected = decisions.slice(-8)
+  const records = selected.filter(d => hasSource(d.text))
+  const claims = selected.filter(d => !hasSource(d.text))
+  const decisionText = d => `${d.text} (decisions.md:${d.line}, redacted view)`
+  const next = stripTemplateNoise(sectionBody(readClean(eng, 'context.md'), 'Next action', { lastNonEmpty: true }))
+  const gaps = collectDoctorIssues(eng)
+  const report = context.boundedSections([
+    `# ${label}: ${engagementSlugFromPath(eng)}\nSnapshot: ${new Date().toISOString()} · memory ${memoryHead(eng) || 'unversioned'}\nRead-only record, not proof of approval. Confirm sources with the named customer before relying on a claim. Private blocks are excluded; review remaining client information before sharing.`,
+    `## Constraints - trust-profile.md\n${stripTemplateNoise(readClean(eng, 'trust-profile.md')) || '(missing)'}`,
+    `## Signer and success - success.md\nSigner: ${signer || '(missing; do not infer)'}\n${success || '(missing)'}`,
+    `## Next action - context.md\n${next || '(missing)'}\n\n## Open risks - risks.md\n${extractRisks(eng).map(r => '- ' + r.text).join('\n') || '(none recorded; not proof of no risk)'}`,
+    `## Accepted value - recorded assertion with source\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']').join('\n') || '(none)'}`,
+    `## ON RECORD decisions - source supplied, not automatic approval\n${records.map(decisionText).join('\n') || '(none)'}\n\n## CLAIM decisions - source missing\n${claims.map(decisionText).join('\n') || '(none)'}\nSelected ${selected.length} of ${decisions.length} dated decisions. Retrieve older or conflicting decisions with fde recall.`,
+    `## Gaps before relying on this packet\n${gaps.map(g => '- ' + g).join('\n') || '(no deterministic lint gaps; human review still required)'}`,
+  ], parsed.maxBytes)
+  if (!out) { process.stdout.write(report); return }
+  try {
+    // Exclusive creation fails closed for files and links. Resolve the parent
+    // first so a directory link cannot redirect an export into .fde/.
+    const parent = fs.realpathSync(path.dirname(out))
+    const target = path.join(parent, path.basename(out))
+    const root = fs.realpathSync(eng)
+    if (parent.split(path.sep).includes('.fde') || target === root || target.startsWith(root + path.sep)) throw new Error('export outside .fde/; engagement records are not export destinations')
+    fs.writeFileSync(target, report, { flag: 'wx', mode: 0o600 })
+    console.log(`${label.toLowerCase()} → ${out}`)
+  } catch (e) { console.error(`could not export packet: ${e.message}`); process.exit(1) }
 }
 
 function cmdRecall(args) {
@@ -2552,7 +2603,33 @@ function silentCommitIssues(eng) {
 // Deterministic fieldbook hygiene - shared by doctor + session TRIAGE.
 // Silent when clean OR brand-new (no dated work yet). Never auto-rewrites.
 // High-value moments: week-start (via triage), ship/close, after real work accrues.
-function collectDoctorIssues(eng) {
+function successContractIssues(success) {
+  const issues = []
+  const text = stripTemplateNoise(String(success || ''))
+  const checks = []
+  let active = -1
+  for (const line of text.split('\n')) {
+    const header = line.match(/^(?:\*\*)?(?:Done when|Acceptance check)(?:\s*\([^\n)]*\))?:(?:\*\*)?[^\S\n]*(.*)$/i)
+    if (header) { checks.push(header[1].trim()); active = checks.length - 1; continue }
+    if (/^#{1,6}\s|^\*\*[^*]+:/.test(line)) { active = -1; continue }
+    if (active !== -1 && line.trim()) checks[active] += ` ${line.trim()}`
+  }
+  const observable = checks.some(check => {
+    const stimulus = /\b(?:test|drill|replay|runs?|request|sample|given|when|simulate|inject|compare|restore|verified|observed|measured)\b/i.test(check)
+    const result = /\b(?:returns?|rejects?|matches?|equals?|arrives?|alerts?|restores?|passes?|fails?|contains?|produces?|shows?|remains?|receives?)\b/i.test(check)
+    const target = /(?:\b(?:within|under|at most|at least|exactly|zero|no missing|no duplicate|all|every|none|true|false|pass|fail|http)\b|[<>=])/i.test(check)
+    return stimulus && result && target && !/\b(?:tbd|to be defined|improve|better|satisfactory|as expected|works well)\b/i.test(check)
+  })
+  if (!observable) issues.push('success.md needs a binary acceptance check: state a test/input and an observable pass/fail result under **Done when:** or **Acceptance check:**; numbers alone are not a check')
+  const signerLine = ((text.match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').replace(/\[source:[^\]]+\]/gi, '').trim()
+  // A named primary signer may be followed by responsibilities or another
+  // signer's role. Preserve the full record; validate only the leading name.
+  const signer = (signerLine.match(/^((?:[A-Z]\.|[A-Z][\w'-]+)(?:\s+(?:[A-Z]\.|[A-Z][\w'-]+)){0,2})(?=\s*(?:[.,;:]|\(|$))/) || [])[1] || ''
+  if (!looksLikePersonName(signer) || /\b(?:pending|unknown|tbd|nobody|none|unassigned|unconfirmed)\b/i.test(signer)) issues.push('success.md needs a named customer-side signer under **Stakeholder who signs off:**; a team, role, or pending name is not authority')
+  return issues
+}
+
+function collectDoctorIssues(eng, { readiness = false } = {}) {
   const issues = []
   const s = computeSignals(eng)
   // stripTemplateNoise: a dated example inside a template comment is not work.
@@ -2577,7 +2654,7 @@ function collectDoctorIssues(eng) {
       issues.push(`${f} is not a regular file - reads come back empty and every write fails; remove it and re-run any fde write`)
     }
   }
-  if (fresh) return issues
+  if (fresh && !readiness) return issues
 
   if (s.phase === '?' || s.phase === 'unset') {
     if (hasDatedWork) {
@@ -2609,7 +2686,11 @@ function collectDoctorIssues(eng) {
       issues.push(`${file} has ${unclosed} unclosed <private> - everything after it is sealed, including notes added later`)
     }
   }
+  const { hasSource } = require('./lib/provenance')
+  const unsourced = readClean(eng, 'decisions.md').split('\n').filter(line => /^[-*]\s*\[\d{4}-\d{2}-\d{2}\]/.test(line.trim()) && !hasSource(line))
+  if (unsourced.length) issues.push(`${unsourced.length} dated decision(s) remain CLAIM: source missing - add the actual meeting, transcript, email, or artifact reference; a log date is not evidence`)
   const success = readClean(eng, 'success.md')
+  if (readiness || /^(plan|ship|outcome|close)$/.test(s.phase)) issues.push(...successContractIssues(success))
   if (!firstLine(success, 80)) issues.push('success.md has no stated done-definition - fill before plan/ship')
   const ctxMd = readClean(eng, 'context.md')
   if (!sectionBody(ctxMd, 'Next action', { lastNonEmpty: true })) {
@@ -2802,7 +2883,7 @@ function hasValueBucket(eng) {
 }
 
 // Shared classification keeps CLI, dashboard, and vault acceptance consistent.
-const { PENDING_CELL_RE, valueState } = require('./lib/value-ledger')
+const { PENDING_CELL_RE, valueState, evidenceSource } = require('./lib/value-ledger')
 
 function parseValueLedger(eng) {
   // Last section with actual rows, not merely the last non-empty one: a template
@@ -2832,7 +2913,7 @@ function parseValueLedger(eng) {
     const evidence = cell(row, idx.evidence)
     const acceptanceStatus = idx.acceptanceStatus === -1 ? undefined : cell(row, idx.acceptanceStatus)
     const state = valueState({ measured, accepted, acceptanceStatus, evidence })
-    rows.push({ slice, promised, measured, accepted, evidence, evidenceMissing: !evidence || PENDING_CELL_RE.test(evidence), state })
+    rows.push({ slice, promised, measured, accepted, evidence, evidenceMissing: !evidenceSource(evidence), state })
   }
   return { rows, columnMissing: idx.accepted === -1 }
 }
@@ -2936,8 +3017,26 @@ function hygieneTriageLines(eng) {
   ]
 }
 
+function deliverySummaryFor(eng) {
+  const signals = computeSignals(eng)
+  const next = stripTemplateNoise(sectionBody(readClean(eng, 'context.md'), 'Next action', { lastNonEmpty: true })).trim()
+  const signer = ((readClean(eng, 'success.md').match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').trim()
+  return deliverySummary({ signals, next, hasNext: !!next,
+    hasSigner: !!require('./lib/value-ledger').acceptanceName(signer),
+    highRisks: extractRisks(eng).filter(r => r.severity === 'high').length,
+    valueRows: parseValueLedger(eng).rows,
+    quiet: signals.ageDays !== Infinity && signals.ageDays >= 3,
+  })
+}
+
+function firstActionLine(eng) {
+  const action = deliverySummaryFor(eng).firstAction
+  return `  do first: ${previewLine(action.text, 140)} (${action.source}: ${previewLine(action.reason, 140)})`
+}
+
 function printTriageBlock(eng) {
   console.log(resumeTriage(eng))
+  console.log(firstActionLine(eng))
   for (const line of hygieneTriageLines(eng)) console.log(line)
 }
 
@@ -2960,16 +3059,15 @@ function recordDigest(eng) {
     const target = ((success.match(/^\*\*Baseline[^\S\n]*→[^\S\n]*target:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').trim()
     if (target) lines.push(`  promised: ${target.slice(0, 110)}`)
   }
-  const decisions = readClean(eng, 'decisions.md').split('\n')
-    .filter(l => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(l.trim())).slice(-2)
-  for (const d of decisions) lines.push(`  decided: ${formatDecisionRecord(d)}`)
+  const decisions = datedDecisions(readClean(eng, 'decisions.md')).slice(-2)
+  for (const d of decisions) lines.push(`  decided: ${formatDecisionRecord(d.text)}; source: ${previewLine(sourceReference(d.text) || '(missing)', 100)}`)
   return ['RECORD (read-only - success, delivery, decisions)', ...lines]
 }
 
-function cmdDoctor() {
+function cmdDoctor(args = []) {
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
-  const issues = collectDoctorIssues(eng)
+  const issues = collectDoctorIssues(eng, { readiness: args.includes('--ready') })
   console.log(`FDE DOCTOR - ${engagementSlugFromPath(eng)}`)
   printTriageBlock(eng)
   if (!issues.length) {
@@ -3399,6 +3497,7 @@ function cmdDashboard(args) {
     e.log = extractLog(e.dir)
     e.stats = extractStats(e.dir)
     e.valueRows = parseValueLedger(e.dir).rows
+    e.hasSigner = !deliverySummaryFor(e.dir).gaps.some(g => g.kind === 'signer')
     e.highRisks = e.risks.filter(r => r.severity === 'high').length
     e.quiet = e.signals.ageDays !== Infinity && e.signals.ageDays >= 3
     e.slug = slugify(e.name)
@@ -3623,13 +3722,15 @@ function cmdVault(args) {
 // here fabricates output: the fieldbook you see is what debrief/log actually
 // wrote, so the demo cannot drift from the product.
 const DEMO_SLUG = 'acme-payments'
-const DEMO_NOTES = `Kickoff call with Acme payments team - Priya (VP Eng, sponsor), Tom (staff eng)
+const DEMO_NOTES = `Fictional kickoff transcript - Acme payments, meeting 2026-09-10
 
-decision: settle on the existing Stripe connector instead of the in-house rewrite - Priya wants the Q3 audit clean first
-risk: nobody can name who owns the reconciliation job; it has failed silently twice since March
-delivery: read-only access to the payments repo and the last 90 days of audit logs
-contact: Priya is bought in but travelling for two weeks - Tom is the day-to-day decision maker
-next: get the reconciliation runbook from Tom before touching anything
+We need read-only access to the payments repo and the last 90 days of audit logs. [source: meeting 2026-09-10]
+We agreed to settle on the existing Stripe connector instead of the in-house rewrite - Priya wants the Q3 audit clean first. [source: meeting 2026-09-10]
+Proposed scope: repair reconciliation alerts; leave the connector rewrite out pending sponsor confirmation. [source: meeting 2026-09-10]
+Risk: nobody can name who owns the reconciliation job; it has failed silently twice since March. [source: meeting 2026-09-10]
+Priya Shah signs off on the acceptance test. [source: meeting 2026-09-10]
+Priya is travelling for two weeks - Tom is the day-to-day contact. [source: meeting 2026-09-10]
+Next action: get the reconciliation runbook from Tom before touching anything. [source: meeting 2026-09-10]
 
 <private>
 Priya hinted the previous vendor was let go mid-contract. Do not repeat this to the team.
@@ -3644,14 +3745,17 @@ const DEMO_LAND_ARTIFACTS = {
 
 **As stated:** clean up payment reconciliation before the Q3 audit.
 **What we heard instead:** nobody owns the reconciliation job, and it fails silently.
-**Out of scope (agreed):** the in-house connector rewrite.
+**Proposed out of scope:** the in-house connector rewrite; sponsor confirmation is still required.
 `,
   'success.md': `# Success
 
-- Reconciliation failures alert someone within 15 minutes, with a named owner.
-- The Q3 audit can trace any settlement discrepancy to a dated record.
+**Done when:** Replay a failed settlement in staging; its alert arrives at the on-call queue within 15 minutes.
+**Primary value bucket:** risk-mitigation
+**Baseline → target:** no reliable alert → an alert within 15 minutes of a simulated failure.
+**Explicitly out of scope:** connector rewrite (proposed; not customer-approved).
+**Stakeholder who signs off:** Priya Shah [source: meeting 2026-09-10]
 
-**Signed off by:** Priya (VP Eng) - 2026-08-07
+Acceptance is pending. The named signer identifies authority, not an approval.
 `,
 }
 
@@ -3705,11 +3809,13 @@ function cmdDemo(args) {
   fdeops demo - a fake client, real commands, nothing sent anywhere
 
   Sandbox:  ${root}
-  Fake client: Acme (payments platform). No data of yours is read or written.`)
+  Fake client: Acme (payments platform). This writes fictional notes, local Git history, and HTML inside the sandbox above.
+  It resets that sandbox on repeat runs; real client records stay untouched.
+  Allow under five minutes. Fictional proposal approval is automatic in this demo only.`)
 
   demoStep('1. Monday of week 1 - create the fieldbook for this client', ['resume', '--init', DEMO_SLUG], workspace, env)
   demoStep('2. You walk out of the kickoff with messy notes - hand them over', ['debrief', '--smart', notes], workspace, env)
-  demoStep('3. You confirm. Only now does anything enter the record', ['debrief', '--apply'], workspace, env)
+  demoStep('3. Demo automatically confirms the fictional record (not customer acceptance)', ['debrief', '--apply'], workspace, env)
   demoStep('4. Say where you are in the engagement', ['log', 'phase', 'land'], workspace, env)
   const engDir = path.join(root, DEMO_SLUG, '.fde')
   console.log(`\n${demoHead('5. During land, @fde drafts the brief and the definition of done with you')}`)
@@ -3730,11 +3836,12 @@ function cmdDemo(args) {
   // about uncommitted manual edits - correct behaviour, wrong lesson for a demo.
   const landHash = commitMemory(engDir, 'land: brief + success', { files: [...Object.keys(DEMO_LAND_ARTIFACTS), 'context.md'] })
   if (landHash) console.log(`  memory @${landHash}`)
-  demoStep('6. Two days later, the sponsor goes quiet', ['log', 'contact', 'Priya has not replied to two emails about the runbook', '--signal', 'amber'], workspace, env)
-  demoStep('7. Next morning, a fresh agent session with no memory of any of this', ['resume'], workspace, env)
-  demoStep('8. A meeting in ten minutes - what do you walk in knowing?', ['prep', 'sponsor check-in'], workspace, env)
-  demoStep('9. Six weeks later: "we never agreed to drop the rewrite"', ['receipts', 'rewrite'], workspace, env)
-  demoStep('10. The whole engagement on one page', ['dashboard'], workspace, env)
+  demoStep('6. Add a fictional measured result with evidence, still awaiting customer acceptance', ['log', 'delivery', 'Reconciliation alert | risk-mitigation | alert within 15 minutes | alert in 8 minutes | pending | PR#42 staging replay | revert alert rule'], workspace, env)
+  demoStep('7. Two days later, the sponsor goes quiet', ['log', 'contact', 'Priya has not replied to two emails about the runbook', '--signal', 'amber'], workspace, env)
+  demoStep('8. Next morning, a fresh agent session with no memory of any of this', ['resume'], workspace, env)
+  demoStep('9. A meeting in ten minutes - what do you walk in knowing?', ['prep', 'sponsor check-in'], workspace, env)
+  demoStep('10. Six weeks later: "we never agreed to drop the rewrite"', ['receipts', 'rewrite'], workspace, env)
+  demoStep('11. The whole engagement on one page', ['dashboard'], workspace, env)
   // cmdDashboard's default out path, computed rather than scraped from its output:
   // a HOME with a space in it truncates any whitespace-delimited parse.
   const html = path.join(root, 'fieldbook-current.html')
@@ -3743,8 +3850,10 @@ function cmdDemo(args) {
   ${demoHead('What just happened')}
 
   - Every line above came from the real CLI - no canned output.
-  - The kickoff notes became dated decisions, risks, deliveries and a stakeholder
-    signal, and you confirmed before any of it was written.
+  - The kickoff notes became proposed asks, scope, dated decisions, risks, and a
+    next action. This demo applied fictional notes automatically after showing REVIEW.
+  - PR#42 is fictional evidence for a measured result. The ledger still says claimed:
+    naming Priya as signer does not mean she accepted the result.
   - The <private> block in those notes never appears in resume, prep, receipts or
     the dashboard - it is sealed in context.md and redacted from anything an agent
     or a screen share can see.
@@ -3779,12 +3888,14 @@ function printUsage() {
   fde ingest propose <id>  smart-propose a staged item → .debrief-propose (confirm before apply)
   fde ingest apply         same as: fde debrief --apply
   fde prep [label]         grounded walk-in brief from existing .fde/ only
-  fde doctor               lint engagement memory (stale signals, gaps). status/dashboard/resume print the same issues
+  fde doctor [--ready]     lint memory; --ready checks success before plan/build. Lint (stale signals, gaps). status/dashboard/resume print the same issues
   fde redact <term>        preview/remove lines containing a buried term (pass --apply to commit; subject never repeats the term)
   fde tidy [--apply]       propose consolidations; blesses hand-written dirty files when you apply
   fde owner [set email]    who keeps this engagement record
   fde recall <topic>       bounded, redacted source excerpts (--max-bytes 4096..65536)
-  fde receipts <term>      "what did we agree?" with dates
+  fde receipts <term>      source-backed records versus claims
+  fde defend              sponsor readout: accepted assertions, claims, sources, gaps
+  fde handoff [--out file] portable redacted packet; stdout by default, new file only
   fde status [--all]       value ledger, then trust (pass --all for full portfolio)
   fde dashboard [--all] [--open] [--out <path>]  bound fieldbook (pass --all for every client)
   fde vault                derived Obsidian vault of every engagement (--current for one, --redacted for a shared screen, --out <dir>)
@@ -3810,13 +3921,15 @@ switch (cmd) {
   case 'debrief': cmdDebrief(args); break
   case 'ingest': cmdIngest(args); break
   case 'prep': cmdPrep(args); break
-  case 'doctor': cmdDoctor(); break
+  case 'doctor': cmdDoctor(args); break
   case 'redact': cmdRedact(args); break
   // `garden` was the name through 3.11.x; it keeps working.
   case 'tidy':
   case 'garden': cmdGarden(args); break
   case 'owner': cmdOwner(args); break
   case 'receipts': cmdReceipts(args); break
+  case 'handoff': cmdHandoff(args); break
+  case 'defend': cmdHandoff(args, 'Sponsor readout'); break
   case 'capture': cmdCapture(); break
   case 'preserve': cmdPreserve(); break
   case 'status': cmdStatus(args); break

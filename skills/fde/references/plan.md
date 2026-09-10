@@ -4,6 +4,8 @@
 
 **Read first:** `reality.md`, `success.md`, `terrain.md`, `stakeholders.md`. Load `business-case.md` if poc produced one. Not the full folder.
 
+**Before committing a plan or building:** run `fde doctor --ready`. Missing binary success or a named customer-side signer blocks progression: review the proposed acceptance check and authority with the FDE first. Use a test/input and observable pass/fail under **Done when:** or **Acceptance check:**. A number, role, or successful demo alone is insufficient. Do not invent missing facts to pass lint.
+
 ## Validation gate (confirm understanding, clarify where it elevates)
 
 Before planning, state what you're working from in 2-3 lines:

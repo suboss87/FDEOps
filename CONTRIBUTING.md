@@ -57,6 +57,8 @@ npm run check
 
 Keep changes in the existing [repository structure](docs/REPO_LAYOUT.md). Methodology belongs in `skills/fde/`; adapters point at it. Add a regression for a behavior bug, use fictional fixtures, and explain the user-visible result and commands you ran in your PR. Passing structural tests does not demonstrate host integration or customer acceptance: report untested paths explicitly.
 
+The maintainer reviews and squash-merges releases. Do not add automatic AI-tool co-author trailers to commits. Preserve applicable license notices and contributor attribution.
+
 ## Releasing (maintainer)
 
 The release workflow publishes to npm when a version tag is pushed, or when manually dispatched. Publishing is a separate maintainer action after review and passing checks.

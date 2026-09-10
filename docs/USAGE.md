@@ -28,7 +28,7 @@ The demo uses fictional Acme payments notes in `~/fde-engagements/.demo/` and ru
 
 ### Minutes 2-3: inspect what became a record
 
-In the output, find the review of proposed notes, the applied dated decisions, the meeting brief, and the receipt about dropping the rewrite. The demo applies its fictional notes automatically to illustrate the loop. On your real engagement, review the agent's proposed interpretation before confirming it.
+In the output, find REVIEW: stated asks, proposed scope, named signer, next action, and missing measurement/evidence/approval. Then inspect the applied decisions, meeting brief, and receipt about dropping the rewrite. A fictional PR#42 supplies a measured result; customer acceptance remains pending. The demo applies its fictional notes automatically to illustrate the loop. On your real engagement, review the agent's proposed interpretation before confirming it.
 
 The example's success criteria are illustrative, not actual customer results. Notice the distinction between a target, a measurement, and customer acceptance.
 
@@ -186,7 +186,7 @@ npx fdeops dashboard                # optional local HTML view of the fieldbook
 
 | You say | Agent runs |
 |---------|------------|
-| Debrief these notes | `fde debrief --smart …` → REVIEW (decided / asked / open / next / signer) → four-row chat card → **Save this update?** (you accepted the record, not that the customer approved every ask) → `--apply` |
+| Debrief these notes | `fde debrief --smart …` → REVIEW (asks / proposed scope / decisions / risks / signer / next action / delivery gaps) → four-row chat card → **Save this update?** (you accepted the record, not that the customer approved every ask) → `--apply` |
 | Make sure we're up to date / pull from Granola or email | Capability check → source MCP fetch → `fde ingest stage` → propose → confirm → apply |
 | Connect Granola / Notion / a new MCP / what can you pull | Guided `mcp.json` + [mcp/recipes/](../mcp/recipes/); save/reload in host; test stage only |
 | Prep me for the sponsor meeting | `fde prep "…"` |
@@ -222,6 +222,17 @@ Optional: `export FDEOPS_ENGAGEMENTS_ROOT=~/path/to/engagements` to isolate from
 Each `.fde/` is a local git repo (no remote, no telemetry). Writes stage only the files for that command - hand-edits to other records stay dirty until you review them.
 
 ---
+
+Before applying, read the proposed interpretation rather than treating keyword routing as a decision. Ask/scope lines remain context; they do not become shipped work. A named signer records who has authority, not whether they accepted a result. Explicit source markers such as `[source: meeting 2026-09-10]` are retained from your input; the intake date is not proof of agreement.
+
+From `plan` onward, `fde doctor` flags success definitions without both an observable acceptance check and a named customer-side signer. Put the check on `**Done when:**` or `**Acceptance check:**`, for example:
+
+```markdown
+**Done when:** Replay a failed settlement in staging; its alert arrives within 15 minutes.
+**Stakeholder who signs off:** Priya Shah [source: meeting 2026-09-10]
+```
+
+A boolean check also works: `Given a revoked token, the request rejects every attempt.` “Improve performance by 30%” alone does not specify a reproducible check. Doctor also labels dated decisions without source references as CLAIM. It reports gaps; it does not invent tests, grant approval, or block you from editing the record.
 
 ## Where files live
 
@@ -297,3 +308,9 @@ Use `--max-bytes 4096` with either command for a smaller allowance (supported ra
 Truncation is explicit. A partial excerpt is not evidence that omitted constraints do not exist. Refine the query and verify source dates, conflicting decisions and approval scope before acting. References identify lines in the redacted view; private-block removal can change their position relative to the raw file. `fde resume --full` deliberately bypasses the output bound and can be large. Existing `receipts` remains available for a full literal record search.
 
 Measure the synthetic long-history behavior with `node evals/context-budget/check.js`. This reports bytes and matching records; it does not claim improved model accuracy or time saved.
+
+## Sponsor readout and successor packet
+
+Run `fde defend` for accepted assertions, claims, source references, and gaps. Run `fde handoff --out successor.md` for a new portable Markdown snapshot; review it before sharing. Both are bounded and private-redacted, with no writes unless `--out` is explicit. They do not authenticate sources or confer customer approval.
+
+Before planning or building, run `fde doctor --ready`. Record an observable pass/fail test and the named customer-side signer; vague improvement, a number alone, or a role is insufficient. This checks readiness without changing the phase.

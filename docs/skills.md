@@ -10,6 +10,31 @@ Three layers:
 
 The full map is below; per-skill details live in [skills-reference.md](./skills-reference.md).
 
+## Three delivery checklists
+
+These are short paths through the existing skills, not additional skills or separate plans. Tell `@fde` the situation; it uses the relevant reference and the same client record. Skip work already supported by current evidence.
+
+### Day zero: make the engagement legible
+
+- [ ] [Land](../skills/fde/references/land.md): write the request and the unknowns without presenting the brief as verified fact.
+- [ ] [Who decides](../skills/fde/references/who-decides.md): name the sponsor, acceptance owner, and authority gaps.
+- [ ] [Earn trust](../skills/fde/references/earn-trust.md): confirm access, data policy, and permitted model use before inspecting sensitive material.
+- [ ] [Plan](../skills/fde/references/plan.md): agree on one next action and what evidence would make it useful.
+
+### Discovery to one small ship
+
+- [ ] [Discover](../skills/fde/references/discover.md): observe the real workflow and confirm the required data sources are usable.
+- [ ] [Test assumptions](../skills/fde/references/test-assumptions.md): test the belief that could invalidate the change; use [POC](../skills/fde/references/poc.md) when a bounded experiment is needed.
+- [ ] [Plan](../skills/fde/references/plan.md): define a small user-visible result, acceptance owner, exclusions, and evidence.
+- [ ] [Ship](../skills/fde/references/ship.md): test the change on the client's staging, check approval and recovery, and record the result. Keep production measurement and acceptance separate from staging proof.
+
+### POC to production
+
+- [ ] [POC](../skills/fde/references/poc.md): record what the experiment proved, what it did not prove, and the proceed/pivot/stop decision.
+- [ ] [Plan](../skills/fde/references/plan.md): inspect the prototype; retain useful tested parts, replace unsafe shortcuts, and size the remaining production work. A demo is not production readiness.
+- [ ] [Ship](../skills/fde/references/ship.md): verify security, realistic load, failure handling, observability, release authority, rollback, and AI evaluations where relevant.
+- [ ] [Runbook](../skills/fde/references/runbook.md) and [close](../skills/fde/references/close.md): confirm an operating owner, escalation path, evidence, and scoped customer acceptance before handing over.
+
 ## Engagement skills (30 skills across 6 stages)
 
 | Stage | Skills | What it covers |
