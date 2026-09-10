@@ -139,9 +139,9 @@ strong{font-weight:600}
 .fb-search:focus{border-color:var(--accent)}
 .fb-search::placeholder{color:var(--ink-faint)}
 .fb-rail-list{flex:1 1 auto;overflow-y:auto;padding:0 8px 16px}
-.fb-nav{width:100%;text-align:left;display:block;padding:9px 10px;border:none;border-left:2px solid transparent;border-radius:0 5px 5px 0;background:transparent;cursor:pointer;color:inherit;margin-bottom:2px}
+.fb-nav{width:100%;text-align:left;display:block;padding:9px 10px;border:none;border-radius:6px;background:transparent;cursor:pointer;color:inherit;margin-bottom:2px}
 .fb-nav:hover{background:var(--panel)}
-.fb-nav.active{background:var(--panel);border-left-color:var(--accent)}
+.fb-nav.active{background:var(--panel);box-shadow:inset 0 0 0 1px var(--accent)}
 .fb-nav.hide{display:none}
 .fb-nav-row{display:flex;align-items:center;gap:8px}
 .fb-nav-name,.fb-nav-today{font-family:'Geist Mono',monospace;font-size:12.5px;font-weight:500;color:var(--ink);flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -230,9 +230,6 @@ strong{font-weight:600}
 .t-green{color:var(--green)}.t-amber{color:var(--amber)}.t-red{color:var(--red)}.t-accent{color:var(--accent)}.t-faint{color:var(--ink-faint)}.t-new{color:var(--ink-faint)}.t-soft{color:var(--ink-soft)}
 .fb-hints{margin-top:26px;display:flex;gap:14px;flex-wrap:wrap;font-family:'Geist Mono',monospace;font-size:10.5px;color:var(--ink-faint);border-top:1px solid var(--line);padding-top:12px}
 .fb-hints-spacer{margin-left:auto}
-.fb-palette-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-start;justify-content:center;padding-top:12vh}
-.fb-palette-backdrop.open{display:flex}
-.fb-palette{width:480px;max-width:90vw;background:var(--bg);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
 .fb-palette-input{width:100%;padding:12px 14px;border:none;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font-family:'Geist Mono',monospace;font-size:13.5px;outline:none;box-sizing:border-box}
 .fb-palette-list{max-height:300px;overflow-y:auto}
 .fb-palette-item{display:flex;gap:10px;align-items:baseline;padding:9px 14px;cursor:pointer}
@@ -244,7 +241,7 @@ strong{font-weight:600}
 @media(max-width:760px){.fb-rail{flex:0 0 220px}.fb-main-inner{padding:20px}}
 @media(max-width:640px){.fb-body{flex-direction:column}.fb-rail{flex:0 0 auto;max-height:40vh;border-right:none;border-bottom:1px solid var(--line)}.fb-main-inner{padding:16px}}
 /* Daily work: evidence is the focal point; chrome stays quiet. */
-:root{--ink-faint:#68665f;--amber:#86530d}
+:root{--ink-faint:#68665f;--amber:#86530d;--accent:#107a52;--green:#107a52}
 html[data-fde-theme="dark"]{--ink-faint:#a39f94}
 button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible,a:focus-visible,[tabindex="0"]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .fb-h1{font-family:'Geist',system-ui,sans-serif;font-size:32px;letter-spacing:-.035em}
@@ -257,7 +254,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-vi
 .fb-action{padding:9px 13px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);font-size:12px;font-weight:500;cursor:pointer}
 .fb-action:first-child{background:var(--accent);color:#fff;border-color:var(--accent)}
 html[data-fde-theme="dark"] .fb-action:first-child{color:#102219}
-.fb-action:hover{border-color:var(--accent)}.fb-actions>span{font-size:11px;color:var(--ink-faint);margin-left:4px}
+.fb-action:hover{border-color:var(--accent)}.fb-action:disabled{cursor:default;opacity:.8}.fb-actions>span{font-size:11px;color:var(--ink-faint);margin-left:4px}
 .fb-queue-row,.fb-flag-row{border:0;background:transparent;width:100%;text-align:left;color:var(--ink)}
 .fb-queue-row{padding:14px 10px;align-items:center}.fb-queue-slug{font-family:inherit;font-weight:600;color:var(--ink)}
 .fb-flag-row{padding:10px}.fb-flag-text{font-family:inherit;font-size:13px}
@@ -282,7 +279,19 @@ html[data-fde-theme="dark"] .fb-action:first-child{color:#102219}
 .fb-more-body{overflow-x:auto}.fb-title-row{flex-wrap:wrap}.fb-person{flex-wrap:wrap}.fb-person-note{min-width:140px}
 @media(max-width:1100px){.fb-main-inner{padding:24px}.fb-rail{flex-basis:240px}.fb-grid-wrap{grid-template-columns:1fr}.fb-need{display:none}}
 @media(max-width:640px){.fb-header{padding:12px;gap:8px;flex-wrap:wrap}.fb-today{display:none}.fb-brand{margin-right:auto}.fb-tagline{font-family:inherit}.fb-btn{min-height:34px}.fb-rail{max-height:190px;flex-basis:auto}.fb-main-inner{padding:20px 16px}.fb-h1{font-size:28px}.fb-queue-row{flex-wrap:wrap;gap:8px}.fb-queue-slug{flex-basis:calc(100% - 24px)}.fb-queue-action{flex-basis:100%;padding-left:16px}.fb-queue-touched{padding-left:16px}.fb-flag-row{flex-direction:column;gap:4px}.fb-flag-slug{flex-basis:auto}.fb-grid-wrap{grid-template-columns:minmax(0,1fr)}.fb-log{flex-wrap:wrap}.fb-log-text{flex-basis:100%}.fb-hints-spacer{margin-left:0}.fb-snapshot{margin-bottom:18px}.fb-body{min-height:0}.fb-actions>span{width:100%;margin-top:4px}.fb-app{height:100dvh}}
-@media(max-width:390px){.fb-value-table{min-width:0}.fb-person-name,.fb-person-role{flex:1 1 100%}.fb-rail{max-height:150px}.fb-main-inner{padding:16px 12px}}
+@media(max-width:390px){.fb-person-name,.fb-person-role{flex:1 1 100%}.fb-rail{max-height:150px}.fb-main-inner{padding:16px 12px}}
+/* A shared search scope keeps the portfolio and navigation in agreement. */
+.fb-search-label{display:block;font-size:12px;font-weight:600;margin-bottom:8px}
+.fb-search{min-height:40px;font-family:inherit;font-size:13px}
+.fb-filter-row{display:flex;gap:6px;margin-top:8px}.fb-filter-row select{min-width:0;flex:1;min-height:36px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);padding:6px;font:12px inherit}
+.fb-result-count{display:block;font-size:11px;color:var(--ink-faint);margin-top:8px}
+.fb-queue-row.hide,.fb-flag-row.hide{display:none}.fb-block[hidden]{display:none}
+.fb-onboard{max-width:65ch;margin-top:28px}.fb-onboard h2{font-size:20px;letter-spacing:-.02em}.fb-onboard p{font-size:14px;line-height:1.7;color:var(--ink-soft)}
+.fb-h1,.fb-now-action,.fb-why,.fb-plain-p,.fb-person-note,.fb-log-text{overflow-wrap:anywhere}
+.fb-now-action,.fb-now-session,.fb-why{max-width:70ch}
+#fb-clients-btn{display:none}.fb-btn{min-height:36px}.fb-action{min-height:40px}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:640px){#fb-clients-btn{display:inline-block}.fb-rail{max-height:45dvh}.fb-rail.is-collapsed{display:none}.fb-btn,.fb-action,.fb-filter-row select{min-height:44px}.fb-search{min-height:44px}.fb-palette-item{min-height:44px}.fb-rail-search{padding:10px 14px}.fb-snapshot{font-size:12px}.fb-nav{min-height:44px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
 @media print{@page{margin:12mm}html,body,.fb-app{height:auto;overflow:visible;background:#fff;color:#000}.fb-header,.fb-rail,.fb-actions,.fb-hints,.fb-copy-status,.fb-dialog,.fb-skip{display:none!important}.fb-body,.fb-main{display:block;overflow:visible}.fb-main-inner{padding:0;max-width:none}.fb-top-grid{grid-template-columns:1fr}.fb-table-scroll{overflow:visible}.fb-value-table{min-width:0;table-layout:fixed;font-size:10px}.fb-value-table th,.fb-value-table td{padding:6px}.fb-view[hidden]{display:none!important}.fb-block{break-inside:avoid}.fb-vitals{background:#fff}*{color:#000!important;box-shadow:none!important}}
 
@@ -307,7 +316,7 @@ function railItemHtml(e) {
   const touchedClass = e.quiet ? 't-amber' : 't-faint'
   const preview = e.next.length > 58 ? e.next.slice(0, 56) + '…' : e.next
   const defaultReason = escapeHtml((e.attention || [])[0]?.text || preview)
-  return `<button class="fb-nav" data-target="eng-${e.slug}" data-search="${e.searchBlob}" data-default-reason="${defaultReason}">
+  return `<button class="fb-nav" data-target="eng-${e.slug}" data-search="${e.searchBlob}" data-attention="${e.attention.length > 0}" data-default-reason="${defaultReason}">
 <div class="fb-nav-row"><span class="dot dot-sm ${dotClass}"></span><span class="fb-nav-name">${inlineMd(e.name)}</span></div>
 <div class="fb-nav-meta">${escapeHtml(e.phaseLabel)} &middot; <span class="${touchedClass}">${escapeHtml(e.signals.updated)}</span></div>
 <div class="fb-nav-reason${defaultReason ? '' : ' hide'}">${defaultReason}</div>
@@ -319,7 +328,7 @@ function queueRowHtml(e) {
   const noAction = !e.hasNext
   const actionText = noAction ? 'Set the next action with your agent' : e.next
   const touchedClass = e.quiet ? 't-amber' : 't-faint'
-  return `<button type="button" class="fb-row fb-queue-row" data-nav="eng-${e.slug}">
+  return `<button type="button" class="fb-row fb-queue-row" data-client="eng-${e.slug}" data-nav="eng-${e.slug}">
 <span class="dot dot-md ${dotClass}"></span>
 <span class="fb-queue-slug">${inlineMd(e.name)}</span>
 <span class="fb-queue-action${noAction ? ' t-amber' : ''}">${inlineMd(actionText)}</span>
@@ -328,7 +337,7 @@ function queueRowHtml(e) {
 }
 
 function flagRowHtml(e, text, colorClass) {
-  return `<button type="button" class="fb-row fb-flag-row" data-nav="eng-${e.slug}">
+  return `<button type="button" class="fb-row fb-flag-row" data-client="eng-${e.slug}" data-nav="eng-${e.slug}">
 <span class="fb-flag-slug">${inlineMd(e.name)}</span>
 <span class="fb-flag-text t-${colorClass}">${escapeHtml(text)}</span>
 </button>`
@@ -339,18 +348,19 @@ function todayViewHtml({ today, total, attentionCount, highRiskTotal, todayQueue
     return `<div id="view-today" class="fb-view">
 <div class="fb-eyebrow">Your engagements</div>
 <h1 tabindex="-1" class="fb-h1">Today</h1>
-<p class="empty">No engagements yet. Start one with <code>fde resume --init &lt;client-name&gt;</code>, then re-run <code>fde dashboard</code>.</p>
+<div class="fb-onboard"><h2>Your next client starts here</h2><p>Open the client workspace and tell your agent <code>@fde this is client01</code>. Review the brief, define one useful outcome, and name who will accept it.</p><p>Terminal setup: <code>npx fdeops resume --init client01</code>. Then generate this report again with <code>npx fdeops dashboard</code>.</p><p>Want to explore first? <code>npx fdeops demo</code> creates fictional records in its own demo folder.</p></div>
 </div>`
   }
   return `<div id="view-today" class="fb-view">
 <div class="fb-eyebrow">Your engagements</div>
 <h1 tabindex="-1" class="fb-h1">Today</h1>
 <div class="fb-meta-line">${escapeHtml(today)} &middot; ${total} engagement${total === 1 ? '' : 's'} &middot; ${attentionCount} need you &middot; ${highRiskTotal} high risk${highRiskTotal === 1 ? '' : 's'} open</div>
-<div class="fb-block">
+<p id="fb-results-empty" class="fb-empty-search" hidden>No clients match these filters. <button type="button" class="fb-btn" data-reset-filters>Clear filters</button></p>
+<div class="fb-block" data-filter-section>
 <div class="fb-sec">Next actions</div>
 ${todayQueue}
 </div>
-${flagsHtml ? `<div class="fb-block">
+${flagsHtml ? `<div class="fb-block" data-filter-section>
 <div class="fb-sec">Needs attention</div>
 ${flagsHtml}
 </div>` : ''}
@@ -438,10 +448,9 @@ ${e.realityMissing ? `<p class="fb-why fb-why-missing"><span class="fb-accent-la
   // count becomes "started: 3 days ago" in the same relative-time phrasing
   // as everything else here, so there's one pattern to learn, not several.
   const dotGlyph = sig => sig === 'green' ? '&#9679;' : sig === 'red' ? '&#9675;' : '&#9632;' // filled circle / hollow ring / filled square - same shapes as the People list below
-  const signalColor = sig => sig === 'green' ? '#12885c' : sig === 'red' ? '#b23e2b' : '#a56a19'
   const teamStatus = e.stakeholders.length
     ? ['green', 'amber', 'red'].map(sig => e.stakeholders.filter(p => p.signal === sig).length)
-      .map((n, i) => n ? `<span style="color:${signalColor(['green', 'amber', 'red'][i])}">${dotGlyph(['green', 'amber', 'red'][i])} ${n}</span>` : null)
+      .map((n, i) => n ? `<span class="t-${['green', 'amber', 'red'][i]}">${dotGlyph(['green', 'amber', 'red'][i])} ${n}</span>` : null)
       .filter(Boolean).join(' &nbsp; ')
     : ''
   const vitalsRows = [
@@ -526,7 +535,7 @@ ${deliveryHtml(e)}${pairedBlock}${logBlock}${moreBlock}
 function paletteItemsHtml(ordered) {
   const items = [
     { kind: 'view', label: 'today', hint: 'portfolio queue', target: 'today' },
-    ...ordered.map(e => ({ kind: 'open', label: e.slug, hint: trustWord(e.signals.trust), target: 'eng-' + e.slug })),
+    ...ordered.map(e => ({ kind: 'open', label: e.name, hint: trustWord(e.signals.trust), target: 'eng-' + e.slug })),
     { kind: 'action', label: 'toggle theme', hint: 'light / dark', target: '__theme__' },
   ]
   return items.map(it => `<button type="button" class="fb-palette-item" data-target="${escapeHtml(it.target)}" data-label="${escapeHtml(it.label)}" data-kind="${escapeHtml(it.kind)}">
@@ -572,25 +581,25 @@ ${engagements.length ? `<span class="fb-need">${attentionCount}/${engagements.le
 </div>
 <div class="fb-spacer"></div>
 <span class="fb-today">${escapeHtml(today)}</span>
+<button id="fb-clients-btn" class="fb-btn" type="button" aria-expanded="true" aria-controls="fb-client-rail">Clients</button>
 <button id="fb-print-btn" class="fb-btn" type="button">Print view</button>
 <button id="fb-palette-btn" aria-label="Open command palette" class="fb-btn" type="button" title="Command palette (Ctrl/Cmd+K)">&#8984;K</button>
 <button id="fde-theme-btn" class="fb-btn" type="button">dark</button>
 </header>
 <div class="fb-body">
-<aside class="fb-rail" aria-label="Engagement navigation">
-<div class="fb-rail-search"><input id="fb-search" aria-label="Search engagements and records" class="fb-search" placeholder="search clients, notes, risks…" spellcheck="false"></div>
+<aside id="fb-client-rail" class="fb-rail" aria-label="Engagement navigation">
+<div class="fb-rail-search"><label class="fb-search-label" for="fb-search">Find a client or record</label><input id="fb-search" aria-label="Search engagements and records" class="fb-search" placeholder="search clients, notes, risks…" spellcheck="false"><div class="fb-filter-row"><label class="sr-only" for="fb-filter">Filter clients</label><select id="fb-filter"><option value="all">All clients</option><option value="attention">Needs attention</option><option value="clear">No attention flags</option></select><button type="button" class="fb-btn" data-reset-filters aria-label="Clear search and filters">Reset</button></div><span id="fb-search-count" class="fb-result-count" role="status">${engagements.length} clients</span></div>
 <div class="fb-rail-list fb-scroll">
 <button class="fb-nav" data-target="today">
 <div class="fb-nav-row"><span class="fb-nav-today">today</span>${engagements.length ? `<span class="fb-nav-count">${attentionCount} need you</span>` : ''}</div>
 </button>
 ${railItems}
-<p id="fb-search-empty" class="fb-empty-search" hidden>No matching engagements. Try a person, decision, or delivery.</p>
-<span id="fb-search-count" class="sr-only" role="status"></span>
+<p id="fb-search-empty" class="fb-empty-search" hidden>No matching engagements. Change the filter or search for a person, decision, or delivery.</p>
 </div>
 </aside>
 <main id="fb-main" tabindex="-1" class="fb-main fb-scroll">
 <div class="fb-main-inner">
-<div class="fb-snapshot">Snapshot generated <time datetime="${escapeHtml(generatedAt)}">${escapeHtml(generatedAt ? generatedAt.replace('T', ' ').replace(/\.\d+Z$/, ' UTC') : today)}</time>. Re-run <code>fde dashboard</code> after updating your records.</div>
+<div class="fb-snapshot"><strong>Read-only snapshot</strong> &middot; Snapshot generated <time datetime="${escapeHtml(generatedAt)}">${escapeHtml(generatedAt ? generatedAt.replace('T', ' ').replace(/\.\d+Z$/, ' UTC') : today)}</time>. Re-run <code>fde dashboard</code> after updating your records.</div>
 ${todayView}
 ${clientViews}
 <p id="fb-status" class="fb-copy-status" role="status" aria-live="polite"></p>
