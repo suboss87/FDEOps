@@ -30,7 +30,7 @@
    - `signer: Priya` (she can say yes; lands in `success.md`)
    - `next: send one-pager before Thursday 9am`
    - unprefixed lines stay context color only
-4. Show the **REVIEW** block first (decided / asked / open / next / signer). That is the one screen to confirm. File routing stays underneath.
+4. After editing, run `fde debrief --review` to show the pending proposal without replacing it. Show the **REVIEW** block first (decided / asked / open / next / signer). That is the one screen to confirm. File routing stays underneath.
 5. In **chat**, after that REVIEW, present a four-row card and omit empty rows:
    - Decided
    - Asked / open
@@ -74,3 +74,15 @@ Read back the 2-3 most consequential captures in one breath - so the FDE can cor
 - Verbatim quote outranks paraphrase; hesitation outranks quote.
 - Signals move on evidence, never on vibe alone.
 - A meeting with no decisions and no actions - say so; that is a finding.
+
+## Delivery rows and repeated updates
+
+For a measured or promised slice, use a reviewed structured line:
+
+```text
+delivery: Replay|risk-mitigation|zero duplicates|zero duplicates on staging|pending|[source: transcript:42]|pending
+```
+
+The seven fields are Slice, Bucket, Promised, Measured, Accepted by, Evidence, Rollback. Keep unknowns `pending`; never infer approval. This lands in the value ledger during the same confirmed apply. A `delivery:` line without pipes stays a narrative note. Incorrect field counts refuse the write rather than shifting the meaning of cells.
+
+A sourced statement already in the record triggers a replay warning. Before applying, compare newer facts and the current next action. Remove repeated statements from the proposal if this is an accidental re-import. Only after the engineer explicitly confirms an intentional repeat, apply with `fde debrief --apply --allow-replay`. This does not silently deduplicate history and does not authenticate sources.
