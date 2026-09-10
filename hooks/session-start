@@ -91,7 +91,7 @@ fi
 
 # 5) Optional in-repo .fde (customer-approved only)
 if [ -z "$CONTEXT_FILE" ] && [ -f ".fde/context.md" ]; then
-  ENG_DIR=".fde"
+  ENG_DIR="$(pwd -P)/.fde"
   CONTEXT_FILE=".fde/context.md"
 fi
 
@@ -105,72 +105,8 @@ if [ "$IS_FDE_PROJECT" -eq 0 ]; then
   exit 0
 fi
 
-# Mirrors stripPrivate() in bin/fde.js: this is what an agent loads as
-# context, so <private>...</private> blocks (sacred data, never-AI content)
-# must never reach here unredacted, same guarantee as the dashboard renderer.
-# <private> blocks are written one per line in the templates (own line, own
-# closing tag), so a line-based state machine matches the real usage; an
-# unclosed <private> redacts to end-of-file, same as the JS regex fallback.
-strip_private() {
-  # Detection is case-insensitive (matches the JS /gi redactor) - <PRIVATE>,
-  # <Private>, <private> all redact. Detect on a lowercased copy of the line;
-  # never print the original when a tag is present.
-  awk '
-    BEGIN { inblock = 0 }
-    {
-      line = $0
-      lc = tolower(line)
-      if (inblock) {
-        if (index(lc, "</private>") > 0) { inblock = 0 }
-        next
-      }
-      if (index(lc, "<private>") > 0) {
-        print "(private - redacted)"
-        if (index(lc, "</private>") == 0) { inblock = 1 }
-        next
-      }
-      print line
-    }
-  ' "$1"
-}
-
-# Token discipline: context.md grows every session (session-stop appends a
-# snapshot). Inject a bounded view - curated head + most recent activity -
-# instead of the whole log. Mirrors resumeView() in bin/fde.js; keep in sync.
-bounded_context() {
-  local f="$1" total head_end tail_start hidden
-  total=$(wc -l < "$f" 2>/dev/null | tr -d ' ')
-  [ -z "$total" ] && { cat "$f"; return; }
-  if [ "$total" -le 160 ]; then cat "$f"; return; fi
-  # Anchor on the "## Session end" heading, matching resumeView() in bin/fde.js.
-  # The JS path reads via readClean (strips HTML comments), so both sides must
-  # anchor on a marker that survives redaction - the heading, not the comment.
-  head_end=$(grep -n -m1 '^## Session end' "$f" 2>/dev/null | cut -d: -f1)
-  if [ -n "$head_end" ]; then head_end=$((head_end - 1)); else head_end=120; fi
-  [ "$head_end" -gt 120 ] && head_end=120
-  [ "$head_end" -lt 0 ] && head_end=0
-  tail_start=$((total - 40 + 1))
-  if [ "$tail_start" -le "$((head_end + 1))" ]; then cat "$f"; return; fi
-  hidden=$((tail_start - head_end - 1))
-  [ "$head_end" -ge 1 ] && sed -n "1,${head_end}p" "$f"
-  printf '\n_(… %s lines of earlier session log hidden - `fde resume --full` or open context.md for the full history)_\n\n' "$hidden"
-  sed -n "${tail_start},\$p" "$f"
-}
-
-CONTENT=""
-
-# Lean pointer only - never cat SKILL.md. Methods load on @fde / skill trigger.
-CONTENT="${CONTENT}fdeops: engagement fieldbook active. Human speaks plain language with @fde - you (the agent) run the local fde CLI for memory plumbing; never ask the human to type fde commands. Load skills/fde/SKILL.md when @fde triggers.\n\n"
-
-# Same TRIAGE block as `fde resume` / `fde triage` (includes proactive hygiene
-# when the fieldbook has doctor issues; silent when clean). Monday morning must
-# not depend on the model remembering to run a CLI command. Prefer the installed
-# fde binary; fall back to the plugin/repo copy of bin/fde.js.
+# Prefer this installation so its hook and CLI share the same safety contract.
 resolve_fde() {
-  if command -v fde >/dev/null 2>&1; then
-    printf '%s\n' "fde"
-    return 0
-  fi
   for candidate in \
     "${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/bin/fde.js}" \
     "$(dirname "$0")/../bin/fde.js" \
@@ -181,25 +117,23 @@ resolve_fde() {
       return 0
     fi
   done
+  if command -v fde >/dev/null 2>&1; then
+    printf '%s\n' "fde"
+    return 0
+  fi
   return 1
 }
 
-if [ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ]; then
-  FDE_CMD=$(resolve_fde || true)
-  if [ -n "$FDE_CMD" ]; then
-    if [ "$FDE_CMD" = "fde" ]; then
-      TRIAGE=$(FDEOPS_ENGAGEMENT="$ENG_DIR" fde triage 2>/dev/null || true)
-    else
-      TRIAGE=$(FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CMD" triage 2>/dev/null || true)
-    fi
-    if [ -n "$TRIAGE" ]; then
-      CONTENT="$CONTENT---\n$TRIAGE\n\n"
-    fi
-  fi
-  REDACTED_CONTEXT=$(mktemp)
-  strip_private "$CONTEXT_FILE" > "$REDACTED_CONTEXT"
-  CONTENT="$CONTENT---\nEngagement context ($CONTEXT_FILE):\n$(bounded_context "$REDACTED_CONTEXT")\n"
-  rm -f "$REDACTED_CONTEXT"
+# The matching CLI owns triage, private redaction, and context bounds.
+# Never fall back to reading raw notes when Node or the CLI is unavailable.
+FDE_CMD=$(resolve_fde || true)
+[ -n "$FDE_CMD" ] || exit 0
+[ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ] || exit 0
+if [ "$FDE_CMD" = "fde" ]; then
+  CONTEXT=$(FDEOPS_ENGAGEMENT="$ENG_DIR" fde resume 2>/dev/null) || exit 0
+else
+  CONTEXT=$(FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CMD" resume 2>/dev/null) || exit 0
 fi
-
-printf '%b' "$CONTENT"
+[ -n "$CONTEXT" ] || exit 0
+printf '%s\n\n' 'fdeops: engagement fieldbook active. Human speaks plain language with @fde - you (the agent) run the local fde CLI for memory plumbing; never ask the human to type fde commands. Load skills/fde/SKILL.md when @fde triggers.'
+printf '%s\n' 'Engagement context:' "$CONTEXT"

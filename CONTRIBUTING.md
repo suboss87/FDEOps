@@ -2,7 +2,7 @@
 
 **fdeops is authored and maintained by [Subash Natarajan](https://github.com/suboss87).**
 
-This repository reflects one operator’s field kit - open-sourced for other FDEs to use, not a multi-maintainer framework with delegated merge rights.
+Help make client delivery easier to understand, verify, and hand over. The maintainer reviews and merges contributions; focused improvements from the community are welcome.
 
 ---
 
@@ -42,25 +42,30 @@ The maintainer may add vetted stories to the README when appropriate.
 
 ---
 
-## Releasing (maintainer)
+## Local development and verification
 
-Publishing is a tag, so the bytes on npm always map to a commit:
+Requires Node.js 18+ and Git. The core CLI has no package dependencies to install.
 
 ```bash
-# 1. bump the four version manifests + CHANGELOG in a PR, merge it
-# 2. from merged Main:
-git pull && git tag v3.11.0 && git push origin v3.11.0
+git clone https://github.com/suboss87/fdeops.git
+cd fdeops
+node bin/fde.js help
+npm run check
 ```
 
-`.github/workflows/release.yml` then runs `npm run check`, refuses a tag that
-disagrees with `package.json` or a version already on the registry, publishes
-with provenance, and confirms the registry serves it. It needs one repository
-secret, `NPM_TOKEN` (an npm **Automation** token - granular, read+write, scoped
-to `fdeops`; automation tokens bypass 2FA, which is why CI can use one).
+`npm run check` runs structural/install checks and the Node regression suite. For a focused fix, first run the relevant file with `node --test test/<name>.test.js`, then run the full gate before opening a PR. Routing changes also need `npm run test:skill-routing`; live host/model evaluations have separate requirements documented in [evals/](evals/).
 
-The four manifests that must agree: `package.json`, `plugin.json`,
-`.claude-plugin/plugin.json`, `mcp/fdeops-ingest/package.json` - `npm run check`
-enforces this.
+Keep changes in the existing [repository structure](docs/REPO_LAYOUT.md). Methodology belongs in `skills/fde/`; adapters point at it. Add a regression for a behavior bug, use fictional fixtures, and explain the user-visible result and commands you ran in your PR. Passing structural tests does not demonstrate host integration or customer acceptance: report untested paths explicitly.
+
+## Releasing (maintainer)
+
+The release workflow publishes to npm when a version tag is pushed, or when manually dispatched. Publishing is a separate maintainer action after review and passing checks.
+
+1. Update `package.json`, `plugin.json`, `.claude-plugin/plugin.json`, and `mcp/fdeops-ingest/package.json` together, with `CHANGELOG.md`.
+2. Run `npm run check` and review the release diff.
+3. Merge the reviewed change to `Main`; tag that commit as `v<package-version>` and push the tag when ready to publish.
+
+[The workflow](.github/workflows/release.yml) checks version agreement, runs the gate, refuses an already-published version, publishes with provenance using the repository's `NPM_TOKEN` secret, and checks the registry result. Configure that secret with a currently supported npm publishing credential scoped to this package.
 
 ---
 

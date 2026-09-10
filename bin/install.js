@@ -3,6 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
+const { checkPath, checkTree, copyFile, writeFile, mkdir } = require('./lib/install-paths')
 
 const SKILLS_SRC = path.join(__dirname, '..', 'skills')
 const HOOKS_SRC = path.join(__dirname, '..', 'hooks')
@@ -17,28 +18,30 @@ const HOOK_SCRIPTS = ['session-start', 'session-stop', 'pre-compact']
 const ENGAGEMENTS_ROOT = path.join(os.homedir(), 'fde-engagements')
 
 function copyDir(src, dest) {
-  fs.mkdirSync(dest, { recursive: true })
+  checkTree(src, dest)
+  mkdir(dest)
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
     const srcPath = path.join(src, entry.name)
     const destPath = path.join(dest, entry.name)
     if (entry.isDirectory()) {
       copyDir(srcPath, destPath)
     } else {
-      fs.copyFileSync(srcPath, destPath)
+      copyFile(srcPath, destPath)
     }
   }
 }
 
 function copyTemplateTree(src, dest, onlyMissing) {
+  checkTree(src, dest)
   let merged = 0
-  fs.mkdirSync(dest, { recursive: true })
+  mkdir(dest)
   for (const name of fs.readdirSync(src)) {
     const srcPath = path.join(src, name)
     const destPath = path.join(dest, name)
     if (fs.statSync(srcPath).isDirectory()) {
       merged += copyTemplateTree(srcPath, destPath, onlyMissing)
     } else if (!onlyMissing || !fs.existsSync(destPath)) {
-      fs.copyFileSync(srcPath, destPath)
+      copyFile(srcPath, destPath)
       if (onlyMissing) merged++
     }
   }
@@ -62,17 +65,17 @@ const MANAGED_MARKER = '.fdeops-managed'
 function markManaged(dir) {
   let version = 'unknown'
   try { version = require(path.join(__dirname, '..', 'package.json')).version } catch (_) {}
-  try {
-    fs.writeFileSync(
-      path.join(dir, MANAGED_MARKER),
-      `managed-by: fdeops\nversion: ${version}\ninstalled: ${new Date().toISOString()}\n` +
-      'Delete this file to make fdeops treat the directory as yours and leave it alone.\n',
-    )
-  } catch (_) {}
+  writeFile(
+    path.join(dir, MANAGED_MARKER),
+    `managed-by: fdeops\nversion: ${version}\ninstalled: ${new Date().toISOString()}\n` +
+    'Delete this file to make fdeops treat the directory as yours and leave it alone.\n',
+  )
 }
 
 function isManaged(dir) {
-  return fs.existsSync(path.join(dir, MANAGED_MARKER))
+  const marker = path.join(dir, MANAGED_MARKER)
+  checkPath(marker)
+  return fs.existsSync(marker) && /^managed-by: fdeops$/m.test(fs.readFileSync(marker, 'utf8'))
 }
 
 // A skill "directory" that is really a symlink points somewhere outside
@@ -89,6 +92,7 @@ function isLink(p) {
 // directory whose name matches one we ship, and only to overwrite - never to delete.
 function wasInstalledByUs(dir) {
   try {
+    checkPath(path.join(dir, 'SKILL.md'))
     const md = fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8')
     const fm = (md.match(/^---\n([\s\S]*?)\n---/) || [])[1]
     if (!fm) return false
@@ -106,6 +110,7 @@ const LEGACY_SKILL_DIRS = [
 ]
 
 function removeLegacySkills(opts = {}) {
+  checkPath(GLOBAL_SKILLS_DIR)
   let removed = 0
   const skipped = []
   const links = []
@@ -128,24 +133,26 @@ function installSkillDirs(opts = {}) {
   const skipped = []
   const links = []
   const failed = []
-  fs.mkdirSync(GLOBAL_SKILLS_DIR, { recursive: true })
+  mkdir(GLOBAL_SKILLS_DIR)
   for (const entry of fs.readdirSync(SKILLS_SRC, { withFileTypes: true })) {
     const src = path.join(SKILLS_SRC, entry.name)
     const dest = path.join(GLOBAL_SKILLS_DIR, entry.name)
-    if (!entry.isDirectory()) { fs.copyFileSync(src, dest); continue }
+    if (!entry.isDirectory()) { copyFile(src, dest); continue }
     if (isLink(dest)) { links.push(entry.name); continue }
-    if (fs.existsSync(dest) && !isManaged(dest) && !opts.force) {
-      // Installs predating the marker are still ours: adopt a same-named dir
-      // whose SKILL.md is recognizably fdeops', so upgrades keep working.
-      if (!wasInstalledByUs(dest)) {
-        skipped.push(entry.name)
-        continue
-      }
-      console.log(`  adopt  ~/.claude/skills/${entry.name} (earlier fdeops install)`)
-    }
-    // One unwritable skill dir must not abort the install with a stack trace:
-    // say it in human terms, place the rest, and exit non-zero at the end.
     try {
+      checkTree(src, dest)
+      checkPath(path.join(dest, MANAGED_MARKER))
+      if (fs.existsSync(dest) && !isManaged(dest) && !opts.force) {
+        // Installs predating the marker are still ours: adopt a same-named dir
+        // whose SKILL.md is recognizably fdeops', so upgrades keep working.
+        if (!wasInstalledByUs(dest)) {
+          skipped.push(entry.name)
+          continue
+        }
+        console.log(`  adopt  ~/.claude/skills/${entry.name} (earlier fdeops install)`)
+      }
+      // One unwritable skill dir must not abort the install with a stack trace:
+      // say it in human terms, place the rest, and exit non-zero at the end.
       copyDir(src, dest)
       markManaged(dest)
     } catch (e) {
@@ -174,6 +181,7 @@ function reportCollisions(paths, verb) {
 
 function reportLinks(names) {
   if (!names.length) return
+  installIncomplete = true
   console.log(`  skip   ${names.length} skill path(s) that are symlinks - fdeops will not write through them:`)
   for (const name of names) console.log(`           ~/.claude/skills/${name} -> ${readLinkQuiet(path.join(GLOBAL_SKILLS_DIR, name))}`)
   console.log('         remove the link if you want fdeops to install at that path itself')
@@ -190,7 +198,7 @@ function reportFailures(failures) {
   installIncomplete = true
   console.log(`  error  ${failures.length} skill dir(s) could not be written:`)
   for (const f of failures) {
-    const why = f.code === 'EACCES' || f.code === 'EPERM' ? 'permission denied' : f.code
+    const why = f.code === 'EACCES' || f.code === 'EPERM' ? 'permission denied' : f.code === 'UNSAFE_PATH' ? 'unsafe symlink or non-regular path' : f.code
     console.log(`           ~/.claude/skills/${f.name} - ${why} at ${f.path}`)
   }
   console.log('         fix the permissions (or remove the directory) and re-run - the rest of the install continued')
@@ -204,26 +212,26 @@ function installSkills(opts = {}) {
   reportCollisions(placed.skipped, 'overwriting them')
   reportLinks([...new Set([...legacy.links, ...placed.links])])
   reportFailures(placed.failed)
-  fs.mkdirSync(GLOBAL_HOOKS_DIR, { recursive: true })
+  mkdir(GLOBAL_HOOKS_DIR)
   for (const name of HOOK_SCRIPTS) {
     const src = path.join(HOOKS_SRC, name)
     if (!fs.existsSync(src)) continue
     const dest = path.join(GLOBAL_HOOKS_DIR, `fdeops-${name}`)
-    fs.copyFileSync(src, dest)
+    copyFile(src, dest)
     try {
       fs.chmodSync(dest, '755')
     } catch (_) {}
   }
   const globalPointer = path.join(os.homedir(), '.claude', 'FDEOPS-CLAUDE.md')
   if (!fs.existsSync(globalPointer)) {
-    fs.copyFileSync(CLAUDE_MD_SRC, globalPointer)
+    copyFile(CLAUDE_MD_SRC, globalPointer)
   }
-  fs.copyFileSync(CLAUDE_MD_SRC, path.join(os.homedir(), '.claude', 'FDEOPS-CLAUDE.md.template'))
+  copyFile(CLAUDE_MD_SRC, path.join(os.homedir(), '.claude', 'FDEOPS-CLAUDE.md.template'))
 
   // the fde CLI + templates, so the skill can call it from any workspace
   const cliHome = path.join(os.homedir(), '.claude', 'fdeops')
-  fs.mkdirSync(cliHome, { recursive: true })
-  fs.copyFileSync(path.join(__dirname, 'fde.js'), path.join(cliHome, 'fde.js'))
+  mkdir(cliHome)
+  copyFile(path.join(__dirname, 'fde.js'), path.join(cliHome, 'fde.js'))
   copyDir(LIB_SRC, path.join(cliHome, 'lib'))
   try { fs.chmodSync(path.join(cliHome, 'fde.js'), '755') } catch (_) {}
   copyDir(FDE_TEMPLATES_SRC, path.join(cliHome, 'templates', '.fde'))
@@ -245,7 +253,8 @@ const ADAPTER_TARGETS = [
 const FDE_MARKER = '<!-- fdeops adapter - points your AI tool at @fde; safe to keep -->'
 
 function placePointer(destPath, content, label, appendable) {
-  fs.mkdirSync(path.dirname(destPath), { recursive: true })
+  checkPath(destPath)
+  mkdir(path.dirname(destPath))
   if (fs.existsSync(destPath)) {
     const existing = fs.readFileSync(destPath, 'utf8')
     if (/FDEOS|fdeops/i.test(existing)) {
@@ -256,16 +265,17 @@ function placePointer(destPath, content, label, appendable) {
       console.log(`  skip   ${label} (exists - left untouched)`)
       return
     }
-    fs.writeFileSync(destPath, `${existing.trimEnd()}\n\n${FDE_MARKER}\n\n${content}`)
+    writeFile(destPath, `${existing.trimEnd()}\n\n${FDE_MARKER}\n\n${content}`)
     console.log(`  append ${label}`)
     return
   }
-  fs.writeFileSync(destPath, content)
+  writeFile(destPath, content)
   console.log(`  write  ${label}`)
 }
 
 function cmdAdapters(targetDir, opts = {}) {
   const dest = path.resolve(targetDir || process.cwd())
+  checkPath(dest)
   console.log('')
   console.log(`  fdeops cross-platform adapters → ${dest}`)
   console.log('  One brain (skills/fde/SKILL.md). These are thin pointers per tool.')
@@ -275,6 +285,7 @@ function cmdAdapters(targetDir, opts = {}) {
   // that file - `adapters` alone wrote pointers to a brain that didn't exist
   // yet, a dangling reference for anyone following the documented Cursor/Codex
   // path. installSkills() is idempotent (safe to call every run).
+  checkPath(path.join(GLOBAL_SKILLS_DIR, 'fde', 'SKILL.md'))
   if (!fs.existsSync(path.join(GLOBAL_SKILLS_DIR, 'fde', 'SKILL.md'))) {
     installSkills(opts)
     console.log('  Skills → ~/.claude/skills/  (installed - the pointers below need this)')
@@ -282,11 +293,16 @@ function cmdAdapters(targetDir, opts = {}) {
   }
   for (const a of ADAPTER_TARGETS) {
     if (!fs.existsSync(a.src)) { console.log(`  skip   ${a.label} (template missing)`); continue }
-    placePointer(path.join(dest, a.dest), fs.readFileSync(a.src, 'utf8'), a.label, a.appendable)
+    try {
+      placePointer(path.join(dest, a.dest), fs.readFileSync(a.src, 'utf8'), a.label, a.appendable)
+    } catch (e) {
+      installIncomplete = true
+      console.error(`  error  ${a.label}: ${e.message}`)
+    }
   }
   console.log('')
   console.log('  Open this workspace in Claude Code, Cursor, Codex, Gemini CLI, or Copilot')
-  console.log('  and type @fde - each tool now routes to the same engagement brain.')
+  console.log(installIncomplete ? '  Some adapters could not be installed; fix the errors above and run again.' : '  and type @fde - each tool now routes to the same engagement brain.')
   console.log('')
 }
 
@@ -304,7 +320,7 @@ function cmdInit(engagementName) {
 
   const pointer = path.join(root, 'ENGAGEMENT.md')
   if (!fs.existsSync(pointer)) {
-    fs.writeFileSync(
+    writeFile(
       pointer,
       `# ${engagementName}\n\nEngagement root: \`${fdeDir}\`\n\nPoint your **AI coding agent** at this folder (not a human colleague). Add to ~/.claude/FDEOPS-CLAUDE.md:\n\n\`\`\`\nFDEOPS_ENGAGEMENT=${fdeDir}\n\`\`\`\n\nOpen your workspace. In the AI chat, type \`@fde\`.\n`,
     )
@@ -435,16 +451,23 @@ function handOffToCli(verb) {
   require(path.join(__dirname, 'fde.js'))
 }
 
-if (!raw && askedVersion) {
-  console.log(require(path.join(__dirname, '..', 'package.json')).version)
-} else if (!raw && askedHelp) {
-  handOffToCli('help')
-} else if (arg === 'init') {
-  cmdInit(positional[1])
-} else if (arg === 'adapters') {
-  cmdAdapters(positional[1], { force })
-} else if (arg && arg !== 'install') {
-  handOffToCli(arg)
-} else {
-  cmdInstall({ force })
+try {
+  if (!raw && askedVersion) {
+    console.log(require(path.join(__dirname, '..', 'package.json')).version)
+  } else if (!raw && askedHelp) {
+    handOffToCli('help')
+  } else if (arg === 'init') {
+    cmdInit(positional[1])
+  } else if (arg === 'adapters') {
+    cmdAdapters(positional[1], { force })
+  } else if (arg && arg !== 'install') {
+    handOffToCli(arg)
+  } else {
+    cmdInstall({ force })
+  }
+
+} catch (e) {
+  console.error(`  fdeops: ${e.message}`)
+  process.exitCode = 1
 }
+if (installIncomplete) process.exitCode = 1
