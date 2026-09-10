@@ -2159,7 +2159,7 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [], allowReplay = 
       }
       const sigInline = (body.match(/\[signal:(red|amber|green)\]/i) || [])[1]
       if (sigInline) body = body.replace(/\[signal:(red|amber|green)\]/i, '').trim()
-      const entry = dry ? `- [${date}] ${body}` : datedEntry(eng, date, body, type === 'contact' && sigInline ? sigInline.toLowerCase() : '')
+      const entry = dry ? `- [${date}]${type === 'contact' && sigInline ? ` [signal:${sigInline.toLowerCase()}]` : ''} ${body}` : datedEntry(eng, date, body, type === 'contact' && sigInline ? sigInline.toLowerCase() : '')
       if (dry) console.log(`→ ${LOG_FILES[type]}  ${previewLine(entry)}`)
       else appendLogEntry(eng, type, entry, { skipCommit: true })
       counts[type]++
@@ -3139,9 +3139,9 @@ function formatValueLedgerLine(r) {
   }
   const head = body ? `${name}: ${body}` : name
   if (r.state === 'accepted') return `${head} · accepted by ${r.accepted}`
-  if (r.acceptanceIssue) return `${head} · ${r.acceptanceIssue}`
-  if (r.state === 'claimed') return `${head} · claimed, not yet accepted`
-  return `${head} · not yet measured`
+  const issue = r.acceptanceIssue ? `; ${r.acceptanceIssue}` : ''
+  if (r.state === 'claimed') return `${head} · claimed, not yet accepted${issue}`
+  return `${head} · not yet measured${issue}`
 }
 
 function valueLedgerStatusLines(eng, opts = {}) {

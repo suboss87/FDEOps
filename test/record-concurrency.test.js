@@ -73,7 +73,7 @@ test('redaction matches current content instead of stale line positions', async 
 
 test('delivery ledger update preserves another writer’s completed row', async t => {
   const f = fixture(t), target = path.join(f.eng, 'delivery.md')
-  await interleave(f, ['log', 'delivery', 'Retry | 10 min | 5 min | Priya | staging'], target, () => fs.appendFileSync(target, '\nCONCURRENT_DELIVERY_NOTE\n'))
+  await interleave(f, ['log', 'delivery', 'Retry | cost-save | 10 min | 5 min | Priya | staging | pending'], target, () => fs.appendFileSync(target, '\nCONCURRENT_DELIVERY_NOTE\n'))
   const text = fs.readFileSync(target, 'utf8')
   assert.match(text, /CONCURRENT_DELIVERY_NOTE/); assert.match(text, /Retry/)
 })
