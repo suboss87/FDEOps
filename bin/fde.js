@@ -2729,12 +2729,20 @@ function successContractIssues(success) {
     if (active !== -1 && line.trim()) checks[active] += ` ${line.trim()}`
   }
   const observable = checks.some(check => {
+    // This is a lint check, not a semantic proof. Explicit fields let any
+    // domain describe its test without depending on a vocabulary of verbs.
+    const target = /(?:\b(?:within|under|at most|at least|exactly|zero|no missing|no duplicate|all|every|none|true|false|pass|fail|http)\b|[<>=])/i
+    const vague = /\b(?:tbd|unknown|to be defined|improve|better|satisfactory|as expected|works well)\b/i
+    if (vague.test(check)) return false
+    const explicit = check.match(/(?:^|\s)(?:-\s*)?Input:\s*(.+?)\s+(?:-\s*)?Pass when:\s*(.+)$/i)
+    if (explicit) return explicit[1].trim().length > 3 && target.test(explicit[2])
     const stimulus = /\b(?:test|drill|replay|runs?|request|sample|given|when|simulate|inject|compare|restore|verified|observed|measured)\b/i.test(check)
+      || /^\d+\s+[a-z]/i.test(check)
     const result = /\b(?:returns?|rejects?|matches?|equals?|arrives?|alerts?|restores?|passes?|fails?|contains?|produces?|shows?|remains?|receives?)\b/i.test(check)
-    const target = /(?:\b(?:within|under|at most|at least|exactly|zero|no missing|no duplicate|all|every|none|true|false|pass|fail|http)\b|[<>=])/i.test(check)
-    return stimulus && result && target && !/\b(?:tbd|to be defined|improve|better|satisfactory|as expected|works well)\b/i.test(check)
+      || /\b(?:zero|no duplicate|no missing)\s+[a-z]/i.test(check)
+    return stimulus && result && target.test(check)
   })
-  if (!observable) issues.push('success.md needs a binary acceptance check: state a test/input and an observable pass/fail result under **Done when:** or **Acceptance check:**; numbers alone are not a check')
+  if (!observable) issues.push('success.md needs a binary acceptance check: the wording was not recognized as a test/input and observable pass/fail result under **Done when:** or **Acceptance check:**. Use Input: and Pass when: for a domain-specific check; this lint does not prove readiness')
   const signerLine = ((text.match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').replace(/\[source:[^\]]+\]/gi, '').trim()
   // A named primary signer may be followed by responsibilities or another
   // signer's role. Preserve the full record; validate only the leading name.

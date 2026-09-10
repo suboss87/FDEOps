@@ -236,6 +236,17 @@ From `plan` onward, `fde doctor` flags success definitions without both an obser
 **Stakeholder who signs off:** Priya Shah [source: meeting 2026-09-10]
 ```
 
+Doctor checks the shape of a criterion, not whether the customer agrees or the test passes. If ordinary domain wording is not recognized, keep its meaning and use two explicit lines:
+
+```markdown
+**Acceptance check:**
+- Input: one month of settlement records on customer staging
+- Pass when: zero duplicate settlements and 100% balanced totals
+```
+
+Keep the named customer signer alongside the check. Unknown inputs and subjective results still need clarification.
+
+
 A boolean check also works: `Given a revoked token, the request rejects every attempt.` “Improve performance by 30%” alone does not specify a reproducible check. Doctor also labels dated decisions without source references as CLAIM. It reports gaps; it does not invent tests, grant approval, or block you from editing the record.
 
 ## Where files live
