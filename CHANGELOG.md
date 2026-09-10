@@ -536,7 +536,7 @@ Defensible memory + frictionless debrief loop. Still a field kit - not a coworke
 - **`fde debrief --smart` / `--apply`** - heuristic propose from messy notes → review → confirm. Prefix router unchanged for air-gap.
 - **`fde prep [label]`** - grounded walk-in brief from existing `.fde/` only (no invention).
 - **`fde garden [--apply]`** - contract: no new facts, no deleted substance, git-reversible; mechanical archive of 60d+ session-end blocks.
-- **`docs/field-reports/`** - attack-our-own-tool notes shipped in-repo.
+- **`evals/`** - attack-our-own-tool notes shipped in-repo.
 
 ### Fixed
 - Session-start now injects TRIAGE (not only raw `context.md`), matching `fde resume`.
