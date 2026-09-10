@@ -487,7 +487,11 @@ function formatFsError(err, action, target) {
   return `cannot ${action} ${where}${code ? ` (${code})` : ''}${err && err.message && !code ? ': ' + err.message : ''}`
 }
 
+let debriefTransactionActive = false
+const ownedDebriefLocks = new Set()
+
 function failFs(err, action, target) {
+  if (debriefTransactionActive || ownedDebriefLocks.size) throw new Error(formatFsError(err, action, target))
   console.error(formatFsError(err, action, target))
   process.exit(1)
 }
@@ -503,6 +507,7 @@ function refuseSymlinkWrite(p, opts = {}) {
       const msg = st.isSymbolicLink()
         ? `refused: ${path.basename(p)} is a symlink - write would leave the engagement tree. Replace it with a real file.`
         : `refused: ${path.basename(p)} is not a regular file - remove it and re-run; every write is refused while it is there.`
+      if ((debriefTransactionActive || ownedDebriefLocks.size) && !opts.soft) throw new Error(msg)
       if (opts.soft) return msg
       console.error(msg)
       process.exit(1)
@@ -518,6 +523,8 @@ function refuseSymlinkWrite(p, opts = {}) {
 // Exclusive create lock + retry. Two parallel agent sessions (or hook + CLI)
 // appending the same .fde file otherwise interleave/corrupt under load.
 function withFileLock(targetPath, fn, opts = {}) {
+  if (ownedDebriefLocks.has(targetPath)) return fn()
+  if (debriefTransactionActive || ownedDebriefLocks.size) opts = { ...opts, soft: true }
   const lockPath = targetPath + '.lock'
   const deadline = Date.now() + 5000
   while (true) {
@@ -1789,28 +1796,24 @@ function readDebriefInput(args) {
   if (args[0]) {
     const notesPath = args[0].replace(/^~/, HOME)
     let st
-    try { st = fs.statSync(notesPath) } catch (_) { console.error(`cannot read ${args[0]}`); process.exit(1) }
+    try { st = fs.statSync(notesPath) } catch (_) { throw new Error(`cannot read ${args[0]}`) }
     if (st.size > DEBRIEF_MAX_BYTES) {
-      console.error(`debrief refused: ${args[0]} is ${st.size} bytes (max ${DEBRIEF_MAX_BYTES}). Split the notes or paste the relevant section.`)
-      process.exit(1)
+      throw new Error(`debrief refused: ${args[0]} is ${st.size} bytes (max ${DEBRIEF_MAX_BYTES}). Split the notes or paste the relevant section.`)
     }
     let buf
-    try { buf = fs.readFileSync(notesPath) } catch (_) { console.error(`cannot read ${args[0]}`); process.exit(1) }
+    try { buf = fs.readFileSync(notesPath) } catch (_) { throw new Error(`cannot read ${args[0]}`) }
     if (buf.includes(0) || looksLikeBinaryNoise(buf.toString('utf8'))) {
-      console.error(`debrief refused: ${args[0]} looks binary or mostly non-printable. Paste text notes only.`)
-      process.exit(1)
+      throw new Error(`debrief refused: ${args[0]} looks binary or mostly non-printable. Paste text notes only.`)
     }
     input = buf.toString('utf8')
   } else {
     let buf
     try { buf = fs.readFileSync(0) } catch (_) { buf = Buffer.alloc(0) }
     if (Buffer.byteLength(buf) > DEBRIEF_MAX_BYTES) {
-      console.error(`debrief refused: stdin is over ${DEBRIEF_MAX_BYTES} bytes. Split the notes.`)
-      process.exit(1)
+      throw new Error(`debrief refused: stdin is over ${DEBRIEF_MAX_BYTES} bytes. Split the notes.`)
     }
     if (buf.includes(0) || looksLikeBinaryNoise(buf.toString('utf8'))) {
-      console.error('debrief refused: stdin looks binary or mostly non-printable. Paste text notes only.')
-      process.exit(1)
+      throw new Error('debrief refused: stdin looks binary or mostly non-printable. Paste text notes only.')
     }
     input = buf.toString('utf8')
   }
@@ -1823,15 +1826,29 @@ function previewLine(text, max = 240) {
   return `${t.slice(0, max)}… (${t.length} chars)`
 }
 
-function writeProposal(eng, text) {
+function writeProposal(eng, text, { replace = false, locked = false } = {}) {
+  if (!locked && ownedDebriefLocks.has(path.join(eng, DEBRIEF_PROPOSE))) return writeProposal(eng, text, { replace, locked: true })
+  if (!locked) return withFileLock(path.join(eng, DEBRIEF_PROPOSE), () => {
+    ownedDebriefLocks.add(path.join(eng, DEBRIEF_PROPOSE))
+    try { return writeProposal(eng, text, { replace, locked: true }) }
+    finally { ownedDebriefLocks.delete(path.join(eng, DEBRIEF_PROPOSE)) }
+  }, { soft: true })
+  if (!debriefTransactionActive) return withDebriefRecords(eng, () => writeProposal(eng, text, { replace, locked: true }), [DEBRIEF_PROPOSE, DEBRIEF_PRIVATE, DEBRIEF_SEAL])
   const { clean, blocks } = splitPrivate(text, { sealDangling: true })
   const proposePath = path.join(eng, DEBRIEF_PROPOSE)
   const privatePath = path.join(eng, DEBRIEF_PRIVATE)
+  if (fs.existsSync(proposePath) && !replace) {
+    const existing = fs.readFileSync(proposePath, 'utf8')
+    const existingPrivate = readSealedProposal(eng)
+    if (existing !== clean || JSON.stringify(existingPrivate) !== JSON.stringify(blocks)) {
+      throw new Error('pending proposal already exists. Review and apply it first, or explicitly replace it with fde debrief --smart <notes> --replace-proposal.')
+    }
+  }
   // Seal first. A refused or failed sidecar write must not leave behind a
   // proposal whose (private - redacted) marker has nothing left behind it.
   if (blocks.length) {
     const blocked = refuseSymlinkWrite(privatePath, { soft: true })
-    if (blocked) { console.error(blocked); process.exit(1) }
+    if (blocked) throw new Error(blocked)
     withFileLock(privatePath, () => { atomicWriteFile(privatePath, sealedText(blocks), { mode: 0o600 }) })
     try { fs.chmodSync(privatePath, 0o600) } catch (_) {}
   } else {
@@ -1898,12 +1915,13 @@ function printDebriefReview(text, eng) {
   let any = false
   for (const [label, items] of order) {
     if (!items.length) {
-      if (['stated asks', 'proposed scope', 'next action', 'named signer (authority, not approval)'].includes(label)) console.log(`  ${label}: not stated`)
+      if (['stated asks', 'proposed scope', 'next action', 'named signer (authority, not approval)'].includes(label)) console.log(`  ${label}: not detected - review the notes`)
       continue
     }
     any = true
     console.log(`  ${label}:`)
-    for (const item of items) console.log(`    - ${item}`)
+    for (const item of items.slice(0, 5)) console.log(`    - ${item}`)
+    if (items.length > 5) console.log(`    - ${items.length - 5} more omitted here; review the full proposal before applying.`)
   }
   if (!any) console.log('  (nothing prefixed yet - edit .debrief-propose, then apply)')
   const recorded = eng ? parseValueLedger(eng).rows : []
@@ -1972,7 +1990,79 @@ function readSealedProposal(eng) {
   } catch (_) { return [] }
 }
 
+// A debrief touches several records. Acquire every cooperating writer's lock
+// before the first append, and restore snapshots if an ordinary write fails.
+// This is not a power-loss transaction; no history is deleted or reset.
+function withDebriefRecords(eng, apply, files = ['decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md',
+  'success.md', 'context.md', SIGNAL_LEDGER, LAST_WRITE, DEBRIEF_PROPOSE, DEBRIEF_PRIVATE, DEBRIEF_SEAL]) {
+  files = files.slice().sort()
+  const snapshots = new Map()
+  function lockAt(index) {
+    if (index < files.length) {
+      const target = path.join(eng, files[index])
+      if (ownedDebriefLocks.has(target)) return lockAt(index + 1)
+      return withFileLock(target, () => {
+        ownedDebriefLocks.add(target)
+        try { return lockAt(index + 1) } finally { ownedDebriefLocks.delete(target) }
+      }, { soft: true })
+    }
+    for (const file of files) {
+      const target = path.join(eng, file)
+      const blocked = refuseSymlinkWrite(target, { soft: true })
+      if (blocked) throw new Error(blocked)
+      snapshots.set(target, fs.existsSync(target) ? { bytes: fs.readFileSync(target), mode: fs.statSync(target).mode & 0o777 } : null)
+    }
+    debriefTransactionActive = true
+    try { return apply() } catch (error) {
+      const failed = []
+      for (const [target, previous] of snapshots) {
+        try {
+          if (previous) atomicWriteFile(target, previous.bytes, { mode: previous.mode, soft: true })
+          else if (fs.existsSync(target)) fs.unlinkSync(target)
+        } catch (_) { failed.push(path.basename(target)) }
+      }
+      if (failed.length) throw new Error(`${error.message}; recovery could not restore ${failed.join(', ')}. Inspect these records and the pending proposal before retrying.`)
+      throw new Error(`${error.message}; no record changes kept. The proposal is retained; retry after resolving the cause.`)
+    } finally { debriefTransactionActive = false }
+  }
+  return lockAt(0)
+}
+
+// Limit model-facing review output while preserving the full editable proposal.
+function boundedDebriefPreview(eng, render, { proposal = true, maxBytes = 12000 } = {}) {
+  const original = console.log, originalError = console.error
+  let bytes = 0, omitted = 0
+  const bounded = output => (...args) => {
+    const line = args.join(' ') + '\n'
+    const size = Buffer.byteLength(line)
+    if (bytes + size > maxBytes) { omitted++; return }
+    bytes += size; output(...args)
+  }
+  console.log = bounded(original)
+  console.error = bounded(originalError)
+  let result
+  try { result = render() } finally { console.log = original; console.error = originalError }
+  if (omitted) console.log(proposal
+    ? `\n${omitted} preview lines omitted. Review the complete proposal at ${path.join(eng, DEBRIEF_PROPOSE)} before applying.`
+    : `\n${omitted} preview lines omitted. Review the full input notes before applying.`)
+  return result
+}
+
 function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
+  if (!dry && !debriefTransactionActive) {
+    ensureMemoryGit(eng)
+    return withDebriefRecords(eng, () => {
+      const result = routeDebriefInput(eng, input, { dry, force, sealed })
+      // Consuming the review is part of the write. If cleanup fails, restoring
+      // both the records and proposal makes the next explicit apply safe.
+      for (const file of [DEBRIEF_PROPOSE, DEBRIEF_PRIVATE, DEBRIEF_SEAL]) {
+        try { fs.unlinkSync(path.join(eng, file)) } catch (error) {
+          if (error.code !== 'ENOENT') throw new Error(formatFsError(error, 'remove', file))
+        }
+      }
+      return result
+    })
+  }
   const d = new Date()
   const date = d.toISOString().slice(0, 10)
   const counts = { decision: 0, risk: 0, delivery: 0, contact: 0, next: 0, signer: 0 }
@@ -2044,6 +2134,18 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
 }
 
 function cmdDebrief(args) {
+  const eng = resolveEngagement({ forWrite: true })
+  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exitCode = 2; return }
+  const target = path.join(eng, DEBRIEF_PROPOSE)
+  try {
+    withFileLock(target, () => {
+      ownedDebriefLocks.add(target)
+      try { return runDebrief(args, eng) } finally { ownedDebriefLocks.delete(target) }
+    }, { soft: true })
+  } catch (error) { console.error(error.message); process.exitCode = 1 }
+}
+
+function runDebrief(args, eng) {
   args = args.slice()
   const dryIdx = args.indexOf('--dry-run')
   const dry = dryIdx !== -1
@@ -2058,35 +2160,45 @@ function cmdDebrief(args) {
   const forceIdx = args.indexOf('--force')
   if (forceIdx !== -1) { force = true; args.splice(forceIdx, 1) }
 
-  const eng = resolveEngagement({ forWrite: true })
-  if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
+  const replaceIdx = args.indexOf('--replace-proposal')
+  const replace = replaceIdx !== -1
+  if (replace) args.splice(replaceIdx, 1)
+  if (replace && !smart) throw new Error('--replace-proposal requires --smart <notes>')
 
+  if (!smart && !apply && !dry && fs.existsSync(path.join(eng, DEBRIEF_PROPOSE))) {
+    throw new Error('pending proposal already exists. Review and apply it before writing another debrief.')
+  }
+  if (apply && !smart && args[0] && fs.existsSync(path.join(eng, DEBRIEF_PROPOSE))) {
+    throw new Error('pending proposal already exists. Use debrief --apply without a notes file to apply that review.')
+  }
   let input = ''
   let sealed = []
   if (apply && !smart && !args[0]) {
     try { input = stripControlChars(fs.readFileSync(path.join(eng, DEBRIEF_PROPOSE), 'utf8')) } catch (_) {
       console.error('nothing to apply - run: fde debrief --smart <notes.md>   then   fde debrief --apply')
-      process.exit(1)
+      return void (process.exitCode = 1)
     }
     sealed = readSealedProposal(eng)
     const expected = readSealCount(eng)
     if (expected === null ? (!sealed.length && input.includes(PRIVATE_MARKER)) : sealed.length < expected) {
       console.error(`refused: the proposal seals a private note but ${DEBRIEF_PRIVATE} is missing or unreadable - applying now would drop it silently.`)
       console.error('re-run the propose step (fde debrief --smart <notes> | fde ingest propose <id>).')
-      process.exit(1)
+      return void (process.exitCode = 1)
     }
   } else {
     input = readDebriefInput(args)
   }
 
     if (smart) {
-    const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
+    const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input), { replace })
+    boundedDebriefPreview(eng, () => {
     console.log('SMART PROPOSE (heuristic - review before apply; no new facts invented beyond line rewrites)\n')
     printDebriefReview(clean, eng)
     console.log('Prefix vocabulary (lines that route): decision:  risk:  delivery:  contact:  next:  signer:')
     console.log('Optional on a decision: [approved: Name YYYY-MM-DD]. Missing means unconfirmed.')
     console.log('Everything else → context.md. Keep the prefixes; the preview gate stays.\n')
     routeDebriefInput(eng, clean, { dry: true, force, sealed: blocks })
+    }, { maxBytes: 8000 })
     if (!apply) {
       console.log(`\nproposal saved → ${proposePath}`)
       console.log('confirm:  fde debrief --apply')
@@ -2097,14 +2209,12 @@ function cmdDebrief(args) {
     sealed = blocks
   }
 
-  const { counts, ctxLines, privateBlocks } = routeDebriefInput(eng, input, { dry, force, sealed })
+  const route = () => routeDebriefInput(eng, input, { dry, force, sealed })
+  const { counts, ctxLines, privateBlocks } = boundedDebriefPreview(eng, route, { proposal: false, maxBytes: smart ? 4000 : 12000 })
   if (!dry) {
     const hash = commitMemory(eng, 'debrief', {
       files: ['decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'success.md', 'context.md', SIGNAL_LEDGER],
     })
-    try { fs.unlinkSync(path.join(eng, DEBRIEF_PROPOSE)) } catch (_) {}
-    try { fs.unlinkSync(path.join(eng, DEBRIEF_PRIVATE)) } catch (_) {}
-  try { fs.unlinkSync(path.join(eng, DEBRIEF_SEAL)) } catch (_) {}
     if (hash) console.log(`memory @${hash}`)
   }
   const plural = {
@@ -2224,10 +2334,14 @@ function cmdIngest(args) {
       console.error(`ingest propose refused: staged item is over ${DEBRIEF_MAX_BYTES} bytes after provenance. Split it.`)
       process.exit(1)
     }
-    const { proposePath, clean, blocks } = writeProposal(eng, smartProposeText(input))
+    let proposal
+    try { proposal = writeProposal(eng, smartProposeText(input)) } catch (error) { console.error(error.message); process.exitCode = 1; return }
+    const { proposePath, clean, blocks } = proposal
+    boundedDebriefPreview(eng, () => {
     console.log(`INGEST PROPOSE from ${path.basename(item)} (via:${source})\n`)
     printDebriefReview(clean, eng)
     routeDebriefInput(eng, clean, { dry: true, force: false, sealed: blocks })
+    })
     console.log(`\nproposal saved → ${proposePath}`)
     console.log('confirm:  fde ingest apply')
     console.log('(agent: rewrite lines with decision:/risk:/contact:/next: prefixes before apply)')
@@ -2353,13 +2467,13 @@ function cmdHandoff(args, label = 'Handoff') {
   const claims = selected.filter(d => !hasSource(d.text))
   const decisionText = d => `${d.text} (decisions.md:${d.line}, redacted view)`
   const next = stripTemplateNoise(sectionBody(readClean(eng, 'context.md'), 'Next action', { lastNonEmpty: true }))
-  const gaps = collectDoctorIssues(eng)
+  const gaps = collectDoctorIssues(eng, { readiness: true })
   const report = context.boundedSections([
     `# ${label}: ${engagementSlugFromPath(eng)}\nSnapshot: ${new Date().toISOString()} · memory ${memoryHead(eng) || 'unversioned'}\nRead-only record, not proof of approval. Confirm sources with the named customer before relying on a claim. Private blocks are excluded; review remaining client information before sharing.`,
     `## Constraints - trust-profile.md\n${stripTemplateNoise(readClean(eng, 'trust-profile.md')) || '(missing)'}`,
     `## Signer and success - success.md\nSigner: ${signer || '(missing; do not infer)'}\n${success || '(missing)'}`,
     `## Next action - context.md\n${next || '(missing)'}\n\n## Open risks - risks.md\n${extractRisks(eng).map(r => '- ' + r.text).join('\n') || '(none recorded; not proof of no risk)'}`,
-    `## Accepted value - recorded assertion with source\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']').join('\n') || '(none)'}`,
+    `## Accepted value - recorded assertion with source\nOnly structured value-ledger rows are summarized here; review other notes in delivery.md before presenting or handing over this record.\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']').join('\n') || '(none)'}`,
     `## ON RECORD decisions - source supplied, not automatic approval\n${records.map(decisionText).join('\n') || '(none)'}\n\n## CLAIM decisions - source missing\n${claims.map(decisionText).join('\n') || '(none)'}\nSelected ${selected.length} of ${decisions.length} dated decisions. Retrieve older or conflicting decisions with fde recall.`,
     `## Gaps before relying on this packet\n${gaps.map(g => '- ' + g).join('\n') || '(no deterministic lint gaps; human review still required)'}`,
   ], parsed.maxBytes)
@@ -3522,7 +3636,13 @@ function cmdDashboard(args) {
   const html = render.buildFieldbookHtml({ engagements, today, generatedAt: new Date().toISOString() })
 
   try {
+    const isRecordPath = p => p.split(path.sep).some(part => ['.fde', '.git'].includes(part.toLowerCase()))
+    if (isRecordPath(outPath)) throw new Error('save the dashboard outside .fde/ and .git/; these folders hold records, not reports')
+    let existingParent = path.dirname(outPath)
+    while (!fs.existsSync(existingParent)) existingParent = path.dirname(existingParent)
+    if (isRecordPath(fs.realpathSync(existingParent))) throw new Error('save the dashboard outside .fde/ and .git/; this path points into a record folder')
     fs.mkdirSync(path.dirname(outPath), { recursive: true })
+    if (isRecordPath(fs.realpathSync(path.dirname(outPath)))) throw new Error('save the dashboard outside .fde/ and .git/; this path points into a record folder')
     atomicWriteFile(outPath, html)
   } catch (e) {
     failFs(e, 'write fieldbook', outPath)
@@ -3883,6 +4003,7 @@ function printUsage() {
   fde log --undo           remove the last CLI log/debrief entry from memory
   fde debrief [file]       meeting notes → memory (prefixed lines; --dry-run; --force)
   fde debrief --smart      heuristic propose; REVIEW first (decided/asked/open/next/signer); --apply after one confirm
+    --replace-proposal    explicitly discard a pending review when proposing different notes
   fde ingest stage …       stage raw pull into <engagement>/.inbox/ (not .fde/)
   fde ingest list          list staged inbox items
   fde ingest propose <id>  smart-propose a staged item → .debrief-propose (confirm before apply)

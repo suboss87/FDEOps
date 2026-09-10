@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.27.1 - 2026-09-10
+
+- Preserve pending debrief reviews until applied or explicitly replaced with `--replace-proposal`, including their private notes after caught replacement failures.
+- Acquire record locks before applying a debrief and restore prior records after caught write errors, so ordinary contention retries do not duplicate partial updates. Serialize concurrent applies of one proposal.
+- Cap long debrief and ingest previews while keeping the complete proposal on disk. Say “not detected” when phrase recognition misses details rather than claiming the notes never stated them.
+- Include missing success criteria and acceptance owners in early handoff/readout gaps. Clarify that ledger summaries do not include every prose delivery note.
+- Refuse dashboard exports into record directories and clarify how to refresh a portfolio or custom report.
+- Document independent daily-use simulations, browser checks, effort counts, and remaining recovery/model limits.
+
 ## 3.27.0 - 2026-09-10
 
 - Keep unsourced decisions and delivery numbers as CLAIM. A log date is not a source; pending evidence cannot produce accepted value, including legacy ledger rows. Existing files are not rewritten.

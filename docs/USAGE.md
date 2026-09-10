@@ -71,6 +71,10 @@ You do not pick a skill. **`@fde` routes the AI and loads the relevant reference
 
 ## A daily routine
 
+For free-form notes, ask `@fde` to help interpret them and review the proposed changes. The CLI's `debrief --smart` recognizes common phrases; “not detected” means it may have missed something, not that your notes contain no request or next action.
+
+An unfinished proposal stays available for review. Apply it before starting another, or use `fde debrief --smart --replace-proposal notes.md` to explicitly discard it and review different notes. Repeating an already-applied note is a new update, so check for duplicates before saving it again.
+
 | Moment | What to ask | What to check |
 |---|---|---|
 | Start of day | `@fde Where did we leave off with this client?` | Correct customer, current state, next action |
@@ -94,7 +98,7 @@ If your browser does not open automatically, open the HTML path printed by the c
 - Open an engagement to review its context, decisions, risks, and value ledger. A measured result and an accepted result are different states.
 - Use search to find an engagement or recorded detail.
 - Copy a meeting-prep, debrief, or readout prompt into your agent to do the follow-up work. Copying a prompt does not execute it or change records.
-- After applying notes or editing memory, run the dashboard command again and reload the page. It is a **read-only snapshot**, not a live editor. Check the generation date before relying on it.
+- After applying notes or editing memory, repeat the dashboard command with the same `--all` and `--out` options, if used, and reload the page. It is a **read-only snapshot**, not a live editor. Check the generation date before relying on it.
 
 The HTML contains redacted engagement information, which can still be customer-confidential. Review it before sharing or presenting your screen. `.fde/` remains the source of truth.
 

@@ -109,6 +109,8 @@ The CLI does the file work without calling a model. Commands that change records
 
 [All commands and examples](docs/USAGE.md).
 
+For free-form notes, start with `@fde` so your agent can help interpret them. The CLI's `--smart` option recognizes common phrases; review its proposal because it can miss requests or next actions in ordinary prose.
+
 ## Your records, your control
 
 Each client has its own `.fde/` folder of Markdown files. The brief, success criteria, decisions, risks, and delivery ledger stay readable outside FDEOps. The CLI uses local files and Git, with no network calls or telemetry. Optional [MCP sources](mcp/recipes/) are connected through your agent host, then pulled and reviewed on request.

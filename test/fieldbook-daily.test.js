@@ -30,6 +30,25 @@ function engagementPath(sandbox, slug) {
   return path.join(sandbox.home, 'fde-engagements', slug, '.fde')
 }
 
+test('dashboard exports cannot replace client records or write through a record directory alias', t => {
+  const sandbox = makeSandbox('dashboard-record-destination')
+  t.after(() => fs.rmSync(sandbox.dir, { recursive: true, force: true }))
+  assert.equal(runFde(sandbox, ['resume', '--init', 'acme']).status, 0)
+  const eng = engagementPath(sandbox, 'acme')
+  const record = path.join(eng, 'success.md')
+  const before = fs.readFileSync(record, 'utf8')
+  const direct = runFde(sandbox, ['dashboard', '--out', record])
+  assert.notEqual(direct.status, 0)
+  assert.equal(fs.readFileSync(record, 'utf8'), before)
+  const alias = path.join(sandbox.dir, 'records-alias')
+  fs.symlinkSync(eng, alias, 'dir')
+  assert.notEqual(runFde(sandbox, ['dashboard', '--out', path.join(alias, 'report.html')]).status, 0)
+  assert.equal(fs.existsSync(path.join(eng, 'report.html')), false)
+  const report = path.join(sandbox.dir, 'portfolio.html')
+  assert.equal(runFde(sandbox, ['dashboard', '--all', '--out', report]).status, 0)
+  assert.equal(runFde(sandbox, ['dashboard', '--all', '--out', report]).status, 0, 'refreshing an ordinary report remains supported')
+})
+
 test('fieldbook people rows use table names, not the/Friday from signal prose', () => {
   const sandbox = makeSandbox('people-garvey')
   assert.equal(runFde(sandbox, ['resume', '--init', 'Garvey Payments']).status, 0)
