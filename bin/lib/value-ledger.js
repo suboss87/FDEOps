@@ -41,14 +41,23 @@ function valueState({ measured, accepted, acceptanceStatus, evidence }) {
 // These checks flag explicit conflicts for human review. They do not authenticate
 // approval, infer delegation, or revoke history when the current signer changes.
 function withdrawalMention(row) {
-  const text = [row.measured, row.accepted, row.acceptanceStatus, row.evidence].filter(Boolean).join(' ')
-    .replace(/\S*[/\\]\S*/g, '') // artifact names are sources, not withdrawal events
-    .replace(/\b(?:not|never)\s+(?:been\s+)?(?:withdrawn|retracted|revoked|superseded)\b/gi, '')
-  return /\b(?:withdrawn|retracted|revoked|superseded|retracts? (?:the )?(?:approval|acceptance|evidence)|withdraws? (?:the )?(?:approval|acceptance|evidence))\b/i.test(text)
+  return [row.measured, row.accepted, row.acceptanceStatus, row.evidence].filter(Boolean).some(value => {
+    const text = String(value)
+      .replace(/\[source:[^\]]*\]/gi, '')
+      .replace(/\S*[/\\]\S*/g, '') // artifact names are sources, not withdrawal events
+      .replace(/\b(?:not|never)\s+(?:been\s+)?(?:withdrawn|retracted|revoked|superseded)\b/gi, '')
+    // A withdrawn result is different from a result counting revoked tokens.
+    return /^(?:withdrawn|retracted|revoked|superseded)(?:\s*:|\s*$)/i.test(text.trim()) ||
+      /\b(?:approval|acceptance|evidence|measurement|result|assertion)\b[^.;\n]{0,40}\b(?:withdrawn|retracted|revoked|superseded)\b/i.test(text) ||
+      /\b(?:withdrawn|retracted|revoked|superseded|retracts?|withdraws?)\b[^.;\n]{0,25}\b(?:approval|acceptance|evidence|measurement|result|assertion)\b/i.test(text)
+  })
 }
 
 function scopeIssue(row, goal) {
-  const promise = String(row.promised || goal || '')
+  const rowPromise = String(row.promised || '')
+  const goalLine = String(goal).match(/^(?:\*\*)?(?:Done when|Acceptance check):(?:\*\*)?\s*(.*)$/im)
+  const scopeSpecified = /\b(?:production|staging|synthetic|slides?|demo|prototype|poc)\b/i.test(rowPromise)
+  const promise = scopeSpecified ? rowPromise : `${rowPromise} ${goalLine ? goalLine[1] : goal}`
   const acceptance = String(row.accepted || '')
   const limited = acceptance.match(/\b(staging|slides?(?: design)?|demo|prototype|poc)\s+only\b/i)
   if (limited) {
@@ -56,7 +65,9 @@ function scopeIssue(row, goal) {
     const matchingGoal = scope.startsWith('slide') ? /\bslides?\b/i.test(promise) : new RegExp('\\b' + scope + '\\b', 'i').test(promise)
     if (!matchingGoal || /\b(?:production|clinical use|go.live)\b/i.test(promise)) return 'approval scope is limited; review against the promised outcome'
   }
-  if (/\bproduction\b/i.test(promise) && /\b(?:staging|synthetic|prototype|poc)\b/i.test(String(row.measured || '')) && !/\bproduction\b/i.test(String(row.measured || ''))) return 'measurement scope differs from production promise; review required'
+  const measured = String(row.measured || '')
+  const productionUntested = measured.split(/[;.\n]/).some(clause => /\bproduction\b/i.test(clause) && /\b(?:not|never|untested|unmeasured|pending)\b/i.test(clause))
+  if (/\bproduction\b/i.test(promise) && /\b(?:staging|synthetic|prototype|poc)\b/i.test(measured) && (!/\bproduction\b/i.test(measured) || productionUntested)) return 'measurement scope differs from production promise; review required'
   return ''
 }
 

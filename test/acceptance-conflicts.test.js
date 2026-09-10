@@ -55,3 +55,20 @@ test('ordinary approvals by a different signer are preserved rather than guessed
   const rows = reconcileValueRows([{ slice: 'Historical pilot', measured: '5 minutes', accepted: 'Ravi Shah', evidence: 'PR #42', state: 'accepted' }], '**Stakeholder who signs off:** Elena Morris')
   assert.equal(rows[0].state, 'accepted')
 })
+
+test('production mentioned as untested cannot make staging measurement accepted', () => {
+  const rows = reconcileValueRows([{ slice: 'Settlement', promised: '5 minutes production', measured: '5 minutes staging; production not tested', accepted: 'Ravi Shah', evidence: 'PR #42', state: 'accepted' }])
+  assert.equal(rows[0].state, 'claimed')
+  assert.match(rows[0].acceptanceIssue, /scope/)
+})
+test('an unspecified row environment uses the production goal without overriding an explicit staging promise', () => {
+  const base = { slice: 'Settlement', measured: '5 minutes staging', accepted: 'Ravi Shah', evidence: 'PR #42', state: 'accepted' }
+  const rows = reconcileValueRows([{ ...base, promised: '5 minutes' }, { ...base, promised: '5 minutes staging' }], '**Done when:** production replay matches every settlement')
+  assert.equal(rows[0].state, 'claimed')
+  assert.equal(rows[1].state, 'accepted')
+})
+test('revoked credentials and source marker identifiers are not withdrawn acceptance', () => {
+  const result = { slice: 'Security', promised: 'reject revoked credentials', measured: '100 revoked tokens rejected', accepted: 'Mara Chen', evidence: '[source: transcript:withdrawn]' }
+  assert.equal(valueState(result), 'accepted')
+  assert.equal(reconcileValueRows([{ ...result, state: 'accepted' }])[0].state, 'accepted')
+})
