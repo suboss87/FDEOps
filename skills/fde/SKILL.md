@@ -58,7 +58,7 @@ Fallbacks: `node ~/.claude/fdeops/fde.js …`, then `npx --yes fdeops …`. Skil
 
 ## Entry (every session)
 
-1. `fde resume` (bounded `context.md`). `--full` only if you need the whole log.
+1. `fde resume` (16 KiB output ceiling, not a model token count). Read the goals, risks and current context. If truncated or a decision needs evidence, run `fde recall <specific topic>`; narrow the query rather than loading the whole history. `--max-bytes 4096` reduces the allowance for smaller models. `--full` only when the complete log is explicitly needed.
 2. **NO ENGAGEMENT:** ask "What should we call this client?" then **you** init. Pasted notes → debrief after bind.
 3. Playback 2-3 lines. `hygiene:` → offer `fde doctor`; **never auto-rewrite**.
 4. Route. Read **one** `references/*.md`. Confirm, then write.

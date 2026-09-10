@@ -90,3 +90,16 @@ test('search and attention filtering keep navigation and overview in agreement, 
   ids['fb-filter'].events.change()
   assert.deepEqual(visible(rows).map(row => row.dataset.client), ['eng-acme'])
 })
+
+
+test('daily action prompts check current records and missing next actions stay explicit', () => {
+  const ready = render([client()])
+  const fresh = render([client({ hasNext: false, next: '' })])
+  assert.match(ready, />Continue next action<\/button>/)
+  assert.match(ready, /Re-read the latest client record first because this report may be older/)
+  assert.match(ready, /Check dependencies and required approvals/)
+  assert.match(fresh, />Set next action<\/button>/)
+  assert.doesNotMatch(fresh, />Continue next action<\/button>/)
+  assert.match(ready, /data-nav="today">&larr; Back to overview/)
+  assert.match(ready, /Reloading this page alone does not refresh the record/)
+})
