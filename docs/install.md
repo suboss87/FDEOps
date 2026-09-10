@@ -4,13 +4,13 @@ fdeops installs on **your laptop** - where **your AI coding agent** runs. Not on
 
 **Terminology:** **You** = human FDE. **Agent** = AI coding software (e.g. Claude Code), never a person. See [README § Who this is for](../README.md#who-this-is-for).
 
-**Try before installing:** `npx fdeops scan` works zero-config in any repo - no install, no init. It prints day-1 recon plus an "ASK ON DAY 1" question list, entirely local.
+**Try before installing:** `npx fdeops scan` prints local repository reconnaissance and day-one questions without creating engagement records. `npx` may download the package; the scan itself does not use the network. Requires Node.js 18+ and Git.
 
 ---
 
 ## Quick Start (the whole setup)
 
-**30-second setup.** Fastest path, any AI coding agent:
+Install the routing skill in a host supported by the skills installer:
 
 ```bash
 npx skills add suboss87/fdeops --skill fde
@@ -35,9 +35,9 @@ Terminal fallback (if the agent cannot bind), inside a workspace:
 npx fdeops resume --init <client-name>
 ```
 
-The plugin install alone does **not** put a bare `fde` command on your shell PATH. `npx fdeops <command>` always works with nothing pre-installed; run `npm i -g fdeops` once if you want the short `fde` form used in the rest of these docs.
+The plugin install alone does **not** put a bare `fde` command on your shell PATH. `npx fdeops <command>` can fetch the CLI when Node.js and network access are available; run `npm i -g fdeops` once if you want the short `fde` form used in the rest of these docs.
 
-`fde resume --init` creates `~/fde-engagements/<client-name>/.fde/` and **binds this workspace to it in the workspace registry**. The session hooks read that binding, so memory auto-loads at session start and auto-captures at session end - nothing else to configure, no environment variables.
+`fde resume --init` creates `~/fde-engagements/<client-name>/.fde/` and **binds this workspace to it in the workspace registry**. Enabled Claude Code session hooks read that binding to load context and capture mechanical session state. Skill-only and adapter installs do not register these hooks; use `@fde` or the CLI on demand in those hosts.
 
 Type `@fde` in the AI chat and start working.
 
@@ -49,7 +49,7 @@ Type `@fde` in the AI chat and start working.
 |-----------|---------|
 | Claude Code | `/plugin install fdeops@fdeops`  - skill, slash commands, hooks. CLI via `npx fdeops …`. `node bin/install.js` only if you want a disk copy under `~/.claude/` |
 | Cursor / other agents | `npx skills add suboss87/fdeops --skill fde`, then `npx fdeops adapters <client-workspace>` |
-| Air-gap | `git clone … && node bin/install.js` |
+| Offline machine | Transfer an existing checkout, enter its directory, then run `node bin/install.js`; Node.js and Git must already be available |
 | Bind (any host, after the skill exists) | Chat: `@fde this is client01`. Terminal fallback: `npx fdeops resume --init <name>` |
 | Quick trial, no install | `npx fdeops scan` (uses **fdeops v3.0.0 or later from npm**) |
 
@@ -140,7 +140,7 @@ The format covers packaging only - it defines no install mechanism, permissions,
 | `fdeops-session-stop` | session end | appends a deterministic "where we left off" (branch, changes, updated artifacts) to `context.md` |
 | `fdeops-pre-compact` | before compaction | preserves engagement state across long sessions |
 
-The hooks honor the workspace registry written by `fde resume --init` - bind a workspace once and the loop closes by itself: read side + write side. You still confirm judgment; the fieldbook is not self-maintaining without you.
+Once registered in the host, the hooks honor the workspace registry written by `fde resume --init`. Binding selects the client; binding alone does not enable hooks. You still confirm judgment; the fieldbook is not self-maintaining without you.
 
 **Windows:** the CLI and `hooks/run-hook.cmd` work on Windows. The session hooks themselves are `#!/bin/bash` scripts - on Windows you need Git Bash (or another bash) available for Claude Code hooks to run. The `fde` CLI (Node) does not require bash.
 
@@ -183,7 +183,7 @@ The session hooks (`session-start`, `session-stop`, `pre-compact`) honor the sam
 cd fdeops && git pull && node bin/install.js
 ```
 
-Or via npm: `npx fdeops@latest` (fetches the latest published fdeops).
+For a command using the latest published version: `npx fdeops@latest scan`. Running bare `npx fdeops@latest` invokes the disk installer. If you installed globally, update with `npm install -g fdeops@latest`.
 
 ### What the installer will not touch
 

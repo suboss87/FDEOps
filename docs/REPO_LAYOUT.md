@@ -20,4 +20,12 @@
 | `docs/methodology.md` | FDE principles the kit encodes (not loaded by hosts) |
 | `media/` | Recorded session (`session.gif`) - embed lives in USAGE.md, not the README |
 
-**Install:** [install.md](./install.md) - Claude plugin + git clone is the reliable path.
+## Where to start
+
+- **Use the tool:** [installation](install.md), then the [five-minute walkthrough](USAGE.md#new-here-5-minutes).
+- **Change a workflow:** edit the relevant `skills/fde/references/` file and its routing evaluation. Keep `SKILL.md` as the single entry.
+- **Change records or reports:** start in `bin/fde.js` and `bin/lib/`, with regressions in `test/`. Document record changes in [schema.md](schema.md).
+- **Change host setup:** use `bin/install.js`, `adapters/`, or `hooks/`; verify automatic and manual host behavior separately.
+- **Change public instructions:** keep README concise; use [USAGE.md](USAGE.md) for routines and [install.md](install.md) for setup. The [website update brief](website-updates.md) describes matching public copy.
+
+Keep customer `.fde/` records outside this repository. Examples and tests use fictional clients. Dashboard HTML and vaults are generated views, not new sources of truth. Avoid moving stable entry paths solely for appearance: installers, plugins, and external links depend on them.
