@@ -14,6 +14,8 @@ If going live, opening question: **has anyone actually *run* the rollback, or is
 
 A bounded experiment that tests an assumption is `poc`. This skill turns a validated direction into a maintainable change on a repo they will own, then production. Inspect existing prototype code and retain suitable tested parts; replace unsafe shortcuts based on evidence. A successful demo alone does not satisfy the readiness gates below.
 
+**Before committing a plan or building:** run `fde doctor --ready`. Missing binary success or a named customer-side signer blocks progression: review the proposed acceptance check and authority with the FDE first. Use a test/input and observable pass/fail under **Done when:** or **Acceptance check:**. A number, role, or successful demo alone is insufficient. Do not invent missing facts to pass lint.
+
 ## Field (name it once, then the same loop)
 
 | | Brownfield | Greenfield |

@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.27.0 - 2026-09-10
+
+- Keep unsourced decisions and delivery numbers as CLAIM. A log date is not a source; pending evidence cannot produce accepted value, including legacy ledger rows. Existing files are not rewritten.
+- Add bounded, redacted `defend` and `handoff` Markdown readouts. Explicit file exports create a new destination outside engagement records.
+- Put constraints first in the agent packet and include the classified value ledger. Make CLI triage and Today share one recommended first action with its reason and source.
+- Separate requests, scope and reported delivery in REVIEW; preserve explicit source references without inventing acceptance. Expand the fictional messy-notes demo.
+- Add `doctor --ready` for observable acceptance checks and a named signer before planning or building. Support revised multiline criteria.
+- Clarify the README around the delivery loop; retain the original poster and dark fieldbook. Add three thin workflow checklists, improve POC-to-production guidance and remove obsolete maintainer documentation.
+- Route `recall`, `defend` and `handoff` through the npm entry point.
+
 ## 3.26.0 - 2026-09-10
 
 - Bound complete resume output to 16 KiB by default, with explicit truncation and a smaller-output option. Add client-scoped `recall` for sanitized source excerpts, including policy and nearby decision context.

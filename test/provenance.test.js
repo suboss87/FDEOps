@@ -66,3 +66,21 @@ test('handoff export is explicit, new-file-only and cannot replace private recor
   assert.notEqual(f.run(['handoff', '--out', path.join(other, 'cross-client.md')]).status, 0)
   assert.equal(fs.existsSync(path.join(other, 'cross-client.md')), false)
 })
+test('npx entry routes recall, defend and handoff to the CLI without installing', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'context.md'), '# Context\n## Next action\nretry the sample\n')
+  for (const args of [['recall', 'retry'], ['defend'], ['handoff']]) {
+    const r = spawnSync(process.execPath, [path.join(__dirname, '../bin/install.js'), ...args], { cwd: f.root, env: { ...process.env, HOME: f.root, FDEOPS_ENGAGEMENT: f.eng, FDEOPS_ENGAGEMENTS_ROOT: f.root }, encoding: 'utf8' })
+    assert.equal(r.status, 0, r.stderr); assert.match(r.stdout, /retry/)
+    assert.equal(fs.existsSync(path.join(f.root, '.claude')), false)
+  }
+})
+test('doctor --ready checks success before phase transition without writing', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'context.md'), '# Context\n**Phase:** discover\n## Next action\nDefine the check\n')
+  fs.writeFileSync(path.join(f.eng, 'success.md'), '# Success\n**Done when:** improve things\n')
+  const before = fs.readFileSync(path.join(f.eng, 'context.md'), 'utf8')
+  const r = f.run(['doctor', '--ready']); assert.notEqual(r.status, 0)
+  assert.match(r.stdout, /binary acceptance check/); assert.match(r.stdout, /named customer-side signer/)
+  assert.equal(fs.readFileSync(path.join(f.eng, 'context.md'), 'utf8'), before)
+})

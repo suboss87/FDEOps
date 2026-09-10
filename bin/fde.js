@@ -1398,7 +1398,7 @@ function cmdResume(args) {
     console.log(`NO ENGAGEMENT for this workspace.\nexisting: ${list}\nAsk the human the client name (one question), then run: fde resume --init <client-name>\nDo not tell them to type that command.`)
     process.exit(2)
   }
-  const intro = [resumeTriage(eng), ...hygieneTriageLines(eng), ...recordDigest(eng)].join('\n')
+  const intro = [resumeTriage(eng), firstActionLine(eng), ...hygieneTriageLines(eng), ...recordDigest(eng)].join('\n')
   const ctx = readClean(eng, 'context.md')
   if (args.includes('--full')) {
     console.log(`${intro}\n\nENGAGEMENT: ${eng}\n\n${ctx || '(no context.md yet)'}`)
@@ -2344,7 +2344,7 @@ function cmdHandoff(args, label = 'Handoff') {
   const decisions = readClean(eng, 'decisions.md').split('\n')
     .map((line, i) => ({ line, at: i + 1 }))
     .filter(d => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(d.line.trim()))
-  const selected = decisions.slice(-8)
+  const selected = decisions.sort((a, b) => a.line.slice(3, 13).localeCompare(b.line.slice(3, 13))).slice(-8)
   const records = selected.filter(d => hasSource(d.line))
   const claims = selected.filter(d => !hasSource(d.line))
   const decisionText = d => `${d.line} (decisions.md:${d.at}, redacted view)`
@@ -2625,7 +2625,7 @@ function successContractIssues(success) {
   return issues
 }
 
-function collectDoctorIssues(eng) {
+function collectDoctorIssues(eng, { readiness = false } = {}) {
   const issues = []
   const s = computeSignals(eng)
   // stripTemplateNoise: a dated example inside a template comment is not work.
@@ -2650,7 +2650,7 @@ function collectDoctorIssues(eng) {
       issues.push(`${f} is not a regular file - reads come back empty and every write fails; remove it and re-run any fde write`)
     }
   }
-  if (fresh) return issues
+  if (fresh && !readiness) return issues
 
   if (s.phase === '?' || s.phase === 'unset') {
     if (hasDatedWork) {
@@ -2686,7 +2686,7 @@ function collectDoctorIssues(eng) {
   const unsourced = readClean(eng, 'decisions.md').split('\n').filter(line => /^[-*]\s*\[\d{4}-\d{2}-\d{2}\]/.test(line.trim()) && !hasSource(line))
   if (unsourced.length) issues.push(`${unsourced.length} dated decision(s) remain CLAIM: source missing - add the actual meeting, transcript, email, or artifact reference; a log date is not evidence`)
   const success = readClean(eng, 'success.md')
-  if (/^(plan|ship|outcome|close)$/.test(s.phase)) issues.push(...successContractIssues(success))
+  if (readiness || /^(plan|ship|outcome|close)$/.test(s.phase)) issues.push(...successContractIssues(success))
   if (!firstLine(success, 80)) issues.push('success.md has no stated done-definition - fill before plan/ship')
   const ctxMd = readClean(eng, 'context.md')
   if (!sectionBody(ctxMd, 'Next action', { lastNonEmpty: true })) {
@@ -3025,10 +3025,14 @@ function deliverySummaryFor(eng) {
   })
 }
 
+function firstActionLine(eng) {
+  const action = deliverySummaryFor(eng).firstAction
+  return `  do first: ${previewLine(action.text, 140)} (${action.source}: ${previewLine(action.reason, 140)})`
+}
+
 function printTriageBlock(eng) {
   console.log(resumeTriage(eng))
-  const action = deliverySummaryFor(eng).firstAction
-  console.log(`  do first: ${previewLine(action.text, 140)} (${action.source}: ${previewLine(action.reason, 140)})`)
+  console.log(firstActionLine(eng))
   for (const line of hygieneTriageLines(eng)) console.log(line)
 }
 
@@ -3052,15 +3056,15 @@ function recordDigest(eng) {
     if (target) lines.push(`  promised: ${target.slice(0, 110)}`)
   }
   const decisions = readClean(eng, 'decisions.md').split('\n')
-    .filter(l => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(l.trim())).slice(-2)
-  for (const d of decisions) lines.push(`  decided: ${formatDecisionRecord(d)}`)
+    .filter(l => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(l.trim())).sort((a, b) => a.match(/\d{4}-\d{2}-\d{2}/)[0].localeCompare(b.match(/\d{4}-\d{2}-\d{2}/)[0])).slice(-2)
+  for (const d of decisions) lines.push(`  decided: ${formatDecisionRecord(d)}; source: ${previewLine(sourceReference(d) || '(missing)', 100)}`)
   return ['RECORD (read-only - success, delivery, decisions)', ...lines]
 }
 
-function cmdDoctor() {
+function cmdDoctor(args = []) {
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
-  const issues = collectDoctorIssues(eng)
+  const issues = collectDoctorIssues(eng, { readiness: args.includes('--ready') })
   console.log(`FDE DOCTOR - ${engagementSlugFromPath(eng)}`)
   printTriageBlock(eng)
   if (!issues.length) {
@@ -3881,7 +3885,7 @@ function printUsage() {
   fde ingest propose <id>  smart-propose a staged item → .debrief-propose (confirm before apply)
   fde ingest apply         same as: fde debrief --apply
   fde prep [label]         grounded walk-in brief from existing .fde/ only
-  fde doctor               lint engagement memory (stale signals, gaps). status/dashboard/resume print the same issues
+  fde doctor [--ready]     lint memory; --ready checks success before plan/build. Lint (stale signals, gaps). status/dashboard/resume print the same issues
   fde redact <term>        preview/remove lines containing a buried term (pass --apply to commit; subject never repeats the term)
   fde tidy [--apply]       propose consolidations; blesses hand-written dirty files when you apply
   fde owner [set email]    who keeps this engagement record
@@ -3914,7 +3918,7 @@ switch (cmd) {
   case 'debrief': cmdDebrief(args); break
   case 'ingest': cmdIngest(args); break
   case 'prep': cmdPrep(args); break
-  case 'doctor': cmdDoctor(); break
+  case 'doctor': cmdDoctor(args); break
   case 'redact': cmdRedact(args); break
   // `garden` was the name through 3.11.x; it keeps working.
   case 'tidy':

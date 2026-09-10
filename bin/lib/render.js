@@ -368,7 +368,7 @@ function agentActionsHtml(e) {
 
 function deliveryHtml(e) {
   const rows = e.valueRows || []
-  const labels = { unmeasured: 'Not yet measured', claimed: 'Awaiting acceptance', accepted: 'Acceptance recorded' }
+  const labels = { unmeasured: 'Not yet measured', claimed: 'CLAIM · Awaiting acceptance', accepted: 'Acceptance recorded' }
   const pending = value => !value || /^(?:pending|tbd|unknown|n\/a|none|awaiting)(?:\b|$)/i.test(value)
   const cell = (value, fallback) => pending(value) ? `<span class="t-faint">${escapeHtml(value || fallback)}</span>` : inlineMd(value)
   return `<section class="fb-block fb-delivery" aria-label="Delivery evidence">
@@ -435,7 +435,7 @@ ${e.realityMissing ? `<p class="fb-why fb-why-missing"><span class="fb-accent-la
   const vitalsBlock = `<div class="fb-vitals">
 ${vitalsRows.map(([label, val, tone]) => `<div class="fb-vital-row"><span class="fb-vital-label">${escapeHtml(label)}</span><span class="fb-vital-val${tone ? ' t-' + tone : ''}">${escapeHtml(val)}</span></div>`).join('\n')}
 ${teamStatus ? `<div class="fb-vital-row"><span class="fb-vital-label">team status</span><span class="fb-vital-val">${teamStatus}</span></div>` : ''}
-${e.stats.length ? `<div class="fb-vital-div"></div>${e.stats.map(s => `<div class="fb-vital-row"><span class="fb-vital-label">${inlineMd(s.label)}</span><span class="fb-vital-val">${inlineMd(s.from)} <span class="fb-arrow">&rarr;</span> <span class="fb-stat-to">${inlineMd(s.to)}</span></span></div>`).join('\n')}` : ''}
+${e.stats.length ? `<div class="fb-vital-div"></div><p class="fb-footnote">Metric excerpts are CLAIMS; verify source and acceptance.</p>${e.stats.map(s => `<div class="fb-vital-row"><span class="fb-vital-label">${inlineMd(s.label)}</span><span class="fb-vital-val">${inlineMd(s.from)} <span class="fb-arrow">&rarr;</span> <span class="fb-stat-to">${inlineMd(s.to)}</span></span></div>`).join('\n')}` : ''}
 </div>`
 
   const peopleBlock = e.stakeholders.length ? `<div class="fb-block">

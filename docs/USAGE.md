@@ -308,3 +308,9 @@ Use `--max-bytes 4096` with either command for a smaller allowance (supported ra
 Truncation is explicit. A partial excerpt is not evidence that omitted constraints do not exist. Refine the query and verify source dates, conflicting decisions and approval scope before acting. References identify lines in the redacted view; private-block removal can change their position relative to the raw file. `fde resume --full` deliberately bypasses the output bound and can be large. Existing `receipts` remains available for a full literal record search.
 
 Measure the synthetic long-history behavior with `node evals/context-budget/check.js`. This reports bytes and matching records; it does not claim improved model accuracy or time saved.
+
+## Sponsor readout and successor packet
+
+Run `fde defend` for accepted assertions, claims, source references, and gaps. Run `fde handoff --out successor.md` for a new portable Markdown snapshot; review it before sharing. Both are bounded and private-redacted, with no writes unless `--out` is explicit. They do not authenticate sources or confer customer approval.
+
+Before planning or building, run `fde doctor --ready`. Record an observable pass/fail test and the named customer-side signer; vague improvement, a number alone, or a role is insufficient. This checks readiness without changing the phase.
