@@ -1121,6 +1121,12 @@ function extractRisks(eng) {
     const t = raw.trim()
     const m = t.match(/^-\s*\[\d{4}-\d{2}-\d{2}\]\s*(?:\[@[^\]]+\]\s*)?(.*)$/)
     if (m) push(m[1])
+    else {
+      // Inherited Markdown may predate the dated CLI format. Keep its open
+      // bullets visible; absence of a date does not mean absence of a risk.
+      const bullet = t.match(/^[-*+]\s+(.*)$/)
+      if (bullet && !/^\[[xX]\]\s/.test(bullet[1])) push(bullet[1].replace(/^\[ \]\s*/, ''))
+    }
   }
   return out
 }
@@ -2433,12 +2439,30 @@ function cmdReceipts(args) {
       if (!line.toLowerCase().includes(term.toLowerCase())) return
       const source = decisionSources.get(i + 1) || sourceReference(line)
       const hit = `  ${file}:${i + 1}  ${line.trim().slice(0, 160)}${source ? ` [source: ${source.slice(0, 160)}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
-      ;(recordFiles.includes(file) && source ? records : claims).push(hit)
+      ;(recordFiles.includes(file) && source ? records : claims).push({ file, hit })
     })
   }
-  const sections = ['RECEIPTS: a cited record is not proof of customer approval. File line numbers refer to the redacted view.']
-  if (records.length) sections.push('ON RECORD (dated, source-backed):\n' + records.join('\n'))
-  if (claims.length) sections.push('CLAIMS & working notes (verify source and approval before citing):\n' + claims.join('\n'))
+  // Alternate the latest and earliest matching lines per file. Otherwise a
+  // long history can spend the entire packet on approvals before a withdrawal.
+  const select = hits => {
+    const groups = new Map()
+    for (const { file, hit } of hits) {
+      if (!groups.has(file)) groups.set(file, [])
+      groups.get(file).push(hit)
+    }
+    const selected = []
+    let latest = true
+    while (selected.length < 24 && [...groups.values()].some(group => group.length)) {
+      for (const group of groups.values()) {
+        if (group.length && selected.length < 24) selected.push(latest ? group.pop() : group.shift())
+      }
+      latest = !latest
+    }
+    return `Selected ${selected.length} of ${hits.length} matching lines; omitted matches require a narrower search.\n` + selected.join('\n')
+  }
+  const sections = ['RECEIPTS: a cited record is not proof of customer approval. File line numbers refer to the redacted view. Latest and earliest matching lines are sampled; file order is not authority. Check conflicting records.']
+  if (records.length) sections.push('ON RECORD (dated, source-backed):\n' + select(records))
+  if (claims.length) sections.push('CLAIMS & working notes (verify source and approval before citing):\n' + select(claims))
   if (!records.length && !claims.length) sections.push(`no record of "${term}" - a gap in the record, not proof of absence`)
   process.stdout.write(context.boundedSections(sections))
 }
@@ -2473,6 +2497,7 @@ function cmdHandoff(args, label = 'Handoff') {
     `## Constraints - trust-profile.md\n${stripTemplateNoise(readClean(eng, 'trust-profile.md')) || '(missing)'}`,
     `## Signer and success - success.md\nSigner: ${signer || '(missing; do not infer)'}\n${success || '(missing)'}`,
     `## Next action - context.md\n${next || '(missing)'}\n\n## Open risks - risks.md\n${extractRisks(eng).map(r => '- ' + r.text).join('\n') || '(none recorded; not proof of no risk)'}`,
+    label === 'Handoff' ? `## Operational handoff - handoff.md\n${stripTemplateNoise(readClean(eng, 'handoff.md')) || '(missing; record recovery steps and the operating owner before rotation)'}` : '',
     `## Accepted value - recorded assertion with source\nOnly structured value-ledger rows are summarized here; review other notes in delivery.md before presenting or handing over this record.\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']').join('\n') || '(none)'}`,
     `## ON RECORD decisions - source supplied, not automatic approval\n${records.map(decisionText).join('\n') || '(none)'}\n\n## CLAIM decisions - source missing\n${claims.map(decisionText).join('\n') || '(none)'}\nSelected ${selected.length} of ${decisions.length} dated decisions. Retrieve older or conflicting decisions with fde recall.`,
     `## Gaps before relying on this packet\n${gaps.map(g => '- ' + g).join('\n') || '(no deterministic lint gaps; human review still required)'}`,
@@ -2499,7 +2524,7 @@ function cmdRecall(args) {
   }
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - bind a client before recall'); process.exit(2) }
-  const files = ['context.md', 'trust-profile.md', 'success.md', 'decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'brief.md', 'reality.md', 'assumptions.md', 'terrain.md']
+  const files = ['context.md', 'trust-profile.md', 'success.md', 'decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'brief.md', 'reality.md', 'assumptions.md', 'terrain.md', 'handoff.md']
   const result = context.recallSections(files.map(file => ({ file, text: readClean(eng, file) })), query)
   process.stdout.write(context.boundedSections([
     `RECALL - ${eng}\n${result.total ? `${result.sections.length} of ${result.total} matching lines; refine the query if evidence is omitted.` : 'No matching record. This is not proof that the event never happened.'}\nSources are local record assertions; verify dates, supersession and approval scope.`,

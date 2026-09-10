@@ -4,11 +4,11 @@
 
 **Read first:** `context.md` if it exists - otherwise start cold. The point of this phase is to establish ground truth, not assume it.
 
-## Method - part 1: read everything that exists (you do this work)
+## Method - part 1: inspect the inherited record (you do this work)
 
 Before forming any opinion:
 
-1. **Inherit the paper.** Any previous `.fde/`, docs, README claims, ADRs, ticket history the FDE can export. Read it all - the previous FDE's decisions are evidence, not verdicts.
+1. **Inherit the paper.** Start with `fde resume` and inventory the available docs, ADRs, ticket exports and operational handoff. Do not recursively load `.fde/` or raw transcripts. List the claims and unknowns, then use `fde recall <specific topic>` to retrieve bounded evidence for each consequential claim. Review the relevant source when an excerpt is insufficient; keep unrelated history on disk. Previous decisions are evidence, not verdicts.
 2. **Run the discover scans** (see `discover.md` part 1: churn, test gaps, "temporary" grep, AI components). On a takeover, add:
 ```bash
 git log --format="%an" | sort | uniq -c | sort -rn | head   # who actually built this
@@ -55,7 +55,7 @@ Build without a plan in an inherited system is the fastest path to the second in
 
 ## Principles
 
-- Read everything that exists before forming any opinion.
+- Inventory the record; verify consequential claims through targeted, bounded retrieval before forming an opinion.
 - "It should work" is not "it works." Verify.
 - The most dangerous systems are the ones everyone assumes someone else understands.
 - Don't build until `audit.md`, `terrain.md`, `reality.md` are written.
