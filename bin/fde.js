@@ -2353,13 +2353,13 @@ function cmdHandoff(args, label = 'Handoff') {
   const claims = selected.filter(d => !hasSource(d.text))
   const decisionText = d => `${d.text} (decisions.md:${d.line}, redacted view)`
   const next = stripTemplateNoise(sectionBody(readClean(eng, 'context.md'), 'Next action', { lastNonEmpty: true }))
-  const gaps = collectDoctorIssues(eng)
+  const gaps = collectDoctorIssues(eng, { readiness: true })
   const report = context.boundedSections([
     `# ${label}: ${engagementSlugFromPath(eng)}\nSnapshot: ${new Date().toISOString()} · memory ${memoryHead(eng) || 'unversioned'}\nRead-only record, not proof of approval. Confirm sources with the named customer before relying on a claim. Private blocks are excluded; review remaining client information before sharing.`,
     `## Constraints - trust-profile.md\n${stripTemplateNoise(readClean(eng, 'trust-profile.md')) || '(missing)'}`,
     `## Signer and success - success.md\nSigner: ${signer || '(missing; do not infer)'}\n${success || '(missing)'}`,
     `## Next action - context.md\n${next || '(missing)'}\n\n## Open risks - risks.md\n${extractRisks(eng).map(r => '- ' + r.text).join('\n') || '(none recorded; not proof of no risk)'}`,
-    `## Accepted value - recorded assertion with source\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']').join('\n') || '(none)'}`,
+    `## Accepted value - recorded assertion with source\nOnly structured value-ledger rows are summarized here; review other notes in delivery.md before presenting or handing over this record.\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']').join('\n') || '(none)'}`,
     `## ON RECORD decisions - source supplied, not automatic approval\n${records.map(decisionText).join('\n') || '(none)'}\n\n## CLAIM decisions - source missing\n${claims.map(decisionText).join('\n') || '(none)'}\nSelected ${selected.length} of ${decisions.length} dated decisions. Retrieve older or conflicting decisions with fde recall.`,
     `## Gaps before relying on this packet\n${gaps.map(g => '- ' + g).join('\n') || '(no deterministic lint gaps; human review still required)'}`,
   ], parsed.maxBytes)
@@ -3522,7 +3522,13 @@ function cmdDashboard(args) {
   const html = render.buildFieldbookHtml({ engagements, today, generatedAt: new Date().toISOString() })
 
   try {
+    const isRecordPath = p => p.split(path.sep).some(part => ['.fde', '.git'].includes(part.toLowerCase()))
+    if (isRecordPath(outPath)) throw new Error('save the dashboard outside .fde/ and .git/; these folders hold records, not reports')
+    let existingParent = path.dirname(outPath)
+    while (!fs.existsSync(existingParent)) existingParent = path.dirname(existingParent)
+    if (isRecordPath(fs.realpathSync(existingParent))) throw new Error('save the dashboard outside .fde/ and .git/; this path points into a record folder')
     fs.mkdirSync(path.dirname(outPath), { recursive: true })
+    if (isRecordPath(fs.realpathSync(path.dirname(outPath)))) throw new Error('save the dashboard outside .fde/ and .git/; this path points into a record folder')
     atomicWriteFile(outPath, html)
   } catch (e) {
     failFs(e, 'write fieldbook', outPath)

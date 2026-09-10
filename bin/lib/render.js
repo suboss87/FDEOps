@@ -573,7 +573,7 @@ ${railItems}
 </aside>
 <main id="fb-main" tabindex="-1" class="fb-main fb-scroll">
 <div class="fb-main-inner">
-<div class="fb-snapshot"><strong>Read-only snapshot</strong> &middot; Snapshot generated <time datetime="${escapeHtml(generatedAt)}">${escapeHtml(generatedAt ? generatedAt.replace('T', ' ').replace(/\.\d+Z$/, ' UTC') : today)}</time>. Re-run <code>fde dashboard</code> after updating your records. Reloading this page alone does not refresh the record.</div>
+<div class="fb-snapshot"><strong>Read-only snapshot</strong> &middot; Snapshot generated <time datetime="${escapeHtml(generatedAt)}">${escapeHtml(generatedAt ? generatedAt.replace('T', ' ').replace(/\.\d+Z$/, ' UTC') : today)}</time>. After updating your records, run the dashboard command that created this file again, keeping the same <code>--all</code> and <code>--out</code> options if used. Then reload. Reloading this page alone does not refresh the record.</div>
 ${todayView}
 ${clientViews}
 <p id="fb-status" class="fb-copy-status" role="status" aria-live="polite"></p>

@@ -84,6 +84,20 @@ test('doctor --ready checks success before phase transition without writing', t 
   assert.match(r.stdout, /binary acceptance check/); assert.match(r.stdout, /named customer-side signer/)
   assert.equal(fs.readFileSync(path.join(f.eng, 'context.md'), 'utf8'), before)
 })
+test('early handoff exposes missing acceptance criteria and names the limits of its ledger summary', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'context.md'), '# Context\n**Phase:** discover\n')
+  fs.writeFileSync(path.join(f.eng, 'success.md'), '# Success\n**Done when:** improve things\n**Stakeholder who signs off:** unconfirmed\n')
+  fs.writeFileSync(path.join(f.eng, 'delivery.md'), '# Delivery\n## Running value\nStaging replay took five minutes; production has not been measured.\n')
+  for (const command of ['defend', 'handoff']) {
+    const result = f.run([command])
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(result.stdout, /binary acceptance check/)
+    assert.match(result.stdout, /named customer-side signer/)
+    assert.match(result.stdout, /Only structured value-ledger rows are summarized/)
+    assert.match(result.stdout, /review other notes in delivery\.md/)
+  }
+})
 test('handoff retains long-form decision sources and orders recent decisions by date', t => {
   const f = fixture(t)
   fs.writeFileSync(path.join(f.eng, 'decisions.md'), '# Decisions\n### [2026-09-10] Keep the connector\n- Rationale: preserve the tested path\n- Source: [source: meeting 2026-09-09]\n<private>PRIVATE_LONGFORM</private>\n## 2026-09-08 - Reject the rewrite\n- Source: PR #42\n- [2026-01-01] Earlier unsupported idea\n')
