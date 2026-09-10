@@ -34,6 +34,8 @@ The example's success criteria are illustrative, not actual customer results. No
 
 ### Minute 4: open the fieldbook
 
+Search by client or sponsor and filter by attention flags. On mobile, open **Clients** to switch engagements; the report keeps the selected client in view. Prompt buttons copy instructions for your agent. The dashboard is a local snapshot: rerun `fde dashboard` after changing engagement records.
+
 Open the HTML path printed at the end. Find Acme's next action, recent decisions, risks, and available success criteria. The page is a local snapshot of the records generated during the demo.
 
 To remove only the fictional demo later:
