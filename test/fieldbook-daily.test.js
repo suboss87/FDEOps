@@ -40,7 +40,7 @@ test('fieldbook people rows use table names, not the/Friday from signal prose', 
   assert.equal(dash.status, 0, dash.stderr)
   const html = fs.readFileSync(out, 'utf8')
   const names = [...html.matchAll(/fb-person-name">([^<]+)/g)].map(m => m[1])
-  assert.deepEqual(names.sort(), ['CTO (invite)', 'Finance controller', 'Platform lead', 'Prior vendor (left)'].sort())
+  assert.deepEqual(names.sort(), ['CTO (invite)', 'June Porter (finance controller)', 'Platform lead', 'Prior vendor (left)'].sort())
   assert.doesNotMatch(html, /fb-person-name">the</)
   assert.doesNotMatch(html, /fb-person-name">Friday</)
   assert.equal(names.filter(n => /^CTO\b/.test(n)).length, 1, 'one CTO row, not a duplicate from signal prose')
@@ -70,7 +70,7 @@ test('fieldbook still keys INCIDENT recovery on the person, not the event word',
   assert.doesNotMatch(html, /fb-person-name">recovery/)
 })
 
-test('accepted value with pending evidence still nags missing evidence', () => {
+test('named acceptance with pending evidence remains a claim and nags missing evidence', () => {
   const sandbox = makeSandbox('evidence-accepted')
   assert.equal(runFde(sandbox, ['resume', '--init', 'acme']).status, 0)
   fs.writeFileSync(path.join(engagementPath(sandbox, 'acme'), 'delivery.md'), [
@@ -84,8 +84,30 @@ test('accepted value with pending evidence still nags missing evidence', () => {
   assert.equal(runFde(sandbox, ['dashboard', '--out', out]).status, 0)
   const html = fs.readFileSync(out, 'utf8')
   assert.match(html, /missing evidence/)
-  assert.match(html, /Acceptance recorded/)
+  assert.match(html, /Awaiting acceptance/)
+  assert.doesNotMatch(html, /Acceptance recorded/)
   assert.match(html, /Priya 2026-09-09/)
+  assert.match(runFde(sandbox, ['status']).stdout, /claimed, not yet accepted/)
+})
+
+test('named acceptance with a supplied measurement source is recorded without claiming authentication', () => {
+  const sandbox = makeSandbox('evidence-sourced')
+  assert.equal(runFde(sandbox, ['resume', '--init', 'acme']).status, 0)
+  fs.writeFileSync(path.join(engagementPath(sandbox, 'acme'), 'delivery.md'), [
+    '# Delivery', '## Value ledger',
+    '| Slice | Promised | Measured | Accepted by | Evidence | Acceptance status |',
+    '|---|---|---|---|---|---|',
+    '| Export | no lost rows | 0 lost | Priya, meeting 2026-09-09 | PR #42, replay.csv | accepted |',
+    '',
+  ].join('\n'))
+  const out = path.join(sandbox.dir, 'fieldbook.html')
+  assert.equal(runFde(sandbox, ['dashboard', '--out', out]).status, 0)
+  const html = fs.readFileSync(out, 'utf8')
+  assert.match(html, /Acceptance recorded/)
+  assert.match(html, /PR #42, replay.csv/)
+  assert.match(html, /Priya, meeting 2026-09-09/)
+  assert.match(html, /not independent verification/)
+  assert.doesNotMatch(html, /missing evidence/)
 })
 
 test('empty fieldbook stays new, not verified, and ships clipboard fallback markup', () => {

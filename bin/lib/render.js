@@ -543,7 +543,7 @@ function buildFieldbookHtml({ engagements, today, generatedAt = '' }) {
 
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<script>try{var t=localStorage.getItem("fde-fieldbook-theme");if(t==="dark"||(!t&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-fde-theme","dark");}catch(e){}</script>
+<script>document.documentElement.setAttribute("data-fde-theme","dark");try{if(localStorage.getItem("fde-fieldbook-theme")==="light")document.documentElement.setAttribute("data-fde-theme","light");}catch(e){}</script>
 <title>FDE Fieldbook</title><style>${dashStyles()}</style></head><body>
 <a class="fb-skip" href="#fb-main">Skip to content</a>
 <div class="fb-app">
