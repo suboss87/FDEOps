@@ -1,4 +1,5 @@
 'use strict'
+const { hasSource } = require('./provenance')
 
 // Empty measurements and unsigned outcomes are different facts. Keep their
 // interpretation shared by status, reports, and exported vaults.
@@ -21,7 +22,7 @@ function acceptanceName(value) {
 
 function valueState({ measured, accepted, acceptanceStatus, evidence }) {
   if (!measured || PENDING_CELL_RE.test(measured)) return 'unmeasured'
-  if (!acceptanceName(accepted)) return 'claimed'
+  if (!acceptanceName(accepted) || !hasSource(evidence)) return 'claimed'
   // Explicit status is authoritative when the column exists. Unknown values
   // fail closed. Existing name-only ledgers remain readable during migration.
   if (acceptanceStatus !== undefined) {

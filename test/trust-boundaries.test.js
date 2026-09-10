@@ -72,8 +72,8 @@ test('explicit acceptance status needs signer, measurement and evidence; legacy 
   assert.equal(valueState({ ...accepted, evidence: 'pending' }), 'claimed')
   assert.equal(valueState({ ...accepted, accepted: 'approved' }), 'claimed')
   assert.equal(valueState({ ...accepted, measured: 'pending' }), 'unmeasured')
-  for (const accepted of ['May', 'Jan', 'Denise Chen, Aug 14']) assert.equal(valueState({ measured: '5 min', accepted }), 'accepted')
-  assert.equal(valueState({ measured: '5 min', accepted: 'Priya Shah, approved 2026-09-10' }), 'accepted')
+  for (const accepted of ['May', 'Jan', 'Denise Chen, Aug 14']) assert.equal(valueState({ measured: '5 min', accepted, evidence: 'PR #42' }), 'accepted')
+  assert.equal(valueState({ measured: '5 min', accepted: 'Priya Shah, approved 2026-09-10', evidence: 'PR #42' }), 'accepted')
 })
 
 test('explicit revocation stays unaccepted in CLI, dashboard and vault', t => {

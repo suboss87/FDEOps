@@ -36,6 +36,7 @@ const { createMemoryApi } = require('./lib/memory')
 const { createTrustApi } = require('./lib/trust')
 const vault = require('./lib/vault')
 const context = require('./lib/context')
+const { sourceReference, hasSource } = require('./lib/provenance')
 
 const HOME = os.homedir()
 // FDEOPS_ENGAGEMENTS_ROOT isolates init/status/dashboard (and the registry) for
@@ -1408,8 +1409,8 @@ function cmdResume(args) {
   const success = readClean(eng, 'success.md')
   const risks = readClean(eng, 'risks.md')
   process.stdout.write(context.boundedSections([
-    `${intro}\n\nENGAGEMENT: ${eng}`,
     policy ? `CLIENT POLICY - trust-profile.md\n${policy}` : '',
+    `${intro}\n\nENGAGEMENT: ${eng}`,
     success ? `CURRENT GOALS & ACCEPTANCE - success.md\n${success}` : '',
     risks ? `RECORDED RISKS - risks.md\n${risks}` : '',
     `WORKING CONTEXT - context.md\n${ctx ? resumeView(ctx) : '(no context.md yet)'}`,
@@ -1901,7 +1902,7 @@ function formatDecisionRecord(line) {
   const raw = String(line || '').trim().replace(/^[-*]\s*/, '')
   const who = approvedStamp(raw)
   const core = stripApprovedStamp(raw)
-  const stamp = who ? `(approved ${who})` : '(unconfirmed)'
+  const stamp = !hasSource(raw) ? '(CLAIM - source missing)' : who ? `(approved ${who}; source recorded)` : '(unconfirmed; source recorded)'
   return previewLine(`${core}  ${stamp}`, 110)
 }
 
@@ -2269,60 +2270,76 @@ function cmdIngest(args) {
 }
 
 function cmdReceipts(args) {
-  const term = args.join(' ')
-  if (!term) { console.error('usage: fde receipts <search term>'); process.exit(1) }
+  const term = args.join(' ').trim()
+  if (!term) { console.error('usage: fde receipts <search term>'); process.exit(2) }
+  const eng = resolveEngagement()
+  if (!eng) { console.error('no engagement - bind a client first'); process.exit(2) }
+  const recordFiles = ['decisions.md', 'delivery.md', 'success.md', 'risks.md', 'stakeholders.md']
+  const workingFiles = ['brief.md', 'assumptions.md', 'reality.md', 'context.md']
+  const dirty = new Set(memoryDirtyManual(eng))
+  const records = [], claims = []
+  for (const file of [...recordFiles, ...workingFiles]) {
+    readClean(eng, file).split('\n').forEach((line, i) => {
+      if (!line.toLowerCase().includes(term.toLowerCase())) return
+      const source = sourceReference(line)
+      const hit = `  ${file}:${i + 1}  ${line.trim().slice(0, 160)}${source ? ` [source: ${source.slice(0, 160)}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
+      ;(recordFiles.includes(file) && source ? records : claims).push(hit)
+    })
+  }
+  const sections = ['RECEIPTS: a cited record is not proof of customer approval. File line numbers refer to the redacted view.']
+  if (records.length) sections.push('ON RECORD (dated, source-backed):\n' + records.join('\n'))
+  if (claims.length) sections.push('CLAIMS & working notes (verify source and approval before citing):\n' + claims.join('\n'))
+  if (!records.length && !claims.length) sections.push(`no record of "${term}" - a gap in the record, not proof of absence`)
+  process.stdout.write(context.boundedSections(sections))
+}
+
+// Portable snapshot; stdout is read-only. --out creates a new file and never
+// overwrites an engagement record, existing file, or symlink.
+function cmdHandoff(args, label = 'Handoff') {
+  let parsed
+  try { parsed = context.budgetArgs(args) } catch (e) { console.error(e.message); process.exit(1) }
+  let out = ''
+  if (parsed.args.length) {
+    if (parsed.args.length !== 2 || parsed.args[0] !== '--out' || !parsed.args[1] || parsed.args[1].startsWith('--')) {
+      console.error('usage: fde handoff [--out new-file.md] [--max-bytes 4096..65536]'); process.exit(1)
+    }
+    out = path.resolve(parsed.args[1])
+  }
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
-  const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
-  // "receipts" answers "what did we AGREE?" - so dated, agreed records are the
-  // receipt. brief.md is the client's hypothesis and reality.md/context.md are
-  // working notes; a hit there is a CLAIM, not an agreement. Keeping them in the
-  // same list let an FDE cite a sales promise as a receipt - so they get a
-  // separate, clearly-labelled section that is never mistaken for the record.
-  const AGREEMENTS = ['decisions.md', 'delivery.md', 'success.md', 'risks.md', 'stakeholders.md']
-  const CLAIMS = ['brief.md', 'assumptions.md', 'reality.md', 'context.md']
-  const collect = files => {
-    const hits = []
-    for (const f of files) {
-      if (!fs.existsSync(path.join(eng, f))) continue
-      // readClean, not raw read: receipts must not grep sealed <private> notes
-      // back out. Redaction can shift line numbers past a multi-line block; the
-      // file:line is advisory - not leaking a sealed secret is worth that.
-      readClean(eng, f).split('\n').forEach((l, i) => {
-        if (rx.test(l)) hits.push(`  ${f}:${i + 1}  ${l.trim().slice(0, 160)}`)
-      })
-    }
-    return hits
-  }
-  const agreed = collect(AGREEMENTS)
-  const claimed = collect(CLAIMS)
-  const dirty = memoryDirtyManual(eng)
-  const dirtySet = new Set(dirty)
-  const dirtyAgreedHits = [...new Set(
-    agreed.map(h => (h.match(/^\s*([^:]+):/) || [])[1]).filter(f => f && dirtySet.has(f))
-  )]
-  if (agreed.length) {
-    console.log('ON RECORD (dated):')
-    agreed.forEach(h => {
-      const file = (h.match(/^\s*([^:]+):/) || [])[1]
-      console.log(h + (file && dirtySet.has(file) ? '  ⚠ dirty file' : ''))
-    })
-    if (dirtyAgreedHits.length) {
-      console.log(
-        `⚠ memory dirty (uncommitted manual edits: ${dirtyAgreedHits.join(', ')}) - dated lines above may not match the tamper-evident ledger until reviewed`
-      )
-    }
-  }
-  if (claimed.length) {
-    if (agreed.length) console.log('')
-    console.log('CLAIMS & working notes (stated, NOT an agreement - verify before citing):')
-    claimed.forEach(h => console.log(h))
-  }
-  if (!agreed.length && !claimed.length) {
-    console.log(`no record of "${term}" - nothing was ever logged about it. A gap in the record, not proof of absence: if it WAS agreed, log it now, dated today.`)
-  } else if (!agreed.length) {
-    console.log('\n(no dated agreement matched - only unverified claims above. If this was agreed, log it: fde log decision "...")')
-  }
+  const success = stripTemplateNoise(readClean(eng, 'success.md'))
+  const signer = ((success.match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').trim()
+  const ledger = parseValueLedger(eng).rows
+  const rowText = r => `- ${r.slice || 'Unnamed slice'}: promised ${r.promised || '(missing)'}; measured ${r.measured || '(missing)'}; accepted by ${r.accepted || '(missing)'}; evidence ${r.evidence || '(missing)'}`
+  const decisions = readClean(eng, 'decisions.md').split('\n')
+    .map((line, i) => ({ line, at: i + 1 }))
+    .filter(d => /^-\s*\[\d{4}-\d{2}-\d{2}\]/.test(d.line.trim()))
+  const selected = decisions.slice(-8)
+  const records = selected.filter(d => hasSource(d.line))
+  const claims = selected.filter(d => !hasSource(d.line))
+  const decisionText = d => `${d.line} (decisions.md:${d.at}, redacted view)`
+  const next = stripTemplateNoise(sectionBody(readClean(eng, 'context.md'), 'Next action', { lastNonEmpty: true }))
+  const gaps = collectDoctorIssues(eng)
+  const report = context.boundedSections([
+    `# ${label}: ${engagementSlugFromPath(eng)}\nSnapshot: ${new Date().toISOString()} · memory ${memoryHead(eng) || 'unversioned'}\nRead-only record, not proof of approval. Confirm sources with the named customer before relying on a claim. Private blocks are excluded; review remaining client information before sharing.`,
+    `## Constraints — trust-profile.md\n${stripTemplateNoise(readClean(eng, 'trust-profile.md')) || '(missing)'}`,
+    `## Signer and success — success.md\nSigner: ${signer || '(missing; do not infer)'}\n${success || '(missing)'}`,
+    `## Next action — context.md\n${next || '(missing)'}\n\n## Open risks — risks.md\n${extractRisks(eng).map(r => '- ' + r.text).join('\n') || '(none recorded; not proof of no risk)'}`,
+    `## Accepted value — recorded assertion with source\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']').join('\n') || '(none)'}`,
+    `## ON RECORD decisions — source supplied, not automatic approval\n${records.map(decisionText).join('\n') || '(none)'}\n\n## CLAIM decisions — source missing\n${claims.map(decisionText).join('\n') || '(none)'}\nSelected ${selected.length} of ${decisions.length} dated decisions. Retrieve older or conflicting decisions with fde recall.`,
+    `## Gaps before relying on this packet\n${gaps.map(g => '- ' + g).join('\n') || '(no deterministic lint gaps; human review still required)'}`,
+  ], parsed.maxBytes)
+  if (!out) { process.stdout.write(report); return }
+  try {
+    // Exclusive creation fails closed for files and links. Resolve the parent
+    // first so a directory link cannot redirect an export into .fde/.
+    const parent = fs.realpathSync(path.dirname(out))
+    const target = path.join(parent, path.basename(out))
+    const root = fs.realpathSync(eng)
+    if (target === root || target.startsWith(root + path.sep)) throw new Error('export outside .fde/; engagement records are not export destinations')
+    fs.writeFileSync(target, report, { flag: 'wx', mode: 0o600 })
+    console.log(`${label.toLowerCase()} → ${out}`)
+  } catch (e) { console.error(`could not export packet: ${e.message}`); process.exit(1) }
 }
 
 function cmdRecall(args) {
@@ -2832,7 +2849,7 @@ function parseValueLedger(eng) {
     const evidence = cell(row, idx.evidence)
     const acceptanceStatus = idx.acceptanceStatus === -1 ? undefined : cell(row, idx.acceptanceStatus)
     const state = valueState({ measured, accepted, acceptanceStatus, evidence })
-    rows.push({ slice, promised, measured, accepted, evidence, evidenceMissing: !evidence || PENDING_CELL_RE.test(evidence), state })
+    rows.push({ slice, promised, measured, accepted, evidence, evidenceMissing: !hasSource(evidence), state })
   }
   return { rows, columnMissing: idx.accepted === -1 }
 }
@@ -3784,7 +3801,9 @@ function printUsage() {
   fde tidy [--apply]       propose consolidations; blesses hand-written dirty files when you apply
   fde owner [set email]    who keeps this engagement record
   fde recall <topic>       bounded, redacted source excerpts (--max-bytes 4096..65536)
-  fde receipts <term>      "what did we agree?" with dates
+  fde receipts <term>      source-backed records versus claims
+  fde defend              sponsor readout: accepted assertions, claims, sources, gaps
+  fde handoff [--out file] portable redacted packet; stdout by default, new file only
   fde status [--all]       value ledger, then trust (pass --all for full portfolio)
   fde dashboard [--all] [--open] [--out <path>]  bound fieldbook (pass --all for every client)
   fde vault                derived Obsidian vault of every engagement (--current for one, --redacted for a shared screen, --out <dir>)
@@ -3817,6 +3836,8 @@ switch (cmd) {
   case 'garden': cmdGarden(args); break
   case 'owner': cmdOwner(args); break
   case 'receipts': cmdReceipts(args); break
+  case 'handoff': cmdHandoff(args); break
+  case 'defend': cmdHandoff(args, 'Sponsor readout'); break
   case 'capture': cmdCapture(); break
   case 'preserve': cmdPreserve(); break
   case 'status': cmdStatus(args); break
