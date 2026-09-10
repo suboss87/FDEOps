@@ -35,6 +35,21 @@ After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same rou
 | `risks.md` | Live risk register | plan, ship, rescue, `fde debrief` |
 | `delivery.md` | Value ledger (bucket → promised → measured → accepted by → evidence) + ship receipts + status memos | ship, status, close, `fde debrief` |
 
+### Delivery acceptance
+
+`Accepted by` records a customer-side name and date. Denials, pending requests,
+questions, and bare words such as `approved` do not identify acceptance.
+Legacy name-only rows remain readable; they record an assertion, not verified consent.
+
+Acceptance cells must put the customer-side name first (for example, `Priya Shah, approved 2026-09-10`). Approval prose such as `approved 2026-09-10`, or a generic role such as `customer sponsor`, does not identify a signer and remains claimed.
+
+For an explicit record, add an `Acceptance status` column to the value ledger:
+`pending`, `accepted`, `rejected`, or `revoked`. Only `accepted`, together with a
+signer, a measurement, and nonempty `Evidence`, is displayed as accepted. Empty or
+unrecognized statuses stay claimed. Keep the source, date, and scope in `Evidence`;
+the CLI checks recorded fields, not the authenticity of the customer's consent.
+A later rejection or revocation must update the row's status.
+
 ### Decision entries
 
 `fde log decision "<text>"` appends a dated one-liner, which is enough for most
