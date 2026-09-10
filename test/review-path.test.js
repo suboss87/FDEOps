@@ -45,7 +45,7 @@ test('tentative signer question stays a question and creates no authority', t =>
   const f = fixture(t)
   const proposed = f.run(['debrief', '--smart'], 'Maybe Priya signs off? We need to ask her.\n')
   assert.equal(proposed.status, 0)
-  assert.match(proposed.stdout, /named signer \(authority, not approval\): not stated/)
+  assert.match(proposed.stdout, /named signer \(authority, not approval\): not detected - review the notes/)
   assert.doesNotMatch(fs.readFileSync(path.join(f.eng, '.debrief-propose'), 'utf8'), /^signer:/m)
 })
 
