@@ -6,7 +6,9 @@ FDEOps helps a Forward Deployed Engineer or independent expert manage client wor
 
 One `@fde` skill guides the work. A local CLI records it in Markdown. A read-only dashboard shows one client or your portfolio. You review judgments and obtain customer approval; the tool does not decide for them.
 
-<img width="1536" height="1024" alt="fdeops" src="https://github.com/user-attachments/assets/2bcb8739-55ee-445d-8a1a-8b38433b7b58" />
+![FDEOps dashboard showing next actions and attention gaps across three fictional clients](media/fieldbook-preview.png)
+
+*Fictional client records. The fieldbook runs locally without network access.*
 
 ---
 

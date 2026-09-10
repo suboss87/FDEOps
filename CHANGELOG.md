@@ -1,5 +1,25 @@
 # Changelog
 
+## 3.25.0 - 2026-09-10
+
+A clearer fieldbook, with safer setup and consistent acceptance records.
+
+### Improved
+
+- Search and attention filters now apply to both the client list and the overview. Clear filters without losing the current engagement.
+- Embedded font data now lives outside renderer logic and carries its redistribution notice into offline reports.
+- Mobile navigation opens when needed, keeps client work visible, and supports keyboard search. Print remains available through the command palette.
+- Prompt actions report copy success immediately. Reports show their snapshot time and explain where to review changes.
+- README and installation guidance distinguish skill discovery, hook registration, direct CLI writes, and offline use. Added website update instructions for the designer.
+
+### Fixed
+
+- Startup context now consumes the CLI's sanitized, bounded output. Removed the duplicate shell redactor and terminal escape interpretation; unavailable runtime fails closed.
+- Pending requests, denials, revocations, and bare approval words no longer count as a customer-side signer. Status, dashboard, and vault exports share classification.
+- Optional `Acceptance status` makes recorded status explicit: only accepted rows with a signer, measurement, and evidence display as accepted. Legacy named rows remain readable; recorded acceptance does not authenticate consent.
+- Installer and adapter writes refuse unsafe linked destinations. Ordinary macOS system temporary paths remain supported.
+- Engagement initialization preserves existing client-folder files and refuses linked destinations rather than writing outside the intended directory.
+
 ## 3.24.0 - 2026-09-09
 
 The daily fieldbook is the review screen. Evidence stays evidence. People stay people.

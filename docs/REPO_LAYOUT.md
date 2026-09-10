@@ -9,7 +9,7 @@
 | `examples/` | Fictional walkthroughs with sample `.fde/` files |
 | `bin/fde.js` | Deterministic CLI - scan, resume, triage, log, debrief, ingest, prep, doctor, tidy, redact, receipts, capture, preserve, status, dashboard, vault |
 | `mcp/` | Optional MCP sink (`fdeops-ingest`) + source **recipes** (`mcp/recipes/` - file, granola, notion); source MCPs remain user-configured |
-| `bin/lib/` | Shared memory / trust / render helpers used by the CLI |
+| `bin/lib/` | Shared memory, trust, acceptance, installer safety, and report helpers; embedded fonts and their notice stay separate from rendering logic |
 | `bin/check.js` | Structural + install smoke gate (`npm run check`) |
 | `bin/install.js` | `node bin/install.js` (skills + hooks on disk) |
 | `hooks/` | session-start (read), session-stop (write), pre-compact - registry-aware |
