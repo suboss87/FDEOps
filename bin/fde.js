@@ -840,7 +840,7 @@ function valueLedgerRowCount(body) {
   return t.rows.filter(r => r.some(c => String(c || '').trim())).length
 }
 
-function appendValueLedgerRow(eng, cells) {
+function appendValueLedgerRow(eng, cells, { skipCommit = false } = {}) {
   ensureMemoryGit(eng)
   const p = path.join(eng, 'delivery.md')
   let row
@@ -887,7 +887,7 @@ function appendValueLedgerRow(eng, cells) {
     atomicWriteFile(p, md.endsWith('\n') ? md : md + '\n')
   })
   recordLastWrite(eng, 'delivery.md', row)
-  commitMemory(eng, 'log delivery', { files: ['delivery.md'] })
+  if (!skipCommit) commitMemory(eng, 'log delivery', { files: ['delivery.md'] })
 }
 
 function retireOpenRisks(eng, needle) {
@@ -983,7 +983,7 @@ const {
   countOpenRisks,
 } = createTrustApi({
   fs, path, readClean, readEng, parseMdTable, sectionBody, SIGNAL_LEDGER, memoryDirtyManual,
-  stripTemplateNoise, stripLegendLines,
+  stripTemplateNoise, stripLegendLines, extractRisks,
 })
 
 // Stakeholders: columns are matched by header wording, not position - real
@@ -1099,14 +1099,14 @@ function extractStakeholders(eng) {
 
 // Risks: table rows AND dated CLI/debrief bullets. Empty template cells ignored.
 function extractRisks(eng) {
-  const md = readClean(eng, 'risks.md')
+  const md = stripTemplateNoise(readClean(eng, 'risks.md'))
   const body = md.split(/^#{1,6}\s+Retired\b/im)[0] || md
   const HIGH = /critical|blocker|exposure|breach|urgent|at risk|at stake|\brace\b|rollback|no test/i
   const out = []
   const seen = new Set()
   const push = (text) => {
     const t = String(text || '').trim()
-    if (!t || seen.has(t.toLowerCase())) return
+    if (!t || /^(?:\[[xX]\]\s|(?:closed|resolved|retired)\s*:)/i.test(t) || seen.has(t.toLowerCase())) return
     seen.add(t.toLowerCase())
     out.push({ text: t, severity: HIGH.test(t) ? 'high' : 'med' })
   }
@@ -1114,13 +1114,23 @@ function extractRisks(eng) {
   if (table) {
     const riskIdx = colIndex(table.headers, /^risk$/i)
     if (riskIdx !== -1) {
-      for (const cs of table.rows) push(cs[riskIdx])
+      const statusIdx = colIndex(table.headers, /^status$/i)
+      for (const cs of table.rows) {
+        if (statusIdx !== -1 && /^(closed|resolved|retired)$/i.test((cs[statusIdx] || '').trim())) continue
+        push(cs[riskIdx])
+      }
     }
   }
   for (const raw of body.split('\n')) {
     const t = raw.trim()
     const m = t.match(/^-\s*\[\d{4}-\d{2}-\d{2}\]\s*(?:\[@[^\]]+\]\s*)?(.*)$/)
     if (m) push(m[1])
+    else {
+      // Inherited Markdown may predate the dated CLI format. Keep its open
+      // bullets visible; absence of a date does not mean absence of a risk.
+      const bullet = t.match(/^[-*+]\s+(.*)$/)
+      if (bullet && !/^\[[xX]\]\s/.test(bullet[1])) push(bullet[1].replace(/^\[ \]\s*/, ''))
+    }
   }
   return out
 }
@@ -1541,7 +1551,8 @@ function cmdLog(args) {
     return
   }
   if (type === 'delivery' && text.includes('|')) {
-    const cells = text.split('|').map(s => s.trim())
+    let cells
+    try { cells = deliveryCells(text) } catch (error) { console.error(error.message); process.exitCode = 1; return }
     appendValueLedgerRow(eng, cells)
     const hash = memoryHead(eng)
     console.log(`logged → delivery.md (value ledger)${hash ? ` @${hash}` : ''}`)
@@ -1876,6 +1887,8 @@ function stripApprovedStamp(text) {
 // One screen a human can confirm in two minutes. The file-by-file routing
 // still prints after this - agents edit prefixes; people read this.
 function printDebriefReview(text, eng) {
+  const repeats = repeatedDebriefStatements(eng, text)
+  if (repeats.length) console.log(`REPLAY WARNING: ${repeats.length} source-backed statement(s) already recorded. Review newer facts and next action; applying again requires --allow-replay.\n`)
   const buckets = { decided: [], asked: [], scope: [], delivery: [], open: [], next: [], signer: [] }
   for (const raw of String(text || '').split('\n')) {
     const line = raw.trim().replace(/^[-*+]\s+/, '')
@@ -2048,11 +2061,40 @@ function boundedDebriefPreview(eng, render, { proposal = true, maxBytes = 12000 
   return result
 }
 
-function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
+function deliveryCells(text) {
+  const cells = text.split('|').map(s => s.trim())
+  if (cells.length !== 7) throw new Error('delivery needs exactly 7 fields: Slice | Bucket | Promised | Measured | Accepted by | Evidence | Rollback. Use pending for unknowns; omit pipes for a narrative note.')
+  return cells
+}
+
+// Exact sourced statement replay only; a shared source may contain new facts.
+// Do not silently deduplicate: the engineer decides whether a repeated event is intended.
+function repeatedDebriefStatements(eng, input) {
+  const repeats = []
+  const records = new Map()
+  const normalize = value => value.replace(/\s*\|\s*/g, '|').replace(/\s+/g, ' ').trim()
+  for (const raw of splitPrivate(input, { sealDangling: true }).clean.split('\n')) {
+    const match = raw.trim().replace(/^[-*+]\s+/, '').match(/^(decision|risk|delivery|contact):\s*(.+)$/i)
+    if (!match || !/\[source:[^\]]+\]/i.test(match[2])) continue
+    const body = match[2].trim()
+    const file = LOG_FILES[match[1].toLowerCase()]
+    if (!records.has(file)) {
+      const statements = String(readClean(eng, file) || '').split('\n').map(line => {
+        if (/^\s*\|/.test(line)) return normalize(line.trim().replace(/^\|\s*\d{4}-\d{2}-\d{2}\s*\|/, '').replace(/\|\s*$/, ''))
+        return normalize(line.replace(/^\s*[-*+]\s+/, '').replace(/^(?:\[(?:\d{4}-\d{2}-\d{2}|@[^\]]+|signal:[^\]]+)\]\s*)+/, ''))
+      })
+      records.set(file, new Set(statements))
+    }
+    if (records.get(file).has(normalize(body))) repeats.push(body)
+  }
+  return repeats
+}
+
+function routeDebriefInput(eng, input, { dry, force, sealed = [], allowReplay = false }) {
   if (!dry && !debriefTransactionActive) {
     ensureMemoryGit(eng)
     return withDebriefRecords(eng, () => {
-      const result = routeDebriefInput(eng, input, { dry, force, sealed })
+      const result = routeDebriefInput(eng, input, { dry, force, sealed, allowReplay })
       // Consuming the review is part of the write. If cleanup fails, restoring
       // both the records and proposal makes the next explicit apply safe.
       for (const file of [DEBRIEF_PROPOSE, DEBRIEF_PRIVATE, DEBRIEF_SEAL]) {
@@ -2063,12 +2105,14 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
       return result
     })
   }
+  const repeats = repeatedDebriefStatements(eng, input)
+  if (repeats.length && !dry && !allowReplay) throw new Error('source-backed statement already recorded; review the existing record and newer next action. Explicitly confirm a repeat with --allow-replay, or remove the repeated statement from the proposal.')
   const d = new Date()
   const date = d.toISOString().slice(0, 10)
   const counts = { decision: 0, risk: 0, delivery: 0, contact: 0, next: 0, signer: 0 }
   const ctxLines = []
   let nextAction = ''
-  ensureMemoryGit(eng)
+  if (!dry) ensureMemoryGit(eng)
   // Sealed blocks are pulled out before routing, so a <private> block's interior
   // lines are never previewed and never routed into decisions/risks/stakeholders
   // unsealed. They land verbatim in context.md instead: the preview a human
@@ -2092,7 +2136,7 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
         const who = body.replace(/\s+signs?(?:\s+off)?\b.*$/i, '').trim() || body.trim()
         if (dry) {
           console.log(`→ success.md  **Stakeholder who signs off:** ${previewLine(who)}`)
-          console.log(`→ stakeholders.md  ${previewLine(datedEntry(eng, date, `${who} signs off`))}`)
+          console.log(`→ stakeholders.md  ${previewLine(`- [${date}] ${who} signs off`)}`)
         } else {
           setSigner(eng, who)
           appendLogEntry(eng, 'contact', datedEntry(eng, date, `${who} signs off`), { skipCommit: true })
@@ -2106,9 +2150,16 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [] }) {
         counts.next++
         continue
       }
+      if (type === 'delivery' && body.includes('|')) {
+        const cells = deliveryCells(body)
+        if (dry) console.log(`→ delivery.md ## Value ledger  ${previewLine(body)}`)
+        else appendValueLedgerRow(eng, cells, { skipCommit: true })
+        counts.delivery++
+        continue
+      }
       const sigInline = (body.match(/\[signal:(red|amber|green)\]/i) || [])[1]
       if (sigInline) body = body.replace(/\[signal:(red|amber|green)\]/i, '').trim()
-      const entry = datedEntry(eng, date, body, type === 'contact' && sigInline ? sigInline.toLowerCase() : '')
+      const entry = dry ? `- [${date}]${type === 'contact' && sigInline ? ` [signal:${sigInline.toLowerCase()}]` : ''} ${body}` : datedEntry(eng, date, body, type === 'contact' && sigInline ? sigInline.toLowerCase() : '')
       if (dry) console.log(`→ ${LOG_FILES[type]}  ${previewLine(entry)}`)
       else appendLogEntry(eng, type, entry, { skipCommit: true })
       counts[type]++
@@ -2147,6 +2198,21 @@ function cmdDebrief(args) {
 
 function runDebrief(args, eng) {
   args = args.slice()
+  const replayIdx = args.indexOf('--allow-replay')
+  const allowReplay = replayIdx !== -1
+  if (allowReplay) args.splice(replayIdx, 1)
+  if (args.includes('--review')) {
+    if (args.length !== 1 || allowReplay) throw new Error('use debrief --review alone to inspect the pending proposal')
+    const proposal = path.join(eng, DEBRIEF_PROPOSE)
+    const refused = refuseSymlinkWrite(proposal, { soft: true })
+    if (refused) throw new Error(refused)
+    if (!fs.existsSync(proposal)) throw new Error('nothing to review - run debrief --smart <notes> first')
+    const { clean: input } = splitPrivate(fs.readFileSync(proposal, 'utf8'), { sealDangling: true })
+    return boundedDebriefPreview(eng, () => {
+      printDebriefReview(input, eng)
+      routeDebriefInput(eng, input, { dry: true, force: false })
+    })
+  }
   const dryIdx = args.indexOf('--dry-run')
   const dry = dryIdx !== -1
   if (dry) args.splice(dryIdx, 1)
@@ -2202,14 +2268,14 @@ function runDebrief(args, eng) {
     if (!apply) {
       console.log(`\nproposal saved → ${proposePath}`)
       console.log('confirm:  fde debrief --apply')
-      console.log('(edit the propose file first if a line mis-routed)')
+      console.log('(edit the propose file if mis-routed; debrief --review shows the pending REVIEW)')
       return
     }
     input = clean
     sealed = blocks
   }
 
-  const route = () => routeDebriefInput(eng, input, { dry, force, sealed })
+  const route = () => routeDebriefInput(eng, input, { dry, force, sealed, allowReplay })
   const { counts, ctxLines, privateBlocks } = boundedDebriefPreview(eng, route, { proposal: false, maxBytes: smart ? 4000 : 12000 })
   if (!dry) {
     const hash = commitMemory(eng, 'debrief', {
@@ -2433,12 +2499,30 @@ function cmdReceipts(args) {
       if (!line.toLowerCase().includes(term.toLowerCase())) return
       const source = decisionSources.get(i + 1) || sourceReference(line)
       const hit = `  ${file}:${i + 1}  ${line.trim().slice(0, 160)}${source ? ` [source: ${source.slice(0, 160)}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
-      ;(recordFiles.includes(file) && source ? records : claims).push(hit)
+      ;(recordFiles.includes(file) && source ? records : claims).push({ file, hit })
     })
   }
-  const sections = ['RECEIPTS: a cited record is not proof of customer approval. File line numbers refer to the redacted view.']
-  if (records.length) sections.push('ON RECORD (dated, source-backed):\n' + records.join('\n'))
-  if (claims.length) sections.push('CLAIMS & working notes (verify source and approval before citing):\n' + claims.join('\n'))
+  // Alternate the latest and earliest matching lines per file. Otherwise a
+  // long history can spend the entire packet on approvals before a withdrawal.
+  const select = hits => {
+    const groups = new Map()
+    for (const { file, hit } of hits) {
+      if (!groups.has(file)) groups.set(file, [])
+      groups.get(file).push(hit)
+    }
+    const selected = []
+    let latest = true
+    while (selected.length < 24 && [...groups.values()].some(group => group.length)) {
+      for (const group of groups.values()) {
+        if (group.length && selected.length < 24) selected.push(latest ? group.pop() : group.shift())
+      }
+      latest = !latest
+    }
+    return `Selected ${selected.length} of ${hits.length} matching lines; omitted matches require a narrower search.\n` + selected.join('\n')
+  }
+  const sections = ['RECEIPTS: a cited record is not proof of customer approval. File line numbers refer to the redacted view. Latest and earliest matching lines are sampled; file order is not authority. Check conflicting records.']
+  if (records.length) sections.push('ON RECORD (dated, source-backed):\n' + select(records))
+  if (claims.length) sections.push('CLAIMS & working notes (verify source and approval before citing):\n' + select(claims))
   if (!records.length && !claims.length) sections.push(`no record of "${term}" - a gap in the record, not proof of absence`)
   process.stdout.write(context.boundedSections(sections))
 }
@@ -2473,7 +2557,8 @@ function cmdHandoff(args, label = 'Handoff') {
     `## Constraints - trust-profile.md\n${stripTemplateNoise(readClean(eng, 'trust-profile.md')) || '(missing)'}`,
     `## Signer and success - success.md\nSigner: ${signer || '(missing; do not infer)'}\n${success || '(missing)'}`,
     `## Next action - context.md\n${next || '(missing)'}\n\n## Open risks - risks.md\n${extractRisks(eng).map(r => '- ' + r.text).join('\n') || '(none recorded; not proof of no risk)'}`,
-    `## Accepted value - recorded assertion with source\nOnly structured value-ledger rows are summarized here; review other notes in delivery.md before presenting or handing over this record.\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']').join('\n') || '(none)'}`,
+    label === 'Handoff' ? `## Operational handoff - handoff.md\n${stripTemplateNoise(readClean(eng, 'handoff.md')) || '(missing; record recovery steps and the operating owner before rotation)'}` : '',
+    `## Accepted value - recorded assertion with source\nOnly structured value-ledger rows are summarized here; review other notes in delivery.md before presenting or handing over this record.\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']' + (r.acceptanceIssue ? '; ' + r.acceptanceIssue : '')).join('\n') || '(none)'}`,
     `## ON RECORD decisions - source supplied, not automatic approval\n${records.map(decisionText).join('\n') || '(none)'}\n\n## CLAIM decisions - source missing\n${claims.map(decisionText).join('\n') || '(none)'}\nSelected ${selected.length} of ${decisions.length} dated decisions. Retrieve older or conflicting decisions with fde recall.`,
     `## Gaps before relying on this packet\n${gaps.map(g => '- ' + g).join('\n') || '(no deterministic lint gaps; human review still required)'}`,
   ], parsed.maxBytes)
@@ -2499,7 +2584,7 @@ function cmdRecall(args) {
   }
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - bind a client before recall'); process.exit(2) }
-  const files = ['context.md', 'trust-profile.md', 'success.md', 'decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'brief.md', 'reality.md', 'assumptions.md', 'terrain.md']
+  const files = ['context.md', 'trust-profile.md', 'success.md', 'decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'brief.md', 'reality.md', 'assumptions.md', 'terrain.md', 'handoff.md']
   const result = context.recallSections(files.map(file => ({ file, text: readClean(eng, file) })), query)
   process.stdout.write(context.boundedSections([
     `RECALL - ${eng}\n${result.total ? `${result.sections.length} of ${result.total} matching lines; refine the query if evidence is omitted.` : 'No matching record. This is not proof that the event never happened.'}\nSources are local record assertions; verify dates, supersession and approval scope.`,
@@ -2729,12 +2814,20 @@ function successContractIssues(success) {
     if (active !== -1 && line.trim()) checks[active] += ` ${line.trim()}`
   }
   const observable = checks.some(check => {
+    // This is a lint check, not a semantic proof. Explicit fields let any
+    // domain describe its test without depending on a vocabulary of verbs.
+    const target = /(?:\b(?:within|under|at most|at least|exactly|zero|no missing|no duplicate|all|every|none|true|false|pass|fail|http)\b|[<>=])/i
+    const vague = /\b(?:tbd|unknown|to be defined|improve|better|satisfactory|as expected|works well)\b/i
+    if (vague.test(check)) return false
+    const explicit = check.match(/(?:^|\s)(?:-\s*)?Input:\s*(.+?)\s+(?:-\s*)?Pass when:\s*(.+)$/i)
+    if (explicit) return explicit[1].trim().length > 3 && target.test(explicit[2])
     const stimulus = /\b(?:test|drill|replay|runs?|request|sample|given|when|simulate|inject|compare|restore|verified|observed|measured)\b/i.test(check)
+      || /^\d+\s+[a-z]/i.test(check)
     const result = /\b(?:returns?|rejects?|matches?|equals?|arrives?|alerts?|restores?|passes?|fails?|contains?|produces?|shows?|remains?|receives?)\b/i.test(check)
-    const target = /(?:\b(?:within|under|at most|at least|exactly|zero|no missing|no duplicate|all|every|none|true|false|pass|fail|http)\b|[<>=])/i.test(check)
-    return stimulus && result && target && !/\b(?:tbd|to be defined|improve|better|satisfactory|as expected|works well)\b/i.test(check)
+      || /\b(?:zero|no duplicate|no missing)\s+[a-z]/i.test(check)
+    return stimulus && result && target.test(check)
   })
-  if (!observable) issues.push('success.md needs a binary acceptance check: state a test/input and an observable pass/fail result under **Done when:** or **Acceptance check:**; numbers alone are not a check')
+  if (!observable) issues.push('success.md needs a binary acceptance check: the wording was not recognized as a test/input and observable pass/fail result under **Done when:** or **Acceptance check:**. Use Input: and Pass when: for a domain-specific check; this lint does not prove readiness')
   const signerLine = ((text.match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').replace(/\[source:[^\]]+\]/gi, '').trim()
   // A named primary signer may be followed by responsibilities or another
   // signer's role. Preserve the full record; validate only the leading name.
@@ -2997,7 +3090,7 @@ function hasValueBucket(eng) {
 }
 
 // Shared classification keeps CLI, dashboard, and vault acceptance consistent.
-const { PENDING_CELL_RE, valueState, evidenceSource } = require('./lib/value-ledger')
+const { PENDING_CELL_RE, valueState, evidenceSource, reconcileValueRows } = require('./lib/value-ledger')
 
 function parseValueLedger(eng) {
   // Last section with actual rows, not merely the last non-empty one: a template
@@ -3027,9 +3120,9 @@ function parseValueLedger(eng) {
     const evidence = cell(row, idx.evidence)
     const acceptanceStatus = idx.acceptanceStatus === -1 ? undefined : cell(row, idx.acceptanceStatus)
     const state = valueState({ measured, accepted, acceptanceStatus, evidence })
-    rows.push({ slice, promised, measured, accepted, evidence, evidenceMissing: !evidenceSource(evidence), state })
+    rows.push({ slice, promised, measured, accepted, acceptanceStatus, evidence, evidenceMissing: !evidenceSource(evidence), state })
   }
-  return { rows, columnMissing: idx.accepted === -1 }
+  return { rows: reconcileValueRows(rows, readClean(eng, 'success.md')), columnMissing: idx.accepted === -1 }
 }
 
 function claimedValueRows(eng) {
@@ -3046,8 +3139,9 @@ function formatValueLedgerLine(r) {
   }
   const head = body ? `${name}: ${body}` : name
   if (r.state === 'accepted') return `${head} · accepted by ${r.accepted}`
-  if (r.state === 'claimed') return `${head} · claimed, not yet accepted`
-  return `${head} · not yet measured`
+  const issue = r.acceptanceIssue ? `; ${r.acceptanceIssue}` : ''
+  if (r.state === 'claimed') return `${head} · claimed, not yet accepted${issue}`
+  return `${head} · not yet measured${issue}`
 }
 
 function valueLedgerStatusLines(eng, opts = {}) {
@@ -4003,6 +4097,8 @@ function printUsage() {
   fde log --undo           remove the last CLI log/debrief entry from memory
   fde debrief [file]       meeting notes → memory (prefixed lines; --dry-run; --force)
   fde debrief --smart      heuristic propose; REVIEW first (decided/asked/open/next/signer); --apply after one confirm
+    --review              inspect the pending REVIEW after editing, without replacing it
+    --allow-replay        explicitly apply already recorded sourced statements after review
     --replace-proposal    explicitly discard a pending review when proposing different notes
   fde ingest stage …       stage raw pull into <engagement>/.inbox/ (not .fde/)
   fde ingest list          list staged inbox items

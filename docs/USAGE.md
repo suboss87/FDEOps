@@ -236,6 +236,16 @@ From `plan` onward, `fde doctor` flags success definitions without both an obser
 **Stakeholder who signs off:** Priya Shah [source: meeting 2026-09-10]
 ```
 
+Doctor checks the shape of a criterion, not whether the customer agrees or the test passes. If ordinary domain wording is not recognized, keep its meaning and use two explicit lines:
+
+```markdown
+**Acceptance check:**
+- Input: one month of settlement records on customer staging
+- Pass when: zero duplicate settlements and 100% balanced totals
+```
+
+Keep the named customer signer alongside the check. Unknown inputs and subjective results still need clarification.
+
 A boolean check also works: `Given a revoked token, the request rejects every attempt.` “Improve performance by 30%” alone does not specify a reproducible check. Doctor also labels dated decisions without source references as CLAIM. It reports gaps; it does not invent tests, grant approval, or block you from editing the record.
 
 ## Where files live
@@ -318,3 +328,18 @@ Measure the synthetic long-history behavior with `node evals/context-budget/chec
 Run `fde defend` for accepted assertions, claims, source references, and gaps. Run `fde handoff --out successor.md` for a new portable Markdown snapshot; review it before sharing. Both are bounded and private-redacted, with no writes unless `--out` is explicit. They do not authenticate sources or confer customer approval.
 
 Before planning or building, run `fde doctor --ready`. Record an observable pass/fail test and the named customer-side signer; vague improvement, a number alone, or a role is insufficient. This checks readiness without changing the phase.
+
+
+### Reviewed delivery and disputed acceptance
+
+A reviewed proposal can contain a structured delivery line using the existing ledger fields:
+
+```text
+delivery: Staging replay | risk-mitigation | zero missing rows on staging | zero in 100 rows | pending | evidence/replay.csv | restore checkpoint
+```
+
+The agent checks the named fields with you before applying. This saves the ledger row in the same update; ordinary delivery prose remains a note. Missing approval stays pending. Pipe-separated rows must contain all seven fields so values cannot silently move into the wrong columns.
+
+Use `fde debrief --review` to reopen the pending REVIEW after editing. If an exact statement with an explicit `[source: ...]` already exists, review the earlier record before applying it again. Intentional repeats require `--allow-replay`; this is not semantic deduplication, and it does not authenticate the source. The MCP apply tool keeps the refusal; use the CLI for an intentional replay override.
+
+CLI and fieldbook mark explicit scope or withdrawal conflicts for review. A same-slice withdrawal leaves the historical rows intact and moves conflicting assertions out of current accepted value. Reused slice names can refer to different releases: clarify those records rather than assuming the tool knows which approval was withdrawn. These checks recognize explicit wording, not arbitrary legal authority or every possible contradiction. Check the named signer, scope and evidence before presenting an outcome.

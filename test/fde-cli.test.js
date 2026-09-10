@@ -3392,7 +3392,7 @@ test('doctor flags commits in the bound repo after the last delivery line', () =
   const quiet = runFde(sandbox, ['doctor'])
   assert.match(quiet.stdout, /commit\(s\) in workspace.*code moved, ledger did not/)
   assert.equal(runFde(sandbox, [
-    'log', 'delivery', 'retry | risk-mitigation | zero Excel nights | pending | staging run | flag off',
+    'log', 'delivery', 'retry | risk-mitigation | zero Excel nights | pending | pending | staging run | flag off',
   ]).status, 0)
   const receipted = runFde(sandbox, ['doctor'])
   assert.doesNotMatch(receipted.stdout, /code moved, ledger did not/)
