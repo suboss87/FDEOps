@@ -156,3 +156,16 @@ test('adapters refuse an existing brain reached through a linked parent', t => {
   assert.match(result.stderr, /symlink/i)
   assert.deepEqual(fs.readdirSync(f.workspace), [])
 })
+
+
+test('macOS system temporary-directory aliases remain usable', { skip: process.platform !== 'darwin' }, t => {
+  const f = fixture(t)
+  const { checkPath } = require('../bin/lib/install-paths')
+  const temp = fs.mkdtempSync('/tmp/fdeops-os-alias-')
+  t.after(() => fs.rmSync(temp, { recursive: true, force: true }))
+  assert.doesNotThrow(() => checkPath(path.join(temp, 'new-file')))
+  assert.doesNotThrow(() => checkPath(path.join(os.tmpdir(), 'fdeops-new-file')))
+  const child = path.join(temp, 'client')
+  fs.symlinkSync(f.outside, child)
+  assert.throws(() => checkPath(path.join(child, 'new-file')), /unsafe/)
+})

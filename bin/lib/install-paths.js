@@ -14,8 +14,12 @@ function checkPath(target) {
       if (e.code === 'ENOENT') continue
       throw e
     }
-    if (stat.isSymbolicLink() || (!stat.isDirectory() && !stat.isFile()) ||
-        (stat.isFile() && stat.nlink > 1)) {
+    // macOS itself maps these root directories into /private. Permit only
+    // those exact OS aliases, never arbitrary links below a client/install path.
+    const systemAlias = stat.isSymbolicLink() && process.platform === 'darwin' &&
+      ['/tmp', '/var'].includes(current) && fs.readlinkSync(current) === `private${current}`
+    if (!systemAlias && (stat.isSymbolicLink() || (!stat.isDirectory() && !stat.isFile()) ||
+        (stat.isFile() && stat.nlink > 1))) {
       const e = new Error(`refusing unsafe symlink or non-regular path: ${current}; use an ordinary destination path`)
       e.code = 'UNSAFE_PATH'
       e.path = current
