@@ -67,6 +67,11 @@ assert(
 const happy = pack.cases.filter(c => c.kind === 'happy')
 for (const c of happy) {
   const verb = (c.expect.cli || [])[0]
+  if (!verb && c.expect.reference_hint) {
+    results.push({ id: c.id, ok: null, detail: 'Not run: agent reference selection requires a model trial, not a CLI command' })
+    console.log(`-  ${c.id}  SKIP: agent-only reference selection (not evaluated)`)
+    continue
+  }
   let r
   if (verb === 'debrief') {
     const notes = path.join(smoke, 'notes.txt')
@@ -134,9 +139,9 @@ const body = [
   '',
   '| Case | Result | Detail |',
   '|------|--------|--------|',
-  ...results.map(r => `| ${r.id} | ${r.ok ? 'PASS' : 'FAIL'} | ${r.detail.replace(/\|/g, '/')} |`),
+  ...results.map(r => `| ${r.id} | ${r.ok === null ? 'SKIP' : r.ok ? 'PASS' : 'FAIL'} | ${r.detail.replace(/\|/g, '/')} |`),
   '',
-  fail ? `**FAIL:** ${fail} case(s)` : '**PASS:** all happy CLI outcomes + day-1 silent hygiene',
+  fail ? `**FAIL:** ${fail} case(s)` : '**PASS:** CLI cases + day-1 silent hygiene. Agent-only reference selection is not evaluated.',
   '',
 ].join('\n')
 fs.writeFileSync(out, body)
