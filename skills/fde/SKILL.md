@@ -28,13 +28,13 @@ A one-line typo or compile error in a file that will not ship. On a bound client
 | **When did we agree?** | Don't argue from memory. Search the record. | `fde receipts <term>` | - |
 | **What's the outcome?** | A number nobody signed is claimed, not delivered. | `fde status` | `references/readout.md` |
 
-After a meeting: `fde debrief --smart` → one REVIEW screen (decided / asked / open / next / signer) → in chat, a four-row card (omit empty; Previously / Not yet agreed) → **Save this update?** (engineer accepted the record, not customer approval of every ask) → `--apply`. Walk-in: `fde prep`. Friday: `fde status`.
+After a meeting: `fde debrief --smart` → one REVIEW screen (decisions / asks / scope / delivery gaps / next / signer) → in chat, a four-row card (omit empty; Previously / Not yet agreed) → **Save this update?** (engineer accepted the record, not customer approval of every ask) → `--apply`. Walk-in: `fde prep`. Friday: `fde status`.
 
 ## Ground loop
 
 On someone else's site the work is not "write code, remember later." Every change on a bound client stays on `@fde`:
 
-1. **Name it** in `decisions.md` (plan) or kill it in a day (poc).
+1. **Name it** in `decisions.md` (plan), or timebox the riskiest assumption and record what the POC proves.
 2. **Characterise their code** before you change it. Brownfield: their tests, their runner. Greenfield: the empty tree, first path they can click.
 3. **Prove it on their staging.** Staging they operate, a screen the signer in `success.md` can reject.
 4. **If a model judges:** `evals.md` Verdict SHIP before that change is done (eval-pack).
@@ -58,7 +58,7 @@ Fallbacks: `node ~/.claude/fdeops/fde.js …`, then `npx --yes fdeops …`. Skil
 
 ## Entry (every session)
 
-1. `fde resume` (16 KiB output ceiling, not a model token count). Read the goals, risks and current context. If truncated or a decision needs evidence, run `fde recall <specific topic>`; narrow the query rather than loading the whole history. `--max-bytes 4096` reduces the allowance for smaller models. `--full` only when the complete log is explicitly needed.
+1. `fde resume` (16 KiB output ceiling, not a model token count). Read client constraints first, then signer, goals, risks, delivery ledger and current context. This command is the inspectable packet the session hook loads; never substitute a recursive read of `.fde/` or raw transcripts. If truncated or a decision needs evidence, run `fde recall <specific topic>`; narrow the query rather than loading the whole history. `--max-bytes 4096` reduces the allowance for smaller models. `--full` only when the complete log is explicitly needed.
 2. **NO ENGAGEMENT:** ask "What should we call this client?" then **you** init. Pasted notes → debrief after bind.
 3. Playback 2-3 lines. `hygiene:` → offer `fde doctor`; **never auto-rewrite**.
 4. Route. Read **one** `references/*.md`. Confirm, then write.
@@ -72,7 +72,8 @@ Writes need a bind (`FDEOPS_ENGAGEMENT` or registry). Never install fdeops on in
 | debrief / pasted notes | `fde debrief --smart` → REVIEW → four-row chat card → Save this update? → `--apply`. `--smart` is a gate, not a brain. `references/debrief.md` |
 | prep me for … | `fde prep "<label>"` |
 | when did we agree | `fde receipts <term>` |
-| sponsor update / the outcome | `fde status` |
+| sponsor update / defend the number | `fde defend` |
+| successor / rotation / portable handoff | `fde handoff` (stdout; `--out new-file.md` only after export requested) |
 | they went quiet | `fde log contact "…" --signal amber\|green\|red` |
 | fieldbook page | `fde dashboard` (`--all` portfolio, `--open` to open the file) |
 | clean up the fieldbook | `fde doctor` - never auto-rewrite |
@@ -85,7 +86,7 @@ Writes need a bind (`FDEOPS_ENGAGEMENT` or registry). Never install fdeops on in
 
 1. **On entry:** `fde resume` only. Pull other `.fde/` files when the skill needs them.
 2. **Deliverable = memory.** The work *is* the `.fde/` file. The reference names which one.
-3. **Evidence.** Every claim has a source. Traceable beats plausible.
+3. **Evidence.** Without a supplied source, a decision or measurement remains CLAIM. Use `[source: meeting YYYY-MM-DD]`, a PR/URL, transcript ID, or artifact path. The automatic log date is not attribution. ON RECORD means a source was supplied, not that it was authenticated or the customer approved. Never invent a source, signer, or acceptance.
 4. **No invented facts.** People, quotes, meetings, numbers: they said it or the repo shows it. Else `unknown - ask: <question>`.
 5. **Session digest** (end of session and before a PR) - thinking, not the chat. Confirm, then write. Never a transcript dump.
 

@@ -20,9 +20,14 @@ function acceptanceName(value) {
   return name
 }
 
+function evidenceSource(evidence) {
+  const text = String(evidence || '').trim()
+  return hasSource(text) && !PENDING_CELL_RE.test(text) && !/\b(?:no evidence|never (?:run|tested|measured)|not (?:run|tested|measured|verified)|unverified|invalid|retracted)\b/i.test(text)
+}
+
 function valueState({ measured, accepted, acceptanceStatus, evidence }) {
   if (!measured || PENDING_CELL_RE.test(measured)) return 'unmeasured'
-  if (!acceptanceName(accepted) || !hasSource(evidence)) return 'claimed'
+  if (!acceptanceName(accepted) || !evidenceSource(evidence)) return 'claimed'
   // Explicit status is authoritative when the column exists. Unknown values
   // fail closed. Existing name-only ledgers remain readable during migration.
   if (acceptanceStatus !== undefined) {
@@ -32,4 +37,4 @@ function valueState({ measured, accepted, acceptanceStatus, evidence }) {
   return 'accepted'
 }
 
-module.exports = { PENDING_CELL_RE, acceptanceName, valueState }
+module.exports = { PENDING_CELL_RE, acceptanceName, evidenceSource, valueState }

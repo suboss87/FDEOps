@@ -1,10 +1,10 @@
 # Definition of done
 
-**Done when:** finance runs one full week with zero manual Excel reprocess of EU failures, on the path they operate, and the controller says so in writing.
+**Done when:** Replay one full week of EU failures on the finance-operated path; the audit log shows zero manual Excel reprocesses. June Porter reviews the log and records acceptance in writing.
 **Primary value bucket:** cost-save
 **Baseline → target:** 31 rows reprocessed by hand per night (2026-05-26 sample) → 0 rows, by 2026-06-13.
 **Explicitly out of scope:** full API modernisation; non-EU payment rails.
-**Stakeholder who signs off:** Finance controller accepts the number (she runs the Excel night today). CTO sponsors and signs the phase. Both, or it does not count.
+**Stakeholder who signs off:** June Porter (finance controller, fictional example). She accepts the measured result; CTO phase approval is a separate release prerequisite.
 
 **In scope (revised Day 5):**
 - Nightly EU ingest with idempotent retry

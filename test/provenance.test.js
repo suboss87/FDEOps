@@ -20,7 +20,7 @@ test('explicit source syntax excludes automatic dates and placeholders', () => {
 test('legacy and explicit acceptance both remain claimed without source-backed evidence', () => {
   for (const extra of [{}, { acceptanceStatus: 'accepted' }]) {
     const row = { measured: '5 min', accepted: 'Mara Chen', ...extra }
-    for (const evidence of ['', 'staging run', 'pending']) assert.equal(valueState({ ...row, evidence }), 'claimed')
+    for (const evidence of ['', 'staging run', 'pending', 'pending PR #42', 'unknown https://example.test/proof', 'no evidence: PR #42 was never run']) assert.equal(valueState({ ...row, evidence }), 'claimed')
     assert.equal(valueState({ ...row, evidence: 'PR #42' }), 'accepted')
   }
 })
@@ -62,4 +62,7 @@ test('handoff export is explicit, new-file-only and cannot replace private recor
   fs.symlinkSync(f.eng, path.join(f.root, 'records'))
   assert.notEqual(f.run(['handoff', '--out', path.join(f.root, 'records', 'new.md')]).status, 0)
   assert.equal(fs.existsSync(path.join(f.eng, 'new.md')), false)
+  const other = path.join(f.root, 'other', '.fde'); fs.mkdirSync(other, { recursive: true })
+  assert.notEqual(f.run(['handoff', '--out', path.join(other, 'cross-client.md')]).status, 0)
+  assert.equal(fs.existsSync(path.join(other, 'cross-client.md')), false)
 })

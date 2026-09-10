@@ -37,6 +37,7 @@ const { createTrustApi } = require('./lib/trust')
 const vault = require('./lib/vault')
 const context = require('./lib/context')
 const { sourceReference, hasSource } = require('./lib/provenance')
+const { deliverySummary } = require('./lib/delivery-gaps')
 
 const HOME = os.homedir()
 // FDEOPS_ENGAGEMENTS_ROOT isolates init/status/dashboard (and the registry) for
@@ -1412,7 +1413,8 @@ function cmdResume(args) {
     policy ? `CLIENT POLICY - trust-profile.md\n${policy}` : '',
     `${intro}\n\nENGAGEMENT: ${eng}`,
     success ? `CURRENT GOALS & ACCEPTANCE - success.md\n${success}` : '',
-    risks ? `RECORDED RISKS - risks.md\n${risks}` : '',
+    risks ? `OPEN RISKS - risks.md\n${extractRisks(eng).map(r => r.text).join('\n') || '(none recorded)'}` : '',
+    `VALUE LEDGER - delivery.md\n${parseValueLedger(eng).rows.map(r => formatValueLedgerLine(r) + '; source: ' + (r.evidence || '(missing)')).join('\n') || '(none recorded)'}`,
     `WORKING CONTEXT - context.md\n${ctx ? resumeView(ctx) : '(no context.md yet)'}`,
   ], maxBytes))
 }
@@ -1931,7 +1933,7 @@ function formatDecisionRecord(line) {
   const who = approvedStamp(raw)
   const core = stripApprovedStamp(raw)
   const stamp = !hasSource(raw) ? '(CLAIM - source missing)' : who ? `(approved ${who}; source recorded)` : '(unconfirmed; source recorded)'
-  return previewLine(`${core}  ${stamp}`, 110)
+  return `${stamp} ${previewLine(core, 110)}`
 }
 
 function changeReviewIssues(eng) {
@@ -2350,11 +2352,11 @@ function cmdHandoff(args, label = 'Handoff') {
   const gaps = collectDoctorIssues(eng)
   const report = context.boundedSections([
     `# ${label}: ${engagementSlugFromPath(eng)}\nSnapshot: ${new Date().toISOString()} · memory ${memoryHead(eng) || 'unversioned'}\nRead-only record, not proof of approval. Confirm sources with the named customer before relying on a claim. Private blocks are excluded; review remaining client information before sharing.`,
-    `## Constraints — trust-profile.md\n${stripTemplateNoise(readClean(eng, 'trust-profile.md')) || '(missing)'}`,
-    `## Signer and success — success.md\nSigner: ${signer || '(missing; do not infer)'}\n${success || '(missing)'}`,
-    `## Next action — context.md\n${next || '(missing)'}\n\n## Open risks — risks.md\n${extractRisks(eng).map(r => '- ' + r.text).join('\n') || '(none recorded; not proof of no risk)'}`,
-    `## Accepted value — recorded assertion with source\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']').join('\n') || '(none)'}`,
-    `## ON RECORD decisions — source supplied, not automatic approval\n${records.map(decisionText).join('\n') || '(none)'}\n\n## CLAIM decisions — source missing\n${claims.map(decisionText).join('\n') || '(none)'}\nSelected ${selected.length} of ${decisions.length} dated decisions. Retrieve older or conflicting decisions with fde recall.`,
+    `## Constraints - trust-profile.md\n${stripTemplateNoise(readClean(eng, 'trust-profile.md')) || '(missing)'}`,
+    `## Signer and success - success.md\nSigner: ${signer || '(missing; do not infer)'}\n${success || '(missing)'}`,
+    `## Next action - context.md\n${next || '(missing)'}\n\n## Open risks - risks.md\n${extractRisks(eng).map(r => '- ' + r.text).join('\n') || '(none recorded; not proof of no risk)'}`,
+    `## Accepted value - recorded assertion with source\n${ledger.filter(r => r.state === 'accepted').map(rowText).join('\n') || '(none)'}\n\n## CLAIMS and unmeasured promises\n${ledger.filter(r => r.state !== 'accepted').map(r => rowText(r) + ' [' + r.state + ']').join('\n') || '(none)'}`,
+    `## ON RECORD decisions - source supplied, not automatic approval\n${records.map(decisionText).join('\n') || '(none)'}\n\n## CLAIM decisions - source missing\n${claims.map(decisionText).join('\n') || '(none)'}\nSelected ${selected.length} of ${decisions.length} dated decisions. Retrieve older or conflicting decisions with fde recall.`,
     `## Gaps before relying on this packet\n${gaps.map(g => '- ' + g).join('\n') || '(no deterministic lint gaps; human review still required)'}`,
   ], parsed.maxBytes)
   if (!out) { process.stdout.write(report); return }
@@ -2364,7 +2366,7 @@ function cmdHandoff(args, label = 'Handoff') {
     const parent = fs.realpathSync(path.dirname(out))
     const target = path.join(parent, path.basename(out))
     const root = fs.realpathSync(eng)
-    if (target === root || target.startsWith(root + path.sep)) throw new Error('export outside .fde/; engagement records are not export destinations')
+    if (parent.split(path.sep).includes('.fde') || target === root || target.startsWith(root + path.sep)) throw new Error('export outside .fde/; engagement records are not export destinations')
     fs.writeFileSync(target, report, { flag: 'wx', mode: 0o600 })
     console.log(`${label.toLowerCase()} → ${out}`)
   } catch (e) { console.error(`could not export packet: ${e.message}`); process.exit(1) }
@@ -2867,7 +2869,7 @@ function hasValueBucket(eng) {
 }
 
 // Shared classification keeps CLI, dashboard, and vault acceptance consistent.
-const { PENDING_CELL_RE, valueState } = require('./lib/value-ledger')
+const { PENDING_CELL_RE, valueState, evidenceSource } = require('./lib/value-ledger')
 
 function parseValueLedger(eng) {
   // Last section with actual rows, not merely the last non-empty one: a template
@@ -2897,7 +2899,7 @@ function parseValueLedger(eng) {
     const evidence = cell(row, idx.evidence)
     const acceptanceStatus = idx.acceptanceStatus === -1 ? undefined : cell(row, idx.acceptanceStatus)
     const state = valueState({ measured, accepted, acceptanceStatus, evidence })
-    rows.push({ slice, promised, measured, accepted, evidence, evidenceMissing: !hasSource(evidence), state })
+    rows.push({ slice, promised, measured, accepted, evidence, evidenceMissing: !evidenceSource(evidence), state })
   }
   return { rows, columnMissing: idx.accepted === -1 }
 }
@@ -3001,8 +3003,22 @@ function hygieneTriageLines(eng) {
   ]
 }
 
+function deliverySummaryFor(eng) {
+  const signals = computeSignals(eng)
+  const next = stripTemplateNoise(sectionBody(readClean(eng, 'context.md'), 'Next action', { lastNonEmpty: true })).trim()
+  const signer = ((readClean(eng, 'success.md').match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').trim()
+  return deliverySummary({ signals, next, hasNext: !!next,
+    hasSigner: !!require('./lib/value-ledger').acceptanceName(signer),
+    highRisks: extractRisks(eng).filter(r => r.severity === 'high').length,
+    valueRows: parseValueLedger(eng).rows,
+    quiet: signals.ageDays !== Infinity && signals.ageDays >= 3,
+  })
+}
+
 function printTriageBlock(eng) {
   console.log(resumeTriage(eng))
+  const action = deliverySummaryFor(eng).firstAction
+  console.log(`  do first: ${previewLine(action.text, 140)} (${action.source}: ${previewLine(action.reason, 140)})`)
   for (const line of hygieneTriageLines(eng)) console.log(line)
 }
 
@@ -3464,6 +3480,7 @@ function cmdDashboard(args) {
     e.log = extractLog(e.dir)
     e.stats = extractStats(e.dir)
     e.valueRows = parseValueLedger(e.dir).rows
+    e.hasSigner = !deliverySummaryFor(e.dir).gaps.some(g => g.kind === 'signer')
     e.highRisks = e.risks.filter(r => r.severity === 'high').length
     e.quiet = e.signals.ageDays !== Infinity && e.signals.ageDays >= 3
     e.slug = slugify(e.name)

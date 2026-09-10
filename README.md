@@ -84,9 +84,9 @@ we have no comparable production baseline. Ask Mara for staging access.
 
 1. **Review:** the agent separates decisions, requests, unknowns, measurements, and next actions. Check the source and any conflicts with existing records.
 2. **Apply:** confirm the proposed interpretation. An ERP request stays a request; a staging result stays a staging result. Saving the record does not mean the customer approved either.
-3. **Defend:** ask `@fde What did we agree about ERP, and what evidence supports the result?` Review the dated source, superseded decisions, and missing evidence before using the answer in a sponsor update.
+3. **Defend:** ask `@fde What did we agree about ERP, and what evidence supports the result?` Review the supplied source, superseded decisions, and missing evidence before using the answer in a sponsor update.
 
-The CLI supports this loop with `debrief --smart`, reviewed `--apply`, `recall`, and `receipts`. See the [walkthrough](docs/USAGE.md) for examples. Direct CLI write commands execute when invoked; enabled session hooks automatically capture mechanical session state. Agent judgments still need review.
+The CLI supports this loop with `debrief --smart`, reviewed `--apply`, `recall`, `receipts`, and `defend`. `fde handoff --out successor.md` creates a new portable, redacted packet. See the [walkthrough](docs/USAGE.md) for examples. Direct CLI write commands execute when invoked; enabled session hooks automatically capture mechanical session state. Agent judgments still need review.
 
 ## Your daily fieldbook
 

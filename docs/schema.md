@@ -65,6 +65,7 @@ write the long form under `## Decision log` instead:
 - Decision: what was chosen
 - Rationale: why this over the alternatives
 - Owner: who approved (customer-side name)
+- Source: meeting date, PR, URL, transcript ID, or artifact path (never infer it)
 ```
 
 The rationale is the line a successor cannot reconstruct from the code.
@@ -95,9 +96,15 @@ The rationale is the line a successor cannot reconstruct from the code.
 4. **Deliverable = memory:** `--init` creates only the core files; stage artifacts (`audit.md`, `chaos-log.md`, `handoff.md`, `evals.md`, …) are created by their stages when they run - formats live in [skills/fde/references/](../skills/fde/references/).
 5. Every claim carries its evidence: `(ops lead, Day 5)` · `(churn: 47/90d)` · `(stated, unverified)`.
 6. **Trust signals are tokens:** the latest dated `[signal:green|amber|red]` in `stakeholders.md` drives `fde status` / `fde dashboard`; tokens older than 21 days show as stale. With no token, prose keywords can still raise amber/red, but nothing reads `green` - an engagement nobody has asked reads `new`.
-7. **Assumptions are not receipts:** `assumptions.md` and `brief.md` are claims. `fde receipts` labels them separately from dated agreements.
+7. **Assumptions are not receipts:** `assumptions.md` and `brief.md` are claims. `fde receipts` labels them separately from source-backed records; a log date alone does not promote a claim.
 8. **Plans need a kill list; deliveries need a value ledger.** No finished plan without Now/Next/Later/Kill. No ship without bucket + promised → measured → evidence (measured may be pending). AI-touching ships also need an eval receipt (`evals.md` or Ship receipts); non-AI ships leave eval as `n/a`.
 
 Scaffold: `fde resume --init <engagement-name>` (creates the folder AND binds the current workspace to it).
 
 Optional root: `FDEOPS_ENGAGEMENTS_ROOT` relocates the engagements tree used by init, registry, status, and dashboard (see [install.md](./install.md)).
+
+## Sources and portable readouts
+
+From 3.27, accepted value requires a measured result, named signer, and non-pending source in Evidence. Explicit Acceptance status, when present, must be `accepted`. Legacy rows without a source display as CLAIM; files are never rewritten during this classification. A source is inspectable attribution, not automatic verification or customer approval. `PR #42`, `https://…`, `transcript:abc123`, `evidence/replay.json`, and `[source: meeting 2026-09-10]` are supported. `staging run`, `pending PR #42`, and the automatic entry date are insufficient.
+
+`fde defend` prints the sponsor readout. `fde handoff` prints a portable Markdown snapshot with constraints, signer, success, next action, risks, ledger, recent dated decisions and gaps. Both default to 16 KiB of redacted output; `--max-bytes 4096..65536` changes this deterministic byte allowance, not a model token count. Truncation is explicit. `fde handoff --out successor.md` creates a new file only, outside `.fde/`; it refuses existing destinations. Review remaining client information and source access before sharing. These exports are derived snapshots, not replacements for the engagement record.
