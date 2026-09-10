@@ -6,9 +6,7 @@ FDEOps helps a Forward Deployed Engineer or independent expert manage client wor
 
 One `@fde` skill guides the work. A local CLI records it in Markdown. A read-only dashboard shows one client or your portfolio. You review judgments and obtain customer approval; the tool does not decide for them.
 
-![FDEOps dashboard showing next actions and attention gaps across three fictional clients](media/fieldbook-preview.png)
-
-*Fictional client records. The fieldbook runs locally without network access.*
+<img width="1536" height="1024" alt="fdeops" src="https://github.com/user-attachments/assets/2bcb8739-55ee-445d-8a1a-8b38433b7b58" />
 
 ---
 
@@ -210,6 +208,14 @@ The **CLI** is local: git + files, no network, no telemetry. The **host model** 
 | `docs/` and `examples/` | Usage, contributor guides, and fictional engagements |
 
 See [repository layout](docs/REPO_LAYOUT.md) for where to make changes.
+
+## Your daily fieldbook
+
+![FDEOps dark dashboard showing next actions and attention gaps across three fictional clients](media/fieldbook-preview.png)
+
+*Fictional client records, shown in the built-in dark theme. The report works offline.*
+
+Open `npx fdeops dashboard --all --open` to review every client. Filter what needs attention, open a client, and copy **Continue next action** into your agent. After a meeting, use **Debrief notes**; before a sponsor update, use **Review outcome**. These buttons copy prompts; work runs in your agent. Review changes there and regenerate the dashboard afterward.
 
 ## Try the complete loop
 
