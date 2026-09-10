@@ -81,3 +81,20 @@ test('doctor distinguishes an automatically dated decision from a source-backed 
   fs.writeFileSync(decisions, fs.readFileSync(decisions, 'utf8').replace('keep the existing connector', 'keep the existing connector [source: transcript:kickoff-42]'))
   assert.doesNotMatch(f.run(['doctor']).stdout, /remain CLAIM: source missing/)
 })
+
+test('revised multiline acceptance and descriptive named authority remain usable', t => {
+  const f = fixture(t)
+  const example = fs.readFileSync(path.resolve(__dirname, '../examples/kesterman-freight/.fde/success.md'), 'utf8')
+  fs.writeFileSync(path.join(f.eng, 'context.md'), '# Context\n**Phase:** plan\n## Next action\n- verify the board\n')
+  fs.writeFileSync(path.join(f.eng, 'success.md'), example)
+  assert.doesNotMatch(f.run(['doctor']).stdout, /binary acceptance check|needs a named customer-side signer/)
+  fs.writeFileSync(path.join(f.eng, 'success.md'), example.replace('Denise Kowalczyk. Floor acceptance:', 'Denise Kowalczyk: customer-side signer. Floor acceptance:'))
+  assert.doesNotMatch(f.run(['doctor']).stdout, /needs a named customer-side signer/)
+})
+
+test('multiline vague acceptance cannot borrow a metric from the next field', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'context.md'), '# Context\n**Phase:** plan\n')
+  fs.writeFileSync(path.join(f.eng, 'success.md'), '# Success\n**Done when (revised):**\n- Make the system better.\n**Baseline → target:** Replay matches the expected state within 5 minutes.\n**Stakeholder who signs off:** Priya Shah\n')
+  assert.match(f.run(['doctor']).stdout, /binary acceptance check/)
+})

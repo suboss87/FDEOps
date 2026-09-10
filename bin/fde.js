@@ -2602,15 +2602,25 @@ function silentCommitIssues(eng) {
 function successContractIssues(success) {
   const issues = []
   const text = stripTemplateNoise(String(success || ''))
-  const checks = [...text.matchAll(/^(?:\*\*)?(?:Done when|Acceptance check):(?:\*\*)?[^\S\n]*(.*)$/gim)].map(m => m[1].trim()).filter(Boolean)
+  const checks = []
+  let active = -1
+  for (const line of text.split('\n')) {
+    const header = line.match(/^(?:\*\*)?(?:Done when|Acceptance check)(?:\s*\([^\n)]*\))?:(?:\*\*)?[^\S\n]*(.*)$/i)
+    if (header) { checks.push(header[1].trim()); active = checks.length - 1; continue }
+    if (/^#{1,6}\s|^\*\*[^*]+:/.test(line)) { active = -1; continue }
+    if (active !== -1 && line.trim()) checks[active] += ` ${line.trim()}`
+  }
   const observable = checks.some(check => {
-    const stimulus = /\b(?:test|drill|replay|run|request|sample|given|when|simulate|inject|compare|restore)\b/i.test(check)
+    const stimulus = /\b(?:test|drill|replay|runs?|request|sample|given|when|simulate|inject|compare|restore|verified|observed|measured)\b/i.test(check)
     const result = /\b(?:returns?|rejects?|matches?|equals?|arrives?|alerts?|restores?|passes?|fails?|contains?|produces?|shows?|remains?|receives?)\b/i.test(check)
     const target = /(?:\b(?:within|under|at most|at least|exactly|zero|no missing|no duplicate|all|every|none|true|false|pass|fail|http)\b|[<>=])/i.test(check)
     return stimulus && result && target && !/\b(?:tbd|to be defined|improve|better|satisfactory|as expected|works well)\b/i.test(check)
   })
   if (!observable) issues.push('success.md needs a binary acceptance check: state a test/input and an observable pass/fail result under **Done when:** or **Acceptance check:**; numbers alone are not a check')
-  const signer = ((text.match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').replace(/\[source:[^\]]+\]/gi, '').replace(/\([^)]*\)/g, '').split(',')[0].trim()
+  const signerLine = ((text.match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').replace(/\[source:[^\]]+\]/gi, '').trim()
+  // A named primary signer may be followed by responsibilities or another
+  // signer's role. Preserve the full record; validate only the leading name.
+  const signer = (signerLine.match(/^((?:[A-Z]\.|[A-Z][\w'-]+)(?:\s+(?:[A-Z]\.|[A-Z][\w'-]+)){0,2})(?=\s*(?:[.,;:]|\(|$))/) || [])[1] || ''
   if (!looksLikePersonName(signer) || /\b(?:pending|unknown|tbd|nobody|none|unassigned|unconfirmed)\b/i.test(signer)) issues.push('success.md needs a named customer-side signer under **Stakeholder who signs off:**; a team, role, or pending name is not authority')
   return issues
 }
