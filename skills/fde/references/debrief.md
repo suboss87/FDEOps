@@ -31,8 +31,14 @@
    - `next: send one-pager before Thursday 9am`
    - unprefixed lines stay context color only
 4. Show the **REVIEW** block first (decided / asked / open / next / signer). That is the one screen to confirm. File routing stays underneath.
-5. On FDE confirm → run `fde debrief --apply`.
-6. On reject → stop; ask what to change; do not apply.
+5. In **chat**, after that REVIEW, present a four-row card and omit empty rows:
+   - Decided
+   - Asked / open
+   - Next
+   - Signer
+   Then a **Previously:** line from the record, and **Not yet agreed** for anything still proposed. Ask **Save this update?** Saving means the engineer accepted this as the engagement record, not that the customer approved every ask. Uncertainty stays visible.
+6. On FDE confirm → run `fde debrief --apply`.
+7. On reject → stop; ask what to change; do not apply. Do not rebuild or replace the CLI REVIEW engine.
 
 No invented names or quotes. If the propose looks wrong, fix prefixes with judgment then re-apply or use the fallback path.
 
@@ -47,8 +53,8 @@ If `--smart` is unavailable or you already have clean prefixes:
    - **Risks** - new / confirmed / retired
    - **Open questions** - what to chase next
 2. Format lines as `decision:` / `risk:` / `delivery:` / `contact:` / `next:` / `signer:` (contacts may end with `[signal:green|amber|red]`).
-3. Show that structured version to the FDE for confirmation.
-4. Pipe to `fde debrief` (or write a file and run it).
+3. Show the same **chat card** as the smart path (omit empty rows; Previously; Not yet agreed; **Save this update?**). Do not invent a second confirm surface.
+4. On confirm, pipe to `fde debrief` (or write a file and run it).
 
 One clarifying question max if the dump is ambiguous - then write. Never stall capture on completeness.
 

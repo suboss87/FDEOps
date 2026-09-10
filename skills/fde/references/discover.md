@@ -18,6 +18,8 @@ Then check - probe ONLY if it prevents wasted discovery:
 
 State your read, let the FDE correct, then discover.
 
+Before asking for facts, inspect the supplied brief and existing redacted records for the answer. Once the decision frame is confirmed and code access is authorized, use the scan below and targeted file reads to resolve technical unknowns. Phrase remaining questions around the discrepancy found: “The queue already exists, but alerts are disabled; who currently checks it?”
+
 ## Brief interrogation (when the hypothesis is still mush)
 
 Use when the "problem" is unfalsifiable, success is undefined, or you cannot name the decision discovery informs. Skip when `reality.md` / `terrain.md` already pin a testable claim and the FDE is ready to dig.
@@ -66,7 +68,7 @@ Do not mark pieces as facts or assumptions here. That is `test-assumptions`. Do 
 
 ## Method - part 1: the codebase (you do this work)
 
-**First move: `fde scan`** - it runs everything below deterministically in seconds (churn×tests, "temporary" archaeology, AI components, secrets redacted, previous attempts). Your job is then **interpretation**: read its output against the brief, follow the hotspots into the code, and connect the technical findings to the human signals in part 2.
+**First code move: `fde scan`** - after the Question is locked. It runs everything below deterministically in seconds (churn×tests, "temporary" archaeology, AI components, secrets redacted, previous attempts). Your job is then **interpretation**: read its output against the brief, follow the hotspots into the code, and connect the technical findings to the human signals in part 2.
 
 If the CLI is unavailable, run the manual commands below. Either way: do not load the full codebase into context - scan wide, read deep only on hotspots.
 
@@ -105,6 +107,8 @@ grep -rlnE "openai|anthropic|llm|prompt|embedding|vector|inference" \
 Flag every one. AI components don't fail like regular code - they degrade as the world changes. Each needs: model version, fallback path (or note its absence), observability (or note its absence).
 
 **6. Data flow.** Where data enters, how it moves, where it stops. Entry points first: routes, queues, cron, file drops.
+
+**7. Existing capability.** Trace the requested user action through existing code, configuration, tests, and operating workarounds. In `terrain.md`, record what can already be reused and the evidence that it works or fails. Check whether a configuration, ownership, or process change could resolve the observed break. A disabled feature is a lead, not a proven root cause. Keep observations and hypotheses distinct; option selection still belongs to plan / three-options.
 
 ## Method - part 2: the humans (you coach, the FDE asks)
 

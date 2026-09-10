@@ -231,6 +231,8 @@ Straight from pilot to standard = a high-profile failure at scale.
 
 ## Method - after
 
+Keep implementation, test results, deployment, measured outcome, and customer acceptance separate in the receipt. Record the environment, observation window/sample, source, and remaining gaps. A commit is not a deploy; a staging measurement is not realized production value. When the baseline is missing or incomparable, record the observed result and the measurement next step without claiming an improvement. Record acceptance only for what the named person actually accepted, with a dated source; an engineer's summary remains attributed to that summary.
+
 Smoke tests against production. Verify the business metric moved the right way. Then **define the pulse before closing the laptop** - a deploy without a pulse is one you'll hear about only when it breaks:
 
 1. **Metric:** the number that says it's working - "p99 on payment endpoint < 800ms", not "errors low."
@@ -241,7 +243,7 @@ AI components: also define what *normal output* looks like and check a weekly sa
 
 ## Method - scale readiness (pilot proved it, now deploy enterprise-wide)
 
-95% of AI pilots fail to reach production. The gap isn't technical - it's organizational, governance, and infrastructure readiness. This checklist determines whether the pilot is ready to scale.
+A successful pilot does not establish readiness for wider use. Check organizational ownership, governance, and infrastructure alongside technical performance before expanding.
 
 **The scale-readiness gate (all must be YES before broad rollout):**
 
@@ -277,7 +279,7 @@ Adoption isn't a handoff-stage problem - it starts while you are still writing t
 
 **At launch:**
 - **Champion network.** Identify 2-3 power users per team who adopt early. Support them intensely - they become your multiplier.
-- **30-60-90 adoption targets.** Week 1: 20% of target users try it. Week 4: 50% use it weekly. Week 12: 80% can't imagine working without it. If week 1 misses → the onboarding is broken. If week 4 misses → the value proposition is wrong.
+- **Adoption targets agreed before launch.** Define the eligible users, expected usage frequency, observation window, baseline, and owner. A weekly workflow needs a different measure from a quarterly one. Investigate misses with users; usage alone does not establish whether onboarding, access, or value is the cause.
 - **The "switching cost" test.** If users can still do it the old way, they will. Adoption requires either: the old way is removed, the new way is dramatically better, or management mandates the switch. Know which lever applies.
 
 **Write adoption metrics to `delivery.md`:** active users, frequency, drop-off points, resistance signals. This is the evidence for renewal.

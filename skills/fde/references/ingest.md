@@ -32,7 +32,7 @@ List what you can actually call **this session**:
 4. **List** (optional) - `fde ingest list` shows staged items when you need an id or filename.
 5. **Propose** - `fde ingest propose <id-or-filename>` runs the debrief `--smart` path on the staged body (+ provenance line). Opens `.debrief-propose`.
 6. **Rewrite prefixes** - same as debrief: lines without `decision:` / `risk:` / `delivery:` / `contact:` / `next:` / `signer:` need **you** to rewrite before showing the FDE. `--smart` is a gate, not a brain.
-7. **Show** the proposed routing in plain language. Wait for confirm.
+7. **Show** the same chat card as debrief (decided / asked / open / next / signer; omit empty; Previously; Not yet agreed; **Save this update?**). Wait for confirm. The CLI REVIEW printout is unchanged.
 8. **Apply** - on FDE confirm only → `fde ingest apply` (= `fde debrief --apply`). On reject → stop; ask what to change.
 
 No invented names, meetings, or quotes. If the propose looks wrong, fix prefixes with judgment, then re-show before apply.

@@ -34,7 +34,7 @@ Each reference is a **skill, not a prompt**: the thinking the agent does, the ar
 
 | Skill | What it does | Use when |
 |-------|-------------|----------|
-| [plan](../skills/fde/references/plan.md) | Sequence the work | Break this down, what order, sequence the build, plan the roadmap, create user stories, write the tasks |
+| [plan](../skills/fde/references/plan.md) | Sequence the work | Break this down, what order, sequence the delivery, align the plan |
 | [business-case](../skills/fde/references/business-case.md) | Build the business case | Sponsor needs justification, need to defend budget or timeline |
 | [three-options](../skills/fde/references/three-options.md) | Generate options | Significant decision, multiple approaches, "what should we do?", generate solutions |
 | [pick-three](../skills/fde/references/pick-three.md) | Prioritize three | 20 things are "urgent," need to pick the 3 that matter |
@@ -107,7 +107,7 @@ Also-ran skills on the same loop (not a second map): [audit](../skills/fde/refer
 
 ## The `fde` CLI (deterministic core - works without AI)
 
-`scan` recon + "ASK ON DAY 1" questions (zero-config via `npx fdeops scan`) · `resume [--full] [--init <name>]` memory (bounded by default - current state + recent activity; `--full` for the complete log) + bind (`--init` creates AND binds; prefer `@fde this is Acme` in chat, terminal `--init` as fallback) · `debrief <file>` (or stdin) route `decision:`/`risk:`/`delivery:`/`contact:` prefixed lines to their `.fde` files with dates, everything else to a dated block in `context.md` · `log <type> <text> [--signal green|amber|red]` structured appends; `--signal` writes the `[signal:...]` token that drives trust in status/dashboard (stale after 21 days) · `receipts <term>` agreements with dates · `capture` session snapshot · `status` value ledger then trust · `dashboard [--open] [--out <path>]` render every engagement into one offline `fieldbook.html`. The skill calls these for mechanics; the AI does interpretation and judgment. Every command above runs locally - no AI needed.
+`scan` recon + "ASK ON DAY 1" questions (zero-config via `npx fdeops scan`) · `resume [--full] [--init <name>]` memory (bounded by default - current state + recent activity; `--full` for the complete log) + bind (`--init` creates AND binds; prefer `@fde this is Acme` in chat, terminal `--init` as fallback) · `debrief <file>` (or stdin) route `decision:`/`risk:`/`delivery:`/`contact:` prefixed lines to their `.fde` files with dates, everything else to a dated block in `context.md` · `log <type> <text> [--signal green|amber|red]` structured appends; `--signal` writes the `[signal:...]` token that drives trust in status/dashboard (stale after 21 days) · `receipts <term>` agreements with dates · `capture` session snapshot · `status` value ledger then trust · `dashboard [--all] [--open] [--out <path>]` bound engagement into `fieldbook-current.html` (pass `--all` for every engagement). The skill calls these for mechanics; the AI does interpretation and judgment. Every command above runs locally - no AI needed.
 
 ---
 

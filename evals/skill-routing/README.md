@@ -7,7 +7,7 @@ Cheap eval for `@fde` (inspired by “don’t ship skills without evals”).
 | `node evals/skill-routing/check.js` | Happy prompts still have a documented `fde …` route in `SKILL.md` |
 | Live trial (you + agent) | Negatives don’t pull engagement skills; happies run the right CLI |
 
-CLI unit tests (`npm test`) remain the product bar. This only grades the skill.
+CLI unit tests (`npm test`) remain the product bar. The static check and CLI smoke do not grade model judgment. For customer diagnosis, reuse, acceptance, and compatibility scenarios, use the separate [customer delivery evaluation](../delivery/README.md).
 
 ## Run
 

@@ -243,6 +243,49 @@ strong{font-weight:600}
 .fb-palette-hint{margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-faint)}
 @media(max-width:760px){.fb-rail{flex:0 0 220px}.fb-main-inner{padding:20px}}
 @media(max-width:640px){.fb-body{flex-direction:column}.fb-rail{flex:0 0 auto;max-height:40vh;border-right:none;border-bottom:1px solid var(--line)}.fb-main-inner{padding:16px}}
+/* Daily work: evidence is the focal point; chrome stays quiet. */
+:root{--ink-faint:#68665f;--amber:#86530d}
+html[data-fde-theme="dark"]{--ink-faint:#a39f94}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible,a:focus-visible,[tabindex="0"]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.fb-h1{font-family:'Geist',system-ui,sans-serif;font-size:32px;letter-spacing:-.035em}
+.fb-h1:focus{outline:none}
+.fb-sec{font-family:inherit;font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink)}
+.fb-main{min-width:0}.fb-main-inner{max-width:1280px}.fb-top-grid>*{min-width:0}
+.fb-meta-line{line-height:1.6}.fb-eyebrow{font-family:inherit;font-size:12px}
+.fb-snapshot{font-size:11px;color:var(--ink-faint);line-height:1.6;margin-bottom:24px}
+.fb-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:20px}
+.fb-action{padding:9px 13px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);font-size:12px;font-weight:500;cursor:pointer}
+.fb-action:first-child{background:var(--accent);color:#fff;border-color:var(--accent)}
+html[data-fde-theme="dark"] .fb-action:first-child{color:#102219}
+.fb-action:hover{border-color:var(--accent)}.fb-actions>span{font-size:11px;color:var(--ink-faint);margin-left:4px}
+.fb-queue-row,.fb-flag-row{border:0;background:transparent;width:100%;text-align:left;color:var(--ink)}
+.fb-queue-row{padding:14px 10px;align-items:center}.fb-queue-slug{font-family:inherit;font-weight:600;color:var(--ink)}
+.fb-flag-row{padding:10px}.fb-flag-text{font-family:inherit;font-size:13px}
+.fb-value-table{min-width:700px;table-layout:fixed;margin:0}.fb-value-table th,.fb-value-table td{padding:14px 12px;overflow-wrap:anywhere;line-height:1.5}
+.fb-value-table thead th{font-family:inherit;text-transform:none;letter-spacing:0;font-size:12px;font-weight:500}
+.fb-value-table tbody th{font-family:inherit;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink)}
+.fb-value-state{display:block;margin-top:5px;font-size:11px;font-weight:400}
+.fb-table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;margin-top:12px}
+.fb-evidence-note{font-size:12px;line-height:1.5;color:var(--ink-faint);margin:8px 0}
+.fb-empty-evidence{padding:18px;border:1px dashed var(--line);border-radius:8px;margin-top:12px;font-size:14px}
+.fb-empty-evidence p{color:var(--ink-soft);max-width:65ch;line-height:1.6;margin:6px 0 0}
+.fb-copy-status{font-size:13px;color:var(--accent);line-height:1.5}.fb-copy-status:empty{display:none}
+.fb-dialog{padding:0;width:520px;max-width:calc(100vw - 32px);max-height:80vh;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);box-shadow:var(--shadow)}
+.fb-dialog::backdrop{background:rgba(0,0,0,.45)}
+.fb-dialog-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;font-size:14px;font-weight:600;gap:12px;border-bottom:1px solid var(--line)}
+.fb-dialog-help{padding:0 16px;font-size:13px;line-height:1.6;color:var(--ink-soft)}
+#fb-prompt-text{display:block;width:calc(100% - 32px);margin:16px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);font:13px/1.6 inherit;resize:vertical}
+.fb-palette-item{width:100%;border:0;background:transparent;text-align:left;color:var(--ink)}
+.fb-empty-search{font-size:13px;line-height:1.6;color:var(--ink-soft);padding:12px}.fb-empty-search[hidden]{display:none}
+.sr-only,.fb-skip:not(:focus){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.fb-skip:focus{position:fixed;top:8px;left:8px;z-index:100;background:var(--bg);color:var(--ink);padding:10px}
+.fb-more-body{overflow-x:auto}.fb-title-row{flex-wrap:wrap}.fb-person{flex-wrap:wrap}.fb-person-note{min-width:140px}
+@media(max-width:1100px){.fb-main-inner{padding:24px}.fb-rail{flex-basis:240px}.fb-grid-wrap{grid-template-columns:1fr}.fb-need{display:none}}
+@media(max-width:640px){.fb-header{padding:12px;gap:8px;flex-wrap:wrap}.fb-today{display:none}.fb-brand{margin-right:auto}.fb-tagline{font-family:inherit}.fb-btn{min-height:34px}.fb-rail{max-height:190px;flex-basis:auto}.fb-main-inner{padding:20px 16px}.fb-h1{font-size:28px}.fb-queue-row{flex-wrap:wrap;gap:8px}.fb-queue-slug{flex-basis:calc(100% - 24px)}.fb-queue-action{flex-basis:100%;padding-left:16px}.fb-queue-touched{padding-left:16px}.fb-flag-row{flex-direction:column;gap:4px}.fb-flag-slug{flex-basis:auto}.fb-grid-wrap{grid-template-columns:minmax(0,1fr)}.fb-log{flex-wrap:wrap}.fb-log-text{flex-basis:100%}.fb-hints-spacer{margin-left:0}.fb-snapshot{margin-bottom:18px}.fb-body{min-height:0}.fb-actions>span{width:100%;margin-top:4px}.fb-app{height:100dvh}}
+@media(max-width:390px){.fb-value-table{min-width:0}.fb-person-name,.fb-person-role{flex:1 1 100%}.fb-rail{max-height:150px}.fb-main-inner{padding:16px 12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+@media print{@page{margin:12mm}html,body,.fb-app{height:auto;overflow:visible;background:#fff;color:#000}.fb-header,.fb-rail,.fb-actions,.fb-hints,.fb-copy-status,.fb-dialog,.fb-skip{display:none!important}.fb-body,.fb-main{display:block;overflow:visible}.fb-main-inner{padding:0;max-width:none}.fb-top-grid{grid-template-columns:1fr}.fb-table-scroll{overflow:visible}.fb-value-table{min-width:0;table-layout:fixed;font-size:10px}.fb-value-table th,.fb-value-table td{padding:6px}.fb-view[hidden]{display:none!important}.fb-block{break-inside:avoid}.fb-vitals{background:#fff}*{color:#000!important;box-shadow:none!important}}
+
 `
 }
 
@@ -253,143 +296,7 @@ strong{font-weight:600}
 // command palette are wired the same way the theme toggle already was here -
 // addEventListener, guarded null checks, no inline handlers.
 function dashScript() {
-  return [
-    "(function(){",
-    "'use strict';",
-    "var SEL_KEY='fde-fieldbook-sel';",
-    "function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}",
-    "function all(sel){return Array.prototype.slice.call(document.querySelectorAll(sel));}",
-    "",
-    "var views=all('.fb-view');",
-    "var navItems=all('.fb-nav');",
-    "var searchInput=document.getElementById('fb-search');",
-    "",
-    "function selectView(id){",
-    "  if(!document.getElementById('view-'+id))return;",
-    "  views.forEach(function(v){v.hidden=(v.id!=='view-'+id);});",
-    "  navItems.forEach(function(n){n.classList.toggle('active',n.getAttribute('data-target')===id);});",
-    "  try{localStorage.setItem(SEL_KEY,id);}catch(e){}",
-    "}",
-    "navItems.forEach(function(n){n.addEventListener('click',function(){selectView(n.getAttribute('data-target'));});});",
-    "all('[data-nav]').forEach(function(n){n.addEventListener('click',function(){selectView(n.getAttribute('data-nav'));});});",
-    "",
-    "var startSel='today';",
-    "try{var s=localStorage.getItem(SEL_KEY);if(s&&document.getElementById('view-'+s))startSel=s;}catch(e){}",
-    "selectView(startSel);",
-    "",
-    "// search: filters the rail, shows a match snippet in place of the default reason line",
-    "// NOTE: snippetFor() below returns a string built ONLY from esc()-escaped",
-    "// fragments plus hardcoded '<mark>' literals - never raw untrusted markup -",
-    "// so assigning it via innerHTML cannot inject a tag from engagement content.",
-    "function snippetFor(raw,term){",
-    "  var i=raw.indexOf(term);",
-    "  if(i<0)return '';",
-    "  var start=Math.max(0,i-24),end=Math.min(raw.length,i+term.length+40);",
-    "  var pre=esc(raw.slice(start,i)),hit=esc(raw.slice(i,i+term.length)),post=esc(raw.slice(i+term.length,end));",
-    "  return (start>0?'\\u2026':'')+pre+'<mark>'+hit+'</mark>'+post+(end<raw.length?'\\u2026':'');",
-    "}",
-    "if(searchInput){searchInput.addEventListener('input',function(){",
-    "  var term=searchInput.value.trim().toLowerCase();",
-    "  navItems.forEach(function(n){",
-    "    if(n.getAttribute('data-target')==='today')return;",
-    "    var raw=(n.getAttribute('data-search')||'').toLowerCase();",
-    "    var hit=!term||raw.indexOf(term)>-1;",
-    "    n.classList.toggle('hide',!hit);",
-    "    var reason=n.querySelector('.fb-nav-reason');",
-    "    if(!reason)return;",
-    "    if(term&&hit){var snip=snippetFor(raw,term);reason.innerHTML=snip;reason.classList.toggle('hide',!snip);}",
-    "    else{reason.innerHTML=n.getAttribute('data-default-reason')||'';reason.classList.toggle('hide',!reason.innerHTML);}",
-    "  });",
-    "});}",
-    "",
-    "// keyboard: j/k/arrows move rail selection, / focuses search, Esc blurs/closes",
-    "function visibleIds(){return navItems.filter(function(n){return !n.classList.contains('hide');}).map(function(n){return n.getAttribute('data-target');});}",
-    "function currentId(){var v=document.querySelector('.fb-view:not([hidden])');return v?v.id.replace('view-',''):'today';}",
-    "document.addEventListener('keydown',function(ev){",
-    "  if((ev.metaKey||ev.ctrlKey)&&(ev.key==='k'||ev.key==='K')){ev.preventDefault();openPalette();return;}",
-    "  if(paletteIsOpen()){if(ev.key==='Escape'){ev.preventDefault();closePalette();}return;}",
-    "  var t=ev.target,typing=t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable);",
-    "  if(typing){if(ev.key==='Escape')t.blur();return;}",
-    "  if(ev.key==='/'){ev.preventDefault();if(searchInput)searchInput.focus();return;}",
-    "  var down=ev.key==='ArrowDown'||ev.key==='j',up=ev.key==='ArrowUp'||ev.key==='k';",
-    "  if(down||up){",
-    "    ev.preventDefault();",
-    "    var ids=visibleIds();",
-    "    var idx=ids.indexOf(currentId());",
-    "    var next=ids[Math.min(ids.length-1,Math.max(0,idx+(down?1:-1)))];",
-    "    if(next)selectView(next);",
-    "  }",
-    "});",
-    "",
-    "// command palette: search-filterable nav (today + each client + theme toggle)",
-    "var paletteBackdrop=document.getElementById('fb-palette-backdrop');",
-    "var paletteInput=document.getElementById('fb-palette-input');",
-    "var paletteInner=document.querySelector('.fb-palette');",
-    "var paletteItems=all('.fb-palette-item');",
-    "var pActive=0;",
-    "function paletteIsOpen(){return !!(paletteBackdrop&&paletteBackdrop.classList.contains('open'));}",
-    "function visiblePaletteItems(){return paletteItems.filter(function(it){return !it.classList.contains('hide');});}",
-    "function highlightPalette(){",
-    "  var visible=visiblePaletteItems();",
-    "  paletteItems.forEach(function(it){it.classList.remove('active');});",
-    "  if(visible[pActive]){visible[pActive].classList.add('active');visible[pActive].scrollIntoView({block:'nearest'});}",
-    "}",
-    "function filterPalette(q){",
-    "  q=q.toLowerCase();",
-    "  paletteItems.forEach(function(it){",
-    "    var label=(it.getAttribute('data-label')||'').toLowerCase();",
-    "    var kind=(it.getAttribute('data-kind')||'').toLowerCase();",
-    "    it.classList.toggle('hide',!(!q||label.indexOf(q)>-1||kind.indexOf(q)>-1));",
-    "  });",
-    "  pActive=0;highlightPalette();",
-    "}",
-    "function openPalette(){",
-    "  if(!paletteBackdrop)return;",
-    "  paletteBackdrop.classList.add('open');",
-    "  if(paletteInput){paletteInput.value='';paletteInput.focus();}",
-    "  filterPalette('');",
-    "}",
-    "function closePalette(){if(paletteBackdrop)paletteBackdrop.classList.remove('open');}",
-    "function runActive(){",
-    "  var it=visiblePaletteItems()[pActive];",
-    "  if(!it)return;",
-    "  var target=it.getAttribute('data-target');",
-    "  if(target==='__theme__')toggleTheme();",
-    "  else if(target)selectView(target);",
-    "  closePalette();",
-    "}",
-    "if(paletteBackdrop)paletteBackdrop.addEventListener('click',function(ev){if(ev.target===paletteBackdrop)closePalette();});",
-    "if(paletteInner)paletteInner.addEventListener('click',function(ev){ev.stopPropagation();});",
-    "var paletteBtn=document.getElementById('fb-palette-btn');",
-    "if(paletteBtn)paletteBtn.addEventListener('click',openPalette);",
-    "paletteItems.forEach(function(it){",
-    "  it.addEventListener('click',function(){pActive=visiblePaletteItems().indexOf(it);runActive();});",
-    "  it.addEventListener('mouseenter',function(){var v=visiblePaletteItems();var i=v.indexOf(it);if(i>-1){pActive=i;highlightPalette();}});",
-    "});",
-    "if(paletteInput){",
-    "  paletteInput.addEventListener('input',function(){filterPalette(paletteInput.value);});",
-    "  paletteInput.addEventListener('keydown',function(ev){",
-    "    if(ev.key==='Escape'){closePalette();return;}",
-    "    if(ev.key==='ArrowDown'){ev.preventDefault();pActive=Math.min(visiblePaletteItems().length-1,pActive+1);highlightPalette();return;}",
-    "    if(ev.key==='ArrowUp'){ev.preventDefault();pActive=Math.max(0,pActive-1);highlightPalette();return;}",
-    "    if(ev.key==='Enter'){ev.preventDefault();runActive();}",
-    "  });",
-    "}",
-    "",
-    "// theme toggle - local only, no network; pre-paint script in <head> avoids a flash",
-    "var themeBtn=document.getElementById('fde-theme-btn');",
-    "function currentTheme(){return document.documentElement.getAttribute('data-fde-theme')==='dark'?'dark':'light';}",
-    "function setThemeLabel(){if(themeBtn)themeBtn.textContent=(currentTheme()==='dark'?'light':'dark');}",
-    "function toggleTheme(){",
-    "  var next=currentTheme()==='dark'?'light':'dark';",
-    "  try{localStorage.setItem('fde-fieldbook-theme',next);}catch(e){}",
-    "  document.documentElement.setAttribute('data-fde-theme',next);",
-    "  setThemeLabel();",
-    "}",
-    "setThemeLabel();",
-    "if(themeBtn)themeBtn.addEventListener('click',toggleTheme);",
-    "})();",
-  ].join('\n')
+  return '(' + require('./fieldbook-client').toString() + ')()'
 }
 
 // ---- HTML builders (one per fieldbook widget) - kept small and named so the
@@ -399,7 +306,7 @@ function railItemHtml(e) {
   const dotClass = dotClassFor(e.signals.trust)
   const touchedClass = e.quiet ? 't-amber' : 't-faint'
   const preview = e.next.length > 58 ? e.next.slice(0, 56) + '…' : e.next
-  const defaultReason = e.signals.trust !== 'green' && preview ? escapeHtml(preview) : ''
+  const defaultReason = escapeHtml((e.attention || [])[0]?.text || preview)
   return `<button class="fb-nav" data-target="eng-${e.slug}" data-search="${e.searchBlob}" data-default-reason="${defaultReason}">
 <div class="fb-nav-row"><span class="dot dot-sm ${dotClass}"></span><span class="fb-nav-name">${inlineMd(e.name)}</span></div>
 <div class="fb-nav-meta">${escapeHtml(e.phaseLabel)} &middot; <span class="${touchedClass}">${escapeHtml(e.signals.updated)}</span></div>
@@ -410,44 +317,86 @@ function railItemHtml(e) {
 function queueRowHtml(e) {
   const dotClass = dotClassFor(e.signals.trust)
   const noAction = !e.hasNext
-  const actionText = noAction ? 'no next action set - open and add one' : e.next
+  const actionText = noAction ? 'Set the next action with your agent' : e.next
   const touchedClass = e.quiet ? 't-amber' : 't-faint'
-  return `<div class="fb-row fb-queue-row" data-nav="eng-${e.slug}">
+  return `<button type="button" class="fb-row fb-queue-row" data-nav="eng-${e.slug}">
 <span class="dot dot-md ${dotClass}"></span>
 <span class="fb-queue-slug">${inlineMd(e.name)}</span>
 <span class="fb-queue-action${noAction ? ' t-amber' : ''}">${inlineMd(actionText)}</span>
 <span class="fb-queue-touched ${touchedClass}">${escapeHtml(e.signals.updated)}</span>
-</div>`
+</button>`
 }
 
 function flagRowHtml(e, text, colorClass) {
-  return `<div class="fb-row fb-flag-row" data-nav="eng-${e.slug}">
+  return `<button type="button" class="fb-row fb-flag-row" data-nav="eng-${e.slug}">
 <span class="fb-flag-slug">${inlineMd(e.name)}</span>
 <span class="fb-flag-text t-${colorClass}">${escapeHtml(text)}</span>
-</div>`
+</button>`
 }
 
 function todayViewHtml({ today, total, attentionCount, highRiskTotal, todayQueue, flagsHtml, hasEngagements }) {
   if (!hasEngagements) {
     return `<div id="view-today" class="fb-view">
-<div class="fb-eyebrow">portfolio</div>
-<h1 class="fb-h1">Today</h1>
+<div class="fb-eyebrow">Your engagements</div>
+<h1 tabindex="-1" class="fb-h1">Today</h1>
 <p class="empty">No engagements yet. Start one with <code>fde resume --init &lt;client-name&gt;</code>, then re-run <code>fde dashboard</code>.</p>
 </div>`
   }
   return `<div id="view-today" class="fb-view">
-<div class="fb-eyebrow">portfolio</div>
-<h1 class="fb-h1">Today</h1>
+<div class="fb-eyebrow">Your engagements</div>
+<h1 tabindex="-1" class="fb-h1">Today</h1>
 <div class="fb-meta-line">${escapeHtml(today)} &middot; ${total} engagement${total === 1 ? '' : 's'} &middot; ${attentionCount} need you &middot; ${highRiskTotal} high risk${highRiskTotal === 1 ? '' : 's'} open</div>
 <div class="fb-block">
-<div class="fb-sec">Queue - next action per client, worst first</div>
+<div class="fb-sec">Next actions</div>
 ${todayQueue}
 </div>
 ${flagsHtml ? `<div class="fb-block">
-<div class="fb-sec">Flags</div>
+<div class="fb-sec">Needs attention</div>
 ${flagsHtml}
 </div>` : ''}
 </div>`
+}
+
+function attentionFor(e) {
+  const items = []
+  const add = (text, tone = 'amber') => items.push({ text, tone })
+  if (e.signals.memoryWarn) add('Record needs repair: ' + e.signals.memoryWarn, 'red')
+  if (e.highRisks) add(`${e.highRisks} high risk${e.highRisks === 1 ? '' : 's'} open`, 'red')
+  if (e.signals.trust === 'RED' || e.signals.trust === 'amber') add('Check in with the customer: trust is ' + trustWord(e.signals.trust), e.signals.trust === 'RED' ? 'red' : 'amber')
+  if (e.signals.trust === 'new') add('No dated trust signal yet - ask someone')
+  if (!e.hasNext) add('Set the next action')
+  const rows = e.valueRows || []
+  const missingEvidence = rows.filter(r => r.evidenceMissing).length
+  if (missingEvidence) add(`${missingEvidence} outcome${missingEvidence === 1 ? '' : 's'} missing evidence`)
+  const claimed = rows.filter(r => r.state === 'claimed').length
+  const unmeasured = rows.filter(r => r.state === 'unmeasured').length
+  if (claimed) add(`${claimed} measured outcome${claimed === 1 ? '' : 's'} awaiting acceptance`)
+  if (unmeasured) add(`${unmeasured} outcome${unmeasured === 1 ? '' : 's'} not yet measured`)
+  if (e.signals.stale) add('Reconfirm the dated trust signal')
+  if (e.quiet) add('Record last updated ' + e.signals.updated)
+  return items
+}
+
+function agentActionsHtml(e) {
+  const prefix = `@fde Confirm the workspace is bound to ${JSON.stringify(e.name)} before using its records. `
+  const actions = [
+    ['Prepare meeting', 'Prepare me for the next customer meeting. Use the recorded decisions, open risks, delivery evidence and next action. Cite sources and flag unknowns.'],
+    ['Debrief notes', 'Help me debrief a customer meeting. Ask me for the notes, then show proposed changes and conflicts for review before saving.'],
+    ['Review outcome', 'Review what we promised, measured and recorded as accepted. Check the evidence and customer approver; do not infer acceptance. Draft a concise customer readout.'],
+  ]
+  return `<div class="fb-actions" aria-label="Continue in your coding agent">${actions.map(([label, prompt]) => `<button type="button" class="fb-action" data-prompt="${escapeHtml(prefix + prompt)}">${label}</button>`).join('')}<span>Copy a prompt into your agent</span></div>`
+}
+
+function deliveryHtml(e) {
+  const rows = e.valueRows || []
+  const labels = { unmeasured: 'Not yet measured', claimed: 'Awaiting acceptance', accepted: 'Acceptance recorded' }
+  const pending = value => !value || /^(?:pending|tbd|unknown|n\/a|none|awaiting)(?:\b|$)/i.test(value)
+  const cell = (value, fallback) => pending(value) ? `<span class="t-faint">${escapeHtml(value || fallback)}</span>` : inlineMd(value)
+  return `<section class="fb-block fb-delivery" aria-label="Delivery evidence">
+<div class="fb-sec-row"><h2 class="fb-sec">Delivery evidence</h2><span class="fb-count">${rows.length} outcome${rows.length === 1 ? '' : 's'}</span></div>
+<p class="fb-evidence-note">Recorded in delivery.md. Acceptance reflects the saved record, not independent verification.</p>
+${rows.length ? `<div class="fb-table-scroll" role="region" aria-label="Promised, measured and accepted outcomes" tabindex="0"><table class="fb-table fb-value-table"><thead><tr><th scope="col">Outcome</th><th scope="col">Promised</th><th scope="col">Measured</th><th scope="col">Acceptance</th><th scope="col">Evidence</th></tr></thead><tbody>${rows.map(r => `<tr><th scope="row">${inlineMd(r.slice || 'Outcome')}<span class="fb-value-state t-${r.state === 'accepted' ? 'green' : 'amber'}">${labels[r.state]}</span></th><td>${cell(r.promised, 'Not recorded')}</td><td>${cell(r.measured, 'Not yet measured')}</td><td>${cell(r.accepted, 'Not recorded')}</td><td>${cell(r.evidence, 'Not recorded')}</td></tr>`).join('')}</tbody></table></div>` : `<div class="fb-empty-evidence"><strong>No delivery evidence yet</strong><p>Ask your agent to define one useful increment: the expected result, how to measure it, and who will accept it.</p></div>`}
+</section>`
 }
 
 function clientViewHtml(e) {
@@ -460,8 +409,8 @@ function clientViewHtml(e) {
   ].filter(Boolean).join(' &middot; ')
 
   const nowBlock = `<div class="fb-block">
-<div class="fb-sec">Now</div>
-<div class="fb-now-action${e.hasNext ? '' : ' t-amber'}">${e.hasNext ? inlineMd(e.next) : 'next action not set'}</div>
+<div class="fb-sec">Next action</div>
+<div class="fb-now-action${e.hasNext ? '' : ' t-amber'}">${e.hasNext ? inlineMd(e.next) : 'Set the next action'}</div>
 ${e.lastSession ? `<div class="fb-now-session">${inlineMd(e.lastSession)}</div>` : ''}
 </div>`
 
@@ -470,7 +419,7 @@ ${e.lastSession ? `<div class="fb-now-session">${inlineMd(e.lastSession)}</div>`
   // contrast disappears. Each gets its own line, its own room to finish a
   // thought, not a race to fit before an ellipsis.
   const whyBlock = (e.brief || e.reality || e.realityMissing) ? `<div class="fb-block">
-<div class="fb-sec">Why</div>
+<div class="fb-sec">The problem to solve</div>
 ${e.brief ? `<p class="fb-why"><span class="t-faint">What they asked for:</span> ${inlineMd(e.brief)}</p>` : ''}
 ${e.realityMissing ? `<p class="fb-why fb-why-missing"><span class="fb-accent-label">What's actually true:</span> ${escapeHtml(e.realityMissing)}</p>` : e.reality ? `<p class="fb-why fb-why-reality"><span class="fb-accent-label">What's actually true:</span> ${inlineMd(e.reality)}</p>` : ''}
 </div>` : ''
@@ -524,7 +473,7 @@ ${e.stakeholders.map(p => `<div class="fb-row fb-person">
 </div>` : ''
 
   const riskBlock = e.risks.length ? `<div class="fb-block">
-<div class="fb-sec-row"><div class="fb-sec">Risk</div><span class="fb-count">${e.risks.length} open</span></div>
+<div class="fb-sec-row"><div class="fb-sec">Open risks</div><span class="fb-count">${e.risks.length} open</span></div>
 <div class="fb-list">
 ${e.risks.map(r => `<div class="fb-row fb-risk">
 <span class="fb-risk-sev t-${r.severity === 'high' ? 'red' : 'amber'}">${escapeHtml(r.severity)}</span>
@@ -534,7 +483,7 @@ ${e.risks.map(r => `<div class="fb-row fb-risk">
 </div>` : ''
 
   const logBlock = e.log.length ? `<div class="fb-block">
-<div class="fb-sec">Log</div>
+<div class="fb-sec">Decisions &amp; activity</div>
 <div class="fb-list">
 ${e.log.map(g => `<div class="fb-row fb-log">
 <span class="fb-log-date">${escapeHtml(formatLogDate(g.date))}</span>
@@ -561,15 +510,16 @@ ${e.moreSections.map(s => `<details class="fb-more"><summary class="fb-sec fb-mo
   return `<div id="view-eng-${e.slug}" class="fb-view" hidden>
 <div class="fb-eyebrow">.fde/${escapeHtml(e.slug)}</div>
 <div class="fb-title-row">
-<h1 class="fb-h1">${inlineMd(e.name)}</h1>
+<h1 tabindex="-1" class="fb-h1">${inlineMd(e.name)}</h1>
 <span class="fb-trust"><span class="dot dot-lg ${dotClass}"></span><span class="t-${dotClass}">${trustWord(e.signals.trust)}</span></span>
 </div>
 <div class="fb-meta-line">${sectorLine}</div>
+${agentActionsHtml(e)}
 <div class="fb-top-grid">
 <div>${nowBlock}${whyBlock}</div>
 ${vitalsBlock}
 </div>
-${pairedBlock}${logBlock}${moreBlock}
+${deliveryHtml(e)}${pairedBlock}${logBlock}${moreBlock}
 </div>`
 }
 
@@ -579,26 +529,26 @@ function paletteItemsHtml(ordered) {
     ...ordered.map(e => ({ kind: 'open', label: e.slug, hint: trustWord(e.signals.trust), target: 'eng-' + e.slug })),
     { kind: 'action', label: 'toggle theme', hint: 'light / dark', target: '__theme__' },
   ]
-  return items.map(it => `<div class="fb-palette-item" data-target="${escapeHtml(it.target)}" data-label="${escapeHtml(it.label)}" data-kind="${escapeHtml(it.kind)}">
+  return items.map(it => `<button type="button" class="fb-palette-item" data-target="${escapeHtml(it.target)}" data-label="${escapeHtml(it.label)}" data-kind="${escapeHtml(it.kind)}">
 <span class="fb-palette-kind">${escapeHtml(it.kind)}</span>
 <span class="fb-palette-label">${escapeHtml(it.label)}</span>
 <span class="fb-palette-hint">${escapeHtml(it.hint)}</span>
-</div>`).join('\n')
+</button>`).join('\n')
 }
 
-function buildFieldbookHtml({ engagements, today }) {
+function buildFieldbookHtml({ engagements, today, generatedAt = '' }) {
+  engagements = engagements.map(e => ({ ...e, attention: attentionFor(e) }))
   // rail + Today queue share one order: trust-first (red, amber, green)
   const tierRank = { RED: 0, amber: 1, green: 2, new: 3 }
-  const ordered = engagements.slice().sort((a, b) => tierRank[a.signals.trust] - tierRank[b.signals.trust])
-  const attentionCount = engagements.filter(e => e.signals.trust !== 'green' && e.signals.trust !== 'new').length
+  const ordered = engagements.slice().sort((a, b) => Number(b.attention.length > 0) - Number(a.attention.length > 0) || tierRank[a.signals.trust] - tierRank[b.signals.trust])
+  const attentionCount = engagements.filter(e => e.attention.length > 0).length
   const highRiskTotal = engagements.reduce((n, e) => n + e.highRisks, 0)
 
   const railItems = ordered.map(railItemHtml).join('\n')
   const todayQueue = ordered.map(queueRowHtml).join('\n') || '<p class="empty">No engagements yet.</p>'
   const flagRows = []
   ordered.forEach(e => {
-    if (e.quiet) flagRows.push(flagRowHtml(e, `quiet - last touched ${e.signals.updated}`, 'amber'))
-    if (e.highRisks) flagRows.push(flagRowHtml(e, `${e.highRisks} high risk${e.highRisks > 1 ? 's' : ''} open`, 'red'))
+    e.attention.forEach(item => flagRows.push(flagRowHtml(e, item.text, item.tone)))
   })
 
   const todayView = todayViewHtml({
@@ -612,47 +562,58 @@ function buildFieldbookHtml({ engagements, today }) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <script>try{var t=localStorage.getItem("fde-fieldbook-theme");if(t==="dark"||(!t&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-fde-theme","dark");}catch(e){}</script>
 <title>FDE Fieldbook</title><style>${dashStyles()}</style></head><body>
+<a class="fb-skip" href="#fb-main">Skip to content</a>
 <div class="fb-app">
 <header class="fb-header">
 <div class="fb-brand">
 <span class="fb-wordmark">FDEOPS</span>
-<span class="fb-tagline">fieldbook</span>
+<span class="fb-tagline">Fieldbook</span>
 ${engagements.length ? `<span class="fb-need">${attentionCount}/${engagements.length} need you</span>` : ''}
 </div>
 <div class="fb-spacer"></div>
 <span class="fb-today">${escapeHtml(today)}</span>
-<button id="fb-palette-btn" class="fb-btn" type="button" title="Command palette (Ctrl/Cmd+K)">&#8984;K</button>
+<button id="fb-print-btn" class="fb-btn" type="button">Print view</button>
+<button id="fb-palette-btn" aria-label="Open command palette" class="fb-btn" type="button" title="Command palette (Ctrl/Cmd+K)">&#8984;K</button>
 <button id="fde-theme-btn" class="fb-btn" type="button">dark</button>
 </header>
 <div class="fb-body">
-<aside class="fb-rail">
-<div class="fb-rail-search"><input id="fb-search" class="fb-search" placeholder="search clients, notes, risks…" spellcheck="false"></div>
+<aside class="fb-rail" aria-label="Engagement navigation">
+<div class="fb-rail-search"><input id="fb-search" aria-label="Search engagements and records" class="fb-search" placeholder="search clients, notes, risks…" spellcheck="false"></div>
 <div class="fb-rail-list fb-scroll">
 <button class="fb-nav" data-target="today">
 <div class="fb-nav-row"><span class="fb-nav-today">today</span>${engagements.length ? `<span class="fb-nav-count">${attentionCount} need you</span>` : ''}</div>
 </button>
 ${railItems}
+<p id="fb-search-empty" class="fb-empty-search" hidden>No matching engagements. Try a person, decision, or delivery.</p>
+<span id="fb-search-count" class="sr-only" role="status"></span>
 </div>
 </aside>
-<main class="fb-main fb-scroll">
+<main id="fb-main" tabindex="-1" class="fb-main fb-scroll">
 <div class="fb-main-inner">
+<div class="fb-snapshot">Snapshot generated <time datetime="${escapeHtml(generatedAt)}">${escapeHtml(generatedAt ? generatedAt.replace('T', ' ').replace(/\.\d+Z$/, ' UTC') : today)}</time>. Re-run <code>fde dashboard</code> after updating your records.</div>
 ${todayView}
 ${clientViews}
+<p id="fb-status" class="fb-copy-status" role="status" aria-live="polite"></p>
 <div class="fb-hints">
 <span><span class="t-soft">&uarr;&darr; / j k</span> client</span>
 <span><span class="t-soft">/</span> search</span>
 <span><span class="t-soft">&#8984;K</span> palette</span>
-<span class="fb-hints-spacer">deterministic render of .fde/ - edit the markdown, re-run fde dashboard</span>
+<span class="fb-hints-spacer">Local records. No network. Changes are reviewed in your coding agent.</span>
 </div>
 </div>
 </main>
 </div>
-<div id="fb-palette-backdrop" class="fb-palette-backdrop">
-<div class="fb-palette">
-<input id="fb-palette-input" class="fb-palette-input" placeholder="jump to client or action…" spellcheck="false">
+<dialog id="fb-palette-dialog" class="fb-dialog" role="dialog" aria-modal="true" aria-label="Command palette">
+<div class="fb-dialog-head"><span>Jump to an engagement</span><button type="button" class="fb-btn" data-close-dialog>Close</button></div>
+<input id="fb-palette-input" class="fb-palette-input" aria-label="Find an engagement or action" placeholder="Find an engagement or action" spellcheck="false">
 <div class="fb-palette-list fb-scroll">${paletteItems}</div>
-</div>
-</div>
+<p id="fb-palette-empty" class="fb-empty-search" hidden>No matching commands.</p>
+</dialog>
+<dialog id="fb-prompt-dialog" class="fb-dialog" role="dialog" aria-modal="true" aria-labelledby="fb-prompt-title">
+<div class="fb-dialog-head"><span id="fb-prompt-title">Copy into your coding agent</span><button type="button" class="fb-btn" data-close-dialog>Close</button></div>
+<p class="fb-dialog-help">Automatic copy is unavailable. Copy the selected prompt, then paste it into your agent. Review any proposed changes there.</p>
+<textarea id="fb-prompt-text" aria-label="Agent prompt" readonly rows="7"></textarea>
+</dialog>
 </div>
 <script>${dashScript()}</script>
 </body></html>`

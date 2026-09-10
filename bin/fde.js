@@ -25,7 +25,7 @@
  *   fde capture             session-end snapshot → context.md (hooks use this)
  *   fde preserve            pre-compaction context snapshot (hook-internal; hooks use this)
  *   fde status [--all]      value ledger first, then trust (pass --all for portfolio)
- *   fde dashboard [--all]   current engagement fieldbook (default) or all (--all)
+ *   fde dashboard [--all] [--open] [--out <path>]  bound fieldbook, or all (--all)
  *   fde vault               derived Obsidian vault of the fieldbook (disposable; --redacted)
  */
 const fs = require('fs')
@@ -799,7 +799,7 @@ function firstLine(md, maxLen) {
 // not carry Working theory / Evidence / Differs from brief, do not scrape a
 // first line that might be the inherited brief and label it truth.
 function parseReality(md, maxLen) {
-  const theory = (md.match(/\*\*Working theory:\*\*\s*(.*)/i) || [])[1]
+  const theory = (md.match(/\*\*Working theory:\*\*[^\S\r\n]*(.*)/i) || [])[1]
   const hasSchema = /\*\*(Working theory|Evidence|Differs from brief how):\*\*/i.test(md)
   const theoryText = (theory || '').trim()
   if (theoryText) {
@@ -961,6 +961,7 @@ function colIndex(headers, rx) { return headers.findIndex(h => rx.test(h)) }
 const {
   personFromSignalText,
   signalSubjectKey,
+  isSignalNameNoise,
   nextActionLine,
   computeSignals,
   resumeTriage,
@@ -1003,10 +1004,14 @@ function displayNameFromSignalText(text) {
   const person = personFromSignalText(text)
   if (person) return person
   const t = String(text).trim()
-  const proper = t.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/)
-  if (proper) return proper[1]
-  const word = t.split(/\s+/).find(w => w && !/^(dr|mr|mrs|ms)\.?$/i.test(w))
-  return word ? word.replace(/[^A-Za-z0-9.-]/g, '') : t.slice(0, 24)
+  const words = t.split(/\s+/).filter(w => {
+    const bare = w.replace(/[^A-Za-z0-9.-]/g, '')
+    return bare.length >= 2 && !isSignalNameNoise(bare) && !/^(dr|mr|mrs|ms)\.?$/i.test(bare)
+  })
+  if (!words.length) return ''
+  const proper = words.find(w => /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?$/.test(w) || /^[A-Z]{2,}$/.test(w))
+  if (proper && !isSignalNameNoise(proper)) return proper.replace(/[^A-Za-z0-9. -]/g, '')
+  return words.slice(0, 2).join(' ').replace(/[^A-Za-z0-9. -]/g, '')
 }
 
 // Stakeholders for prep/dashboard: table rows PLUS people who only appear in
@@ -1063,8 +1068,10 @@ function extractStakeholders(eng) {
       const cur = byKey.get(key)
       byKey.set(key, { ...cur, signal: h.signal, note: cur.note || h.text.slice(0, 80) })
     } else {
+      const name = displayNameFromSignalText(h.text)
+      if (!name || isSignalNameNoise(name)) continue
       byKey.set(key, {
-        name: displayNameFromSignalText(h.text),
+        name,
         role: '',
         note: h.text.slice(0, 80),
         signal: h.signal,
@@ -2685,7 +2692,8 @@ function findAmbiguousStakeholders(eng) {
   for (const name of forms) {
     const key = signalSubjectKey(name)
     if (!key || key.startsWith('anon:')) continue
-    const norm = name.replace(/\s+/g, ' ').trim().toLowerCase()
+    const norm = name.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim().toLowerCase()
+    if (!norm || norm.length < 2) continue
     if (!byKey.has(key)) byKey.set(key, new Set())
     byKey.get(key).add(norm)
   }
@@ -2773,6 +2781,7 @@ function parseValueLedger(eng) {
     promised: colIndex(table.headers, /promised/i),
     measured: colIndex(table.headers, /measured/i),
     accepted: colIndex(table.headers, /accept/i),
+    evidence: colIndex(table.headers, /evidence/i),
   }
   const cell = (row, i) => (i === -1 ? '' : String(row[i] || '').trim())
   const rows = []
@@ -2787,7 +2796,8 @@ function parseValueLedger(eng) {
     let state = 'unmeasured'
     if (!measuredPending && acceptedPending) state = 'claimed'
     else if (!measuredPending) state = 'accepted'
-    rows.push({ slice, promised, measured, accepted, state })
+    const evidence = cell(row, idx.evidence)
+    rows.push({ slice, promised, measured, accepted, evidence, evidenceMissing: !evidence || PENDING_CELL_RE.test(evidence), state })
   }
   return { rows, columnMissing: idx.accepted === -1 }
 }
@@ -3330,6 +3340,7 @@ function cmdDashboard(args) {
   engagements.forEach(e => {
     const ctx = readClean(e.dir, 'context.md')
     e.next = (sectionBody(ctx, 'Next action', { lastNonEmpty: true }).split('\n').find(l => l.trim()) || '').trim()
+    e.next = e.next.replace(/^[-*]\s+/, '')
     e.hasNext = !!e.next
     e.lastSession = firstLine(sectionBody(ctx, 'Current state'), 240)
     // 220, not 140 - now that brief/reality each get their own full-width
@@ -3346,6 +3357,7 @@ function cmdDashboard(args) {
     e.risks = extractRisks(e.dir)
     e.log = extractLog(e.dir)
     e.stats = extractStats(e.dir)
+    e.valueRows = parseValueLedger(e.dir).rows
     e.highRisks = e.risks.filter(r => r.severity === 'high').length
     e.quiet = e.signals.ageDays !== Infinity && e.signals.ageDays >= 3
     e.slug = slugify(e.name)
@@ -3363,10 +3375,11 @@ function cmdDashboard(args) {
       ...e.log.map(g => g.text), ...e.risks.map(r => r.text),
       ...e.stakeholders.map(p => `${p.name} ${p.role} ${p.note}`),
       ...e.moreSections.map(s => s.title),
+      ...e.valueRows.map(r => `${r.slice} ${r.promised} ${r.measured} ${r.accepted} ${r.evidence}`),
     ].join(' ').toLowerCase())
   })
 
-  const html = render.buildFieldbookHtml({ engagements, today })
+  const html = render.buildFieldbookHtml({ engagements, today, generatedAt: new Date().toISOString() })
 
   try {
     fs.mkdirSync(path.dirname(outPath), { recursive: true })
@@ -3745,7 +3758,7 @@ function printUsage() {
   fde owner [set email]    who keeps this engagement record
   fde receipts <term>      "what did we agree?" with dates
   fde status [--all]       value ledger, then trust (pass --all for full portfolio)
-  fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
+  fde dashboard [--all] [--open] [--out <path>]  bound fieldbook (pass --all for every client)
   fde vault                derived Obsidian vault of every engagement (--current for one, --redacted for a shared screen, --out <dir>)
   hooks call these; you do not: capture (session-end snapshot), preserve (pre-compaction snapshot)
   env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)

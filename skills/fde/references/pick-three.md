@@ -61,7 +61,7 @@ Notice: every stakeholder's initiative is P0 or P1. That's the problem this skil
 
 ## Artifact
 
-**`decisions.md`** - the triage table with scores, lanes, **and an explicit Kill / Later commitment**. Dated. Referenced by plan and status.
+**`decisions.md`** - the triage table with scores, lanes, **and an explicit Kill / Later commitment**. Dated. Updates the same Now/Next/Later plan already uses; do not open a second plan section. Referenced by plan and status.
 
 Required closing block (plan will not treat triage as done without it):
 
