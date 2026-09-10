@@ -8,7 +8,7 @@ This records executed checks, not a claim that every agent or model is reliable.
 - Real Chromium: dark desktop and 390px mobile fieldbook, search/filter/navigation, continue/set next action, clipboard fallback, and empty state. No page errors or external requests in the fictional offline journey.
 - Context fixture: 1,120,010 bytes of history produced a 16,384-byte response. Retrieval found all three targeted records among 10,000 unrelated lines, including an older constraint and a newer change. This proves output size and literal retrieval in the fixture, not model accuracy or human time saved. Run `node evals/context-budget/check.js`.
 - New contention tests reproduced lost updates before the repair. Repaired operations read and modify records under their locks; contention and failed nested writes release outer locks. Multi-file commands still are not database transactions, and external editors do not participate in CLI locks.
-- FDEOps MCP: real stdio initialize, list tools, stage, propose and explicit apply. Checks cover no writes before apply, private-content redaction, client isolation, missing proposals and invalid clients. Run `node --test test/record-concurrency.test.js`.
+- FDEOps MCP: real stdio initialize, list tools, stage, propose and explicit apply. Checks cover no applied decisions or ledger updates before apply, private-content redaction, client isolation, missing proposals and invalid clients. Run `node --test test/record-concurrency.test.js`.
 
 ## Local-model evidence
 
