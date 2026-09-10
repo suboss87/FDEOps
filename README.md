@@ -109,6 +109,27 @@ You can also describe the situation in plain English: a new client, a POC, an in
 
 ---
 
+## Your daily fieldbook
+
+![FDEOps dark dashboard showing next actions and attention gaps across three fictional clients](media/fieldbook-preview.png)
+
+*Fictional client records, shown in the built-in dark theme. The report works offline.*
+
+Read [verification results and limits](docs/verification.md) for context measurements, local-model observations, and MCP coverage.
+
+Open `npx fdeops dashboard --all --open` to review every client. Filter what needs attention, open a client, and copy **Continue next action** into your agent. After a meeting, use **Debrief notes**; before a sponsor update, use **Review outcome**. These buttons copy prompts; work runs in your agent. Review changes there and regenerate the dashboard afterward.
+
+## Try the complete loop
+
+```bash
+npx fdeops demo
+```
+
+This writes fictional records and HTML under `~/fde-engagements/.demo/`, resetting its own sandbox on each run. It requires no AI account. Open the generated report; remove the demo later with `npx fdeops demo --clean`. Follow the [five-minute walkthrough](docs/USAGE.md#new-here-5-minutes) for what to inspect.
+
+
+---
+
 ## All 30 Skills
 
 Not prompts to choose from: the router loads one relevant skill with concrete steps, an artifact, and a checkpoint. The [skills reference](docs/skills-reference.md) lists all 30, from discovery and scope control to incident response and handover. Industry and AI overlays apply when relevant.
@@ -209,21 +230,6 @@ The **CLI** is local: git + files, no network, no telemetry. The **host model** 
 
 See [repository layout](docs/REPO_LAYOUT.md) for where to make changes.
 
-## Your daily fieldbook
-
-![FDEOps dark dashboard showing next actions and attention gaps across three fictional clients](media/fieldbook-preview.png)
-
-*Fictional client records, shown in the built-in dark theme. The report works offline.*
-
-Open `npx fdeops dashboard --all --open` to review every client. Filter what needs attention, open a client, and copy **Continue next action** into your agent. After a meeting, use **Debrief notes**; before a sponsor update, use **Review outcome**. These buttons copy prompts; work runs in your agent. Review changes there and regenerate the dashboard afterward.
-
-## Try the complete loop
-
-```bash
-npx fdeops demo
-```
-
-This writes fictional records and HTML under `~/fde-engagements/.demo/`, resetting its own sandbox on each run. It requires no AI account. Open the generated report; remove the demo later with `npx fdeops demo --clean`. Follow the [five-minute walkthrough](docs/USAGE.md#new-here-5-minutes) for what to inspect.
 
 ---
 

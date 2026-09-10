@@ -1,0 +1,48 @@
+{
+  "model": "qwen3:4b",
+  "runtime": "0.33.1",
+  "date": "2026-09-10T08:27:35.453Z",
+  "scope": "Three single-run read-only tool-loop smoke cases. Not full skill routing, write quality, host certification, or comparative efficiency.",
+  "results": [
+    {
+      "id": "next-action",
+      "toolCheckPassed": false,
+      "qualityVerdict": "requires manual review against the fixture",
+      "calls": [],
+      "answer": "Okay, let's see. The user wants me to read the client record and figure out what they should do next. First, I need to use the right tool. The available functions are fde_resume, fde_recall, and f:status. The user said \"Read the client record,\" so fde_recall seems appropriate here. It requires a topic. But the user didn't specify a topic. Hmm, maybe the default topic is the client's current situation. Wait, the function fde_recall takes a topic as a string. Since the user is asking to read the client record, I should probably use a generic topic like \"client record\" or maybe \"current status\". Alternatively, maybe fde_resume is for goals and policy, but the user wants the record. Let me check the tool descriptions again.\n\nfde_recall: Retrieve client record excerpts relevant to a topic. So I need to specify a topic. The user says \"Read the client record\", so the topic here might be \"client record\" itself. But maybe the system expects a specific topic. Alternatively, maybe the next step is to call fde_status to check delivery acceptance and gaps. Wait, the user's question is \"What should I do next?\" after reading the record. But the",
+      "elapsedMs": 152293,
+      "promptTokens": 272,
+      "completionTokens": 256
+    },
+    {
+      "id": "scope-change",
+      "toolCheckPassed": false,
+      "qualityVerdict": "requires manual review against the fixture",
+      "calls": [],
+      "answer": "Okay, let's see. The user is asking about the ERP scope decision and whether the new ERP request is approved, and they want a citation from the record.\n\nFirst, I need to figure out which tool to use. The available functions are fde_resume, fde_recall, and fde_status. \n\nThe user wants to check the ERP scope decision and approval status. The fde_status function reads recorded delivery acceptance and gaps. That might be relevant here because it could include approval status. But the user specifically mentions \"ERP scope decision\" and \"new ERP request approved\". \n\nWait, the fde_recall function retrieves client record excerpts relevant to a topic. The topic here would be \"ERP scope decision\" or \"ERP request approval\". So maybe using fde_recall with the topic \"ERP scope decision\" would give the relevant record excerpts. \n\nAlternatively, fde_resume gives active client goals, policy, next action. But the user is asking about a specific record, so fde_recall seems more appropriate. \n\nLet me check the function descriptions again. fde_recall: \"Retrieve client record excerpts relevant to a: {object <nil> <nil> [topic] {\"topic\":{\"type\":\"string\"}}}\". So the topic is a string. The user's",
+      "elapsedMs": 94998,
+      "promptTokens": 279,
+      "completionTokens": 256
+    },
+    {
+      "id": "acceptance",
+      "toolCheckPassed": false,
+      "qualityVerdict": "requires manual review against the fixture",
+      "calls": [],
+      "answer": "Okay, let's see. The user wants to check the delivery status and also asks if the customer accepted the retry improvement.\n\nFirst, I need to figure out which tool to use. The available functions are fde_resume, fde_recall, and fde_status. \n\nThe user is asking about delivery status, so fde_status seems relevant because it's for \"Read recorded delivery acceptance and gaps.\" That function doesn't take arguments, so I should call it first.\n\nWait, the second part is about whether the customer accepted the retry improvement. But the tools don't have a function for that directly. Maybe the fde_status will give the acceptance info. Let me check the function descriptions again.\n\nfde_status: \"Read recorded delivery acceptance and gaps.\" So it probably includes whether the customer accepted the retry improvement as part of the delivery acceptance. \n\nSo I should call fde_status to get the delivery status and acceptance info. The user's question has two parts, but the first part is checking status, so starting with fde_status makes sense. \n\nI don't need to use fde_recall here because the user isn't specifying a topic. The fde_resume is for goals and policy, which might not be directly relevant here. \n\nSo the correct tool",
+      "elapsedMs": 49328,
+      "promptTokens": 275,
+      "completionTokens": 256
+    }
+  ],
+  "settings": {
+    "temperature": 0,
+    "num_ctx": 4096,
+    "num_predict": 256,
+    "think": false
+  },
+  "manual_review": {
+    "verdict": "incomplete in all three cases",
+    "reason": "No tool calls completed before the response cap; generated planning text instead of grounded answers. This is not a general benchmark of the model."
+  }
+}

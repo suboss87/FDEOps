@@ -93,7 +93,7 @@ This also registers the workspace → engagement binding, so every later `fde re
 
 ## Local LLMs (Ollama, LM Studio, llama.cpp, vLLM)
 
-No cloud required. Load `SKILL.md` as your model's system prompt. Full guide: [`adapters/LOCAL-LLM.md`](../adapters/LOCAL-LLM.md).
+The CLI works without a model. AI-assisted use requires a local model and an agent host with file and CLI tool access; a system prompt alone is insufficient. Setup and verification limits: [`adapters/LOCAL-LLM.md`](../adapters/LOCAL-LLM.md).
 
 ---
 
