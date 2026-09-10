@@ -53,8 +53,8 @@ If `--smart` is unavailable or you already have clean prefixes:
    - **Risks** - new / confirmed / retired
    - **Open questions** - what to chase next
 2. Format lines as `decision:` / `risk:` / `delivery:` / `contact:` / `next:` / `signer:` (contacts may end with `[signal:green|amber|red]`).
-3. Show that structured version to the FDE for confirmation.
-4. Pipe to `fde debrief` (or write a file and run it).
+3. Show the same **chat card** as the smart path (omit empty rows; Previously; Not yet agreed; **Save this update?**). Do not invent a second confirm surface.
+4. On confirm, pipe to `fde debrief` (or write a file and run it).
 
 One clarifying question max if the dump is ambiguous - then write. Never stall capture on completeness.
 

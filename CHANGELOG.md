@@ -4,7 +4,7 @@
 
 The daily fieldbook is the review screen. Evidence stays evidence. People stay people.
 
-- Fieldbook: delivery evidence now shows promised, measured, acceptance, and source details. Today surfaces missing measurements, evidence, next actions, and stale trust records.
+- Fieldbook: delivery evidence now shows promised, measured, acceptance, and evidence. Today surfaces missing measurements, evidence, next actions, and stale trust records.
 - Copy meeting-prep, debrief, and outcome prompts into your coding agent; the fieldbook remains an offline, read-only snapshot with a generation timestamp.
 - Accessible command dialogs, searchable evidence, browser back/forward navigation, responsive tables, and print view.
 - Fix an empty Working theory field reading the next template heading as the actual problem.
@@ -13,6 +13,7 @@ The daily fieldbook is the review screen. Evidence stays evidence. People stay p
 - People rows no longer treat articles or weekdays as names (`the` / `Friday` from signal prose).
 - Skip-to-content no longer poisons fieldbook hash routing; empty engagements stay `new`.
 - `evals/delivery/setup.js` materializes fictional D1-D5 fixtures without copying scoring notes. No model trial has been run.
+- Skills and docs: empty trust is `new` not green; day-1 ship waits on a signer; `fde scan` is the first code move after the Question; dashboard `--open` / `--out` are in CLI help.
 
 ## 3.23.0 - 2026-09-09
 

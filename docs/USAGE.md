@@ -163,7 +163,7 @@ Log stakeholder temperature as structured tokens, not vibes:
 fde log contact "Denise gone quiet since the demo" --signal amber
 ```
 
-That writes a `[signal:amber]` token into `stakeholders.md`. The **latest dated token per engagement drives the trust column** in `fde status` and `fde dashboard`; a signal older than 21 days shows as **stale** - a prompt to check in, not a verdict. If no tokens exist, status falls back to the older keyword heuristic.
+That writes a `[signal:amber]` token into `stakeholders.md`. Trust is the **worst active `[signal:]` across people** (latest token per person) in `fde status` and `fde dashboard`; a green on one person does not clear amber or red on another. A signal older than 21 days shows as **stale** - a prompt to check in, not a verdict. With no tokens, the engagement reads **new**, not green.
 
 ---
 

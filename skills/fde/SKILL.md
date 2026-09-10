@@ -74,7 +74,7 @@ Writes need a bind (`FDEOPS_ENGAGEMENT` or registry). Never install fdeops on in
 | when did we agree | `fde receipts <term>` |
 | sponsor update / the outcome | `fde status` |
 | they went quiet | `fde log contact "…" --signal amber\|green\|red` |
-| fieldbook page | `fde dashboard` |
+| fieldbook page | `fde dashboard` (`--all` portfolio, `--open` to open the file) |
 | clean up the fieldbook | `fde doctor` - never auto-rewrite |
 | scrub a secret | `fde redact <term>` then `--apply` after confirm |
 | pull Granola/Slack/transcript | capability check → `fde ingest stage` → confirm → apply. Never auto-apply. `references/ingest.md` |
@@ -144,7 +144,7 @@ Work names (engage, diagnose, align, deliver, realize, transfer) are the same ma
 
 | You hear | Skill | Reference |
 |----------|-------|-----------|
-| Align, break this down, what order, sequence the build, plan the roadmap, create user stories, write the tasks | plan | `references/plan.md` |
+| Align, break this down, what order, sequence the delivery, align the plan | plan | `references/plan.md` |
 | Sponsor needs justification, need to defend budget or timeline, build the business case | business-case | `references/business-case.md` |
 | Significant decision, multiple approaches, "what should we do?", generate solutions, generate options, not the playbook, from the surviving facts | three-options | `references/three-options.md` |
 | 20 things are "urgent," need to pick the 3 that matter, prioritize three | pick-three | `references/pick-three.md` |
@@ -158,7 +158,7 @@ Work names (engage, diagnose, align, deliver, realize, transfer) are the same ma
 | Deliver, start building, update their checkout, first module, visible progress, their tests, POC follow-through, ready to deploy, going live, pre-flight, deliver the increment, build the increment, create the launch plan, design their UI | ship | `references/ship.md` |
 | Review this change, review the pull request, is it safe, does it match what we agreed | review | `references/review.md` |
 | Diff grew / scope creep in the PR / "did we only build what we said" / KEEP JUSTIFY SPLIT DROP | review (+ ship if going live) | `references/review.md` Stage 1 · `references/ship.md` Intent vs diff |
-| Wrap the session / share the thinking / catch teammates up / before I open the PR | (memory contract - session digest) | SKILL.md **On exit** - write TL;DR + decisions/why into `.fde/`; no transcript sync |
+| Wrap the session / share the thinking / catch teammates up / before I open the PR | (memory contract - session digest) | SKILL.md **Session digest** - write TL;DR + decisions/why into `.fde/`; no transcript sync |
 | "We can always revert" - need to actually test the escape route, rehearse rollback | rollback | `references/rollback.md` |
 
 ### Outcome

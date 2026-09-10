@@ -25,7 +25,7 @@ Level 5: Trusted      → they call you before making decisions
 
 | Day | Move | Why it works |
 |-----|------|-------------|
-| 1 | Fix a small, visible, annoying bug - something the team has been stepping over | Proves you can ship in their environment without breaking things |
+| 1 | Fix a small, visible, annoying bug - something the team has been stepping over (only after `success.md` has a signer, or the FDE overrides with the unknown still visible) | Proves you can ship in their environment without breaking things |
 | 1 | Ask the passed-over team what naming conventions they use - then use them | Shows respect before competence |
 | 2 | Send a one-paragraph status to the sponsor without being asked | Sets the pattern: they hear from you before they have to ask |
 | 3 | Find a genuine risk and flag it without drama | Demonstrates you're protecting them, not performing |

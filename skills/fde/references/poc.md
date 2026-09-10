@@ -12,7 +12,7 @@ A green check on synthetic data is not a validated solution. The person who can 
 
 **0b. Pass / fail before you build.** For the test you will run, write three lines in `prototype-log.md` first: what you will actually do (who you talk to, what you show, on whose screen); the result that **kills** this option; the result that keeps it alive. What you would learn either way. If every option's test would fail, name which `assumptions.md` block to reopen - do not invent a fourth playbook.
 
-**1. Pick by score when several use cases compete.** Use the scoring model from `discover.md` - (Value × Data readiness) / Complexity. If discover already scored, reuse; never re-score independently.
+**1. Pick by score when several use cases compete.** Use the scoring model from `discover.md` - (Value × Data readiness) / Complexity. If discover or score-use-cases already produced a ranking, reuse it; never invent a third ranking.
 
 **2. Build the minimum that tests the assumption.** No error handling, no polish. Same-day demo if possible. Rough is honest. The POC is done when the person who can say no has seen it and reacted, not when the code looks finished.
 

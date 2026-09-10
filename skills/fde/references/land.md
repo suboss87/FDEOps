@@ -52,7 +52,7 @@ Pre-arrival checks to run through with the FDE:
 
 ## Method - part 2: the first conversation (you coach, the FDE asks)
 
-Intent: before any tech, learn what keeps the sponsor up at night - personally, not the project charter. Failure talk surfaces truth faster than "requirements." Angles in the FDE's own words:
+Intent: coach the FDE's first *customer* conversation - what keeps the sponsor up at night, personally, not the project charter. You already inspected the supplied brief and any authorized repo/docs. This is before *their* laptop in the room / before a deep build, not before you read evidence. Failure talk surfaces truth faster than "requirements." Angles in the FDE's own words:
 
 - "Before you open the laptop - what would make this a bad engagement for *them*, not just a delayed project?"
 - "What are they afraid you'll miss?"
@@ -71,7 +71,7 @@ Let silence sit. If their fear doesn't match the written brief, the brief is wro
 
 ## The day 1 deliverable
 
-Before the end of day 1, ship one visible thing: a small bug fix, a cleanup the team has stepped over, a dashboard tweak, a config improvement. Not because it matters technically - because it proves you can ship in their environment without breaking things. The first deploy sets the trust trajectory for the entire engagement. A day-1 deliverable earns more credibility than a week-3 architecture deck.
+After `success.md` names a signer (or the FDE explicitly overrides with `unknown - ask:` still visible), ship one visible thing before the end of day 1: a small bug fix, a cleanup the team has stepped over, a dashboard tweak, a config improvement. Not because it matters technically - because it proves you can ship in their environment without breaking things. The first deploy sets the trust trajectory for the entire engagement. A day-1 deliverable earns more credibility than a week-3 architecture deck. Skip it until the land gate is met.
 
 ## Artifact (write as the conversation is debriefed)
 

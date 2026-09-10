@@ -25,7 +25,7 @@
  *   fde capture             session-end snapshot → context.md (hooks use this)
  *   fde preserve            pre-compaction context snapshot (hook-internal; hooks use this)
  *   fde status [--all]      value ledger first, then trust (pass --all for portfolio)
- *   fde dashboard [--all]   current engagement fieldbook (default) or all (--all)
+ *   fde dashboard [--all] [--open] [--out <path>]  bound fieldbook, or all (--all)
  *   fde vault               derived Obsidian vault of the fieldbook (disposable; --redacted)
  */
 const fs = require('fs')
@@ -3758,7 +3758,7 @@ function printUsage() {
   fde owner [set email]    who keeps this engagement record
   fde receipts <term>      "what did we agree?" with dates
   fde status [--all]       value ledger, then trust (pass --all for full portfolio)
-  fde dashboard [--all]    current engagement fieldbook (pass --all for every client)
+  fde dashboard [--all] [--open] [--out <path>]  bound fieldbook (pass --all for every client)
   fde vault                derived Obsidian vault of every engagement (--current for one, --redacted for a shared screen, --out <dir>)
   hooks call these; you do not: capture (session-end snapshot), preserve (pre-compaction snapshot)
   env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)

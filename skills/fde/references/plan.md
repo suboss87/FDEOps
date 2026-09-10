@@ -24,7 +24,7 @@ An FDE plan is not a sprint backlog. The technical sequence is the easy part. Th
 
 **0. Lock scope first.** Read `success.md`, `assumptions.md`, and the **Question** on `reality.md`. If out-of-scope is undefined, define it now with the FDE - a plan on undefined scope accumulates silent commitments. If any CRITICAL assumption is still `OPEN`, stop and run test-assumptions / discover before sequencing work. If `reality.md` has no Question, stop and finish discover - you are sequencing trivia.
 
-**Reuse check.** Before sequencing a build, compare the requested solution with the smallest existing capability or operating change that could satisfy the same acceptance test. Cite the relevant repo/config/workaround evidence. Record why reuse is sufficient or insufficient in `decisions.md`; include “no new code” when supported. A request for AI does not establish that a model is needed.
+**Reuse check.** Before sequencing a build, compare the requested solution with the smallest existing capability or operating change that could satisfy the same acceptance test. Cite the relevant repo/config/workaround evidence. Record why reuse is sufficient or insufficient in `decisions.md`; include “no new code” when supported. A request for AI does not establish that a model is needed. If a host engineering pack already has an approved implementation plan, reference it from `decisions.md`; do not generate a parallel user-story backlog.
 
 **1. Work backwards from success.** What's the last thing that must be true before done? And before that? That's the dependency chain - not a wish list.
 

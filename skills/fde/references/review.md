@@ -59,7 +59,7 @@ Five dimensions, line-specific ("line 47 fails under concurrent writes - no lock
 
 ## Before the PR - thinking for the next reader
 
-Code alone loses the "why." Before you call the change reviewable, run the **session digest** from the memory contract (SKILL.md On exit): TL;DR, key decisions & rationale, scope + how you verified, gotchas. Confirm with the FDE, then write into `.fde/` - `decisions.md` / `delivery.md` / `context.md`. Reviewers (or Monday-you) should answer "why this approach?" from the fieldbook, not from a chat transcript. Do **not** dump agent logs into the product repo.
+Code alone loses the "why." Before you call the change reviewable, run the **session digest** from the memory contract (SKILL.md Session digest): TL;DR, key decisions & rationale, scope + how you verified, gotchas. Confirm with the FDE, then write into `.fde/` - `decisions.md` / `delivery.md` / `context.md`. Reviewers (or Monday-you) should answer "why this approach?" from the fieldbook, not from a chat transcript. Do **not** dump agent logs into the product repo.
 
 ## Artifact
 

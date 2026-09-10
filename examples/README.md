@@ -31,7 +31,8 @@ Generated locally (gitignored): `fde dashboard` against these engagements writes
 ```bash
 fde resume --init <client-name>   # creates ~/fde-engagements/<client-name>/.fde/
 # ...work: @fde routes, artifacts land in .fde/, hooks capture session ends
-fde dashboard                     # renders every engagement into one local fieldbook.html
+fde dashboard --all               # portfolio fieldbook.html
+fde dashboard                     # bound engagement → fieldbook-current.html
 ```
 
 The files here are what four weeks (kesterman) and four days (rennick) of that loop leave behind.
