@@ -230,6 +230,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-vi
 .fb-sec{font-family:inherit;font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink)}
 .fb-main{min-width:0}.fb-main-inner{max-width:1280px}.fb-top-grid>*{min-width:0}
 .fb-meta-line{line-height:1.6}.fb-eyebrow{font-family:inherit;font-size:12px}
+.fb-back{margin-bottom:16px}
 .fb-snapshot{font-size:11px;color:var(--ink-faint);line-height:1.6;margin-bottom:24px}
 .fb-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:20px}
 .fb-action{padding:9px 13px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);font-size:12px;font-weight:500;cursor:pointer}
@@ -372,6 +373,9 @@ function attentionFor(e) {
 function agentActionsHtml(e) {
   const prefix = `@fde Confirm the workspace is bound to ${JSON.stringify(e.name)} before using its records. `
   const actions = [
+    e.hasNext
+      ? ['Continue next action', 'Help me carry out the current next action. Re-read the latest client record first because this report may be older. Check dependencies and required approvals, then propose the smallest verifiable step.']
+      : ['Set next action', 'Review the current client record and help me define one concrete next action, its owner, and what will show it is done. Flag missing information and show the proposed update before saving.'],
     ['Prepare meeting', 'Prepare me for the next customer meeting. Use the recorded decisions, open risks, delivery evidence and next action. Cite sources and flag unknowns.'],
     ['Debrief notes', 'Help me debrief a customer meeting. Ask me for the notes, then show proposed changes and conflicts for review before saving.'],
     ['Review outcome', 'Review what we promised, measured and recorded as accepted. Check the evidence and customer approver; do not infer acceptance. Draft a concise customer readout.'],
@@ -499,6 +503,7 @@ ${e.moreSections.map(s => `<details class="fb-more"><summary class="fb-sec fb-mo
   const pairedBlock = (peopleBlock || riskBlock) ? `<div class="fb-grid-wrap">${peopleBlock}${riskBlock}</div>` : ''
 
   return `<div id="view-eng-${e.slug}" class="fb-view" hidden>
+<button type="button" class="fb-btn fb-back" data-nav="today">&larr; Back to overview</button>
 <div class="fb-eyebrow">.fde/${escapeHtml(e.slug)}</div>
 <div class="fb-title-row">
 <h1 tabindex="-1" class="fb-h1">${inlineMd(e.name)}</h1>
@@ -582,7 +587,7 @@ ${railItems}
 </aside>
 <main id="fb-main" tabindex="-1" class="fb-main fb-scroll">
 <div class="fb-main-inner">
-<div class="fb-snapshot"><strong>Read-only snapshot</strong> &middot; Snapshot generated <time datetime="${escapeHtml(generatedAt)}">${escapeHtml(generatedAt ? generatedAt.replace('T', ' ').replace(/\.\d+Z$/, ' UTC') : today)}</time>. Re-run <code>fde dashboard</code> after updating your records.</div>
+<div class="fb-snapshot"><strong>Read-only snapshot</strong> &middot; Snapshot generated <time datetime="${escapeHtml(generatedAt)}">${escapeHtml(generatedAt ? generatedAt.replace('T', ' ').replace(/\.\d+Z$/, ' UTC') : today)}</time>. Re-run <code>fde dashboard</code> after updating your records. Reloading this page alone does not refresh the record.</div>
 ${todayView}
 ${clientViews}
 <p id="fb-status" class="fb-copy-status" role="status" aria-live="polite"></p>

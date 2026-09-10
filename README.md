@@ -6,9 +6,7 @@ FDEOps helps a Forward Deployed Engineer or independent expert manage client wor
 
 One `@fde` skill guides the work. A local CLI records it in Markdown. A read-only dashboard shows one client or your portfolio. You review judgments and obtain customer approval; the tool does not decide for them.
 
-![FDEOps dashboard showing next actions and attention gaps across three fictional clients](media/fieldbook-preview.png)
-
-*Fictional client records. The fieldbook runs locally without network access.*
+<img width="1536" height="1024" alt="fdeops" src="https://github.com/user-attachments/assets/2bcb8739-55ee-445d-8a1a-8b38433b7b58" />
 
 ---
 
@@ -108,6 +106,27 @@ Six stages organize the engagement: Land, Discover, Plan, Ship, Outcome, Close. 
 Same `@fde`, when you need them: `/debrief` (notes into the record), `/prep` (one page before you walk in), `/trust` (process gap, or they stopped trusting you), `/receipts` (a dated line, or it did not happen), `/readout` (Friday page for the sponsor; not a seventh stage).
 
 You can also describe the situation in plain English: a new client, a POC, an incident, a scope change, or a question about what was agreed.
+
+---
+
+## Your daily fieldbook
+
+![FDEOps dark dashboard showing next actions and attention gaps across three fictional clients](media/fieldbook-preview.png)
+
+*Fictional client records, shown in the built-in dark theme. The report works offline.*
+
+Read [verification results and limits](docs/verification.md) for context measurements, local-model observations, and MCP coverage.
+
+Open `npx fdeops dashboard --all --open` to review every client. Filter what needs attention, open a client, and copy **Continue next action** into your agent. After a meeting, use **Debrief notes**; before a sponsor update, use **Review outcome**. These buttons copy prompts; work runs in your agent. Review changes there and regenerate the dashboard afterward.
+
+## Try the complete loop
+
+```bash
+npx fdeops demo
+```
+
+This writes fictional records and HTML under `~/fde-engagements/.demo/`, resetting its own sandbox on each run. It requires no AI account. Open the generated report; remove the demo later with `npx fdeops demo --clean`. Follow the [five-minute walkthrough](docs/USAGE.md#new-here-5-minutes) for what to inspect.
+
 
 ---
 
@@ -211,13 +230,6 @@ The **CLI** is local: git + files, no network, no telemetry. The **host model** 
 
 See [repository layout](docs/REPO_LAYOUT.md) for where to make changes.
 
-## Try the complete loop
-
-```bash
-npx fdeops demo
-```
-
-This writes fictional records and HTML under `~/fde-engagements/.demo/`, resetting its own sandbox on each run. It requires no AI account. Open the generated report; remove the demo later with `npx fdeops demo --clean`. Follow the [five-minute walkthrough](docs/USAGE.md#new-here-5-minutes) for what to inspect.
 
 ---
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.26.0 - 2026-09-10
+
+- Bound complete resume output to 16 KiB by default, with explicit truncation and a smaller-output option. Add client-scoped `recall` for sanitized source excerpts, including policy and nearby decision context.
+- Preserve current policy at entry and retrieve recent changes alongside older constraints. Byte limits do not claim a host-wide token limit.
+- Prevent lost updates in record transforms; release nested locks after contention or write errors. Add full ingest MCP lifecycle and client-isolation regressions.
+- Continue the next action directly from the fieldbook, return to the overview on mobile, and clarify snapshot freshness. Restore the original README poster and show a real dark fieldbook preview.
+- Replace unsupported local-model claims with explicit prerequisites, a reproducible local tool-loop smoke, and observed verification results.
+
 ## 3.25.0 - 2026-09-10
 
 A clearer fieldbook, with safer setup and consistent acceptance records.

@@ -1,0 +1,39 @@
+# Verification and limits
+
+This records executed checks, not a claim that every agent or model is reliable. The CLI and fieldbook run locally without a model. Optional host connections have their own permissions and network behavior.
+
+## Daily reliability release - 2026-09-10
+
+- Integrated macOS `npm run check`: 227 tests passed, zero failures. After review corrections, 23 focused context, concurrency, MCP and UI checks passed. GitHub runs the full suite on the final revision before merge.
+- Real Chromium: dark desktop and 390px mobile fieldbook, search/filter/navigation, continue/set next action, clipboard fallback, and empty state. No page errors or external requests in the fictional offline journey.
+- Context fixture: 1,120,010 bytes of history produced a 16,384-byte response. Retrieval found all three targeted records among 10,000 unrelated lines, including an older constraint and a newer change. This proves output size and literal retrieval in the fixture, not model accuracy or human time saved. Run `node evals/context-budget/check.js`.
+- New contention tests reproduced lost updates before the repair. Repaired operations read and modify records under their locks; contention and failed nested writes release outer locks. Multi-file commands still are not database transactions, and external editors do not participate in CLI locks.
+- FDEOps MCP: real stdio initialize, list tools, stage, propose and explicit apply. Checks cover no applied decisions or ledger updates before apply, private-content redaction, client isolation, missing proposals and invalid clients. Run `node --test test/record-concurrency.test.js`.
+
+## Local-model evidence
+
+A temporary Ollama 0.33.1 runtime used already-downloaded Qwen3 models on a 16 GiB Mac. Inference fell back to CPU. Only fictional records were used. No model downloads or global host changes were needed.
+
+Qwen3 1.7B responded through the local API. In three single-run read-only cases it called the expected tool twice, but manual review found:
+
+| Case | Observed answer quality |
+|---|---|
+| Next action | Failed: missed the recorded request to ask Mara for staging access. |
+| Scope change | Failed: skipped retrieval and invented a supporting record. |
+| Acceptance | Partial: correctly withheld acceptance, but invented a low-trust assessment. |
+
+See the [recorded answers and manual review](../evals/local-model/results/2026-09-10-qwen3-1.7b.json). This establishes transport/tool connectivity, **not reliable client-work judgment**. A larger model is not automatically certified. The first Qwen3 4B attempt exceeded the 180-second request deadline. With a 256-token response cap and 4096-token context setting, all three rerun cases produced planning text without a completed tool call (about 49-152 seconds per case). See [recorded 4B results](../evals/local-model/results/2026-09-10-qwen3-4b.json). These incomplete runs do not establish useful daily performance on this CPU-only setup.
+
+The reproducible smoke adapter exposes only three read-only CLI tools. It does not execute the entire `@fde` router, grant file access, test writes, or certify Claude Code/Cursor/local-host compatibility. Run an already-installed model with:
+
+```bash
+FDEOPS_TEST_OLLAMA=http://127.0.0.1:11434 node evals/local-model/check.js qwen3:1.7b
+```
+
+Automated `toolCheckPassed` means an expected tool was called and a response arrived; it does not judge correctness. Review the answer and citations against the fictional fixtures. The script records model/runtime, calls, answers, reported prompt/output tokens and elapsed time. Token sums include repeated prompts and are not a comparative efficiency claim.
+
+## Optional external connectors
+
+GitHub identity and Context7 library lookup both responded in the maintainer's environment. These are connector checks, not source-ingestion end-to-end tests or evidence about every user's credentials. The disabled legacy computer-use entry was left unchanged. Other configured host tools were not globally reconfigured or certified.
+
+For model judgment, use the broader [delivery evaluation](../evals/delivery/README.md) with repeated, blinded comparisons. No universal performance or best-in-class claim follows from passing software tests.
