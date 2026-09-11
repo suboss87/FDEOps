@@ -44,3 +44,6 @@ evals/skill-routing/LAST_LIVE_SMOKE.md
 
 # Reversible identifier dictionaries contain private originals
 .privacy/
+
+# Local first-use preferences
+.preferences.json

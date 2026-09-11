@@ -3,7 +3,7 @@
 function createTrustApi(deps) {
   const {
     fs, path, readClean, readEng, parseMdTable, sectionBody, SIGNAL_LEDGER, memoryDirtyManual,
-    stripTemplateNoise, stripLegendLines, extractRisks,
+    stripTemplateNoise, stripLegendLines, extractRisks, maskDisplay = text => text,
   } = deps
 
   // phase / trust / top risk / freshness - identical heuristic for status + dashboard.
@@ -138,7 +138,7 @@ function createTrustApi(deps) {
     const body = sectionBody(ctx, 'Next action', { lastNonEmpty: true })
     for (const raw of body.split('\n')) {
       const t = raw.trim().replace(/^[-*]\s+/, '')
-      if (t) return t.slice(0, 120)
+      if (t) return maskDisplay(t).slice(0, 120)
     }
     return ''
   }
@@ -180,7 +180,7 @@ function createTrustApi(deps) {
       trustReason = mem.warn
     } else if (worst) {
       trust = worst.sig === 'red' ? 'RED' : worst.sig
-      trustReason = (worst.text || '').slice(0, 80)
+      trustReason = maskDisplay(worst.text || '').slice(0, 80)
       if (worst.date) {
         signalAge = Math.max(0, Math.floor((Date.now() - Date.parse(worst.date)) / 86400000))
         stale = signalAge > 21
@@ -195,7 +195,7 @@ function createTrustApi(deps) {
       trust = sLines.some(l => /\bred\b/i.test(l)) ? 'RED'
         : sLines.some(l => /amber|gone quiet|routing around|escalat/i.test(l)) ? 'amber' : 'new'
     }
-    const topRisk = (extractRisks(eng)[0]?.text || '').replace(/\s+/g, ' ').trim().slice(0, 80)
+    const topRisk = maskDisplay((extractRisks(eng)[0]?.text || '').replace(/\s+/g, ' ').trim()).slice(0, 80)
     // Prefer trust trigger / memory warn over a random risk line; always keep mem.warn available
     const reason = (trustReason || mem.warn) ? (trustReason || mem.warn) : topRisk
     // What the triage line is actually quoting. A risk bullet printed under

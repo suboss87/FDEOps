@@ -56,6 +56,8 @@ Read-only HTML of the record - promised, measured, accepted, and evidence. Regen
 /plugin install fdeops@fdeops
 ```
 
+Make it fit your day: `fde setup` asks three choices for your daily overview, context size, and report masking. [First-use setup](docs/USAGE.md#make-fdeops-fit-your-day).
+
 The plugin adds session hooks and the slash commands below. Skill-only installation does not add hooks. See the [installation guide](docs/install.md) for setup details.
 
 </details>
