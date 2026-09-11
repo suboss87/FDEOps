@@ -211,3 +211,7 @@ Ready to build with no `terrain.md` / plan: discover or plan first. Takeover wit
 - Evidence on every claim. The FDE will be challenged on these files.
 - Overlays activate on signal, not on request.
 - Load `.fde/` files on demand, never the whole folder.
+
+## Identifier masking
+
+Before reading engagement content in a session, run `fde privacy` to verify runtime support. If the command is unavailable, stop and update the CLI; a new skill alone does not upgrade an older executable. Use CLI context and previews for model input. They mask common email, phone, SSN-shaped, and credential patterns by default; aliases remain consistent within the local engagements root. Preserve complete alias tokens when drafting updates; the CLI resolves them locally. Never read the private `.privacy/` dictionary, sealed sidecars, raw sensitive notes, or local dashboard/vault files to recover an identity. Names, company names, addresses, and unrecognized formats are not automatically detected: keep sensitive prose in `<private>` blocks. Direct file tools, pasted chat, and upstream source MCPs bypass this boundary.

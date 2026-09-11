@@ -41,3 +41,6 @@ evals/skill-routing/LAST_LIVE_SMOKE.md
 /memory/
 /evals/internal/
 /evals/local-model/results/local-*.json
+
+# Reversible identifier dictionaries contain private originals
+.privacy/

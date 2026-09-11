@@ -247,7 +247,7 @@ If your work has no client commitments or operating handover to track, a simpler
 
 The CLI works with local files and Git, without network calls or telemetry. Client records remain readable Markdown if you stop using FDEOps.
 
-Your AI host may send the material it reads to its configured model. FDEOps redacts `<private>` blocks from CLI, dashboard, and hook outputs; do not load those raw blocks through the agent's file tools. Review reports before sharing client information.
+Your AI host may send the material it reads to its configured model. CLI context and smart proposals mask common email, phone, SSN-shaped, and credential patterns locally; this is not complete PII detection. FDEOps redacts `<private>` blocks from CLI, dashboard, and hook outputs; do not load those raw blocks through the agent's file tools. Review reports before sharing client information.
 
 You review proposed decisions. Enabled session hooks can save where the session left off automatically; direct CLI write commands update records when you run them.
 

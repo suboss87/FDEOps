@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 3.29.0 - 2026-09-11
+
+- Mask common structured identifiers locally in CLI responses, smart proposals, handoff packets, and ingest MCP results. Keep stable reversible aliases in private local state; confirmed writes restore originals. Preserve explicit private-block handling and refuse unsafe legacy reviews. This does not intercept raw file tools or detect every kind of personal information.
+
 - Simplify public documentation and evaluation navigation; consolidate verification results and remove one-off development reports and designer instructions.
 
 - Let the agent reconcile messy debrief and ingest notes into one human review, preserving sources, corrections, current actions, and explicit save confirmation. Verify saved facts instead of asking users to maintain routing syntax.

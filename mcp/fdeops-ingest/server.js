@@ -10,6 +10,10 @@
 
 const fs = require('fs')
 const path = require('path')
+const os = require('os')
+const masking = require('../../bin/lib/masking').createMasking(
+  (process.env.FDEOPS_ENGAGEMENTS_ROOT || '').trim().replace(/^~/, os.homedir()) || path.join(os.homedir(), 'fde-engagements')
+)
 const { spawnSync } = require('child_process')
 
 const PROTOCOL_VERSION = '2024-11-05'
@@ -171,7 +175,9 @@ function cliPayload(out) {
 }
 
 function toolResult(payload) {
-  const text = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2)
+  let text
+  try { text = masking.mask(typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2)) }
+  catch (_) { return { isError: true, content: [{ type: 'text', text: 'privacy masking unavailable; no unmasked tool output returned' }] } }
   return { content: [{ type: 'text', text }] }
 }
 

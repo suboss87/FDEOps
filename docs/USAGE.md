@@ -343,3 +343,9 @@ The agent checks the named fields with you before applying. This saves the ledge
 Use `fde debrief --review` to reopen the pending REVIEW after editing. If an exact statement with an explicit `[source: ...]` already exists, review the earlier record before applying it again. Intentional repeats require `--allow-replay`; this is not semantic deduplication, and it does not authenticate the source. The MCP apply tool keeps the refusal; use the CLI for an intentional replay override.
 
 CLI and fieldbook mark explicit scope or withdrawal conflicts for review. A same-slice withdrawal leaves the historical rows intact and moves conflicting assertions out of current accepted value. Reused slice names can refer to different releases: clarify those records rather than assuming the tool knows which approval was withdrawn. These checks recognize explicit wording, not arbitrary legal authority or every possible contradiction. Check the named signer, scope and evidence before presenting an outcome.
+
+## Masking before model input
+
+After updating both the CLI and skill, run `fde privacy` to verify masking support. An older global executable does not gain protection from a skill update alone. Use the CLI to supply context to your agent. Supported identifier patterns are replaced with stable local aliases; original records stay intact, and confirmed updates restore known aliases locally. Preserve alias tokens exactly. The private dictionary in `<engagements-root>/.privacy/` is not agent context.
+
+This does not automatically recognize names or every sensitive identifier, and cannot intercept raw file tools, pasted chat, or source MCP responses. Mark sensitive prose `<private>` and read the [privacy boundaries](../PRIVACY.md#default-identifier-masking). Local fieldbook/vault files are human-facing exports, not a masked model-input channel.
