@@ -11,6 +11,5 @@
 | Field practice and operating boundaries | [Methodology](methodology.md), [operations](OPERATIONS.md) |
 | What has actually been tested | [Verification and limits](verification.md) |
 | Where code and supporting files belong | [Repository map](REPO_LAYOUT.md) |
-| Matching website instructions for the designer | [Website update brief](website-updates.md) |
 
 Contributing code or a workflow? Start with the [contribution guide](../CONTRIBUTING.md). Keep client data outside this repository; all shared examples must be fictional or properly anonymized.

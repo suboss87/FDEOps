@@ -31,6 +31,10 @@ The hour before you walk in (or log on) determines the quality of the next two w
 
 **One hypothesis:** Walk in with one falsifiable belief about what the real problem is. You'll probably be wrong. That's the point. It forces you to listen for the correction.
 
+## Design provenance
+
+Memory versioning and grounded meeting preparation were informed by Rowboat's knowledge-layer patterns. FDEOps keeps its own local CLI and engagement-record workflow.
+
 ## Further reading
 - [README](../README.md)  - the public map (commands, principles, who this is for)
 - [USAGE.md](./USAGE.md)  - what to type day to day
