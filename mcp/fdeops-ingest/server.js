@@ -176,7 +176,13 @@ function cliPayload(out) {
 
 function toolResult(payload) {
   let text
-  try { text = masking.mask(typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2)) }
+  try {
+    const clean = value => typeof value === 'string' ? masking.mask(value)
+      : Array.isArray(value) ? value.map(clean)
+      : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, clean(item)])) : value
+    const safe = clean(payload)
+    text = typeof safe === 'string' ? safe : JSON.stringify(safe, null, 2)
+  }
   catch (_) { return { isError: true, content: [{ type: 'text', text: 'privacy masking unavailable; no unmasked tool output returned' }] } }
   return { content: [{ type: 'text', text }] }
 }
