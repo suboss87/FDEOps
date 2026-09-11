@@ -36,3 +36,8 @@ evals/skill-routing/LAST_LIVE_SMOKE.md
 # Local test scratch (never commit)
 .tmp-test/
 .tmp/
+
+# Private agent handoffs and local evaluation output
+/memory/
+/evals/internal/
+/evals/local-model/results/local-*.json

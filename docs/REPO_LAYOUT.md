@@ -14,7 +14,7 @@
 | `bin/install.js` | `node bin/install.js` (skills + hooks on disk) |
 | `hooks/` | session-start (read), session-stop (write), pre-compact - registry-aware |
 | `test/` | CLI regression suite |
-| `evals/` | Context-size checks, local-model trials, delivery and routing evaluations, plus historical field observations |
+| `evals/` | Reproducible context, model, delivery, and routing evaluations; start with `evals/README.md` |
 | `.claude-plugin/` | Claude Code marketplace metadata |
 | `docs/` | install, USAGE, schema, OPERATIONS, REPO_LAYOUT, skills, skills-reference, methodology |
 | `docs/methodology.md` | FDE principles the kit encodes (not loaded by hosts) |
@@ -27,7 +27,7 @@
 - **Change a workflow:** edit the relevant `skills/fde/references/` file and its routing evaluation. Keep `SKILL.md` as the single entry.
 - **Change records or reports:** start in `bin/fde.js` and `bin/lib/`, with regressions in `test/`. Document record changes in [schema.md](schema.md).
 - **Change host setup:** use `bin/install.js`, `adapters/`, or `hooks/`; verify automatic and manual host behavior separately.
-- **Change public instructions:** keep README concise; use [USAGE.md](USAGE.md) for routines and [install.md](install.md) for setup. The [website update brief](website-updates.md) describes matching public copy.
+- **Change public instructions:** keep README concise; use [USAGE.md](USAGE.md) for routines and [install.md](install.md) for setup.
 
 Keep customer `.fde/` records outside this repository. Examples and tests use fictional clients. Dashboard HTML and vaults are generated views, not new sources of truth. Avoid moving stable entry paths solely for appearance: installers, plugins, and external links depend on them.
 
@@ -35,4 +35,5 @@ Keep customer `.fde/` records outside this repository. Examples and tests use fi
 
 [Documentation index](README.md) · [Contribution guide](../CONTRIBUTING.md) · [Product and design constraints](../PRODUCT.md)
 
-Historical field observations live with evaluation evidence in `evals/`, including [defensible memory](../evals/defensible-memory.md). Keep executable evaluations, their results and applicable notices; retire one-off internal plans rather than presenting them as current product guidance.
+
+Keep one-off plans, designer briefs, session notes, and raw host traces outside Git. Public validation belongs in [verification.md](verification.md); reusable fixtures and model results belong in `evals/`.

@@ -17,7 +17,7 @@ node evals/skill-routing/live-smoke.js     # real fde happy-path CLI smoke
 npm run test:skill-routing                 # both
 ```
 
-Latest automated + agent trial notes: [RESULTS.md](RESULTS.md).
+Executed checks and their limits: [verification](../../docs/verification.md).
 
 ## Live trial (15-20 min)
 

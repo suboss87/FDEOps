@@ -354,7 +354,7 @@ if (/\broutes methods\b|\bphase methods\b|\bengagement methods\b/.test(usage)) {
 ok('README tone')
 
 if (fs.existsSync(path.join(root, '.codex')) || fs.existsSync(path.join(root, '.opencode'))) {
-  fail('.codex/ or .opencode/ must not live at repo root - use docs/internal/experimental-agents/')
+  fail('.codex/ or .opencode/ must not live at repo root - keep personal agent setup outside the public repository')
 } else ok('no root-level experimental stubs')
 
 for (const rel of ['docs/schema.md', 'docs/skills-reference.md', 'PRIVACY.md']) {
@@ -415,17 +415,12 @@ ok('examples walkthrough files')
 }
 
 if (fs.existsSync(path.join(root, 'tasks', 'plan.md'))) {
-  fail('tasks/plan.md should not be in public tree (move to docs/internal)')
+  fail('tasks/plan.md should not be in the public tree; keep work plans outside the repository')
 }
 
 if (fs.existsSync(path.join(root, 'patterns'))) {
   fail('patterns/ is deprecated - use skills/ only (overlays live there)')
 }
-
-const pmf = path.join(root, 'docs', 'internal', 'PMF_360_REVIEW.md')
-if (fs.existsSync(pmf) && !read('docs/internal/PMF_360_REVIEW.md').includes('INTERNAL')) {
-  fail('PMF_360_REVIEW.md needs INTERNAL banner')
-} else if (fs.existsSync(pmf)) ok('internal PMF banner')
 
 const hook = read('hooks/session-start')
 const hookCode = hook.replace(/^[ \t]*#.*$/gm, '')
