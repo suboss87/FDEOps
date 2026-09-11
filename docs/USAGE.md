@@ -190,7 +190,7 @@ npx fdeops dashboard                # optional local HTML view of the fieldbook
 
 | You say | Agent runs |
 |---------|------------|
-| Debrief these notes | `fde debrief --smart …` → REVIEW (asks / proposed scope / decisions / risks / signer / next action / delivery gaps) → four-row chat card → **Save this update?** (you accepted the record, not that the customer approved every ask) → `--apply` |
+| Debrief these notes | `fde debrief --smart …` → agent checks meaning, sources, and existing records → one review of the proposed changes → **Save this update?** (you accepted the record, not that the customer approved every ask) → `--apply` |
 | Make sure we're up to date / pull from Granola or email | Capability check → source MCP fetch → `fde ingest stage` → propose → confirm → apply |
 | Connect Granola / Notion / a new MCP / what can you pull | Guided `mcp.json` + [mcp/recipes/](../mcp/recipes/); save/reload in host; test stage only |
 | Prep me for the sponsor meeting | `fde prep "…"` |
@@ -204,7 +204,7 @@ npx fdeops dashboard                # optional local HTML view of the fieldbook
 ```bash
 fde triage                        # short status (also injected by session hooks)
 fde debrief notes.md              # if notes already use decision: / risk: / … prefixes
-fde debrief --smart notes.md      # REVIEW first, then file routing; chat card; confirm once → --apply
+fde debrief --smart notes.md      # agent reconciles the proposal; review once; confirm → --apply
 fde ingest stage [--source NAME] [--title TEXT] [file|-]  # raw pull → .inbox/
 fde ingest list                   # staged items
 fde ingest propose <id>           # → .debrief-propose (same smart path)

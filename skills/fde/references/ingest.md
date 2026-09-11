@@ -4,7 +4,7 @@
 
 **Connect / capability (different entry):** "connect a new MCP", "connect Granola/Slack/Notion", "what can you pull?" → `references/connect.md` first. Recipes: `mcp/recipes/` (file, granola, slack, notion).
 
-**Read first:** `context.md` (what's already logged, what's stale). Bind the engagement before staging anything.
+**Read first:** the bounded `fde resume` packet and targeted recall for affected prior facts. Bind the engagement before staging anything.
 
 **Who runs the CLI:** you (the agent). Never tell the FDE to type `fde ingest …`. Never auto-apply. Never background-sync or poll sources on your own.
 
@@ -31,9 +31,9 @@ List what you can actually call **this session**:
 3. **Stage** - `fde ingest stage [--source NAME] [--title TEXT] [file|-]` writes raw text into `<engagement>/.inbox/` (outside the memory git ledger).
 4. **List** (optional) - `fde ingest list` shows staged items when you need an id or filename.
 5. **Propose** - `fde ingest propose <id-or-filename>` runs the debrief `--smart` path on the staged body (+ provenance line). Opens `.debrief-propose`.
-6. **Rewrite prefixes** - same as debrief: lines without `decision:` / `risk:` / `delivery:` / `contact:` / `next:` / `signer:` need **you** to rewrite before showing the FDE. `--smart` is a gate, not a brain.
-7. **Show** the same chat card as debrief (decided / asked / open / next / signer; omit empty; Previously; Not yet agreed; **Save this update?**). Wait for confirm. The CLI REVIEW printout is unchanged.
-8. **Apply** - on FDE confirm only → `fde ingest apply` (= `fde debrief --apply`). On reject → stop; ask what to change.
+6. **Prepare** - follow **Prepare one update** in `references/debrief.md`. Interpret every sanitized candidate, including already-prefixed lines; reconcile changed facts, preserve source locators, and keep raw chatter out of memory. Preserve privacy placeholders and sealed sidecars.
+7. **Validate and show** - run `fde debrief --review` after editing, then show the same single plain-English review as debrief, including delivery changes and conflicts. Ask **Save this update?** and wait for confirmation. CLI output is agent validation, not a second user review.
+8. **Apply and verify** - on FDE confirm only → `fde ingest apply` (= `fde debrief --apply`), then verify affected facts through bounded resume/recall. Refresh the current fieldbook if it is part of this task. On reject, leave the proposal pending; material edits require a revised review.
 
 No invented names, meetings, or quotes. If the propose looks wrong, fix prefixes with judgment, then re-show before apply.
 
@@ -56,7 +56,7 @@ fde ingest apply
 
 ## Provenance
 
-When a staged fact came from a named source, carry `via:<source>` on the applied line where useful (e.g. `via:granola`, `via:gmail`). Helps receipts and sponsor disputes later - not mandatory on every context line.
+Carry an actual `[source: ...]` locator on each consequential fact. Preserve upstream IDs or links when supplied; otherwise cite the staged item path as a note source. Retain its `via:` metadata, but do not treat a standalone `via:` line as a source marker for every fact or as proof of approval. Re-imports still require semantic comparison; exact replay protection is not semantic deduplication.
 
 ## MCP sink + recipes
 
@@ -64,7 +64,7 @@ Optional `mcp/fdeops-ingest` wraps the same verbs over stdio. Source MCPs remain
 
 ## Checkpoint
 
-Before apply, read back the 2-3 most consequential captures in one breath - same as debrief. Confirm which sources you staged and what would land in the record. Then stop.
+Use the single review from debrief: identify the client and sources, show consequential changes, then wait. Do not add another summary or approval step.
 
 ## Principles
 

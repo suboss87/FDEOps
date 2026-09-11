@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Let the agent reconcile messy debrief and ingest notes into one human review, preserving sources, corrections, current actions, and explicit save confirmation. Verify saved facts instead of asking users to maintain routing syntax.
+
 - Clarify discovery of the remaining customer gap, consequences of inaction, future operational ownership, and evidence checkpoints for promised dependencies using existing engagement records.
 
 ## 3.28.0 - 2026-09-10

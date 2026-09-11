@@ -1,6 +1,6 @@
 # Customer delivery evaluation
 
-This pack tests the judgment between a customer request and a verified outcome. It complements `npm run test:skill-routing`: that command checks documented routes and runs real local CLI commands, **not** model judgment. No live model results are claimed by this pack.
+This pack tests the judgment between a customer request and a verified outcome. It complements `npm run test:skill-routing`: that command checks documented routes and runs real local CLI commands, **not** model judgment. The D1-D5 comparison remains unrun. A separate [maintenance workflow diagnostic](maintenance-workflow.md) records an executed agent trial; it is not a comparative usability study.
 
 ## Run a comparison
 
