@@ -56,9 +56,13 @@ Use the customer's existing coding, testing, review, and repository instructions
 
 Fallbacks: `node ~/.claude/fdeops/fde.js …`, then `npx --yes fdeops …`. Skill-only install is not "unavailable."
 
+## First-use preferences
+
+Run `fde setup --show` before client reads. If unavailable, update the CLI before offering setup; never pretend preferences were saved. If `configured` is false, finish binding the named client, then run `fde setup` and present its **three questions together**, with the two choices each. Use answers already given; do not invent preferences or ask again per client. Save their selections using the displayed `--save` command; their answers authorize this settings write only. If they skip, continue with existing defaults and leave setup unsaved. On later sessions use saved choices; change them only when requested. Setup configures report scope, initial context size and masking of newly generated reports. It does not install a model, approve client data for AI, or change provider settings. Client policy always takes precedence. Reports can still contain names or other unrecognized sensitive prose; never treat them as anonymized.
+
 ## Entry (every session)
 
-1. `fde resume` (16 KiB output ceiling, not a model token count). Read client constraints first, then signer, goals, risks, delivery ledger and current context. This command is the inspectable packet the session hook loads; never substitute a recursive read of `.fde/` or raw transcripts. If truncated or a decision needs evidence, run `fde recall <specific topic>`; narrow the query rather than loading the whole history. `--max-bytes 4096` reduces the allowance for smaller models. `--full` only when the complete log is explicitly needed.
+1. `fde resume` (16 KiB by default, 4 KiB with compact setup; a byte ceiling, not a model token count). Read client constraints first, then signer, goals, risks, delivery ledger and current context. This command is the inspectable packet the session hook loads; never substitute a recursive read of `.fde/` or raw transcripts. If truncated or a decision needs evidence, run `fde recall <specific topic>`; narrow the query rather than loading the whole history. `--max-bytes 4096` reduces the allowance for smaller models. `--full` only when the complete log is explicitly needed.
 2. **NO ENGAGEMENT:** ask "What should we call this client?" then **you** init. Pasted notes → debrief after bind.
 3. Playback 2-3 lines. `hygiene:` → offer `fde doctor`; **never auto-rewrite**.
 4. Route. Read **one** `references/*.md`. Confirm, then write.

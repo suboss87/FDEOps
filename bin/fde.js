@@ -46,8 +46,26 @@ const ENGAGEMENTS_ROOT = ((process.env.FDEOPS_ENGAGEMENTS_ROOT || '').trim().rep
   || path.join(HOME, 'fde-engagements')
 const REGISTRY = path.join(ENGAGEMENTS_ROOT, '.registry')
 const masking = require('./lib/masking').createMasking(ENGAGEMENTS_ROOT)
+const setup = require('./lib/setup')
+const setupStore = setup.createSetup(ENGAGEMENTS_ROOT)
+let preferences = setup.DEFAULTS
+function contextBudget(args) {
+  return context.budgetArgs(args, preferences.context === 'compact' ? 4096 : 16384)
+}
+function portfolioView(args) {
+  if (args.includes('--all') && args.includes('--current')) throw new Error('Choose --all or --current, not both.')
+  return args.includes('--all') || (!args.includes('--current') && preferences.view === 'portfolio')
+}
 function maskDisplay(text) {
-  return ['dashboard', 'vault'].includes(process.argv[2]) ? String(text) : masking.mask(text)
+  return ['dashboard', 'vault'].includes(process.argv[2]) && preferences.privacy !== 'reports' ? String(text) : masking.mask(text)
+}
+// Classify the original record first; aliases must never become evidence or a signer.
+function maskReport(value) {
+  if (preferences.privacy !== 'reports') return value
+  if (typeof value === 'string') return masking.mask(value)
+  if (Array.isArray(value)) return value.map(maskReport)
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, maskReport(item)]))
+  return value
 }
 function maskedSections(sections, maxBytes) {
   return context.boundedSections(sections.map(text => masking.mask(text)), maxBytes)
@@ -990,7 +1008,7 @@ const {
   countOpenRisks,
 } = createTrustApi({
   fs, path, readClean, readEng, parseMdTable, sectionBody, SIGNAL_LEDGER, memoryDirtyManual,
-  stripTemplateNoise, stripLegendLines, extractRisks,
+  stripTemplateNoise, stripLegendLines, extractRisks, maskDisplay,
 })
 
 // Stakeholders: columns are matched by header wording, not position - real
@@ -1023,6 +1041,7 @@ function parseSignalHistoryEntries(eng) {
 }
 
 function displayNameFromSignalText(text) {
+  if (preferences.privacy === 'reports' && masking.mask(text) !== text) return 'Contact (identifier masked)'
   const person = personFromSignalText(text)
   if (person) return person
   const t = String(text).trim()
@@ -1162,7 +1181,7 @@ function extractStats(eng) {
       const key = from + '→' + to
       if (seen.has(key)) continue
       seen.add(key)
-      const pre = text.slice(Math.max(0, m.index - 40), m.index)
+      const pre = maskDisplay(text.slice(0, m.index)).slice(-40)
       const label = pre.split(/\s+/).filter(Boolean).slice(-3).join(' ').replace(/^[,:;.\-]+|[,:;.\-]+$/g, '') || 'metric'
       stats.push({ label, from, to })
     }
@@ -1315,7 +1334,7 @@ function cmdScan() {
 
 function cmdResume(args) {
   let maxBytes
-  try { ({ args, maxBytes } = context.budgetArgs(args)) } catch (e) { console.error(e.message); process.exit(2) }
+  try { ({ args, maxBytes } = contextBudget(args)) } catch (e) { console.error(e.message); process.exit(2) }
 
   const initIdx = args.indexOf('--init')
   if (initIdx !== -1) {
@@ -1399,6 +1418,10 @@ function cmdResume(args) {
       const owner = readOwner(fdeDir)
       const head = memoryHead(fdeDir)
       console.log(`memory git: ${head || 'ready'}${owner ? `  owner: ${owner.email}` : ''}`)
+    }
+    if (!setupStore.read()) {
+      if (process.stdin.isTTY && process.stdout.isTTY) return setup.command(setupStore, [])
+      console.log('Make FDEOps fit your day: run fde setup once for three short choices. Agents: ask these after binding; do not guess the answers.')
     }
     return
   }
@@ -2548,7 +2571,7 @@ function cmdReceipts(args) {
 // overwrites an engagement record, existing file, or symlink.
 function cmdHandoff(args, label = 'Handoff') {
   let parsed
-  try { parsed = context.budgetArgs(args) } catch (e) { console.error(e.message); process.exit(1) }
+  try { parsed = contextBudget(args) } catch (e) { console.error(e.message); process.exit(1) }
   let out = ''
   if (parsed.args.length) {
     if (parsed.args.length !== 2 || parsed.args[0] !== '--out' || !parsed.args[1] || parsed.args[1].startsWith('--')) {
@@ -2594,7 +2617,7 @@ function cmdHandoff(args, label = 'Handoff') {
 
 function cmdRecall(args) {
   let maxBytes
-  try { ({ args, maxBytes } = context.budgetArgs(args)) } catch (e) { console.error(e.message); process.exit(2) }
+  try { ({ args, maxBytes } = contextBudget(args)) } catch (e) { console.error(e.message); process.exit(2) }
   const query = args.join(' ').trim()
   if (!query || Buffer.byteLength(query) > 2048 || args.some(a => a.startsWith('--'))) {
     console.error('usage: fde recall <topic> [--max-bytes 4096..65536]'); process.exit(2)
@@ -3609,7 +3632,7 @@ function engagementSlugFromPath(eng) {
 }
 
 function cmdStatus(args) {
-  const all = args.includes('--all')
+  const all = portfolioView(args)
   if (!fs.existsSync(ENGAGEMENTS_ROOT)) { console.log('no engagements yet - fde resume --init <name>'); return }
   const rows = []
   if (all) {
@@ -3678,7 +3701,7 @@ function gatherEngagements(opts = {}) {
 }
 
 function cmdDashboard(args) {
-  const all = args.includes('--all')
+  const all = portfolioView(args)
   const outIdx = args.indexOf('--out')
   const outPath = outIdx !== -1 && args[outIdx + 1]
     ? path.resolve(args[outIdx + 1].replace(/^~/, HOME))
@@ -3734,7 +3757,7 @@ function cmdDashboard(args) {
       ['trust-profile.md', 'Trust profile'],
     ].map(([f, title]) => [title, readClean(e.dir, f)])
     .filter(([, md]) => render.hasRealContent(md))
-    .map(([title, md]) => ({ title, html: render.mdBlockHtml(md, parseMdTable) }))
+    .map(([title, md]) => ({ title, html: render.mdBlockHtml(maskDisplay(md), parseMdTable) }))
     e.searchBlob = render.escapeHtml([
       e.name, e.next, e.lastSession, e.reality, e.brief,
       ...e.log.map(g => g.text), ...e.risks.map(r => r.text),
@@ -3744,7 +3767,7 @@ function cmdDashboard(args) {
     ].join(' ').toLowerCase())
   })
 
-  const html = render.buildFieldbookHtml({ engagements, today, generatedAt: new Date().toISOString() })
+  const html = render.buildFieldbookHtml({ engagements: maskReport(engagements), today, generatedAt: new Date().toISOString() })
 
   try {
     const isRecordPath = p => p.split(path.sep).some(part => ['.fde', '.git'].includes(part.toLowerCase()))
@@ -3915,10 +3938,10 @@ function cmdVault(args) {
   })
 
   const files = vault.buildVaultFiles({
-    engagements,
+    engagements: maskReport(engagements),
     today: render.formatToday(new Date()),
     redacted,
-    engagementsRoot: ENGAGEMENTS_ROOT,
+    engagementsRoot: maskReport(ENGAGEMENTS_ROOT),
     version: cliVersion(),
   })
 
@@ -4102,6 +4125,7 @@ ${fs.existsSync(html) ? `\n  Open the fieldbook:  ${html}` : ''}
 function printUsage() {
   console.log(`fde - deterministic core of fdeops
   fde demo                 the whole loop on a fake client (fde demo --clean removes it)
+  fde setup                three first-use choices (or --show for saved preferences)
   fde privacy              show masking capability and its boundaries
   fde scan                 day-1 recon of this repo (facts, no AI)
   fde resume               load this workspace's engagement memory (bounded)
@@ -4131,8 +4155,8 @@ function printUsage() {
   fde receipts <term>      source-backed records versus claims
   fde defend              sponsor readout: accepted assertions, claims, sources, gaps
   fde handoff [--out file] portable redacted packet; stdout by default, new file only
-  fde status [--all]       value ledger, then trust (pass --all for full portfolio)
-  fde dashboard [--all] [--open] [--out <path>]  bound fieldbook (pass --all for every client)
+  fde status [--all|--current] value ledger, then trust (scope follows setup)
+  fde dashboard [--all|--current] [--open] [--out <path>] fieldbook (scope follows setup)
   fde vault                derived Obsidian vault of every engagement (--current for one, --redacted for a shared screen, --out <dir>)
   hooks call these; you do not: capture (session-end snapshot), preserve (pre-compaction snapshot)
   env FDEOPS_ENGAGEMENTS_ROOT  override ~/fde-engagements (init/status/dashboard/registry)
@@ -4144,7 +4168,7 @@ function printUsage() {
 const [cmd, ...rawArgs] = process.argv.slice(2)
 let outputBudget
 if (['resume', 'recall', 'handoff', 'defend'].includes(cmd) && !rawArgs.some(a => ['--full', '--init', '--bind', '--out'].includes(a))) {
-  try { outputBudget = context.budgetArgs(rawArgs).maxBytes } catch (_) {}
+  try { outputBudget = context.budgetArgs(rawArgs, (setupStore.read() || setup.DEFAULTS).context === 'compact' ? 4096 : 16384).maxBytes } catch (_) {}
 }
 require('./lib/masking').protectOutput(masking, { maxBytes: outputBudget })
 let args
@@ -4162,14 +4186,17 @@ if (args.includes('--help') || args.includes('-h') || cmd === 'help' || cmd === 
   process.exit(0)
 }
 try {
+  if (cmd !== 'setup' && cmd !== 'privacy') preferences = setupStore.read() || setup.DEFAULTS
+  const finishAsync = result => { if (result && typeof result.catch === 'function') result.catch(error => { console.error(error.message); process.exitCode = 1 }) }
 switch (cmd) {
+  case 'setup': finishAsync(setup.command(setupStore, args)); break
   case 'privacy':
     if (args.length) { console.error('usage: fde privacy'); process.exitCode = 2; break }
-    console.log(`FDEOps ${require('../package.json').version} - identifier masking enabled by default.\nCLI responses, smart proposals, handoff packets and ingest MCP results use local aliases.\nPatterns: common emails, international/US phones, SSN-shaped identifiers and supported credentials.\nNames and arbitrary sensitive prose are not detected; mark them <private>.\nRaw files, pasted chat, upstream MCP content and local dashboard/vault files bypass this protection.`)
+    console.log(`FDEOps ${require('../package.json').version} - identifier masking enabled by default.\nCLI responses, smart proposals, handoff packets and ingest MCP results use local aliases.\nPatterns: common emails, international/US phones, SSN-shaped identifiers and supported credentials.\nNames and arbitrary sensitive prose are not detected; mark them <private>.\nRaw files, pasted chat and upstream MCP content bypass this protection. Local reports retain identifiers by default; fde setup can also mask newly generated report content.`)
     break
   case 'demo': cmdDemo(args); break
   case 'scan': cmdScan(); break
-  case 'resume': cmdResume(args); break
+  case 'resume': finishAsync(cmdResume(args)); break
   case 'recall': cmdRecall(args); break
   case 'triage': cmdTriage(); break
   case 'log': cmdLog(args); break

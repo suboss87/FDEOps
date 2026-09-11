@@ -348,4 +348,25 @@ CLI and fieldbook mark explicit scope or withdrawal conflicts for review. A same
 
 After updating both the CLI and skill, run `fde privacy` to verify masking support. An older global executable does not gain protection from a skill update alone. Use the CLI to supply context to your agent. Supported identifier patterns are replaced with stable local aliases; original records stay intact, and confirmed updates restore known aliases locally. Preserve alias tokens exactly. The private dictionary in `<engagements-root>/.privacy/` is not agent context.
 
-This does not automatically recognize names or every sensitive identifier, and cannot intercept raw file tools, pasted chat, or source MCP responses. Mark sensitive prose `<private>` and read the [privacy boundaries](../PRIVACY.md#default-identifier-masking). Local fieldbook/vault files are human-facing exports, not a masked model-input channel.
+This does not automatically recognize names or every sensitive identifier, and cannot intercept raw file tools, pasted chat, or source MCP responses. Mark sensitive prose `<private>` and read the [privacy boundaries](../PRIVACY.md#default-identifier-masking). Local fieldbook/vault files are human-facing exports, not a model-input channel. Setup can also mask supported identifiers in newly generated report content.
+
+
+## Make FDEOps fit your day
+
+After binding your first client, your agent asks three questions together. If you use the terminal directly, run `fde setup` (also available as `npx fdeops setup`). First-time terminal `fde resume --init` offers the same setup.
+
+| Question | Choices | What changes |
+|---|---|---|
+| What should your daily overview show? | Current client / all clients | Default scope of `status` and `dashboard`. `--current` and `--all` override it; your workspace stays bound to one client. |
+| How much context should your agent start with? | Standard / compact | Default ceiling of 16 KiB / 4 KiB for `resume`, `recall`, `handoff` and `defend`. These are bytes, not tokens. Explicit `--max-bytes` still works. |
+| Where should common identifiers be masked? | Agent context / agent context and reports | The second choice also masks supported identifier patterns before generating Fieldbook and vault content. Originals remain in your records. |
+
+Settings are saved only after you answer and approve. They apply across clients in the same local engagements folder. `fde setup --show` shows the saved choices; rerun `fde setup` to change them. Skipping preserves the existing defaults. Scripts and hooks never wait for answers.
+
+For agents or scripts, all three explicit answers are required:
+
+```bash
+fde setup --view current --context compact --privacy reports --save
+```
+
+Setup does not install models, connect accounts, or change your AI provider's settings. Both privacy choices keep existing masking and private-block protection for agent context. Report masking applies only to newly generated content, not old exports. Names and sensitive prose still need `<private>` marking; masked reports are not anonymous or automatically safe to share. Client-specific policy always takes precedence.

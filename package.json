@@ -1,6 +1,6 @@
 {
   "name": "fdeops",
-  "version": "3.29.0",
+  "version": "3.30.0",
   "description": "Client delivery tools for Forward Deployed Engineers. One @fde skill, local Markdown engagement records, and an offline dashboard for decisions, evidence, approvals, and next actions.",
   "bin": {
     "fdeops": "bin/install.js",

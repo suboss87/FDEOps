@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.30.0
+
+- First-use setup asks three choices: current-client or portfolio overview, standard or compact context, and masking for agent context alone or also new reports. The agent asks once per engagements folder; terminal users can run `fde setup`. Settings save only after explicit answers and can be changed anytime.
+- Compact context defaults to a 4 KiB ceiling. `status` and `dashboard` follow the selected scope; `--current`, `--all` and explicit context budgets still override defaults without rebinding a workspace.
+- Optional report masking preserves original records and acceptance classification, including identifiers in report titles and metadata. It does not anonymize names, rewrite old exports, or configure an AI provider.
+- Expose `setup` and the existing `privacy` capability check through `npx fdeops` without triggering installation.
+
 ## Unreleased
 
 ## 3.29.0 - 2026-09-11

@@ -14,9 +14,9 @@ function clipUtf8(text, bytes) {
   while (end > 0 && (buf[end] & 0xc0) === 0x80) end--
   return buf.subarray(0, end).toString('utf8')
 }
-function budgetArgs(args) {
+function budgetArgs(args, defaultBytes = DEFAULT_BYTES) {
   const rest = [...args]
-  let maxBytes = DEFAULT_BYTES
+  let maxBytes = defaultBytes
   const at = rest.indexOf('--max-bytes')
   if (at !== -1) {
     const raw = rest[at + 1]
