@@ -89,3 +89,16 @@ Real Chromium checked the changed acceptance display at desktop and 390px mobile
 Scope and withdrawal detection remains conservative explicit-language lint, not general reasoning about authority. Same-slice conflicts require human clarification; history is not automatically deleted or merged. Exact sourced replay protection is not semantic deduplication. Existing local-model, host integration and human-benefit limits remain unchanged. These repairs improve the tested daily workflows; they do not prove every user will adopt the product.
 
 Final integrated macOS gate: `npm run check` passed all 293 tests with zero failures and zero skips. The earlier full run caught preview/state-label regressions, now repaired; malformed legacy fixtures were corrected to canonical fields without weakening their concurrency or doctor assertions.
+
+
+## Discovery guidance review: 2026-09-11
+
+Two independent reviewers and the lead walked the revised land/discover method through fictional variations of these scenarios. This was a text-level method review, not a new CLI replay, live host evaluation, or customer trial. The excerpts below are expected proposed records, subject to human confirmation.
+
+| Scenario input | Expected record and next action |
+|---|---|
+| Finance: unverified £120,000 cost estimate, five-minute staging result, production data promised in two weeks, Operations nominated | `brief.md` attributes the estimate without claiming savings; `reality.md` separates staging capability from missing production proof; `success.md` keeps operator agreement pending. Ask who owns data delivery and verify a dated sample checkpoint before committing the test schedule. |
+| Healthcare: on-prem required, patient data/model use unauthorized, sponsor nominates an unconfirmed team, data promised without a starting date | Treat on-prem as a constraint. Keep impact, signer, operator agreement, and calendar commitment unknown where unsupported. Verify a permitted sample and its owner; the delivery promise does not grant access or model permission. Authorized document review can continue. |
+| Manufacturing: staging POC passed, Friday auto-release requested, withdrawn permission, recovery procedure recorded but night-shift rollback untested | Existing recovery instructions are reusable evidence, not proof of successful recovery. Keep the production gap and permission conflict explicit. Check the recorded operator's agreement and ability to perform recovery; propose an authorized drill, without inventing a date, new build requirement, or production approval. |
+
+Review corrections removed an unsupported equation between missing ownership and unavailable access, allowed an assumption entry to be created or updated, and made unconfirmed operator agreement explicit. Guidance stays in two existing references; no record schema, automatic doctor gate, CLI behavior, or routing change was introduced. These walkthroughs support clarity in the exercised cases, not guaranteed model adherence or measured time savings.

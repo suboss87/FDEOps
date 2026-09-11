@@ -108,7 +108,7 @@ Flag every one. AI components don't fail like regular code - they degrade as the
 
 **6. Data flow.** Where data enters, how it moves, where it stops. Entry points first: routes, queues, cron, file drops.
 
-**7. Existing capability.** Trace the requested user action through existing code, configuration, tests, and operating workarounds. In `terrain.md`, record what can already be reused and the evidence that it works or fails. Check whether a configuration, ownership, or process change could resolve the observed break. A disabled feature is a lead, not a proven root cause. Keep observations and hypotheses distinct; option selection still belongs to plan / three-options.
+**7. Existing capability.** Trace the requested user action through existing code, configuration, tests, and operating workarounds. In `terrain.md`, record what can already be reused and the evidence that it works or fails. Check whether a configuration, ownership, or process change could resolve the observed break. A disabled feature is a lead, not a proven root cause. Keep observations and hypotheses distinct; option selection still belongs to plan / three-options. Summarize the remaining gap in `reality.md`: what works today → what the customer needs → what is still missing, with sources. If existing capability meets the need, say so; do not manufacture a build requirement.
 
 ## Method - part 2: the humans (you coach, the FDE asks)
 
@@ -150,7 +150,7 @@ Always map the estate before you score a use case - not only when someone said "
 **The 5 questions (ask the data owner, not the sponsor):**
 1. **Where does data live?** - List every source: databases, warehouses, SaaS exports, spreadsheets, S3 buckets, vendor APIs. Map it.
 2. **How fresh is it?** - Real-time, daily batch, "someone uploads a CSV on Mondays"? Freshness determines what's buildable.
-3. **Who owns it?** - Not "IT" - the named person who can grant access and explain the schema. No name = no access in practice.
+3. **Who owns it?** - Not "IT" - the named person who can grant access and explain the schema. No named owner: access responsibility remains unverified.
 4. **What's the quality?** - Sample 100 rows from each critical source. Check: nulls, duplicates, format consistency, semantic correctness. A 60% null rate in a key field = that source is fiction.
 5. **What are the governance constraints?** - PII classification, retention policies, cross-border rules, consent basis. One missed constraint = a compliance stop later.
 
@@ -163,6 +163,10 @@ Always map the estate before you score a use case - not only when someone said "
 | _fill per source_ | | | | | | | Ready / Needs work / Blocker |
 
 A use case that depends on a "Blocker" source **or a Blocker pipe** doesn't get scored - it gets a remediation conversation first. `what-breaks` finding an invisible integration at ship is already too late. Write this to `terrain.md` under a `## Data estate` section.
+
+**Promised dependencies are not ready dependencies.** For consequential promises such as "data in two weeks," record or update one dependency entry in `assumptions.md` with the responsible owner, dated verification checkpoint, and evidence needed. Unknown owners or dates stay unknown; propose a checkpoint for confirmation. Link the affected work; if the checkpoint slips, identify what can proceed and what needs replanning. Missing ownership is an unresolved dependency, not proof that the project will fail. On-prem or restricted access is a constraint to investigate, not a red flag by itself.
+
+**Verify the future operator now.** Check the proposed owner in `success.md` against who will actually monitor, recover, and support the result. Record whether they have agreed, access or training gaps, and a practical handoff check there; carry these into `handoff.md` at close. Keep unconfirmed ownership explicit. Reuse supplied evidence and ask only what changes the plan.
 
 ## When scope is a transformation, not a single problem
 
