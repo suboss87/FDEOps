@@ -4,7 +4,7 @@
 
 **Large transcripts or emails** sitting in Granola/Gmail/Notion → prefer **`fde ingest stage`** first (via source MCPs the FDE configured), then the same propose → confirm → **`fde ingest apply`** path. See `references/ingest.md`. Pasted short notes stay on this debrief verb.
 
-**Read first:** `context.md`, `stakeholders.md` (signals against what's known).
+**Read first:** the bounded `fde resume` packet for the bound client. Use `fde recall` for the specific prior decision, action, or delivery result needed to reconcile this update. Do not reload the whole engagement.
 
 **Who runs the CLI:** you (the agent). Never tell the FDE to type `fde debrief …`.
 
@@ -13,7 +13,7 @@
 - The `fde` CLI is **local, deterministic, no AI**. `--smart` is a **gate + writer**, not a brain.
 - It keeps lines that already have `decision:` / `risk:` / `delivery:` / `contact:` / `next:` / `signer:` prefixes, plus a thin keyword pass (e.g. "we agreed", person+verb lines, "open question", "X signs off").
 - `signer: Priya` fills **Stakeholder who signs off** in `success.md` and logs Priya as a contact. The CLI proposes it when a sentence says someone signs off / approves / has final say. If the notes name who can say yes and the proposal does not carry a `signer:` line, add one - that is the most expensive sentence in the meeting.
-- Real messy notes without prefixes often route **0 useful lines** - everything else lands as a context dump. That is expected. **You are the router:** rewrite `.debrief-propose` with type prefixes, then `--apply`.
+- Heuristics can miss facts **and mislabel prefixed lines**. You interpret every candidate against the sanitized source, not just unprefixed lines. Split distinct decisions, requests, actions, and results; keep uncertainty. The user reviews meaning, never prefix syntax.
 - `.debrief-propose` is raw lines only (no routing annotations). "Edit if mis-routed" means **rewrite the line with the right prefix**, not leave a comment in the file.
 
 ## Method (you do this work)
@@ -22,25 +22,24 @@
 
 1. Save the FDE's notes to a temp `.md` file in the workspace (or pipe stdin).
 2. Run `fde debrief --smart <notes.md>` (or `npx fdeops debrief --smart …`).
-3. Open `.debrief-propose`. If lines lack type prefixes, **rewrite them** before showing the FDE, e.g.:
-   - `decision: agreed chargebacks stay phase 2 - Priya`
-   - `decision: freeze the API [approved: Priya 2026-09-08]` (optional; missing means unconfirmed)
-   - `risk: legal may reopen scope if we slip the SOW date`
-   - `contact: Priya pushed hard on Friday deck [signal:amber]`
-   - `signer: Priya` (she can say yes; lands in `success.md`)
-   - `next: send one-pager before Thursday 9am`
-   - unprefixed lines stay context color only
-4. After editing, run `fde debrief --review` to show the pending proposal without replacing it. Show the **REVIEW** block first (decided / asked / open / next / signer). That is the one screen to confirm. File routing stays underneath.
-5. In **chat**, after that REVIEW, present a four-row card and omit empty rows:
-   - Decided
-   - Asked / open
-   - Next
-   - Signer
-   Then a **Previously:** line from the record, and **Not yet agreed** for anything still proposed. Ask **Save this update?** Saving means the engineer accepted this as the engagement record, not that the customer approved every ask. Uncertainty stays visible.
-6. On FDE confirm → run `fde debrief --apply`.
-7. On reject → stop; ask what to change; do not apply. Do not rebuild or replace the CLI REVIEW engine.
+3. Prepare the pending proposal using **Prepare one update** below. Read only the sanitized `.debrief-propose`, never the sealed private sidecars or raw private source. Preserve privacy markers and source metadata.
+4. Run `fde debrief --review` after editing. Treat the CLI REVIEW and routing output as your validation, not a second presentation to the user. Resolve errors and replay warnings before asking for confirmation.
+5. Show **one** concise review in chat: name the client, then the consequential changes in plain English. Include decisions, requests still unagreed, actions, reported delivery, signer or contact changes, and unresolved conflicts when present. Show the previous value only where it changes the meaning. Omit empty categories and CLI routing details; do not impose a fixed four-row card that hides other changes. If the proposal is too large to show faithfully, split the review into explicit batches; never approve hidden changes.
+6. Ask **Save this update?** This confirms the engineer's record, not customer acceptance. On confirmation, apply precisely that proposal with `fde debrief --apply`. A material correction requires a revised review and renewed confirmation. On rejection, leave the proposal pending and do not apply.
+7. Verify the changed facts through bounded `fde resume` / targeted `fde recall`. If a fieldbook is part of the current task, regenerate it using the existing command and destination after the confirmed save; do not make the user run it. End with a brief saved/not-saved result and the next action, not another full summary.
 
-No invented names or quotes. If the propose looks wrong, fix prefixes with judgment then re-apply or use the fallback path.
+### Prepare one update (shared with ingest)
+
+Do this work yourself before the human review:
+
+- **Check meaning, not keywords.** “We settled on delaying the rewrite” is a decision; “Mara will request access” is an action, even if the heuristic calls it a contact. A wish or suggestion remains a request, not agreement. Do not infer authority, approval, a calendar date from an unanchored relative date, or production value from staging.
+- **Keep facts traceable.** Preserve supplied source locators on each consequential fact, using `[source: ...]`. If only a local file or staged item exists, cite that actual locator as a note source, not a customer receipt. Do not invent a meeting date or speaker. A source label is not authenticated approval.
+- **Reconcile only what changed.** Compare affected facts with the current record using targeted retrieval. Leave unchanged sourced statements out of an accidental re-import. Preserve earlier history; record changed or conflicting claims explicitly. If everything is already recorded, say so and leave the pending proposal unapplied. If it blocks a later capture, explain that no new facts were saved and ask permission to replace that pending review; use `--replace-proposal` with the new notes only after that authorization. Do not delete proposal files or private sidecars manually. Do not use `--allow-replay` without explicit approval of an intentional repeat.
+- **Protect the current next action.** A late meeting note does not automatically supersede a newer action. Keep older actions as dated context unless their current priority is established; show a conflict when it needs a decision. Use exactly one physical `next:` line for the current action. If multiple current actions are explicitly agreed, include them on that same line separated by semicolons; the CLI retains only the last `next:` line. Keep other dated commitments in context. Do not silently discard other commitments.
+- **Keep memory useful.** Retain consequential facts and indispensable context; remove chatter and repetition from the proposal, not from the source. Preserve the raw input outside `.fde/` (staged material stays in `.inbox/`). Never remove privacy placeholders or modify sealed sidecars. Ask only about a consequential ambiguity that cannot remain explicitly unknown.
+- **Structure the result.** Use `decision:` / `risk:` / `delivery:` / `contact:` / `next:` / `signer:`. Preserve `ask:` / `scope:` as explicitly proposed context when appropriate. Prepare the seven-field delivery row yourself for a reported result (see below); unknown fields stay `pending`. The human should not have to fill out a ledger to capture a meeting.
+
+Before showing the review, check that every consequential fact in the sanitized source is represented, already recorded, or explicitly unresolved. Check classified lines as carefully as unclassified ones. Nothing is saved simply because this preparation is complete.
 
 ### Fallback - you structure, then route
 
@@ -53,10 +52,10 @@ If `--smart` is unavailable or you already have clean prefixes:
    - **Risks** - new / confirmed / retired
    - **Open questions** - what to chase next
 2. Format lines as `decision:` / `risk:` / `delivery:` / `contact:` / `next:` / `signer:` (contacts may end with `[signal:green|amber|red]`).
-3. Show the same **chat card** as the smart path (omit empty rows; Previously; Not yet agreed; **Save this update?**). Do not invent a second confirm surface.
+3. Follow **Prepare one update** and show the same single plain-English review as the preferred path. Include every consequential change and ask **Save this update?**.
 4. On confirm, pipe to `fde debrief` (or write a file and run it).
 
-One clarifying question max if the dump is ambiguous - then write. Never stall capture on completeness.
+Ask at most one focused question at a time when ambiguity would change the record. Otherwise preserve the unknown and include it in the review. Never treat silence as confirmation.
 
 ## Artifact
 
@@ -66,7 +65,7 @@ One clarifying question max if the dump is ambiguous - then write. Never stall c
 
 ## Checkpoint
 
-Read back the 2-3 most consequential captures in one breath - so the FDE can correct on the spot. Then stop. No summary theatre.
+Use the single pre-save review above. After saving, report verification and the next action briefly; do not ask for a second approval or repeat the review.
 
 ## Principles
 

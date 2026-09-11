@@ -28,7 +28,7 @@ A one-line typo or compile error in a file that will not ship. On a bound client
 | **When did we agree?** | Don't argue from memory. Search the record. | `fde receipts <term>` | - |
 | **What's the outcome?** | A number nobody signed is claimed, not delivered. | `fde status` | `references/readout.md` |
 
-After a meeting: `fde debrief --smart` → one REVIEW screen (decisions / asks / scope / delivery gaps / next / signer) → in chat, a four-row card (omit empty; Previously / Not yet agreed) → **Save this update?** (engineer accepted the record, not customer approval of every ask) → `--apply`. Walk-in: `fde prep`. Friday: `fde status`.
+After a meeting: the agent runs `fde debrief --smart`, interprets and reconciles the sanitized proposal, then validates it with `fde debrief --review`. Show the human one concise review of consequential changes and uncertainties → **Save this update?** → `--apply` only after confirmation → verify the saved facts. See `references/debrief.md` for the shared preparation contract. Walk-in: `fde prep`. Friday: `fde status`.
 
 ## Ground loop
 
@@ -69,7 +69,7 @@ Writes need a bind (`FDEOPS_ENGAGEMENT` or registry). Never install fdeops on in
 |----------|---------|
 | where are we | `fde resume` |
 | day-1 look at the repo | `fde scan` |
-| debrief / pasted notes | `fde debrief --smart` → REVIEW → four-row chat card → Save this update? → `--apply`. `--smart` is a gate, not a brain. `references/debrief.md` |
+| debrief / pasted notes | `fde debrief --smart` → agent reconciliation → one plain-English review → Save this update? → `--apply`. `--smart` is a gate, not a brain. `references/debrief.md` |
 | prep me for … | `fde prep "<label>"` |
 | when did we agree | `fde receipts <term>` |
 | sponsor update / defend the number | `fde defend` |
