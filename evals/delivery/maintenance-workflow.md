@@ -56,6 +56,10 @@ The simulated user supplies scripted correction and approval. These are not inde
 
 An independent agent reviewed the actual review, save, and fresh-return traces and found all expected facts represented, no premature apply, and no raw/private-sidecar reads. This is an additional model review, not human usability evidence.
 
+## Separate client-switch diagnostic
+
+Created a second bound workspace, Beacon, in the same engagement registry. Its signer was Jordan and next action was a warehouse barcode scan trial, both sourced to `beacon-01`. A fresh agent asked to identify the client, signer, and action returned Beacon/Jordan/the barcode trial via bounded resume. It did not read Atlas records. Atlas Markdown hashes remained unchanged; Beacon context stayed unchanged. This tests one read-only workspace switch, not concurrent writes or every isolation boundary.
+
 ## Excluded runs and limits
 
 Two early diagnostic runs used a stale globally installed `fde` because the host login shell reset PATH. That executable lacked current review/recall behavior and exposed the synthetic private marker. Both runs are excluded from current-version validation. They demonstrate installation ambiguity, not a regression established in the current repository. The corrected run uses the absolute repository executable. An initial `gpt-5.4` request was unsupported by this account and performed no agent work.
