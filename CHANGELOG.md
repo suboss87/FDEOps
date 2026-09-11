@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Clarify discovery of the remaining customer gap, consequences of inaction, future operational ownership, and evidence checkpoints for promised dependencies using existing engagement records.
+
 ## 3.28.0 - 2026-09-10
 
 - Keep explicitly withdrawn or conflicting delivery assertions out of accepted summaries, with the reason visible in CLI and fieldbook. Preserve history and flag scope mismatches for human review.

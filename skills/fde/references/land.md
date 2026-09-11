@@ -57,6 +57,7 @@ Intent: coach the FDE's first *customer* conversation - what keeps the sponsor u
 - "Before you open the laptop - what would make this a bad engagement for *them*, not just a delayed project?"
 - "What are they afraid you'll miss?"
 - "Who loses credibility if this goes wrong?"
+- "If nothing changes over the agreed timeframe, what happens, and who bears it?" Record the consequence and its source in `brief.md`; distinguish reported impact from measured cost. Unknown cost stays unknown, not an invented ROI.
 
 Let silence sit. If their fear doesn't match the written brief, the brief is wrong - say so plainly, log it.
 
@@ -67,6 +68,7 @@ Let silence sit. If their fear doesn't match the written brief, the brief is wro
 - **The sacred thing** - "Is there anything in this environment I should treat as untouchable?" The hesitation before the answer is the answer.
 - **Exception path (operating map seed)** - "When the happy path breaks this week, what do people actually do - who do they call, what spreadsheet opens, what do they skip?" Capture the break → workaround → who owns it. Do not build a full map on day 1; seed rows later in `terrain.md` → `## Operating map (exception-led)` during discover. Unknowns stay `unknown - ask:`.
 - **AI posture and policy** - tools already in use (sanctioned or shadow), and: "Does your organisation have a policy on AI-generated code? Are there decisions where you would not be comfortable with AI involvement?"
+- **Future operator** - "Who will run this after we leave, and have they agreed?" Record the proposed operator and unresolved ownership in `success.md`, separately from the signer. A sponsor naming a team is not that team accepting responsibility; verify with the operator during discover.
 - **Boundaries in multi-vendor rooms** - who owns what surface, who signs off before a change crosses it.
 
 ## The day 1 deliverable
