@@ -45,7 +45,7 @@ function boundedSections(sections, maxBytes = DEFAULT_BYTES) {
 
 // Literal, client-scoped lexical retrieval. Retain independently matching
 // records, including conflicting/older ones; recency never means truth.
-function recallSections(documents, query, maxHits = 12) {
+function recallSections(documents, query, maxHits = 12, outputText = text => text) {
   const words = [...new Set(query.toLocaleLowerCase().split(/\s+/).filter(Boolean))].slice(0, 16)
   const hits = []
   for (const { file, text } of documents) {
@@ -57,7 +57,7 @@ function recallSections(documents, query, maxHits = 12) {
       if (!score) continue
       const first = Math.max(0, i - 1)
       const last = Math.min(lines.length, i + 3)
-      const excerpt = lines.slice(first, last).map(l => Buffer.byteLength(l) <= 1024 ? l : clipUtf8(l, 900) + OMITTED).join('\n')
+      const excerpt = lines.slice(first, last).map(outputText).map(l => Buffer.byteLength(l) <= 1024 ? l : clipUtf8(l, 900) + OMITTED).join('\n')
       hits.push({ file, line: first + 1, end: last, score, text: excerpt.trim() })
     }
   }

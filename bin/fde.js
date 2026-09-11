@@ -45,6 +45,13 @@ const HOME = os.homedir()
 const ENGAGEMENTS_ROOT = ((process.env.FDEOPS_ENGAGEMENTS_ROOT || '').trim().replace(/^~/, HOME))
   || path.join(HOME, 'fde-engagements')
 const REGISTRY = path.join(ENGAGEMENTS_ROOT, '.registry')
+const masking = require('./lib/masking').createMasking(ENGAGEMENTS_ROOT)
+function maskDisplay(text) {
+  return ['dashboard', 'vault'].includes(process.argv[2]) ? String(text) : masking.mask(text)
+}
+function maskedSections(sections, maxBytes) {
+  return context.boundedSections(sections.map(text => masking.mask(text)), maxBytes)
+}
 const DEBRIEF_MAX_BYTES = 256 * 1024
 const CODE_EXT = ['.js', '.ts', '.tsx', '.jsx', '.py', '.java', '.go', '.rb', '.cs', '.php']
 const CONF_EXT = CODE_EXT.concat(['.env', '.yaml', '.yml', '.json'])
@@ -114,7 +121,7 @@ function grepFiles(files, regex, cap) {
     try { text = fs.readFileSync(f, 'utf8') } catch (_) { continue }
     const lines = text.split('\n')
     for (let i = 0; i < lines.length && hits.length < cap; i++) {
-      if (regex.test(lines[i])) hits.push({ file: path.relative(process.cwd(), f), line: i + 1, text: lines[i].trim().slice(0, 120) })
+      if (regex.test(lines[i])) hits.push({ file: path.relative(process.cwd(), f), line: i + 1, text: maskDisplay(lines[i].trim()).slice(0, 120) })
     }
   }
   return hits
@@ -798,7 +805,7 @@ function firstLine(md, maxLen) {
   for (const raw of md.split('\n')) {
     const l = raw.trim()
     if (!l || /^#{1,6}\s/.test(l)) continue
-    const clean = l.replace(/^\*\*[^*]+:\*\*\s*/, '').replace(/\*\*/g, '').replace(/^["']|["']$/g, '').trim()
+    const clean = maskDisplay(l.replace(/^\*\*[^*]+:\*\*\s*/, '').replace(/\*\*/g, '').replace(/^["']|["']$/g, '').trim())
     if (!clean) continue
     return clean.length > maxLen ? clean.slice(0, maxLen - 1).trim() + '…' : clean
   }
@@ -811,7 +818,7 @@ function firstLine(md, maxLen) {
 function parseReality(md, maxLen) {
   const theory = (md.match(/\*\*Working theory:\*\*[^\S\r\n]*(.*)/i) || [])[1]
   const hasSchema = /\*\*(Working theory|Evidence|Differs from brief how):\*\*/i.test(md)
-  const theoryText = (theory || '').trim()
+  const theoryText = maskDisplay((theory || '').trim())
   if (theoryText) {
     const line = theoryText.length > maxLen ? theoryText.slice(0, maxLen - 1).trim() + '…' : theoryText
     return { line, missing: '' }
@@ -1081,14 +1088,14 @@ function extractStakeholders(eng) {
   for (const [key, h] of latest) {
     if (byKey.has(key)) {
       const cur = byKey.get(key)
-      byKey.set(key, { ...cur, signal: h.signal, note: cur.note || h.text.slice(0, 80) })
+      byKey.set(key, { ...cur, signal: h.signal, note: cur.note || maskDisplay(h.text).slice(0, 80) })
     } else {
       const name = displayNameFromSignalText(h.text)
       if (!name || isSignalNameNoise(name)) continue
       byKey.set(key, {
         name,
         role: '',
-        note: h.text.slice(0, 80),
+        note: maskDisplay(h.text).slice(0, 80),
         signal: h.signal,
         source: 'signal',
       })
@@ -1426,7 +1433,7 @@ function cmdResume(args) {
   const policy = readClean(eng, 'trust-profile.md')
   const success = readClean(eng, 'success.md')
   const risks = readClean(eng, 'risks.md')
-  process.stdout.write(context.boundedSections([
+  process.stdout.write(maskedSections([
     policy ? `CLIENT POLICY - trust-profile.md\n${policy}` : '',
     `${intro}\n\nENGAGEMENT: ${eng}`,
     success ? `CURRENT GOALS & ACCEPTANCE - success.md\n${success}` : '',
@@ -1832,6 +1839,7 @@ function readDebriefInput(args) {
 }
 
 function previewLine(text, max = 240) {
+  text = masking.mask(text)
   const t = String(text || '').replace(/\s+/g, ' ').trim()
   if (t.length <= max) return t
   return `${t.slice(0, max)}… (${t.length} chars)`
@@ -1845,7 +1853,8 @@ function writeProposal(eng, text, { replace = false, locked = false } = {}) {
     finally { ownedDebriefLocks.delete(path.join(eng, DEBRIEF_PROPOSE)) }
   }, { soft: true })
   if (!debriefTransactionActive) return withDebriefRecords(eng, () => writeProposal(eng, text, { replace, locked: true }), [DEBRIEF_PROPOSE, DEBRIEF_PRIVATE, DEBRIEF_SEAL])
-  const { clean, blocks } = splitPrivate(text, { sealDangling: true })
+  const { clean: original, blocks } = splitPrivate(text, { sealDangling: true })
+  const clean = masking.mask(original)
   const proposePath = path.join(eng, DEBRIEF_PROPOSE)
   const privatePath = path.join(eng, DEBRIEF_PRIVATE)
   if (fs.existsSync(proposePath) && !replace) {
@@ -1887,6 +1896,7 @@ function stripApprovedStamp(text) {
 // One screen a human can confirm in two minutes. The file-by-file routing
 // still prints after this - agents edit prefixes; people read this.
 function printDebriefReview(text, eng) {
+  text = masking.restore(text)
   const repeats = repeatedDebriefStatements(eng, text)
   if (repeats.length) console.log(`REPLAY WARNING: ${repeats.length} source-backed statement(s) already recorded. Review newer facts and next action; applying again requires --allow-replay.\n`)
   const buckets = { decided: [], asked: [], scope: [], delivery: [], open: [], next: [], signer: [] }
@@ -2091,6 +2101,8 @@ function repeatedDebriefStatements(eng, input) {
 }
 
 function routeDebriefInput(eng, input, { dry, force, sealed = [], allowReplay = false }) {
+  input = masking.restore(input)
+  masking.mask(splitPrivate(input, { sealDangling: true }).clean)
   if (!dry && !debriefTransactionActive) {
     ensureMemoryGit(eng)
     return withDebriefRecords(eng, () => {
@@ -2207,7 +2219,11 @@ function runDebrief(args, eng) {
     const refused = refuseSymlinkWrite(proposal, { soft: true })
     if (refused) throw new Error(refused)
     if (!fs.existsSync(proposal)) throw new Error('nothing to review - run debrief --smart <notes> first')
-    const { clean: input } = splitPrivate(fs.readFileSync(proposal, 'utf8'), { sealDangling: true })
+    const stored = fs.readFileSync(proposal, 'utf8')
+    if (splitPrivate(stored, { sealDangling: true }).blocks.length) throw new Error('pending proposal contains raw private content: do not open it with an agent. Recreate it through debrief --smart from local notes, using --replace-proposal only after confirmation.')
+    const { clean: input } = splitPrivate(masking.restore(stored), { sealDangling: true })
+    const safe = masking.mask(input)
+    if (safe !== stored) atomicWriteFile(proposal, safe, { mode: 0o600, soft: true })
     return boundedDebriefPreview(eng, () => {
       printDebriefReview(input, eng)
       routeDebriefInput(eng, input, { dry: true, force: false })
@@ -2244,6 +2260,7 @@ function runDebrief(args, eng) {
       console.error('nothing to apply - run: fde debrief --smart <notes.md>   then   fde debrief --apply')
       return void (process.exitCode = 1)
     }
+    input = masking.restore(input)
     sealed = readSealedProposal(eng)
     const expected = readSealCount(eng)
     if (expected === null ? (!sealed.length && input.includes(PRIVATE_MARKER)) : sealed.length < expected) {
@@ -2465,7 +2482,7 @@ function cmdIngest(args) {
   const body = [
     '---',
     `source: ${source}`,
-    `title: ${title.replace(/\n/g, ' ').slice(0, 120)}`,
+    `title: ${title.replace(/\n/g, ' ')}`,
     `staged: ${new Date().toISOString()}`,
     `id: ${id}`,
     '---',
@@ -2498,7 +2515,7 @@ function cmdReceipts(args) {
     document.split('\n').forEach((line, i) => {
       if (!line.toLowerCase().includes(term.toLowerCase())) return
       const source = decisionSources.get(i + 1) || sourceReference(line)
-      const hit = `  ${file}:${i + 1}  ${line.trim().slice(0, 160)}${source ? ` [source: ${source.slice(0, 160)}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
+      const hit = `  ${file}:${i + 1}  ${masking.mask(line.trim()).slice(0, 160)}${source ? ` [source: ${masking.mask(source).slice(0, 160)}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
       ;(recordFiles.includes(file) && source ? records : claims).push({ file, hit })
     })
   }
@@ -2524,7 +2541,7 @@ function cmdReceipts(args) {
   if (records.length) sections.push('ON RECORD (dated, source-backed):\n' + select(records))
   if (claims.length) sections.push('CLAIMS & working notes (verify source and approval before citing):\n' + select(claims))
   if (!records.length && !claims.length) sections.push(`no record of "${term}" - a gap in the record, not proof of absence`)
-  process.stdout.write(context.boundedSections(sections))
+  process.stdout.write(maskedSections(sections))
 }
 
 // Portable snapshot; stdout is read-only. --out creates a new file and never
@@ -2552,7 +2569,7 @@ function cmdHandoff(args, label = 'Handoff') {
   const decisionText = d => `${d.text} (decisions.md:${d.line}, redacted view)`
   const next = stripTemplateNoise(sectionBody(readClean(eng, 'context.md'), 'Next action', { lastNonEmpty: true }))
   const gaps = collectDoctorIssues(eng, { readiness: true })
-  const report = context.boundedSections([
+  const report = maskedSections([
     `# ${label}: ${engagementSlugFromPath(eng)}\nSnapshot: ${new Date().toISOString()} · memory ${memoryHead(eng) || 'unversioned'}\nRead-only record, not proof of approval. Confirm sources with the named customer before relying on a claim. Private blocks are excluded; review remaining client information before sharing.`,
     `## Constraints - trust-profile.md\n${stripTemplateNoise(readClean(eng, 'trust-profile.md')) || '(missing)'}`,
     `## Signer and success - success.md\nSigner: ${signer || '(missing; do not infer)'}\n${success || '(missing)'}`,
@@ -2585,8 +2602,8 @@ function cmdRecall(args) {
   const eng = resolveEngagement()
   if (!eng) { console.error('no engagement - bind a client before recall'); process.exit(2) }
   const files = ['context.md', 'trust-profile.md', 'success.md', 'decisions.md', 'risks.md', 'delivery.md', 'stakeholders.md', 'brief.md', 'reality.md', 'assumptions.md', 'terrain.md', 'handoff.md']
-  const result = context.recallSections(files.map(file => ({ file, text: readClean(eng, file) })), query)
-  process.stdout.write(context.boundedSections([
+  const result = context.recallSections(files.map(file => ({ file, text: readClean(eng, file) })), query, 12, masking.mask)
+  process.stdout.write(maskedSections([
     `RECALL - ${eng}\n${result.total ? `${result.sections.length} of ${result.total} matching lines; refine the query if evidence is omitted.` : 'No matching record. This is not proof that the event never happened.'}\nSources are local record assertions; verify dates, supersession and approval scope.`,
     ...result.sections,
   ], maxBytes))
@@ -2597,7 +2614,7 @@ function cmdCapture() {
   if (!eng) process.exit(0) // silent: capture must never break a session
   // Workspace git facts (cwd), not the engagement memory repo.
   const branch = sh('git branch --show-current')
-  const lastCommit = sh("git log -1 --format='%h %s'").slice(0, 100)
+  const lastCommit = sh("git log -1 --format='%h %s'")
   // porcelain lines are "XY path" - sh() trims, so parse by first whitespace
   const changed = sh('git status --porcelain').split('\n').filter(Boolean).slice(0, 8)
     .map(l => l.trim().split(/\s+/).slice(1).join(' ')).join(' ')
@@ -2942,7 +2959,7 @@ function collectDoctorIssues(eng, { readiness = false } = {}) {
   }
   const dupes = findDuplicateOpenRisks(eng)
   if (dupes.length) {
-    const sample = (dupes[0][0] || '').replace(/\s+/g, ' ').trim().slice(0, 60)
+    const sample = maskDisplay((dupes[0][0] || '').replace(/\s+/g, ' ').trim()).slice(0, 60)
     issues.push(
       `${dupes.length} duplicate open-risk cluster(s) (e.g. "${sample}${sample.length >= 60 ? '…' : ''}") - consolidate or retire echoes in risks.md`
     )
@@ -3218,7 +3235,7 @@ function hasEvalReceipt(eng) {
 function hygieneTriageLines(eng) {
   const issues = collectDoctorIssues(eng)
   if (!issues.length) return []
-  const top = issues[0].replace(/\s+/g, ' ').trim().slice(0, 72)
+  const top = maskDisplay(issues[0].replace(/\s+/g, ' ').trim()).slice(0, 72)
   return [
     `  hygiene: ${issues.length} issue(s) - ${top}${issues[0].length > 72 ? '…' : ''}`,
     '    → say "@fde clean up the fieldbook" when ready (agent runs fde doctor; nothing auto-rewrites), or: fde doctor',
@@ -3258,14 +3275,14 @@ function recordDigest(eng) {
   const signer = ((success.match(/^\*\*Stakeholder who signs off:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').trim()
   // "(none)" rather than a missing line: on session start, nobody named to sign
   // off is the fact worth seeing, not an absence to scroll past.
-  const lines = [`  signer: ${signer.slice(0, 110) || '(none)'}`]
+  const lines = [`  signer: ${masking.mask(signer).slice(0, 110) || '(none)'}`]
   const { rows } = parseValueLedger(eng)
   const promisedRow = [...rows].reverse().find(r => r.promised)
   if (promisedRow) {
-    lines.push(`  promised: ${formatValueLedgerLine(promisedRow).slice(0, 110)}`)
+    lines.push(`  promised: ${masking.mask(formatValueLedgerLine(promisedRow)).slice(0, 110)}`)
   } else {
     const target = ((success.match(/^\*\*Baseline[^\S\n]*→[^\S\n]*target:\*\*[^\S\n]*(.*)$/m) || [])[1] || '').trim()
-    if (target) lines.push(`  promised: ${target.slice(0, 110)}`)
+    if (target) lines.push(`  promised: ${masking.mask(target).slice(0, 110)}`)
   }
   const decisions = datedDecisions(readClean(eng, 'decisions.md')).slice(-2)
   for (const d of decisions) lines.push(`  decided: ${formatDecisionRecord(d.text)}; source: ${previewLine(sourceReference(d.text) || '(missing)', 100)}`)
@@ -3320,7 +3337,7 @@ function cmdRedact(args) {
   }
   console.log(`REDACT - ${hits.length} matching line(s) for ${JSON.stringify(term)}`)
   hits.slice(0, 20).forEach(h => {
-    const preview = h.line.length > 100 ? h.line.slice(0, 97) + '…' : h.line
+    const preview = h.line.length > 100 ? masking.mask(h.line).slice(0, 97) + '…' : h.line
     console.log(`  ${h.file}:${h.lineNo}  ${preview}`)
   })
   if (hits.length > 20) console.log(`  … +${hits.length - 20} more`)
@@ -3365,12 +3382,12 @@ function cmdPrep(args) {
   const people = extractStakeholders(eng).slice(0, 8)
   console.log('\nStakeholders (table + signal history)')
   if (!people.length) console.log('  (none yet - log contacts with --signal)')
-  else people.forEach(p => console.log(`  [${p.signal}] ${p.name}${p.role ? ` - ${p.role}` : ''}${p.note ? ` · ${p.note.slice(0, 60)}` : ''}`))
+  else people.forEach(p => console.log(`  [${p.signal}] ${p.name}${p.role ? ` - ${p.role}` : ''}${p.note ? ` · ${masking.mask(p.note).slice(0, 60)}` : ''}`))
 
   const risks = extractRisks(eng).slice(0, 5)
   console.log('\nOpen risks (table + dated bullets)')
   if (!risks.length) console.log('  (none logged)')
-  else risks.forEach(r => console.log(`  [${r.severity}] ${r.text.slice(0, 100)}`))
+  else risks.forEach(r => console.log(`  [${r.severity}] ${masking.mask(r.text).slice(0, 100)}`))
 
   const success = firstLine(readClean(eng, 'success.md'), 160)
   console.log('\nSuccess looks like')
@@ -3381,7 +3398,7 @@ function cmdPrep(args) {
     .slice(-5)
   console.log('\nRecent decisions')
   if (!decisions.length) console.log('  (none logged)')
-  else decisions.forEach(l => console.log(`  ${l.trim().slice(0, 120)}`))
+  else decisions.forEach(l => console.log(`  ${masking.mask(l.trim()).slice(0, 120)}`))
 
   const next = nextActionLine(readClean(eng, 'context.md'))
   console.log('\nWalk in with')
@@ -3421,7 +3438,7 @@ function cmdGarden(args) {
   }
   const dupes = findDuplicateOpenRisks(eng)
   if (dupes.length) {
-    const sample = (dupes[0][0] || '').replace(/\s+/g, ' ').trim().slice(0, 50)
+    const sample = maskDisplay((dupes[0][0] || '').replace(/\s+/g, ' ').trim()).slice(0, 50)
     proposals.push({
       id: 'dedupe-risks',
       kind: 'apply',
@@ -3601,7 +3618,7 @@ function cmdStatus(args) {
       const eng = path.join(ENGAGEMENTS_ROOT, d, '.fde')
       if (!fs.existsSync(eng)) continue
       const s = computeSignals(eng)
-      const note = [s.memoryWarn, (s.dirtyFiles && s.dirtyFiles.length) ? `dirty:${s.dirtyFiles.length}` : '', s.reason || s.topRisk].filter(Boolean).join(' · ').slice(0, 70)
+      const note = maskDisplay([s.memoryWarn, (s.dirtyFiles && s.dirtyFiles.length) ? `dirty:${s.dirtyFiles.length}` : '', s.reason || s.topRisk].filter(Boolean).join(' · ')).slice(0, 70)
       rows.push({ name: d, phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: note, memoryWarn: s.memoryWarn, dirtyFiles: s.dirtyFiles, valueLines: valueLedgerStatusLines(eng, { compact: true }) })
     }
   } else {
@@ -3611,7 +3628,7 @@ function cmdStatus(args) {
       process.exit(2)
     }
     const s = computeSignals(eng)
-    const note = [s.memoryWarn, (s.dirtyFiles && s.dirtyFiles.length) ? `dirty:${s.dirtyFiles.length}` : '', s.reason || s.topRisk].filter(Boolean).join(' · ').slice(0, 70)
+    const note = maskDisplay([s.memoryWarn, (s.dirtyFiles && s.dirtyFiles.length) ? `dirty:${s.dirtyFiles.length}` : '', s.reason || s.topRisk].filter(Boolean).join(' · ')).slice(0, 70)
     rows.push({ name: engagementSlugFromPath(eng), phase: s.phase, trust: s.trust, signalAge: s.signalAge, stale: s.stale, updated: s.updated, reason: note, memoryWarn: s.memoryWarn, dirtyFiles: s.dirtyFiles, valueLines: valueLedgerStatusLines(eng) })
   }
   if (!rows.length) { console.log('no engagements yet'); return }
@@ -4085,6 +4102,7 @@ ${fs.existsSync(html) ? `\n  Open the fieldbook:  ${html}` : ''}
 function printUsage() {
   console.log(`fde - deterministic core of fdeops
   fde demo                 the whole loop on a fake client (fde demo --clean removes it)
+  fde privacy              show masking capability and its boundaries
   fde scan                 day-1 recon of this repo (facts, no AI)
   fde resume               load this workspace's engagement memory (bounded)
   fde resume --full        load the complete context.md (no bound)
@@ -4123,12 +4141,32 @@ function printUsage() {
   ingest is a sink only - source MCPs (Granola/Gmail/…) are user-configured; never ambient sync`)
 }
 
-const [cmd, ...args] = process.argv.slice(2)
+const [cmd, ...rawArgs] = process.argv.slice(2)
+let outputBudget
+if (['resume', 'recall', 'handoff', 'defend'].includes(cmd) && !rawArgs.some(a => ['--full', '--init', '--bind', '--out'].includes(a))) {
+  try { outputBudget = context.budgetArgs(rawArgs).maxBytes } catch (_) {}
+}
+require('./lib/masking').protectOutput(masking, { maxBytes: outputBudget })
+let args
+try {
+  args = rawArgs.map(arg => masking.restore(arg))
+  for (const key of ['FDEOPS_ENGAGEMENT', 'FDEOS_ENGAGEMENT']) {
+    if (process.env[key]) process.env[key] = masking.restore(process.env[key])
+  }
+  // Resolve privacy-state failures before a user-authorized argument write.
+  args.forEach(arg => masking.mask(arg))
+}
+catch (e) { console.error(e.message); process.exit(1) }
 if (args.includes('--help') || args.includes('-h') || cmd === 'help' || cmd === '--help' || cmd === '-h') {
   printUsage()
   process.exit(0)
 }
+try {
 switch (cmd) {
+  case 'privacy':
+    if (args.length) { console.error('usage: fde privacy'); process.exitCode = 2; break }
+    console.log(`FDEOps ${require('../package.json').version} - identifier masking enabled by default.\nCLI responses, smart proposals, handoff packets and ingest MCP results use local aliases.\nPatterns: common emails, international/US phones, SSN-shaped identifiers and supported credentials.\nNames and arbitrary sensitive prose are not detected; mark them <private>.\nRaw files, pasted chat, upstream MCP content and local dashboard/vault files bypass this protection.`)
+    break
   case 'demo': cmdDemo(args); break
   case 'scan': cmdScan(); break
   case 'resume': cmdResume(args); break
@@ -4161,4 +4199,9 @@ switch (cmd) {
     printUsage()
     // Missing or unknown command must fail - exit 0 made typos look like success in scripts/hooks.
     process.exit(1)
+}
+
+} catch (error) {
+  console.error(error && error.message ? error.message : "command failed")
+  process.exitCode = 1
 }

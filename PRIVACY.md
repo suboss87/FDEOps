@@ -36,7 +36,7 @@ Concretely:
 - **Cloud sync.** If `~/fde-engagements` resolves inside iCloud Drive, Dropbox, OneDrive, or Google Drive (e.g. via a relocated home folder or an `FDEOPS_ENGAGEMENT` override), your engagement notes leave the machine. `fde resume --init` warns when it detects this; heed it. Exclude the folder from sync, or move it.
 - **Personal backups.** Time Machine, Backblaze, and similar back up `~/fde-engagements` by default. If your NDA obliges specific handling of client-derived material, add the folder to your backup exclusions or use an encrypted volume.
 - **Permissions.** `chmod 700 ~/fde-engagements` keeps other local accounts out.
-- **End of engagement.** The record is plain files: hand the `.fde/` folder to the client as the engagement record, archive it per your contract, or delete it - `rm -rf ~/fde-engagements/<client>` removes everything, verifiably. Nothing else holds a copy.
+- **End of engagement.** The record is plain files: hand the `.fde/` folder to the client as the engagement record, archive it per your contract, or delete it - `rm -rf ~/fde-engagements/<client>` removes everything, verifiably. Backups, exports, and the shared alias dictionary can retain copies; handle those separately.
 
 Notes about identifiable people (stakeholder signals, contact logs) may carry data-protection obligations (e.g. GDPR) in your jurisdiction. Dated, factual, evidence-backed entries - which is what the skill enforces - are what your own counsel would ask you for; retention and deletion are your responsibility.
 
@@ -53,3 +53,13 @@ Transmission to model providers (e.g. Anthropic) is outside fdeops. See that pro
 ## Contact
 
 https://github.com/suboss87/fdeops/issues
+
+## Default identifier masking
+
+CLI text responses, pending smart-debrief proposals, and ingest MCP tool responses mask common email addresses, international/US phone formats, SSN-shaped identifiers, and supported credential patterns before an AI host receives them. This is local pattern matching, not an LLM call or complete PII detection. Names, company names, postal addresses, and unrecognized formats are not automatically hidden. Continue marking sensitive prose with `<private>`.
+
+Aliases are stable within an engagements root. Originals remain in local records; confirmed writes restore recognized aliases locally. Unknown or incomplete aliases and missing/corrupt alias state refuse the operation. A legacy pending proposal is masked when reviewed; do not have an agent open old proposals before `fde debrief --review` succeeds. Legacy proposals with inline private blocks are refused and must be recreated through the smart-proposal path.
+
+The reversible dictionary is stored at `<engagements-root>/.privacy/identifiers.json`, outside normal client ledgers, with restrictive local permissions. It contains sensitive originals, is not encrypted, and must never be loaded into an agent, shared, or committed. Protect it with the same storage and backup controls as your records. Do not remove it while pending proposals or retained aliases still need to resolve. Removing a client folder does not remove its dictionary entries; include this shared dictionary in retention planning.
+
+Masking does not change original record files or intercept your AI host. Raw file reads, pasted chat, and upstream MCP content may already reach a provider. Local dashboard and vault files are intended for human use and can retain unmarked identifiers; do not load them as AI context. Handoff packets generated through the CLI are masked. Masked text can still identify someone through surrounding context.

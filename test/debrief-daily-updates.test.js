@@ -46,12 +46,13 @@ test('review is read-only and source replay protects newer next action', t => {
   assert.equal(f.run(['debrief', '--apply', '--allow-replay']).status, 0)
 })
 
-test('pending review does not expose private lines added during editing', t => {
+test('pending review refuses raw private lines added during editing', t => {
   const f = fixture(t)
   f.run(['debrief', '--smart'], 'next: Public task\n')
   fs.appendFileSync(path.join(f.eng, '.debrief-propose'), '<private>\nrisk: PRIVATE_REVIEW_SENTINEL\n</private>\n')
   const result = f.run(['debrief', '--review'])
-  assert.equal(result.status, 0)
+  assert.equal(result.status, 1)
+  assert.match(result.stderr, /do not open it with an agent/)
   assert.doesNotMatch(result.stdout + result.stderr, /PRIVATE_REVIEW_SENTINEL/)
 })
 

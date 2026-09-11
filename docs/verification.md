@@ -16,6 +16,12 @@ Coverage includes private-output redaction, client binding, pending reviews, sou
 
 The context fixture reduces 1,120,010 bytes of history to a 16,384-byte response and retrieves three targeted records among 10,000 unrelated lines. This verifies a byte ceiling and retrieval in that fixture, not a fixed token count, model accuracy, or percentage of tokens saved.
 
+## Identifier masking
+
+A two-session Codex/GPT-6-Astra diagnostic prepared a masked meeting review, waited for explicit confirmation, applied it, and retrieved the saved action with the same aliases. External checks found the original email and phone restored in local records, no stored aliases, and no raw fixture identifiers or private marker in either model trace. This is one scripted case, not comprehensive PII or host certification.
+
+The masking regression suite checks stable aliases, original-record preservation, confirmed proposal restoration, sourced replay, masked stderr/MCP responses, truncation boundaries, context size, and missing/corrupt/linked private state. Raw file access, upstream source tools, and unrecognized identifiers remain outside this boundary. See [privacy details](../PRIVACY.md#default-identifier-masking).
+
 ## Agent workflow
 
 A scripted diagnostic on 2026-09-11 used Codex CLI 0.153.4 with GPT-6-Astra at medium reasoning and the current repository executable. Fresh sessions exercised messy-note review, rejection and correction, confirmed save, record-only recall and handoff, and replay of the original notes after a correction. A separate session checked a second client workspace.
