@@ -40,6 +40,16 @@ One chat. Name the client:
 
 That creates `~/fde-engagements/client01/.fde/` on your laptop. Paste kickoff notes in the same thread. `@fde` picks what to check. You still decide. After a meeting you review what changed, new asks, open questions, and next actions. Correct the proposal, then confirm the update.
 
+### Make it fit your work
+
+Setup asks three short questions: how you work, what would help first, and what to mask before sharing context with your agent. Review your choices before saving; change them anytime.
+
+```bash
+npx fdeops@latest setup
+```
+
+[See the choices and custom masking options](docs/USAGE.md#make-fdeops-fit-your-day).
+
 Open the engagement fieldbook:
 
 ```bash
@@ -55,8 +65,6 @@ Read-only HTML of the record - promised, measured, accepted, and evidence. Regen
 /plugin marketplace add suboss87/fdeops
 /plugin install fdeops@fdeops
 ```
-
-Make it fit your day: `fde setup` asks how you work, what would help first, and what to mask before sharing context with your agent. [First-use setup](docs/USAGE.md#make-fdeops-fit-your-day).
 
 The plugin adds session hooks and the slash commands below. Skill-only installation does not add hooks. See the [installation guide](docs/install.md) for setup details.
 
