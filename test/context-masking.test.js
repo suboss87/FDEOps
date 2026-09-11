@@ -173,6 +173,6 @@ test('runtime exposes masking capability without revealing private state', t => 
   const f = fixture(t), result = f.run(['privacy'])
   assert.equal(result.status, 0)
   assert.match(result.stdout, /identifier masking enabled by default/)
-  assert.match(result.stdout, /Names and arbitrary sensitive prose are not detected/)
+  assert.match(result.stdout, /Names and arbitrary sensitive prose are not automatically detected/)
   assert.equal(fs.existsSync(path.join(f.dir, 'clients/.privacy')), false)
 })

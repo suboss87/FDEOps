@@ -353,20 +353,28 @@ This does not automatically recognize names or every sensitive identifier, and c
 
 ## Make FDEOps fit your day
 
-After binding your first client, your agent asks three questions together. If you use the terminal directly, run `fde setup` (also available as `npx fdeops setup`). First-time terminal `fde resume --init` offers the same setup.
+After binding your first client, your agent asks three short questions. Terminal users get the same choices through `fde setup` or `npx fdeops setup`.
 
 | Question | Choices | What changes |
 |---|---|---|
-| What should your daily overview show? | Current client / all clients | Default scope of `status` and `dashboard`. `--current` and `--all` override it; your workspace stays bound to one client. |
-| How much context should your agent start with? | Standard / compact | Default ceiling of 16 KiB / 4 KiB for `resume`, `recall`, `handoff` and `defend`. These are bytes, not tokens. Explicit `--max-bytes` still works. |
-| Where should common identifiers be masked? | Agent context / agent context and reports | The second choice also masks supported identifier patterns before generating Fieldbook and vault content. Originals remain in your records. |
+| How do you work? | One client / several clients / leading a delivery team | Focus on the current client, default to a portfolio overview, or emphasize ownership and handoff. Team mode does not add shared storage. |
+| What would help you first? | Starting an engagement / continuing daily work / taking over existing work | Begin with discovery of the problem, the next useful action, or a review of inherited evidence. Current instructions and client records take precedence. |
+| What should FDEOps hide before sharing context with your agent? | Common identifiers and secrets / those plus names and terms you specify | Both keep existing protection. Custom mode also hides the terms you supply locally. |
 
-Settings are saved only after you answer and approve. They apply across clients in the same local engagements folder. `fde setup --show` shows the saved choices; rerun `fde setup` to change them. Skipping preserves the existing defaults. Scripts and hooks never wait for answers.
+Answers are saved after confirmation and can be changed anytime. Skipping keeps existing defaults. `fde setup --show` displays your choices and saved term count, never the terms themselves. Hooks and scripts never wait for answers.
 
-For agents or scripts, all three explicit answers are required:
+For custom masking, enter terms in your own terminal, one per line, or provide a local UTF-8 file. Do not paste sensitive terms into agent chat or ask the agent to open that file. The agent can pass its path directly:
+
+```bash
+fde setup --work single --start takeover --masking custom --terms-file /path/to/local-terms.txt --save
+```
+
+Terms match literally, ignoring letter case, at word boundaries. Longer terms match first. This does not discover names, spelling variants, abbreviations, or translated forms: supply the versions you need. Use 1-100 terms, each 2-128 characters. A new file replaces the saved list; omitting it keeps the list. Switching to standard masking disables custom matching but retains the list for reuse. Original records stay intact; confirmed writes restore the original text from aliases.
+
+`fde setup --settings` keeps display, context and report options separate. Existing settings are preserved when adding personal setup. Standard context is capped at 16 KiB; compact uses 4 KiB. Explicit `--max-bytes`, `--current` and `--all` still override command defaults without changing the client binding. To mask newly generated report content too:
 
 ```bash
 fde setup --view current --context compact --privacy reports --save
 ```
 
-Setup does not install models, connect accounts, or change your AI provider's settings. Both privacy choices keep existing masking and private-block protection for agent context. Report masking applies only to newly generated content, not old exports. Names and sensitive prose still need `<private>` marking; masked reports are not anonymous or automatically safe to share. Client-specific policy always takes precedence.
+Custom terms and preferences live in `<engagements-root>/.preferences.json`, protected locally and excluded from normal engagement commits. Do not share this file or load it into an agent. Include it and the private alias dictionary in your retention and backup controls. Corrupt settings stop output rather than silently dropping protection; repair them locally. Setup does not configure a provider or grant permission to share client data. Raw file reads, pasted messages and other tools bypass masking. Existing exports are not rewritten, and masking does not guarantee anonymity.

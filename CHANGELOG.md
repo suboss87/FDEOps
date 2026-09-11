@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.31.0
+
+- Personal setup now asks how you work, what would help first, and what to mask. Work style shapes the overview and ownership guidance; the starting need points the agent to land, triage or audit without overriding current client evidence.
+- Custom masking adds locally supplied names and terms to the existing identifier protection. Literal, case-insensitive matches become reversible aliases in agent-facing text; confirmed writes preserve originals. Setup inspection shows only a count. Terms can be replaced later or disabled without deleting the saved list.
+- Existing display, context and report settings remain available through `fde setup --settings`. Re-running personal setup preserves technical choices unless work style changes the default overview.
+- Mask custom terms before JSON/HTML encoding, diagnostic clipping and derived metric extraction. Exclude private preferences from engagement commits. Git history lookups now pass delivery text as arguments instead of interpolating it into shell commands.
+
 ## 3.30.0
 
 - First-use setup asks three choices: current-client or portfolio overview, standard or compact context, and masking for agent context alone or also new reports. The agent asks once per engagements folder; terminal users can run `fde setup`. Settings save only after explicit answers and can be changed anytime.

@@ -6,7 +6,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 const crypto = require('node:crypto')
 const { StringDecoder } = require('node:string_decoder')
-const ALIAS = /\[\[(email|phone|identifier|credential):[a-f0-9]{16}\]\]/g
+const ALIAS = /\[\[(email|phone|identifier|credential|term):[a-f0-9]{16}\]\]/g
 const PATTERNS = [
   ['credential', /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----[\s\S]*?(?:-----END (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|$)/g],
   ['credential', /\b(?:AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,})\b/g],
@@ -25,7 +25,27 @@ function replacements(text, replace) {
   for (const [kind, pattern] of PATTERNS) out = out.replace(pattern, value => replace(kind, value))
   return out
 }
-function createMasking(root) {
+function createMasking(root, { custom = true } = {}) {
+  const settings = require('./setup').createSetup(root)
+  function replaceAll(text, replace) {
+    let terms = []
+    if (custom) {
+      const profile = settings.read()
+      if (profile && profile.masking === 'custom') terms = profile.terms
+    }
+    const escape = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const pattern = terms.length ? new RegExp(terms.slice().sort((a, b) => b.length - a.length).map(term =>
+      '(?<![\\p{L}\\p{N}_])' + escape(term) + '(?![\\p{L}\\p{N}_])').join('|'), 'giu') : null
+    // Existing aliases are protocol tokens, never input for further masking.
+    const pieces = String(text).split(/(\[\[(?:email|phone|identifier|credential|term):[a-f0-9]{16}\]\])/g)
+    return pieces.map((piece, i) => {
+      if (i % 2) return piece
+      const builtIn = replacements(piece, replace)
+      if (!pattern) return builtIn
+      return builtIn.split(/(\[\[(?:email|phone|identifier|credential|term):[a-f0-9]{16}\]\])/g)
+        .map((part, j) => j % 2 ? part : part.replace(pattern, value => replace('term', value))).join('')
+    }).join('')
+  }
   const directory = path.join(root, '.privacy'), file = path.join(directory, 'identifiers.json')
   function directoryReady(create) {
     if (create) fs.mkdirSync(root, { recursive: true })
@@ -43,7 +63,7 @@ function createMasking(root) {
       if (data.version !== 1 || !Array.isArray(data.entries) || data.entries.length > 50000) throw new Error(FAIL)
       const seen = new Set()
       for (const entry of data.entries) {
-        if (!entry || typeof entry.value !== 'string' || !/^\[\[(email|phone|identifier|credential):[a-f0-9]{16}\]\]$/.test(entry.alias) || seen.has(entry.alias)) throw new Error(FAIL)
+        if (!entry || typeof entry.value !== 'string' || !/^\[\[(email|phone|identifier|credential|term):[a-f0-9]{16}\]\]$/.test(entry.alias) || seen.has(entry.alias)) throw new Error(FAIL)
         seen.add(entry.alias)
       }
       return data
@@ -76,11 +96,11 @@ function createMasking(root) {
   function mask(text) {
     text = String(text)
     let detected = false
-    replacements(text, (_, value) => { detected = true; return value })
+    replaceAll(text, (_, value) => { detected = true; return value })
     if (!detected) return text
     return transact(true, entries => {
       const values = new Map(entries.map(e => [e.value, e.alias]))
-      return replacements(text, (kind, value) => {
+      return replaceAll(text, (kind, value) => {
         if (!values.has(value)) {
           const alias = `[[${kind}:${crypto.randomBytes(8).toString('hex')}]]`
           entries.push({ alias, value }); values.set(value, alias)
@@ -91,7 +111,7 @@ function createMasking(root) {
   }
   function restore(text) {
     text = String(text)
-    if (/\[\[(email|phone|identifier|credential):/.test(text.replace(ALIAS, ''))) throw new Error(FAIL)
+    if (/\[\[(email|phone|identifier|credential|term):/.test(text.replace(ALIAS, ''))) throw new Error(FAIL)
     if (!text.match(ALIAS)) return text
     return transact(false, entries => {
       const aliases = new Map(entries.map(e => [e.alias, e.value]))

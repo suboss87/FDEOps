@@ -98,9 +98,9 @@ function gitIsAncestor(eng, olderHash, newerHash) {
   } catch (_) { return false }
 }
 
-function gitLogHash(eng, args) {
+function gitLogHash(eng, args, format = '%H') {
   try {
-    return execFileSync('git', ['log', '-1', '--format=%H', ...args], {
+    return execFileSync('git', ['log', '-1', `--format=${format}`, ...args], {
       cwd: eng, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 15000,
     }).trim()
   } catch (_) { return '' }
@@ -821,7 +821,7 @@ function phaseLabel(phase) {
 // colon) collapses to '' here, which callers treat as "nothing to show".
 function firstLine(md, maxLen) {
   for (const raw of md.split('\n')) {
-    const l = raw.trim()
+    const l = maskDisplay(raw).trim()
     if (!l || /^#{1,6}\s/.test(l)) continue
     const clean = maskDisplay(l.replace(/^\*\*[^*]+:\*\*\s*/, '').replace(/\*\*/g, '').replace(/^["']|["']$/g, '').trim())
     if (!clean) continue
@@ -1041,7 +1041,7 @@ function parseSignalHistoryEntries(eng) {
 }
 
 function displayNameFromSignalText(text) {
-  if (preferences.privacy === 'reports' && masking.mask(text) !== text) return 'Contact (identifier masked)'
+  if ((preferences.privacy === 'reports' || !['dashboard', 'vault'].includes(process.argv[2])) && masking.mask(text) !== text) return 'Contact (identifier masked)'
   const person = personFromSignalText(text)
   if (person) return person
   const t = String(text).trim()
@@ -1166,7 +1166,7 @@ function extractRisks(eng) {
 // sides look like real numbers/percentages, deduped by value pair, capped at
 // 4; nothing reliable found -> the widget stays empty, never an invented number.
 function extractStats(eng) {
-  const text = readClean(eng, 'delivery.md') + '\n' + readClean(eng, 'decisions.md')
+  const text = maskDisplay(readClean(eng, 'delivery.md') + '\n' + readClean(eng, 'decisions.md'))
   const patterns = [
     /(\d+(?:\.\d+)?%)[^\n%]{0,40}?(?:→|->)[^\n%]{0,20}?(\d+(?:\.\d+)?%)/g, // "X% ... -> Y%"
     /(\d+(?:\.\d+)?%)\s+to\s+(\d+(?:\.\d+)?%)/gi,                               // "X% to Y%"
@@ -1458,6 +1458,7 @@ function cmdResume(args) {
   const risks = readClean(eng, 'risks.md')
   process.stdout.write(maskedSections([
     policy ? `CLIENT POLICY - trust-profile.md\n${policy}` : '',
+    preferences.work ? `WORKING PREFERENCES: ${preferences.work}. Starting help: ${preferences.start}.\n${setup.nextStep(preferences)}\nThis is a starting preference, not a client fact; current instructions and engagement state take precedence.` : '',
     `${intro}\n\nENGAGEMENT: ${eng}`,
     success ? `CURRENT GOALS & ACCEPTANCE - success.md\n${success}` : '',
     risks ? `OPEN RISKS - risks.md\n${extractRisks(eng).map(r => r.text).join('\n') || '(none recorded)'}` : '',
@@ -1575,7 +1576,7 @@ function cmdLog(args) {
   if (hit && force) console.error(`warning: logging possible ${hit} (--force)`)
   if (retire) {
     const n = retireOpenRisks(eng, text)
-    if (!n) { console.error(`no open risk matched ${JSON.stringify(text)}`); process.exit(1) }
+    if (!n) { console.error(`no open risk matched ${JSON.stringify(masking.mask(text))}`); process.exit(1) }
     const hash = commitMemory(eng, 'retire risk', { files: ['risks.md'] })
     console.log(`retired ${n} risk(s) → risks.md${hash ? ` @${hash}` : ''}`)
     return
@@ -2005,7 +2006,7 @@ function changeReviewIssues(eng) {
   const del = latestDeliveryEntry(readClean(eng, 'delivery.md'))
   const dec = latestDatedDecision(readClean(eng, 'decisions.md'))
   const delHash = del.line
-    ? sh(`git log -1 --format=%H -S${JSON.stringify(del.line)} -- delivery.md`, eng)
+    ? gitLogHash(eng, ['-S', del.line, '--', 'delivery.md'])
     : ''
   if (del.date && dec.date && dec.date > del.date && delHash) {
     issues.push(
@@ -2819,7 +2820,7 @@ function silentCommitIssues(eng) {
     // Pickaxe on the entry text, not the file: a later status edit to
     // delivery.md must not become the cutoff and hide commits before it.
     const raw = entry.line
-      ? sh(`git log -1 --format=%cI -S${JSON.stringify(entry.line)} -- delivery.md`, eng)
+      ? gitLogHash(eng, ['-S', entry.line, '--', 'delivery.md'], '%cI')
       : ''
     // git --since is inclusive at second grain; a commit in the same second as
     // the receipt is the receipt's own work, not a silent one.
@@ -3355,10 +3356,10 @@ function cmdRedact(args) {
     })
   }
   if (!hits.length) {
-    console.log(`redact: no lines contain ${JSON.stringify(term)}`)
+    console.log(`redact: no lines contain ${JSON.stringify(masking.mask(term))}`)
     return
   }
-  console.log(`REDACT - ${hits.length} matching line(s) for ${JSON.stringify(term)}`)
+  console.log(`REDACT - ${hits.length} matching line(s) for ${JSON.stringify(masking.mask(term))}`)
   hits.slice(0, 20).forEach(h => {
     const preview = h.line.length > 100 ? masking.mask(h.line).slice(0, 97) + '…' : h.line
     console.log(`  ${h.file}:${h.lineNo}  ${preview}`)
@@ -3758,13 +3759,13 @@ function cmdDashboard(args) {
     ].map(([f, title]) => [title, readClean(e.dir, f)])
     .filter(([, md]) => render.hasRealContent(md))
     .map(([title, md]) => ({ title, html: render.mdBlockHtml(maskDisplay(md), parseMdTable) }))
-    e.searchBlob = render.escapeHtml([
+    e.searchBlob = render.escapeHtml(maskDisplay([
       e.name, e.next, e.lastSession, e.reality, e.brief,
       ...e.log.map(g => g.text), ...e.risks.map(r => r.text),
       ...e.stakeholders.map(p => `${p.name} ${p.role} ${p.note}`),
       ...e.moreSections.map(s => s.title),
       ...e.valueRows.map(r => `${r.slice} ${r.promised} ${r.measured} ${r.accepted} ${r.evidence}`),
-    ].join(' ').toLowerCase())
+    ].join(' ').toLowerCase()))
   })
 
   const html = render.buildFieldbookHtml({ engagements: maskReport(engagements), today, generatedAt: new Date().toISOString() })
@@ -4170,7 +4171,8 @@ let outputBudget
 if (['resume', 'recall', 'handoff', 'defend'].includes(cmd) && !rawArgs.some(a => ['--full', '--init', '--bind', '--out'].includes(a))) {
   try { outputBudget = context.budgetArgs(rawArgs, (setupStore.read() || setup.DEFAULTS).context === 'compact' ? 4096 : 16384).maxBytes } catch (_) {}
 }
-require('./lib/masking').protectOutput(masking, { maxBytes: outputBudget })
+require('./lib/masking').protectOutput(cmd === 'setup' && rawArgs.length === 1 && rawArgs[0] === '--show'
+  ? require('./lib/masking').createMasking(ENGAGEMENTS_ROOT, { custom: false }) : masking, { maxBytes: outputBudget })
 let args
 try {
   args = rawArgs.map(arg => masking.restore(arg))
@@ -4192,7 +4194,7 @@ switch (cmd) {
   case 'setup': finishAsync(setup.command(setupStore, args)); break
   case 'privacy':
     if (args.length) { console.error('usage: fde privacy'); process.exitCode = 2; break }
-    console.log(`FDEOps ${require('../package.json').version} - identifier masking enabled by default.\nCLI responses, smart proposals, handoff packets and ingest MCP results use local aliases.\nPatterns: common emails, international/US phones, SSN-shaped identifiers and supported credentials.\nNames and arbitrary sensitive prose are not detected; mark them <private>.\nRaw files, pasted chat and upstream MCP content bypass this protection. Local reports retain identifiers by default; fde setup can also mask newly generated report content.`)
+    console.log(`FDEOps ${require('../package.json').version} - identifier masking enabled by default.\nCLI responses, smart proposals, handoff packets and ingest MCP results use local aliases.\nPatterns: common emails, international/US phones, SSN-shaped identifiers and supported credentials.\nNames and arbitrary sensitive prose are not automatically detected; mark them <private> or supply local custom terms with fde setup.\nRaw files, pasted chat and upstream MCP content bypass this protection. Local reports retain identifiers by default; fde setup can also mask newly generated report content.`)
     break
   case 'demo': cmdDemo(args); break
   case 'scan': cmdScan(); break

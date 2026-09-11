@@ -19,7 +19,7 @@ test('setup previews exactly three questions without writes or waiting on nonint
   const f = fixture(t), out = f.run(['setup'])
   assert.equal(out.status, 0, out.stderr)
   assert.equal((out.stdout.match(/^\d\. /gm) || []).length, 3)
-  assert.match(out.stdout, /does not change it/)
+  assert.match(out.stdout, /AI-provider settings are unchanged/)
   assert.equal(fs.existsSync(f.root), false)
   assert.equal(JSON.parse(f.run(['setup', '--show']).stdout).configured, false)
   assert.equal(fs.existsSync(f.root), false)
@@ -56,7 +56,8 @@ test('symlinked and corrupt settings fail without falling back to less restricti
   assert.deepEqual(fs.readFileSync(outside), before)
   fs.unlinkSync(file); fs.writeFileSync(file, '{broken')
   assert.notEqual(f.run(['resume']).status, 0)
-  assert.equal(f.save().status, 0, 'explicit complete save can repair corrupt preferences')
+  assert.notEqual(f.save().status, 0, 'do not discard potentially protected custom terms when preferences are corrupt')
+  assert.equal(fs.readFileSync(file, 'utf8'), '{broken')
 })
 test('compact setup caps default context; an explicit byte budget still works', t => {
   const f = fixture(t); assert.equal(f.run(['resume', '--init', 'atlas']).status, 0)

@@ -53,7 +53,7 @@ function createMemoryApi(deps) {
           execFileSync('git', ['add', '--', f], { cwd: eng, stdio: 'ignore', timeout: 10000 })
         }
       } else {
-        execFileSync('git', ['add', '-A', '--', '.', ':(exclude).privacy'], { cwd: eng, stdio: 'ignore', timeout: 10000 })
+        execFileSync('git', ['add', '-A', '--', '.', ':(exclude).privacy', ':(exclude).preferences.json'], { cwd: eng, stdio: 'ignore', timeout: 10000 })
       }
       const porcelain = execFileSync('git', ['status', '--porcelain'], {
         cwd: eng, encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'],
@@ -73,7 +73,7 @@ function createMemoryApi(deps) {
         }
       }
       // Even a previously staged alias dictionary must never enter a CLI commit.
-      const privateStaged = execFileSync('git', ['diff', '--cached', '--name-only'], { cwd: eng, encoding: 'utf8', timeout: 10000 }).split('\n').some(f => f.split('/').includes('.privacy'))
+      const privateStaged = execFileSync('git', ['diff', '--cached', '--name-only'], { cwd: eng, encoding: 'utf8', timeout: 10000 }).split('\n').some(f => f.split('/').some(part => ['.privacy', '.preferences.json'].includes(part)))
       if (privateStaged) throw new Error('private alias state must not be staged in engagement history')
       const still = execFileSync('git', ['diff', '--cached', '--name-only'], {
         cwd: eng, encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'],
@@ -134,7 +134,7 @@ function createMemoryApi(deps) {
       execFileSync('git', ['init'], { cwd: eng, stdio: 'ignore', timeout: 10000 })
       atomicWriteFile(
         path.join(eng, '.gitignore'),
-        ['*.lock', '*.tmp', '.last-write', '.debrief-propose', '.debrief-private', '.debrief-seal', '.privacy/', ''].join('\n')
+        ['*.lock', '*.tmp', '.last-write', '.debrief-propose', '.debrief-private', '.debrief-seal', '.privacy/', '.preferences.json', ''].join('\n')
       )
       const owner = writeOwnerIfMissing(eng)
       configureMemoryGitIdentity(eng, owner)
