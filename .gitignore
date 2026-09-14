@@ -47,3 +47,9 @@ evals/skill-routing/LAST_LIVE_SMOKE.md
 
 # Local first-use preferences
 .preferences.json
+
+# Private authoring work and local credentials
+[Ss]ub[Ss]tack*/
+.env
+.env.*
+!.env.example
