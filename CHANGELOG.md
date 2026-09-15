@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.0.3 - 2026-09-15
+
+- Reuse a current same-engagement context packet already supplied by the session hook or CLI. Refresh when context is missing or uncertain, the engagement or settings change, or the user asks for an update.
+- Make slash commands and adapters follow the same entry rules; remove the separate Cursor triage entry and conflicting raw-context instructions.
+- Add startup checks for large packets, private-block exclusion, changed records and client rebinding.
+
+**Upgrade:** Run `npx fdeops@4.0.3 install` to refresh managed skill copies; updating the npm package alone does not refresh those copies. Existing workspace adapters are preserved: merge their FDEOps entry instructions from `adapters/` if needed, retaining your own project guidance. Plugin users should update FDEOps through their host.
+
 ## 4.0.2 - 2026-09-14
 
 - Keep complete context packets intact when they fit the requested budget, including compact mode. Oversized packets still retain their byte ceiling and omission warnings.

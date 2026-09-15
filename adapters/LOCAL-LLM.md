@@ -7,7 +7,7 @@ The FDEOps CLI and offline dashboard need Node.js and Git, not a model. AI-assis
 1. Download FDEOps, your agent host and your model while online. After that, the CLI operates offline. Model/provider configuration belongs to the host; FDEOps does not start or configure an inference server.
 2. From the client workspace, run `node /path/to/fdeops/bin/fde.js resume --init my-client` to create and bind a local record.
 3. Make `skills/fde/SKILL.md` and its references available to the host. Use the host's documented skill/file mechanism. Give it the FDEOps CLI path and permission to read the bound record and execute the requested commands.
-4. Start with `fde resume` and ask for the next action. Inspect the tool calls, cited records and any proposed writes before trusting the workflow.
+4. Follow **First-use preferences** and **Entry (every session)** in `skills/fde/SKILL.md`, then ask for the next action. Inspect the tool calls, cited records and any proposed writes before trusting the workflow.
 
 Use `fde recall <topic>` for relevant evidence. `resume` and `recall` default to a 16 KiB output ceiling; `--max-bytes 4096` requests a smaller allowance. This limits FDEOps output, not the host's entire context window. Keep unrelated transcripts and tools out of the active context. Private blocks must stay out of direct file reads as well as prompts.
 

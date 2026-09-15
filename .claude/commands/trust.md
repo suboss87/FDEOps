@@ -2,13 +2,13 @@
 description: Diagnose trust. Process gap, or they stopped trusting you.
 ---
 
-Load `@fde` (`skills/fde/SKILL.md`). Situation: **they went quiet**.
+Load `@fde` (`skills/fde/SKILL.md`) and follow its **First-use preferences** and **Entry (every session)** once. Situation: **they went quiet**.
 
 If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI.
 
 Say: "Is this a process gap, or a trust problem?"
 
-Run `fde resume` (fallback: `npx --yes fdeops resume`) for recent signal history and open threads.
+Use the current entry packet for recent signal history and open threads; recall specific evidence when needed.
 
 Log the contact with `fde log contact "<who and what happened>" --signal amber|red|green` (fallback: `npx --yes fdeops log contact "…" --signal …`). Pick the signal from what they said - do not guess.
 

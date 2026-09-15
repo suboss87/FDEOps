@@ -23,7 +23,7 @@ A one-line typo or compile error in a file that will not ship. On a bound client
 
 | What's happening | Sentence to say | You run | Then read |
 |---------|-----------------|---------|-----------|
-| **The brief is wrong** | "If this works, who in their company would have to agree that it worked?" | `fde resume` then discover | `references/discover.md` |
+| **The brief is wrong** | "If this works, who in their company would have to agree that it worked?" | Current entry packet (see Entry below), then discover | `references/discover.md` |
 | **They went quiet** | "Is this a process gap, or a trust problem?" | `fde log contact "…" --signal amber\|red\|green` | `references/rescue.md` |
 | **When did we agree?** | Don't argue from memory. Search the record. | `fde receipts <term>` | - |
 | **What's the outcome?** | A number nobody signed is claimed, not delivered. | `fde status` | `references/readout.md` |
@@ -64,7 +64,7 @@ Use `work` to tailor the help: single = focus on the bound client; multiple = po
 
 ## Entry (every session)
 
-1. `fde resume` (16 KiB by default, 4 KiB with compact setup; a byte ceiling, not a model token count). Read client constraints first, then signer, goals, risks, delivery ledger and current context. This command is the inspectable packet the session hook loads; never substitute a recursive read of `.fde/` or raw transcripts. If truncated or a decision needs evidence, run `fde recall <specific topic>`; narrow the query rather than loading the whole history. `--max-bytes 4096` reduces the allowance for smaller models. `--full` only when the complete log is explicitly needed.
+1. After the first-use setup check above, use one current `fde resume` packet (16 KiB by default, 4 KiB with compact setup; a byte ceiling, not a model token count). Reuse the packet already supplied by the session hook or a CLI call only if its `ENGAGEMENT:` identity is visible, matches the current client binding, and it is still current. If the packet is absent, its identity or freshness is uncertain, the binding or engagement state changed since it was loaded (including setup/masking changes), or the user asks for a refresh or “where are we,” run `fde resume`. Do not repeat the call solely because the skill, an adapter, or a slash command was loaded. Read client constraints first, then signer, goals, risks, delivery ledger and current context; never substitute a recursive read of `.fde/` or raw transcripts. If truncated or a decision needs evidence, run `fde recall <specific topic>`; narrow the query rather than loading the whole history. `--max-bytes 4096` reduces the allowance for smaller models. `--full` only when the complete log is explicitly needed.
 2. **NO ENGAGEMENT:** ask "What should we call this client?" then **you** init. Pasted notes → debrief after bind.
 3. Playback 2-3 lines. `hygiene:` → offer `fde doctor`; **never auto-rewrite**.
 4. Route. Read **one** `references/*.md`. Confirm, then write.
@@ -90,7 +90,7 @@ Writes need a bind (`FDEOPS_ENGAGEMENT` or registry). Never install fdeops on in
 
 ## The memory contract
 
-1. **On entry:** `fde resume` only. Pull other `.fde/` files when the skill needs them.
+1. **On entry:** follow **Entry (every session)** above for the current packet and refresh rules. Retrieve additional evidence through targeted `fde recall` when needed.
 2. **Deliverable = memory.** The work *is* the `.fde/` file. The reference names which one.
 3. **Evidence.** Without a supplied source, a decision or measurement remains CLAIM. Use `[source: meeting YYYY-MM-DD]`, a PR/URL, transcript ID, or artifact path. The automatic log date is not attribution. ON RECORD means a source was supplied, not that it was authenticated or the customer approved. Never invent a source, signer, or acceptance.
 4. **No invented facts.** People, quotes, meetings, numbers: they said it or the repo shows it. Else `unknown - ask: <question>`.
@@ -211,7 +211,7 @@ Ready to build with no `terrain.md` / plan: discover or plan first. Takeover wit
 - Same six stages at any scale. Overlays carry the industry. Greenfield and brownfield change the first move inside ship, not the map.
 - Ground loop on a bound client: name → characterise → verify in the agreed environment → authorize release → log. A coding pack may write the function. `@fde` still owns done. When they disagree, their repo and the signer win.
 - Customer delivery needs a replayable acceptance check in the agreed environment; reuse existing criteria for routine fixes. Missing evidence means unproven, not an observed test failure. Never equate implementation-complete with deployed or customer-accepted.
-- Read `context.md` before speaking. One sharp question - never a barrage.
+- Read the current entry packet before speaking; follow **Entry (every session)** above. One sharp question - never a barrage.
 - Never invent people, meetings, or numbers - `unknown - ask:` beats a polished lie.
 - Every phase ends with its artifact written. No artifact, no "done."
 - Evidence on every claim. The FDE will be challenged on these files.

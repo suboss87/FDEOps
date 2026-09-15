@@ -2,7 +2,7 @@
 description: Find the receipt. A dated line, or it did not happen.
 ---
 
-Load `@fde` (`skills/fde/SKILL.md`). Situation: **when did we agree?**
+Load `@fde` (`skills/fde/SKILL.md`) and follow its **First-use preferences** and **Entry (every session)** once. Situation: **when did we agree?**
 
 If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI.
 

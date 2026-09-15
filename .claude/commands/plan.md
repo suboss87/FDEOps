@@ -2,11 +2,11 @@
 description: Sequence from done, not from the ticket.
 ---
 
-Load `@fde` (`skills/fde/SKILL.md`). Stage: **plan**.
+Load `@fde` (`skills/fde/SKILL.md`) and follow its **First-use preferences** and **Entry (every session)** once. Stage: **plan**.
 
 If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI.
 
-Run `fde resume` (fallback: `npx --yes fdeops resume`). Read `references/plan.md` and follow it. Sequence from done, not from the ticket. Who signs. Each Now item names `Kill if`.
+Read `references/plan.md` and follow it. Sequence from done, not from the ticket. Who signs. Each Now item names `Kill if`.
 
 Do not invent a plan the record cannot support. Missing success criteria → `unknown - ask: <question>`.
 

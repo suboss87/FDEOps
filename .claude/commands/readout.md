@@ -2,7 +2,7 @@
 description: Report the outcome. Promised, measured, accepted.
 ---
 
-Load `@fde` (`skills/fde/SKILL.md`). Situation: **Friday or sponsor update**.
+Load `@fde` (`skills/fde/SKILL.md`) and follow its **First-use preferences** and **Entry (every session)** once. Situation: **Friday or sponsor update**.
 
 If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI.
 

@@ -2,11 +2,11 @@
 description: Seen on their staging, then live. Rollback you have run.
 ---
 
-Load `@fde` (`skills/fde/SKILL.md`). Stage: **ship**.
+Load `@fde` (`skills/fde/SKILL.md`) and follow its **First-use preferences** and **Entry (every session)** once. Stage: **ship**.
 
 If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI.
 
-Run `fde resume` (fallback: `npx --yes fdeops resume`). Read `references/ship.md` and follow it. Name brownfield or greenfield once. One change they can see, proven on their staging. Then pre-flight, who needs to know, rollback you have run.
+Read `references/ship.md` and follow it. Name brownfield or greenfield once. One change they can see, proven on their staging. Then pre-flight, who needs to know, rollback you have run.
 
 Host agent writes the code. You log what shipped and whether it was accepted.
 

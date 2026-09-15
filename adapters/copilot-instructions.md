@@ -14,9 +14,9 @@ Do **not** load `@fde` for a one-line typo in an unbound repo. On a bound client
 
 ## Engagement memory
 
-Read and write engagement files under the workspace's bound engagement: run `fde resume` to resolve it (binding created once with `fde resume --init <name>`; default `~/fde-engagements/<name>/.fde/`). `FDEOPS_ENGAGEMENT` (expand `~`) overrides when set. Use `./.fde/` only when the engagement approves it and it is gitignored.
+Read and write engagement files under the workspace's bound engagement: follow the skill’s entry rule to resolve it (binding created once with `fde resume --init <name>`; default `~/fde-engagements/<name>/.fde/`). `FDEOPS_ENGAGEMENT` (expand `~`) overrides when set. Use `./.fde/` only when the engagement approves it and it is gitignored.
 
-On entry, run `fde resume` (fallback `node ~/.claude/fdeops/fde.js resume`) to load `context.md`. Use the CLI for deterministic work - `fde scan | log | receipts | status | dashboard` - instead of improvising shell.
+Follow **First-use preferences** and **Entry (every session)** in `skills/fde/SKILL.md` for setup, context reuse and refresh. Use the CLI for deterministic work - `fde scan | log | receipts | status | dashboard` - instead of improvising shell.
 
 ## Voice
 

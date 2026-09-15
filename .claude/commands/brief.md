@@ -2,13 +2,13 @@
 description: Name who signs done. First meeting, new client.
 ---
 
-Load `@fde` (`skills/fde/SKILL.md`). Stage: **land**.
+Load `@fde` (`skills/fde/SKILL.md`) and follow its **First-use preferences** and **Entry (every session)** once. Stage: **land**.
 
 If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI.
 
 Say: "If this works, who in their company would have to agree that it worked?"
 
-Run `fde resume` (fallback: `npx --yes fdeops resume`). Read `references/land.md` and follow it. Brief, access, stakeholders, what “done” is.
+Read `references/land.md` and follow it. Brief, access, stakeholders, what “done” is.
 
 Confirm before any write to `.fde/`. Do not invent names or quotes.
 

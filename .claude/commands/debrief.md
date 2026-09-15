@@ -2,7 +2,7 @@
 description: Capture the meeting. Notes into the record.
 ---
 
-Load `@fde` (`skills/fde/SKILL.md`). Situation: **after a meeting**.
+Load `@fde` (`skills/fde/SKILL.md`) and follow its **First-use preferences** and **Entry (every session)** once. Situation: **after a meeting**.
 
 If `fde resume` shows NO ENGAGEMENT: ask "What should we call this client?" once, then **you** run `fde resume --init`. Never tell the human to type the CLI. If they already pasted notes, bind first, then debrief.
 
