@@ -2,7 +2,7 @@
 
 ## 4.0.3 - 2026-09-15
 
-- Reuse a current same-engagement context packet already supplied by the session hook or CLI. Refresh when context is missing or uncertain, the engagement or settings change, or the user asks for an update.
+- Reuse a fresh same-engagement context packet already supplied for the current entry by the session hook or CLI. Refresh on new tasks or turns, missing or uncertain context, changed records or settings, and explicit update requests.
 - Make slash commands and adapters follow the same entry rules; remove the separate Cursor triage entry and conflicting raw-context instructions.
 - Add startup checks for large packets, private-block exclusion, changed records and client rebinding.
 
