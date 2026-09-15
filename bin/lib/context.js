@@ -14,6 +14,13 @@ function clipUtf8(text, bytes) {
   while (end > 0 && (buf[end] & 0xc0) === 0x80) end--
   return buf.subarray(0, end).toString('utf8')
 }
+// Masking aliases must stay whole so they remain recognizable and reversible.
+function clipMaskedUtf8(text, bytes) {
+  const clipped = clipUtf8(text, bytes)
+  if (clipped === text) return text
+  const open = clipped.lastIndexOf('[[')
+  return open > clipped.lastIndexOf(']]') ? clipped.slice(0, open) : clipped
+}
 function budgetArgs(args, defaultBytes = DEFAULT_BYTES) {
   const rest = [...args]
   let maxBytes = defaultBytes
@@ -91,4 +98,4 @@ function recallSections(documents, query, maxHits = 12, outputText = text => tex
     sections: selected.map(h => `${h.file}:${h.line}-${h.end} (lines in redacted view)\n${h.text}`),
   }
 }
-module.exports = { DEFAULT_BYTES, clipUtf8, budgetArgs, boundedSections, recallSections }
+module.exports = { DEFAULT_BYTES, clipUtf8, clipMaskedUtf8, budgetArgs, boundedSections, recallSections }

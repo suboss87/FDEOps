@@ -131,3 +131,16 @@ test('receipts omit untouched scaffold but retain real statements and redacted l
   assert.doesNotMatch(r.stdout, /a customer-side name|\| Accepted by \|/)
   assert.match(f.run(['receipts', 'Acceptance']).stdout, /Acceptance is not yet confirmed/)
 })
+
+
+test('receipt attribution clipping preserves Unicode and never leaves partial masking aliases', t => {
+  const f = fixture(t)
+  for (const source of ['A'.repeat(239) + '🙂' + 'B'.repeat(120), 'A'.repeat(230) + ' person@example.test ' + 'B'.repeat(120)]) {
+    fs.writeFileSync(path.join(f.eng, 'decisions.md'), '- [2026-09-15] Correction [source: ' + source + ']\n')
+    const r = f.run(['receipts', 'Correction'])
+    assert.equal(r.status, 0, r.stderr)
+    assert.match(r.stdout, /sources truncated/)
+    assert.doesNotMatch(r.stdout, /\uFFFD|person@example\.test/)
+    assert.doesNotMatch(r.stdout.replace(/\[\[(?:email|phone|identifier|credential|term):[a-f0-9]{16}\]\]/g, ''), /\[\[/)
+  }
+})

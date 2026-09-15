@@ -72,7 +72,7 @@ function maskedSections(sections, maxBytes = context.DEFAULT_BYTES, heading = ''
   // Pathological path lengths remain explicitly clipped rather than exhausting policy space.
   const maskedHeading = masking.mask(heading)
   const prefix = heading ? (Buffer.byteLength(maskedHeading) <= 1024 ? maskedHeading
-    : context.clipUtf8(maskedHeading, 900) + '\n[Identity path truncated; use fde resume --bind to inspect.]') + '\n\n' : ''
+    : context.clipMaskedUtf8(maskedHeading, 900) + '\n[Identity path truncated; use fde resume --bind to inspect.]') + '\n\n' : ''
   return prefix + context.boundedSections(sections.map(text => masking.mask(text)), maxBytes - Buffer.byteLength(prefix))
 }
 const DEBRIEF_MAX_BYTES = 256 * 1024
@@ -2567,8 +2567,8 @@ function cmdReceipts(args) {
       if (!source && scaffold.has(line.trim())) return
       const sources = sourceReferences(sourceText)
       const attribution = masking.mask(sources.join('; '))
-      const displayed = attribution.length <= 320 ? attribution : attribution.slice(0, 240) + '… [sources truncated; use fde recall]'
-      const hit = `  ${file}:${i + 1}  ${masking.mask(line.trim()).slice(0, 160)}${source ? ` [${sources.length > 1 ? 'sources' : 'source'}: ${displayed}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
+      const displayed = Buffer.byteLength(attribution) <= 320 ? attribution : context.clipMaskedUtf8(attribution, 240) + '… [sources truncated; use fde recall]'
+      const hit = `  ${file}:${i + 1}  ${context.clipMaskedUtf8(masking.mask(line.trim()), 160)}${source ? ` [${sources.length > 1 ? 'sources' : 'source'}: ${displayed}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
       ;(recordFiles.includes(file) && source ? records : claims).push({ file, hit })
     })
   }
