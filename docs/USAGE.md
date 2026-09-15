@@ -324,7 +324,9 @@ The skills guide investigation and delivery; they do not make business decisions
 
 Use `--max-bytes 4096` with either command for a smaller allowance (supported range: 4096-65536). These are byte ceilings, not exact token counts: models tokenize differently. The coding host's instructions, conversation and other tool output still consume its context window.
 
-Truncation is explicit. A partial excerpt is not evidence that omitted constraints do not exist. Refine the query and verify source dates, conflicting decisions and approval scope before acting. References identify lines in the redacted view; private-block removal can change their position relative to the raw file. `fde resume --full` deliberately bypasses the output bound and can be large. Existing `receipts` remains available for a full literal record search.
+The active engagement identity is reserved ahead of the excerpts, including compact mode. Exceptionally long identity paths are explicitly marked as truncated. Truncation is explicit. A partial excerpt is not evidence that omitted constraints do not exist. Refine the query and verify source dates, conflicting decisions and approval scope before acting. References identify lines in the redacted view; private-block removal can change their position relative to the raw file. `fde resume --full` deliberately bypasses the output bound and can be large. Existing `receipts` remains available for a full literal record search.
+
+Short receipts show all explicit source references for a matched decision, with an explicit warning if attribution is shortened. Untouched template guidance is excluded from receipt matches. Sources remain recorded attributions, not proof of customer approval.
 
 Measure the synthetic long-history behavior with `node evals/context-budget/check.js`. This reports bytes and matching records; it does not claim improved model accuracy or time saved.
 

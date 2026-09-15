@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.0.4 - 2026-09-15
+
+- Reserve active engagement identity before allocating compact context excerpts; preserve the output cap and private masking.
+- Report whether a failed debrief actually retained a pending proposal, with an actionable recovery step.
+- Show multiple explicit sources on short decision receipts and omit untouched template scaffold from evidence searches.
+
 ## 4.0.3 - 2026-09-15
 
 - Reuse a fresh same-engagement context packet already supplied for the current entry by the session hook or CLI. Refresh on new tasks or turns, missing or uncertain context, changed records or settings, and explicit update requests.

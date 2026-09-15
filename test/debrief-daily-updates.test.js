@@ -136,3 +136,17 @@ test('review refuses a FIFO without blocking', { skip: process.platform === 'win
   assert.equal(result.status, 1)
   assert.match(result.stderr, /not a regular file/)
 })
+
+
+test('direct replay refusal does not claim a nonexistent review was retained', t => {
+  const f = fixture(t)
+  const notes = 'decision: Keep supported connector [source: meeting:scope]\n'
+  assert.equal(f.run(['debrief'], notes).status, 0)
+  const before = fs.readFileSync(path.join(f.eng, 'decisions.md'), 'utf8')
+  const refused = f.run(['debrief'], notes)
+  assert.notEqual(refused.status, 0)
+  assert.match(refused.stderr, /no record changes kept/)
+  assert.doesNotMatch(refused.stderr, /proposal is retained/)
+  assert.equal(fs.existsSync(path.join(f.eng, '.debrief-propose')), false)
+  assert.equal(fs.readFileSync(path.join(f.eng, 'decisions.md'), 'utf8'), before)
+})

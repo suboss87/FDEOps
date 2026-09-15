@@ -91,7 +91,7 @@ test('fat history cannot displace policy, named signer or the latest sourced dec
   const out = f.run(['resume'])
   assert.equal(out.status, 0, out.stderr)
   assert.ok(Buffer.byteLength(out.stdout) <= 16384)
-  assert.ok(out.stdout.startsWith('CLIENT POLICY - trust-profile.md'))
+  assert.ok(out.stdout.startsWith(`ENGAGEMENT: ${f.eng}\n\nCLIENT POLICY - trust-profile.md`))
   for (const value of ['LOCAL_MODELS_ONLY', 'Mara Chen', 'meeting:recent-a', 'meeting:recent-b']) assert.ok(out.stdout.includes(value), value)
   assert.doesNotMatch(out.stdout, /Transcript history line 500/)
   assert.match(out.stdout, /truncated|omitted/)
@@ -125,4 +125,20 @@ test('compact resume preserves a complete fitting packet and still masks private
   assert.equal(compact.stdout, full.stdout)
   for (const value of [f.eng, 'Keep CSV import', 'Priya Shah', 'Confirm Tuesday replay']) assert.ok(compact.stdout.includes(value), value)
   assert.doesNotMatch(compact.stdout, /Excerpt truncated|PRIVATE_PACKET_SENTINEL/)
+})
+
+
+test('populated compact entry keeps identity, policy and goals outside long triage', t => {
+  const f = fixture(t)
+  f.write('trust-profile.md', '# Policy\nRead-only until customer approves writes.\n' + 'Policy detail '.repeat(800))
+  f.write('success.md', '# Success\n**Stakeholder who signs off:** Mara Chen\n**Done when:** replay produces no duplicates.\n')
+  f.write('context.md', '# Context\n**Phase:** land\n## Next action\nReview replay\n' + 'History '.repeat(2000))
+  f.write('decisions.md', Array.from({ length: 8 }, (_, i) => `- [2026-09-10] Decision ${i} ${'detail '.repeat(80)} [source: meeting:${i}]`).join('\n'))
+  for (const budget of ['4096', '16384']) {
+    const out = f.run(['resume', '--max-bytes', budget])
+    assert.equal(out.status, 0, out.stderr)
+    assert.ok(Buffer.byteLength(out.stdout) <= Number(budget))
+    for (const value of [`ENGAGEMENT: ${f.eng}`, 'Read-only until customer approves writes', 'Mara Chen', 'Review replay']) assert.ok(out.stdout.includes(value), value)
+    assert.match(out.stdout, /truncated/)
+  }
 })

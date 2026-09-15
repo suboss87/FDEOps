@@ -968,7 +968,7 @@ test('worst-of-stakeholder trust: Randy green cannot clear Denise amber', () => 
   assert.doesNotMatch(status.stdout, /\[green\s*\]\s*haulline/)
 })
 
-test('resume leads with triage; log phase advances portfolio phase', () => {
+test('resume identifies the engagement before triage; log phase advances portfolio phase', () => {
   const sandbox = makeSandbox('resume-triage')
   assert.equal(runFde(sandbox, ['resume', '--init', 'monday']).status, 0)
   const eng = engagementPath(sandbox, 'monday')
@@ -984,7 +984,8 @@ test('resume leads with triage; log phase advances portfolio phase', () => {
 
   const resume = runFde(sandbox, ['resume'])
   assert.equal(resume.status, 0, resume.stderr)
-  const head = resume.stdout.split('ENGAGEMENT:')[0]
+  assert.ok(resume.stdout.startsWith(`ENGAGEMENT: ${eng}\n`))
+  const head = resume.stdout.split('WORKING CONTEXT -')[0]
   assert.match(head, /TRIAGE/)
   assert.match(head, /amber/)
   assert.match(head, /Denise cooling/)

@@ -36,7 +36,7 @@ const { createMemoryApi } = require('./lib/memory')
 const { createTrustApi } = require('./lib/trust')
 const vault = require('./lib/vault')
 const context = require('./lib/context')
-const { sourceReference, hasSource, datedDecisions } = require('./lib/provenance')
+const { sourceReference, sourceReferences, hasSource, datedDecisions } = require('./lib/provenance')
 const { deliverySummary } = require('./lib/delivery-gaps')
 
 const HOME = os.homedir()
@@ -67,8 +67,13 @@ function maskReport(value) {
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, maskReport(item)]))
   return value
 }
-function maskedSections(sections, maxBytes) {
-  return context.boundedSections(sections.map(text => masking.mask(text)), maxBytes)
+function maskedSections(sections, maxBytes = context.DEFAULT_BYTES, heading = '') {
+  // Reserve identity before sharing the remaining budget between excerpts.
+  // Pathological path lengths remain explicitly clipped rather than exhausting policy space.
+  const maskedHeading = masking.mask(heading)
+  const prefix = heading ? (Buffer.byteLength(maskedHeading) <= 1024 ? maskedHeading
+    : context.clipUtf8(maskedHeading, 900) + '\n[Identity path truncated; use fde resume --bind to inspect.]') + '\n\n' : ''
+  return prefix + context.boundedSections(sections.map(text => masking.mask(text)), maxBytes - Buffer.byteLength(prefix))
 }
 const DEBRIEF_MAX_BYTES = 256 * 1024
 const CODE_EXT = ['.js', '.ts', '.tsx', '.jsx', '.py', '.java', '.go', '.rb', '.cs', '.php']
@@ -1459,12 +1464,12 @@ function cmdResume(args) {
   process.stdout.write(maskedSections([
     policy ? `CLIENT POLICY - trust-profile.md\n${policy}` : '',
     preferences.work ? `WORKING PREFERENCES: ${preferences.work}. Starting help: ${preferences.start}.\n${setup.nextStep(preferences)}\nThis is a starting preference, not a client fact; current instructions and engagement state take precedence.` : '',
-    `${intro}\n\nENGAGEMENT: ${eng}`,
+    intro,
     success ? `CURRENT GOALS & ACCEPTANCE - success.md\n${success}` : '',
     risks ? `OPEN RISKS - risks.md\n${extractRisks(eng).map(r => r.text).join('\n') || '(none recorded)'}` : '',
     `VALUE LEDGER - delivery.md\n${parseValueLedger(eng).rows.map(r => formatValueLedgerLine(r) + '; source: ' + (r.evidence || '(missing)')).join('\n') || '(none recorded)'}`,
     `WORKING CONTEXT - context.md\n${ctx ? resumeView(ctx) : '(no context.md yet)'}`,
-  ], maxBytes))
+  ], maxBytes, `ENGAGEMENT: ${eng}`))
 }
 
 // Token discipline: context.md grows every session (the session-stop hook
@@ -2083,7 +2088,10 @@ function withDebriefRecords(eng, apply, files = ['decisions.md', 'risks.md', 'de
         } catch (_) { failed.push(path.basename(target)) }
       }
       if (failed.length) throw new Error(`${error.message}; recovery could not restore ${failed.join(', ')}. Inspect these records and the pending proposal before retrying.`)
-      throw new Error(`${error.message}; no record changes kept. The proposal is retained; retry after resolving the cause.`)
+      const recovery = snapshots.get(path.join(eng, DEBRIEF_PROPOSE))
+        ? 'The proposal is retained; inspect it with fde debrief --review before retrying.'
+        : 'No pending proposal was retained; review your input before retrying.'
+      throw new Error(`${error.message}; no record changes kept. ${recovery}`)
     } finally { debriefTransactionActive = false }
   }
   return lockAt(0)
@@ -2156,7 +2164,7 @@ function routeDebriefInput(eng, input, { dry, force, sealed = [], allowReplay = 
     })
   }
   const repeats = repeatedDebriefStatements(eng, input)
-  if (repeats.length && !dry && !allowReplay) throw new Error('source-backed statement already recorded; review the existing record and newer next action. Explicitly confirm a repeat with --allow-replay, or remove the repeated statement from the proposal.')
+  if (repeats.length && !dry && !allowReplay) throw new Error('source-backed statement already recorded; review the existing record and newer next action. Explicitly confirm a repeat with --allow-replay, or remove the repeated statement from your input or pending proposal.')
   const d = new Date()
   const date = d.toISOString().slice(0, 10)
   const counts = { decision: 0, risk: 0, delivery: 0, contact: 0, next: 0, signer: 0 }
@@ -2547,15 +2555,20 @@ function cmdReceipts(args) {
   const records = [], claims = []
   for (const file of [...recordFiles, ...workingFiles]) {
     const document = readClean(eng, file)
+    const scaffold = new Set((templatesDir() ? readClean(templatesDir(), file) : '').split('\n').map(line => line.trim()))
     const decisionSources = new Map()
     if (file === 'decisions.md') for (const entry of datedDecisions(document)) {
-      const source = sourceReference(entry.text)
-      for (let line = entry.line; line < entry.line + entry.text.split('\n').length; line++) decisionSources.set(line, source)
+      for (let line = entry.line; line < entry.line + entry.text.split('\n').length; line++) decisionSources.set(line, entry.text)
     }
     document.split('\n').forEach((line, i) => {
       if (!line.toLowerCase().includes(term.toLowerCase())) return
-      const source = decisionSources.get(i + 1) || sourceReference(line)
-      const hit = `  ${file}:${i + 1}  ${masking.mask(line.trim()).slice(0, 160)}${source ? ` [source: ${masking.mask(source).slice(0, 160)}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
+      const sourceText = decisionSources.get(i + 1) || line
+      const source = sourceReference(sourceText)
+      if (!source && scaffold.has(line.trim())) return
+      const sources = sourceReferences(sourceText)
+      const attribution = masking.mask(sources.join('; '))
+      const displayed = attribution.length <= 320 ? attribution : attribution.slice(0, 240) + '… [sources truncated; use fde recall]'
+      const hit = `  ${file}:${i + 1}  ${masking.mask(line.trim()).slice(0, 160)}${source ? ` [${sources.length > 1 ? 'sources' : 'source'}: ${displayed}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
       ;(recordFiles.includes(file) && source ? records : claims).push({ file, hit })
     })
   }

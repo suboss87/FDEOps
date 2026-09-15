@@ -40,3 +40,13 @@ function datedDecisions(value) {
   return entries.sort((a, b) => a.date.localeCompare(b.date) || a.line - b.line)
 }
 module.exports.datedDecisions = datedDecisions
+
+// Display every explicit attribution without selecting a primary source.
+// Keep classification through sourceReference unchanged.
+function sourceReferences(value) {
+  const explicit = String(value || '').match(/\[source:[^\]\n]+\]/gi) || []
+  if (explicit.length) return [...new Set(explicit.map(sourceReference).filter(Boolean))]
+  const fallback = sourceReference(value)
+  return fallback ? [fallback] : []
+}
+module.exports.sourceReferences = sourceReferences
