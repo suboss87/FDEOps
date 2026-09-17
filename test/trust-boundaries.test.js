@@ -213,3 +213,48 @@ test('entry packets identify their engagement and refresh after record or bindin
   assert.match(rebound.stdout, /OTHER_CLIENT_ACTION/)
   assert.doesNotMatch(rebound.stdout, /INITIAL_ACTION|UPDATED_ACTION/)
 })
+
+for (const protectedText of ['<private note="a < b">CONTROL_PRIVATE_SENTINEL</private>', '<private\nTRUNCATED_PRIVATE_SENTINEL', '<pri\x01vate>CONTROL_PRIVATE_SENTINEL</private>', '< private >SPACED_PRIVATE_SENTINEL</ private >']) {
+  test(`prepared views seal malformed or normalized private markers: ${JSON.stringify(protectedText.slice(0, 12))}`, t => {
+    const f = fixture(t)
+    fs.writeFileSync(path.join(f.eng, 'context.md'), '# Context\nPUBLIC_SENTINEL\n' + protectedText)
+    for (const result of [f.run(['resume', '--full']), f.hook()]) {
+      assert.equal(result.status, 0, result.stderr)
+      assert.match(result.stdout, /PUBLIC_SENTINEL/)
+      assert.doesNotMatch(result.stdout, /TRUNCATED_PRIVATE_SENTINEL|CONTROL_PRIVATE_SENTINEL|SPACED_PRIVATE_SENTINEL/)
+    }
+    const output = path.join(f.dir, 'privacy.html')
+    const result = f.run(['dashboard', '--current', '--out', output])
+    assert.equal(result.status, 0, result.stderr)
+    assert.doesNotMatch(fs.readFileSync(output, 'utf8'), /TRUNCATED_PRIVATE_SENTINEL|CONTROL_PRIVATE_SENTINEL|SPACED_PRIVATE_SENTINEL/)
+  })
+}
+
+test('redact previews locations only and refuses removal of privacy boundaries', t => {
+  const f = fixture(t)
+  const file = path.join(f.eng, 'context.md')
+  const original = '# Context\n<private data-note="remove-me">\nCONFIDENTIAL_SYNTHETIC_SENTINEL\n</private>\nPUBLIC_SENTINEL\n'
+  fs.writeFileSync(file, original)
+  const preview = f.run(['redact', 'CONFIDENTIAL_SYNTHETIC_SENTINEL'])
+  assert.equal(preview.status, 0, preview.stderr)
+  assert.match(preview.stdout, /context.md:3/)
+  assert.doesNotMatch(preview.stdout + preview.stderr, /CONFIDENTIAL_SYNTHETIC_SENTINEL/)
+  const apply = f.run(['redact', 'remove-me', '--apply'])
+  assert.notEqual(apply.status, 0)
+  assert.match(apply.stderr, /privacy delimiter/)
+  assert.equal(fs.readFileSync(file, 'utf8'), original)
+  assert.doesNotMatch(f.run(['resume']).stdout, /CONFIDENTIAL_SYNTHETIC_SENTINEL/)
+})
+
+for (const opener of ['<\nprivate data-note="remove-me">', '<!-- remove-me']) {
+  test(`redact preserves multiline and comment boundaries: ${JSON.stringify(opener)}`, t => {
+    const f = fixture(t)
+    const original = opener + '\nPRIVATE_BOUNDARY_SENTINEL\n' + (opener.startsWith('<!--') ? '-->' : '</private>')
+    const file = path.join(f.eng, 'context.md')
+    fs.writeFileSync(file, original)
+    const result = f.run(['redact', 'remove-me', '--apply'])
+    assert.notEqual(result.status, 0)
+    assert.equal(fs.readFileSync(file, 'utf8'), original)
+    assert.doesNotMatch(f.run(['resume', '--full']).stdout, /PRIVATE_BOUNDARY_SENTINEL/)
+  })
+}

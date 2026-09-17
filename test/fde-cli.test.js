@@ -2589,7 +2589,7 @@ test('a flag before the verb does not corrupt the argument the CLI receives', ()
 
   const plain = runInstall(sandbox, ['redact', 'vaultkey9'], { cwd: sandbox.workspace })
   const flagFirst = runInstall(sandbox, ['--force', 'redact', 'vaultkey9'], { cwd: sandbox.workspace })
-  assert.match(plain.stdout, /1 matching line\(s\) for "vaultkey9"/)
+  assert.match(plain.stdout, /1 matching line\(s\); content withheld/)
   assert.equal(flagFirst.stdout, plain.stdout, 'a leading flag changed which term was searched')
 
   // A command's own flag typed before the command is not silently dropped.

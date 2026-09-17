@@ -2,6 +2,18 @@
 
 fdeops stores **engagement-sensitive** material on your machine. Treat `.fde/` like confidential work papers.
 
+## Before customer work
+
+**Use customer-approved data and AI tools.** The CLI runs locally, but your AI agent may send what it reads to its provider. Masking is partial and does not protect direct file reads or pasted text. If approval is unclear, start with synthetic data. Anonymised customer material still needs permission.
+
+- Use an approved AI host, model provider and deployment configuration. A local CLI does not make the model local.
+- Restrict host file access and connectors to the authorised engagement. Enforce outbound access and external-write permissions in the host or infrastructure; skills are not a sandbox.
+- Keep credentials in approved secret storage. Keep `.fde/`, `.inbox/`, exports and the reversible `.privacy/` dictionary out of shared repositories and unapproved sync or backups. These files are not encrypted by FDEOps.
+- Review prepared outputs before sharing. Names, business details and identifying context may remain even after masking. Reports can include multiple customers unless you select the current one.
+- Start with `npx fdeops demo` to inspect fictional inputs and outputs before introducing permitted customer material.
+
+FDEOps does not certify regulatory compliance, enforce provider retention settings, or prevent an agent from reading files outside its prepared context. Customer security review and host controls remain necessary. See [privacy behaviour](PRIVACY.md) and [verification limits](docs/verification.md).
+
 ## Never commit engagement data
 
 - Default: `~/fde-engagements/<name>/.fde/` - outside shared repositories.
@@ -32,7 +44,7 @@ What to expect: acknowledgement within 5 days, an assessment with a fix or a rea
 
 ### In scope
 
-Anything that breaks the guarantees fdeops makes: `<private>` content reaching a model, a dashboard, a hook, an MCP response, or a structured memory file; engagement memory leaking between clients; the installer or CLI destroying or exfiltrating data; a write applied without human confirmation; the CLI reaching the network.
+Leaks through FDEOps-controlled preparation: protected `<private>` content appearing in prepared CLI, dashboard, hook or ingest MCP outputs, or being copied into public fields of structured records; engagement memory leaking between clients; the installer or CLI destroying or exfiltrating data; a write applied without human confirmation; the CLI reaching the network.
 
 ### Out of scope
 

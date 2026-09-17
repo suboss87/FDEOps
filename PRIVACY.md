@@ -2,6 +2,8 @@
 
 fdeops is local tooling. No fdeops-operated backend, telemetry, or accounts.
 
+**Use customer-approved data and AI tools.** The CLI runs locally, but your AI agent may send what it reads to its provider. Masking is partial and does not protect direct file reads or pasted text. If approval is unclear, start with synthetic data. Anonymised customer material still needs permission. See [before customer work](SECURITY.md#before-customer-work) for host, access and storage controls.
+
 ## What fdeops does
 
 - Reads and writes files under **`FDEOPS_ENGAGEMENT`** (default `~/fde-engagements/<name>/.fde/`)
@@ -42,7 +44,7 @@ Notes about identifiable people (stakeholder signals, contact logs) may carry da
 
 ## The fieldbook dashboard
 
-`fde dashboard` renders your engagements into a local `fieldbook.html` (default `~/fde-engagements/fieldbook.html`). It is a static file - no server, no network calls, works offline. Anything inside a `<private>…</private>` block in your `.fde/` notes is **redacted** from the rendered page (closed or unclosed), and `<!-- comments -->` are stripped, so the file you might hand to a sponsor never carries your private working notes.
+`fde dashboard` renders your engagements into a local `fieldbook.html` (default `~/fde-engagements/fieldbook.html`). It is a static file - no server, no network calls, works offline. Anything inside a `<private>…</private>` block in your `.fde/` notes is **redacted** from the rendered page (closed or unclosed), and `<!-- comments -->` are stripped, but unmarked confidential information can remain. Inspect the output and its customer scope before sharing.
 
 ## AI assistants
 

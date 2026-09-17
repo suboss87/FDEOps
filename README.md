@@ -16,7 +16,11 @@ Use it for a single integration, a small client project, or work within a larger
 
 ## Quick start
 
+**Use customer-approved data and AI tools.** The CLI runs locally, but your AI agent may send what it reads to its provider. Masking is partial and does not protect direct file reads or pasted text. If approval is unclear, start with synthetic data. Anonymised customer material still needs permission. See [safe setup and limits](SECURITY.md#before-customer-work).
+
 Use FDEOps with an AI coding agent that supports skills. Start with one task, or let `fde` coordinate a customer project.
+
+Try the fictional engagement first with `npx fdeops demo` (requires Node.js 18+ and Git; may download the package). It creates or resets a separate `.demo` workspace and does not need customer data.
 
 ### Work on a customer project
 

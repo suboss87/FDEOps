@@ -4,7 +4,9 @@ fdeops installs on **your laptop** - where **your AI coding agent** runs. Not on
 
 **Terminology:** **You** = human FDE. **Agent** = AI coding software (e.g. Claude Code), never a person. See [README § Who this is for](../README.md#who-this-is-for).
 
-**Try before installing:** `npx fdeops scan` prints local repository reconnaissance and day-one questions without creating engagement records. `npx` may download the package; the scan itself does not use the network. Requires Node.js 18+ and Git.
+**Use customer-approved data and AI tools.** The CLI runs locally, but your AI agent may send what it reads to its provider. Masking is partial and does not protect direct file reads or pasted text. If approval is unclear, start with synthetic data. Anonymised customer material still needs permission.
+
+**Try with fictional data:** `npx fdeops demo` runs a synthetic engagement in a separate `.demo` workspace. It creates or resets that demo only. `npx` may download the package; the CLI itself does not use the network. Requires Node.js 18+ and Git.
 
 ---
 

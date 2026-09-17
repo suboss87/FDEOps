@@ -362,7 +362,7 @@ function stripControlChars(s) {
 const PRIVATE_MARKER = '(private - redacted)'
 // Openers tolerate whitespace and attributes (<private >, <private data-x="1">)
 // so a near-miss tag still seals instead of failing open.
-const PRIVATE_TAG = /<(\/)?private\b[^>]*>/gi
+const PRIVATE_TAG = /<\s*(\/\s*)?private\b[^>\r\n]*(?:>|(?=\r?\n|$))/gi
 
 // Depth-aware split of a markdown body into public text and sealed blocks. A
 // nested block seals to the outermost close, an unclosed one seals to EOF, and a
@@ -373,7 +373,7 @@ const PRIVATE_TAG = /<(\/)?private\b[^>]*>/gi
 // gets that: on the read path a stray `<!--` already stored in memory would
 // otherwise hide every line after it from every view.
 function splitPrivate(md, opts = {}) {
-  let text = String(md || '').replace(/<!--[\s\S]*?-->/g, '')
+  let text = stripControlChars(String(md || '')).replace(/<!--[\s\S]*?-->/g, '')
   if (opts.sealDangling) text = text.replace(/<!--[\s\S]*$/, '')
   const blocks = []
   let out = ''
@@ -437,7 +437,7 @@ function sealedText(blocks) {
 // a stray `</private>` leaves the text after it in the clear, and a forgotten
 // closer seals everything appended later. Counts only - never the content.
 function privateMarkerImbalance(md) {
-  const text = String(md || '')
+  const text = stripControlChars(String(md || ''))
   let depth = 0
   let unclosed = 0
   let stray = 0
@@ -2393,7 +2393,12 @@ function parseIngestFrontMatter(raw) {
   if (!text.startsWith('---\n')) return { meta: {}, body: text }
   const end = text.indexOf('\n---\n', 4)
   if (end === -1) return { meta: {}, body: text }
-  const head = text.slice(4, end)
+  const rawHead = text.slice(4, end)
+  const balance = privateMarkerImbalance(rawHead)
+  if (balance.unclosed || balance.stray || rawHead.lastIndexOf('<!--') > rawHead.lastIndexOf('-->')) {
+    throw new Error('ingest refused: privacy boundaries must not cross the metadata separator')
+  }
+  const head = stripPrivate(rawHead)
   const body = text.slice(end + 5)
   const meta = {}
   for (const line of head.split('\n')) {
@@ -2403,20 +2408,44 @@ function parseIngestFrontMatter(raw) {
   return { meta, body }
 }
 
-function resolveInboxItem(eng, id) {
+// Inbox IDs select local staged files, never arbitrary filesystem paths.
+function checkedInbox(eng) {
   const box = inboxDir(eng)
-  const want = String(id || '').trim()
-  if (!want) return null
-  const direct = path.join(box, want)
-  if (fs.existsSync(direct) && fs.statSync(direct).isFile()) return direct
-  const withMd = want.endsWith('.md') ? want : `${want}.md`
-  const alt = path.join(box, withMd)
-  if (fs.existsSync(alt) && fs.statSync(alt).isFile()) return alt
+  let st
+  try { st = fs.lstatSync(box) } catch (error) { if (error.code === 'ENOENT') return null; throw error }
+  if (st.isSymbolicLink() || !st.isDirectory()) throw new Error('ingest refused: inbox must be a real directory')
+  return box
+}
+
+function readInboxItem(eng, name) {
+  const box = checkedInbox(eng)
+  if (!box || !name || /[\\/]/.test(name) || name === '.' || name === '..') throw new Error('ingest refused: invalid inbox item')
+  let fd
   try {
-    const hits = fs.readdirSync(box).filter(f => f === want || f.startsWith(want) || f.includes(want))
-    if (hits.length === 1) return path.join(box, hits[0])
-  } catch (_) {}
-  return null
+    fd = fs.openSync(path.join(box, name), fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK)
+    const st = fs.fstatSync(fd)
+    if (!st.isFile() || st.nlink !== 1) throw new Error('ingest refused: staged item must be a regular file with one link')
+    if (st.size > DEBRIEF_MAX_BYTES) throw new Error('ingest refused: staged item exceeds the notes size limit')
+    // Bound the actual read too: a file can grow after fstat.
+    const buf = Buffer.alloc(DEBRIEF_MAX_BYTES + 1)
+    let size = 0, n
+    while (size < buf.length && (n = fs.readSync(fd, buf, size, buf.length - size, null))) size += n
+    if (size > DEBRIEF_MAX_BYTES) throw new Error('ingest refused: staged item exceeds the notes size limit')
+    return stripControlChars(buf.subarray(0, size).toString('utf8'))
+  } finally { if (fd !== undefined) fs.closeSync(fd) }
+}
+
+function resolveInboxItem(eng, id) {
+  const want = String(id || '').trim()
+  if (!want || /[\\/]/.test(want) || want === '.' || want === '..') throw new Error('ingest refused: use an inbox filename or ID, not a path')
+  const box = checkedInbox(eng)
+  if (!box) return null
+  const files = fs.readdirSync(box).filter(f => f.endsWith('.md'))
+  if (files.includes(want)) return want
+  const withMd = want.endsWith('.md') ? want : `${want}.md`
+  if (files.includes(withMd)) return withMd
+  const hits = files.filter(f => f.includes(want))
+  return hits.length === 1 ? hits[0] : null
 }
 
 function cmdIngest(args) {
@@ -2439,9 +2468,9 @@ function cmdIngest(args) {
   if (!eng) { console.error('no engagement - run: fde resume --init <name>'); process.exit(2) }
 
   if (sub === 'list') {
-    const box = inboxDir(eng)
-    if (!fs.existsSync(box)) {
-      console.log(`inbox empty → ${box}`)
+    const box = checkedInbox(eng)
+    if (!box) {
+      console.log(`inbox empty → ${inboxDir(eng)}`)
       console.log('(stage with: fde ingest stage --source granola notes.md)')
       return
     }
@@ -2452,7 +2481,7 @@ function cmdIngest(args) {
     }
     console.log(`INBOX → ${box}\n`)
     for (const f of files) {
-      const raw = fs.readFileSync(path.join(box, f), 'utf8')
+      const raw = readInboxItem(eng, f)
       const { meta } = parseIngestFrontMatter(raw)
       const src = meta.source || '?'
       const title = meta.title || ''
@@ -2471,7 +2500,7 @@ function cmdIngest(args) {
       console.error(`ingest propose: no staged item matching "${id}" - run: fde ingest list`)
       process.exit(1)
     }
-    const raw = stripControlChars(fs.readFileSync(item, 'utf8'))
+    const raw = readInboxItem(eng, item)
     const { meta, body } = parseIngestFrontMatter(raw)
     const source = meta.source || 'manual'
     const title = meta.title || path.basename(item, '.md')
@@ -2540,7 +2569,10 @@ function cmdIngest(args) {
   if (hit && force) console.error(`warning: staging possible ${hit} (--force)`)
 
   const box = inboxDir(eng)
-  try { fs.mkdirSync(box, { recursive: true }) } catch (e) { failFs(e, 'create inbox', box) }
+  try {
+    if (!checkedInbox(eng)) fs.mkdirSync(box)
+    checkedInbox(eng)
+  } catch (e) { failFs(e, 'create inbox', box) }
   const compact = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
   const id = `${compact}-${source}-${titleSlug}.md`
   const dest = path.join(box, id)
@@ -3389,7 +3421,7 @@ function cmdRedact(args) {
   const apply = args.includes('--apply')
   const term = args.filter(a => a !== '--apply').join(' ').trim()
   if (!term || term.length < 4) {
-    console.error('usage: fde redact <term> [--apply]\n  preview lines containing <term>; --apply removes them and commits the ledger')
+    console.error('usage: fde redact <term> [--apply]\n  preview locations containing <term>; --apply removes matching lines and commits the ledger')
     process.exit(1)
   }
   const eng = resolveEngagement({ forWrite: apply })
@@ -3406,18 +3438,31 @@ function cmdRedact(args) {
     })
   }
   if (!hits.length) {
-    console.log(`redact: no lines contain ${JSON.stringify(masking.mask(term))}`)
+    console.log('redact: no matching lines')
     return
   }
-  console.log(`REDACT - ${hits.length} matching line(s) for ${JSON.stringify(masking.mask(term))}`)
-  hits.slice(0, 20).forEach(h => {
-    const preview = h.line.length > 100 ? masking.mask(h.line).slice(0, 97) + '…' : h.line
-    console.log(`  ${h.file}:${h.lineNo}  ${preview}`)
-  })
+  console.log(`REDACT - ${hits.length} matching line(s); content withheld`)
+  hits.slice(0, 20).forEach(h => console.log(`  ${h.file}:${h.lineNo}`))
   if (hits.length > 20) console.log(`  … +${hits.length - 20} more`)
   if (!apply) {
     console.log('\nPreview only. Remove and commit:  fde redact <term> --apply')
     console.log('Note: git history still holds prior commits - rotate the real secret.')
+    return
+  }
+  const removesMarker = md => {
+    const lines = md.split('\n')
+    const clean = stripControlChars(md)
+    const markers = new RegExp(`${PRIVATE_TAG.source}|<!--|-->`, 'gi')
+    for (const match of clean.matchAll(markers)) {
+      const first = clean.slice(0, match.index).split('\n').length - 1
+      const last = first + match[0].split('\n').length - 1
+      if (lines.slice(first, last + 1).some(line => line.toLowerCase().includes(needle))) return true
+    }
+    return false
+  }
+  if ([...new Set(hits.map(h => h.file))].some(file => removesMarker(readEng(eng, file)))) {
+    console.error('redact refused: a matching line contains a privacy delimiter. Remove the complete private block locally, preserving other privacy boundaries.')
+    process.exitCode = 1
     return
   }
   ensureMemoryGit(eng)
@@ -3426,6 +3471,7 @@ function cmdRedact(args) {
     const abs = path.join(eng, file)
     withFileLock(abs, () => {
       const before = readEng(eng, file)
+      if (removesMarker(before)) throw new Error('redact refused: privacy delimiter changed during review')
       const after = before.split('\n').filter(line => !line.toLowerCase().includes(needle)).join('\n')
       if (after === before) return
       atomicWriteFile(abs, after.endsWith('\n') || after === '' ? after : after + '\n')
@@ -4160,8 +4206,8 @@ function cmdDemo(args) {
   - PR#42 is fictional evidence for a measured result. The ledger still says claimed:
     naming Priya as signer does not mean she accepted the result.
   - The <private> block in those notes never appears in resume, prep, receipts or
-    the dashboard - it is sealed in context.md and redacted from anything an agent
-    or a screen share can see.
+    the dashboard. Raw files still contain it: agent file reads and pasted text
+    bypass this protection. Review reports before sharing; unmarked data may remain.
   - Tomorrow's session starts from the record instead of a blank chat.
 ${fs.existsSync(html) ? `\n  Open the fieldbook:  ${html}` : ''}
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.1.5 - 2026-09-17
+
+- Seal truncated and control-character private markers before preparing context or reports.
+- Show locations only in redaction previews and refuse changes that would remove privacy delimiters.
+- Confine staged inbox reads to the active customer and reject linked or non-regular inbox items.
+- Put approved-data guidance and the synthetic demo before first customer use, with explicit limits for masking, AI hosts and local storage.
+
 ## 5.1.4 - 2026-09-16
 
 - Include JavaScript and TypeScript module extensions in reconnaissance, disclose scan limits, and avoid unsupported clean-scan claims.

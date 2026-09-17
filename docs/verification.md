@@ -26,6 +26,8 @@ A two-session Codex/GPT-6-Astra diagnostic prepared a masked meeting review, wai
 
 Regression tests cover stable aliases, original-record preservation, confirmed proposal restoration, sourced replay, masked stderr/MCP responses, truncation and invalid private state. Raw file tools, pasted chat, upstream sources and unrecognized identifiers remain outside this boundary. See [privacy details](../PRIVACY.md#default-identifier-masking).
 
+The 5.1.5 privacy regressions exercise truncated and control-character private markers, redaction previews and delimiter preservation, and inbox traversal, symlinks, hardlinks, nonregular files, oversized reads and private metadata. These are synthetic local tests. They do not enforce host permissions, prevent a malicious local process from changing directories during a read, or certify a regulated deployment.
+
 ## Agent task evidence
 
 Completed synthetic diagnostics include:
