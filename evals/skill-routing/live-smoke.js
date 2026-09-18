@@ -82,6 +82,11 @@ for (const c of happy) {
     r = fdeRun(['prep', 'sponsor Denise'])
   } else if (verb === 'receipts') {
     r = fdeRun(['receipts', 'reporting'])
+  } else if (verb === 'recall') {
+    fs.writeFileSync(path.join(eng, 'patterns.md'), '# Patterns\n\n## Pattern: alert ownership\nA delivered alert still needs a named response owner.\n')
+    r = fdeRun(['recall', 'alert ownership'])
+    assert(c.id, r.status === 0 && /named response owner/.test(r.stdout), `fde recall rc=${r.status}; matching lesson returned`)
+    continue
   } else if (verb === 'doctor') {
     r = fdeRun(['doctor'])
     // doctor exits 1 when issues remain - still a successful invoke

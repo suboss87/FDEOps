@@ -1,6 +1,6 @@
 {
   "name": "fdeops",
-  "version": "5.1.13",
+  "version": "5.1.14",
   "description": "Forward deployed engineering skills for AI coding agents. Use focused task skills or @fde for discovery, implementation, verification and handoff, with local engagement records.",
   "bin": {
     "fdeops": "bin/install.js",

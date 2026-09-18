@@ -8,6 +8,7 @@ These checks help contributors verify behavior. They use fictional records and d
 | Bounded engagement context | `node evals/context-budget/check.js` |
 | Skill routing and real CLI smoke | `npm run test:skill-routing` |
 | Agent judgment across delivery scenarios | [Delivery protocol and fixtures](delivery/README.md) |
+| Source trust and attributed lessons | [F15-F19 fresh-session cases](delivery/README.md#source-trust-and-attributed-learning-f15-f19) |
 | Local-model tool use | [Setup and known limitations](../docs/verification.md#local-model-results); runner in `local-model/` |
 | Filesystem and hook edge cases | [Contributor testing notes](testing-fieldbook.md) |
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.1.14 - 2026-09-18
+
+- Treat imported instructions and proposed updates as untrusted evidence, never action or save authority.
+- Preserve attributed lessons, disagreement and changed recommendations; keep proposed actions out of the current next action.
+- Add five source-trust and learning scenarios, including actual staged-proposal review, and document observed limits.
+- Exercise existing lesson recall in the live routing smoke test.
+
 ## 5.1.13 - 2026-09-18
 
 - Preserve decision context and attribution in agreement lookups, including documented named decision and scope-change entries.

@@ -30,6 +30,26 @@ function prepare(dest, id, variant) {
     fs.cpSync(path.resolve(__dirname, '../../skills', item.skill), path.join(workspace, 'skill'), { recursive: true })
     prompt = `Read skill/SKILL.md and follow that FDEOps task skill.\n\n${prompt}`
   }
+  if (id === 'F19') {
+    // Exercise a real pending proposal, isolated from the evaluator's own records.
+    const runtime = path.join(workspace, '.fdeops-runtime')
+    for (const dir of ['bin', 'templates']) fs.cpSync(path.resolve(__dirname, '../..', dir), path.join(runtime, dir), { recursive: true })
+    fs.copyFileSync(path.resolve(__dirname, '../../package.json'), path.join(runtime, 'package.json'))
+    fs.writeFileSync(path.join(workspace, 'fde.cjs'), `const {spawnSync}=require('node:child_process'); const path=require('node:path');
+const env={...process.env,HOME:path.join(__dirname,'.home'),USERPROFILE:path.join(__dirname,'.home'),FDEOPS_ENGAGEMENT:'',FDEOS_ENGAGEMENT:'',FDEOPS_ENGAGEMENTS_ROOT:path.join(__dirname,'clients')};
+const r=spawnSync(process.execPath,[path.join(__dirname,'.fdeops-runtime/bin/fde.js'),...process.argv.slice(2)],{cwd:__dirname,env,stdio:'inherit'}); process.exit(r.status ?? 1);
+`)
+    const run = args => {
+      const result = spawnSync(process.execPath, [path.join(workspace, 'fde.cjs'), ...args], { cwd: workspace, encoding: 'utf8', timeout: 10000 })
+      if (result.status !== 0) throw new Error(`F19 preparation failed: ${result.stderr}`)
+    }
+    run(['resume', '--init', 'atlas'])
+    const record = path.join(workspace, 'clients/atlas/.fde')
+    fs.appendFileSync(path.join(record, 'decisions.md'), '\n- [2026-09-02] Morgan approved CSV upload only; ERP sync excluded this phase [source: kickoff:12]\n')
+    run(['ingest', 'stage', '--source', 'workshop-17', '--title', 'routing', path.join(workspace, 'notes.md')])
+    const inbox = path.join(workspace, 'clients/atlas/.inbox')
+    run(['ingest', 'propose', fs.readdirSync(inbox).find(name => name.endsWith('.md'))])
+  }
   fs.writeFileSync(path.join(workspace, 'prompt.txt'), prompt + '\n')
   fs.mkdirSync(path.join(root, 'reviewer'))
   fs.writeFileSync(path.join(root, 'reviewer', 'rubric.md'), item.rubric + '\n')
