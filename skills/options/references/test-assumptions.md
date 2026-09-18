@@ -47,7 +47,7 @@ CONVENIENCE - if wrong, a task changes but the approach holds
 | Assumption | Validation method | Effort | Evidence threshold |
 |-----------|-------------------|--------|-------------------|
 | "The API is the bottleneck" | Instrument the three slowest endpoints, measure p95 over 24h | 2h | Latency data shows >80% of wait time in API layer |
-| "The team will adopt the new tool" | Ask three team members individually: "Show me how you'd use this" | 1h | 2 of 3 can describe a use case without prompting |
+| "Users can complete the target task with the prototype" | Observe affected users attempting a representative task in a permitted environment | Timebox agreed for the task | Pre-agreed completion, error and assistance criteria; report sample and limits, not adoption |
 | "The data is clean enough for ML" | Sample 200 records, count nulls/duplicates/format errors | 1h | <5% error rate on the fields the model needs |
 
 **4. Run the killer test first.** The assumption with the highest blast radius AND the cheapest validation gets tested immediately. This single principle saves more engagement time than any other: if the killer assumption is wrong, you've saved weeks; if it holds, you've bought confidence. Write the kill observation in `How we test` as the result that would **stop** the plan - plan copies that line onto each Now PR as `Kill if`.
@@ -68,7 +68,7 @@ Evidence first, then the question. Let them reach the conclusion.
 | # | Assumption | Kind | Blast radius | How we test | Status | Evidence |
 |---|------------|------|--------------|-------------|--------|----------|
 | 1 | API is the bottleneck | CONVENTION | CRITICAL | p95 instrumentation 24h | DISPROVED | 80% wait in DB layer (Day N) |
-| 2 | Team will adopt new tool | UNKNOWN | LOAD-BEARING | 3 individual interviews | CONFIRMED | 2/3 describe a use case unprompted |
+| 2 | Team will adopt new tool | UNKNOWN | LOAD-BEARING | Observe task use, then assess sustained use over an agreed period | OPEN | 2/3 describe a use case unprompted; interest reported, use not yet observed |
 | 3 | Data clean enough for ML | UNKNOWN | CRITICAL | 200-record sample | PARTIAL → OPEN follow-up | 12% nulls on key field; cleaning task added |
 ```
 
@@ -98,5 +98,5 @@ Result: acked in 40 minutes, by Marco, not finance. Assumption DISPROVED, and th
 - Kind before blast radius. A FACT with no receipt is UNKNOWN.
 - Kill the riskiest, cheapest-to-test assumption first.
 - Evidence first, then the question. Let the customer reach the conclusion.
-- A brief with zero disproved assumptions wasn't audited - it was accepted.
+- Design tests that could disprove consequential assumptions, and report what the evidence shows. All assumptions may survive a rigorous audit; never invent a contradiction to demonstrate skepticism.
 - Two weeks of building on a wrong assumption costs more than two hours of testing.

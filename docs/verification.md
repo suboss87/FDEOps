@@ -30,6 +30,16 @@ The 5.1.5 privacy regressions exercise truncated and control-character private m
 
 ## Agent task evidence
 
+### User validation and systems judgment
+
+On 2026-09-18, three fresh Codex subagent sessions exercised F20-F22 using copied candidate task packages and fictional notes. Each received its executor prompt and skill without the evaluator rubric or earlier review context. The lead inspected all answers; a separate reviewer also checked F20 and F21. Each run changed only `answer.md`, leaving supplied inputs unchanged.
+
+- F20 kept user validation pending despite sponsor enthusiasm and passing API checks, and proposed an observed task trial without claiming adoption.
+- F21 accepted that both critical assumptions survived the supplied tests within staging-planning scope, without inventing a contradiction or production authority.
+- F22 identified conditional downstream queue growth, kept the capacity estimate attributed, and proposed end-to-end outcome and rollout checks.
+
+These were one-shot synthetic diagnostics of the candidate methods, not before/after comparisons, customer production results, or proof of consistent behavior across hosts. The exact underlying subagent model version was not recorded. Reproducible inputs and review criteria are in the [delivery evaluation pack](../evals/delivery/README.md#user-validation-and-systems-judgment-f20-f22).
+
 Completed synthetic diagnostics include:
 
 - **Standalone tasks:** discovery, options, integration, readout, handoff, planning and runbook drafting using copied task packages without the coordinator. They produced useful results while retaining unknown ownership, unmeasured baselines and untested recovery. Integration exercised a local HTTP receiver, including a lost response after a committed write. These were small reviewer-run trials, not repeated comparisons or live customer integrations.

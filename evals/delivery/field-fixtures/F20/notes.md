@@ -1,0 +1,1 @@
+The POC claim is that service coordinators can correct routing suggestions without help. The staging API checks pass. Sponsor Maya liked the demo and approved another day of investigation, not rollout. Two coordinators described when they might use it, but neither has tried it. Operators are available tomorrow. No adoption measurement exists.

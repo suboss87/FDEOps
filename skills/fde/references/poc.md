@@ -16,7 +16,9 @@ A green check on synthetic data is not a validated solution. The person who can 
 
 **1. Pick by score when several use cases compete.** Use the scoring model from `discover.md` - (Value × Data readiness) / Complexity. If discover or score-use-cases already produced a ranking, reuse it; never invent a third ranking.
 
-**2. Build the minimum that tests the assumption.** Timebox the experiment with the FDE; aim for a same-day result when access and evidence permit it. Skip cosmetic polish, but keep the input validation, access controls, and failure handling needed to protect the test environment and data. Label shortcuts and simulated inputs. The POC is done when the person who can say no has seen the evidence and reacted, not when the code looks finished.
+**2. Build the minimum that tests the assumption.** Timebox the experiment with the FDE; aim for a same-day result when access and evidence permit it. Skip cosmetic polish, but keep the input validation, access controls, and failure handling needed to protect the test environment and data. Label shortcuts and simulated inputs. Complete the POC when the agreed assumption test has a recorded result and the responsible decision-maker has reviewed it; distinguish evidence from permission to proceed.
+
+**2b. Observe use when the assumption concerns people.** For a workflow or usability claim, ask an affected user to attempt a representative task in a permitted environment. Record completion, errors, help needed and their feedback against the agreed pass/fail check. A sponsor liking the demo is not evidence that users can complete the task. If user access is unavailable, report that validation as pending and continue independent technical checks. A successful task trial supports usability under those conditions; sustained adoption needs evidence from actual use over an appropriate period. Carry findings into the next prototype or plan rather than treating feedback as automatic acceptance.
 
 **3. AI directions - test these before anything else:**
 - Data: available, clean, sufficient volume? Synthetic data can test mechanics, but does not establish production quality or real-world coverage.

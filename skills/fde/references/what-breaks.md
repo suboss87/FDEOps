@@ -68,6 +68,8 @@ Time to detect: <5 minutes via error rate alert
 
 **Ask the team:** "Is anything outside this repo reading from or writing to <the thing you're changing>?" The answer is almost always "yes, and here's one we forgot about."
 
+**5b. Check the consequences of success.** When a change alters throughput, workload or decision-making, trace what happens if it works as intended. Does faster intake move the queue to another team, increase review or recovery work, or reward a local metric while the overall outcome worsens? Use known capacity and observed behavior; label missing evidence rather than inventing downstream harm. Name the affected owner and an end-to-end outcome signal alongside the local improvement. Carry a relevant check into the existing plan and ship pulse. Skip this expansion when the change has no material workflow effect.
+
 **6. The 2am test.** For any SYSTEMIC or IRREVERSIBLE change, ask: "If this fails at 2am on Saturday, who gets woken up, what do they see, and what can they do?" If the answer is "they see nothing until Monday" - the monitoring plan needs work before the change ships.
 
 ## Artifact

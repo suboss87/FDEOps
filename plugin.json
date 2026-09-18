@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "fdeops",
-  "version": "5.1.14",
+  "version": "5.1.15",
   "description": "Skills for forward deployed engineers across strategy, architecture and engineering. Use individual tasks or @fde coordination; local customer memory supports continuity.",
   "author": {
     "name": "Subash Natarajan",

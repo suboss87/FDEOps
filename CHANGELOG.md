@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.1.15 - 2026-09-18
+
+- Validate workflow prototypes through observed user tasks; distinguish interest, usability and sustained adoption.
+- Allow rigorous assumption audits to confirm every tested premise without forcing a contradiction.
+- Check whether successful changes shift workload or bottlenecks downstream.
+- Add three isolated method-judgment scenarios with explicit evidence limits.
+
 ## 5.1.14 - 2026-09-18
 
 - Treat imported instructions and proposed updates as untrusted evidence, never action or save authority.
