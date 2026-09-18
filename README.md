@@ -14,8 +14,6 @@ I built FDEOps around how I approach customer work: start with the real problem,
 
 ## Quick start
 
-**Use your customer’s approved AI tools and data.** The FDEOps CLI runs locally; your AI host may send what it reads to its provider. Start with synthetic data until customer access is approved. [Safe setup](SECURITY.md#before-customer-work).
-
 ### Let `fde` coordinate a customer project
 
 Install in the terminal where your AI coding agent runs, then select your agent:
@@ -122,6 +120,8 @@ Copy an action into your agent to continue. Regenerate the view after record upd
 <a name="your-data-stays-yours"></a>
 
 ## Local records, explicit data boundaries
+
+Try an individual skill with sample data in your AI coding agent. For customer work, including regulated or production projects, use a customer-approved setup with a local model or an approved LLM provider, and data permitted for that setup. [Setup guidance](SECURITY.md#before-customer-work).
 
 The CLI reads local files and Git without network calls or telemetry. Installation may download packages. Your AI host controls model connections and may transmit what it reads.
 
