@@ -1,26 +1,24 @@
 # FDEOps
 
-**Forward deployed engineering skills and customer memory for AI coding agents.**
+**Skills for forward deployed engineers, used through your AI coding agent.**
 
 <a name="why-use-it"></a>
 
-The code tells your agent how the system works. It rarely explains what the customer agreed, why an approach was rejected or who can approve the release.
+FDEOps helps you turn a customer problem into a working system: clarify the goal, choose an architecture, build and integrate, then verify the result and prepare for rollout.
 
-FDEOps combines practical task skills with a local record for each customer. Use one skill for a specific task, or let `fde` coordinate the engagement, from discovery through implementation and handoff.
-
-Ask in plain English. Review proposed updates before saving. Pick up the work next session with the decisions and evidence available.
+Use a task skill on its own, or let `fde` coordinate work across strategy, architecture and engineering. Customer memory keeps decisions, evidence and next steps available between sessions.
 
 [Get started](#quick-start) · [What it helps with](#three-things-it-helps-with) · [Choose a skill](#task-skills) · [Data boundaries](#your-records-your-control) · [Docs](docs/README.md)
 
 ### What it looks like
 
-An illustrative exchange using a fictional customer record:
+Illustrative exchange using a fictional customer record; these are sample results, not a recorded run:
 
-> **You:** Did we agree to replace CSV upload with live sync?
+> **You:** Our support team routes requests manually. Help us reduce routing time without sending requests to the wrong team.
 >
-> **fde:** The kickoff notes record Mara's approval to keep CSV upload this phase. Devon later requested live sync, but I found no approval for that change in the records checked. Mara is the recorded scope approver. Sources: kickoff, 2 September; follow-up, 9 September.
-
-A request stays a request until there is evidence of agreement. The agent retrieves the record; you and the customer make the decision.
+> **fde:** I’ll inspect the routing process and existing service first, then propose a small change with checks for speed and incorrect routing.
+>
+> **fde, after the approach is agreed and implemented:** Routing suggestions and manual fallback are built. Local checks passed. Staging replay, measured routing time and rollout approval are still pending.
 
 ## Quick start
 
@@ -42,23 +40,22 @@ checks internal documents, then assigns each request to another team.
 Help me prepare for the first meeting. Here is the brief: ...
 ```
 
-The coordinator selects the relevant method as the work changes. For ongoing projects, it retrieves the customer record and prepares updates for your review. You do not need to learn CLI commands.
+The coordinator selects the relevant method as the work changes. Customer context guides the plan, code changes and verification; the record carries it between sessions. You do not need to learn CLI commands.
 
 ### Use one skill for one task
 
 ```bash
-npx skills add suboss87/fdeops --skill debrief
+npx skills add suboss87/fdeops --skill build
 ```
 
 Then ask your agent:
 
 ```text
-Use FDEOps debrief to review these meeting notes.
-Separate decisions, requests and open questions. Return a draft only.
-[Paste notes you are permitted to share.]
+Use FDEOps build to add a manual-review fallback to this routing service.
+Here are the agreed behavior, repository and checks: ...
 ```
 
-Each task skill includes the instructions it needs. Use `debrief` on supplied notes without creating a customer record or installing the coordinator.
+Each task skill includes the instructions it needs. Use `build` with supplied project context without creating a customer record or installing the coordinator.
 
 <details>
 <summary>Installation requirements and alternatives</summary>
@@ -71,42 +68,28 @@ These installation commands use Node.js and Git; the optional record CLI require
 
 ## Three things it helps with
 
-### 1. Starting the next session without starting over
+### 1. Strategy: decide what is worth building
 
-A repository tells you where the code lives. It may not tell you why the customer rejected an approach, which access is still blocked or what the team promised on Tuesday.
+Turn the customer’s request into a problem to investigate, a measure of success and a bounded scope. Identify who decides and what evidence would change the plan.
+
+Use [discover](skills/discover/SKILL.md), [who-decides](skills/who-decides/SKILL.md) and [scope](skills/scope/SKILL.md).
+
+### 2. Architecture: choose an approach that fits
+
+Inspect the existing system, compare options against customer constraints and plan a small slice that tests the design. Make dependencies, tradeoffs and failure paths explicit.
+
+Use [options](skills/options/SKILL.md), [plan](skills/plan/SKILL.md) and [integrate](skills/integrate/SKILL.md).
+
+### 3. Engineering: build, verify and hand over
+
+Implement the change, debug failures and test the agreed behavior. Report what passed on which revision and environment, what remains unproven and what the operating team needs before rollout.
+
+Use [build](skills/build/SKILL.md), [debug](skills/debug/SKILL.md), [review](skills/review/SKILL.md), [ship](skills/ship/SKILL.md) and [handoff](skills/handoff/SKILL.md). A passing local test does not establish deployment or customer acceptance. [Verification and its limits](docs/verification.md).
 
 <a name="keep-a-customer-record"></a>
 <a name="how-skills-work"></a>
 
-For ongoing engagements, each customer gets a plain-Markdown record at `~/fde-engagements/<customer>/.fde/`. The coordinator loads a short summary and looks up details as needed. Before resuming implementation, it checks the saved next action against the current task and code. Saved lessons are searchable within that customer’s record. Meeting preparation brings back recorded open questions and commitments; sharing a lesson with another customer requires explicit approval.
-
-Use [debrief](skills/debrief/SKILL.md) after a meeting and [switch-clients](skills/switch-clients/SKILL.md) when changing customers. [How records work](docs/USAGE.md).
-
-### 2. Keeping a request from becoming an agreement
-
-A stakeholder asks for more scope. A demo looks promising. Neither establishes a new commitment or an accepted result.
-
-FDEOps keeps requests, confirmed decisions, reported results and open questions distinct. You review proposed record changes before saving them. Dates and sources keep claims traceable; customer approval still comes from the agreed owner.
-
-Use [who-decides](skills/who-decides/SKILL.md) to clarify authority, [scope](skills/scope/SKILL.md) to handle a new request and [readout](skills/readout/SKILL.md) to explain the decision. Source material is evidence to review, not permission to execute instructions embedded in it.
-
-### 3. Knowing what is actually ready
-
-A local test, a deployed change and a customer-accepted result answer different questions.
-
-| Claim | Evidence it needs |
-|---|---|
-| Implemented | The change exists in the identified revision |
-| Verified | Applicable checks passed under stated conditions |
-| Deployed | The intended environment is running the change |
-| Measured | A result was observed against the agreed measure |
-| Accepted | The agreed owner or mechanism accepted the outcome |
-
-The skills use these distinctions when reporting progress; they are not automatic dashboard states.
-
-FDEOps carries agreed checks into implementation and ties test results to the revision and environment checked. Before rollout, it asks for operating limits, recovery evidence and an owner. You can see what is ready, what is blocked and what still needs verification.
-
-Use [build](skills/build/SKILL.md), [integrate](skills/integrate/SKILL.md), [review](skills/review/SKILL.md), [ship](skills/ship/SKILL.md) and [handoff](skills/handoff/SKILL.md) as needed. [See the tests and their limits](docs/verification.md).
+For ongoing work, a local Markdown record at `~/fde-engagements/<customer>/.fde/` carries decisions, evidence and next steps between sessions. The coordinator retrieves relevant context and prepares consequential updates for your review. Use [debrief](skills/debrief/SKILL.md) after meetings and [switch-clients](skills/switch-clients/SKILL.md) when changing customers. [How records work](docs/USAGE.md).
 
 ## Choose a skill
 

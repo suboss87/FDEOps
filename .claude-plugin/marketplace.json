@@ -4,15 +4,15 @@
     "name": "Subash Natarajan",
     "url": "https://github.com/suboss87"
   },
-  "description": "Forward deployed engineering task skills and @fde coordination, with local engagement records.",
+  "description": "Skills for forward deployed engineers across strategy, architecture and engineering. Use individual tasks or @fde coordination; local customer memory supports continuity.",
   "metadata": {
-    "description": "Forward deployed engineering task skills and @fde coordination, with local engagement records."
+    "description": "Skills for forward deployed engineers across strategy, architecture and engineering. Use individual tasks or @fde coordination; local customer memory supports continuity."
   },
   "plugins": [
     {
       "name": "fdeops",
       "source": "./",
-      "description": "Use focused skills for discovery, scope, implementation, integration, debugging, evaluation, release and handoff. Or use @fde to coordinate the engagement and keep confirmed decisions and evidence in local .fde/ records."
+      "description": "Skills for forward deployed engineers across strategy, architecture and engineering. Use individual tasks or @fde coordination; local customer memory supports continuity."
     }
   ]
 }

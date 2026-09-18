@@ -1,12 +1,14 @@
-# Fieldbook design
+# FDEOps product and fieldbook design
 
-## Users
+## Product purpose
 
-Forward Deployed Engineers and independent experts managing several client engagements. They open the fieldbook before a meeting, after an interruption, or while preparing a handover, often on a laptop and sometimes on a phone.
+Help Forward Deployed Engineers turn customer problems into working systems through skills for strategy, architecture and engineering. Use individual task skills with an AI coding agent, or `fde` to coordinate ongoing work. Local customer memory supports continuity between sessions.
 
-## Product Purpose
+## Fieldbook users and purpose
 
-Make the next action, unresolved risk, supporting evidence, and recorded acceptance easy to inspect across clients. The local Markdown record remains authoritative; the dashboard is a generated read-only view. Work continues through one `@fde` entry or the local CLI.
+Forward Deployed Engineers and independent experts managing several client engagements open the fieldbook before a meeting, after an interruption or during handover, on laptops and phones.
+
+The fieldbook makes next actions, risks, evidence and recorded acceptance easy to inspect. It is a generated read-only view; the local Markdown record remains authoritative. Continue work through the skills or local CLI.
 
 ## Brand Personality
 
