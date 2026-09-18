@@ -8,6 +8,8 @@ FDEOps helps you turn a customer problem into a working system: clarify the goal
 
 Use a task skill on its own, or let `fde` coordinate work across strategy, architecture and engineering. Customer memory keeps decisions, evidence and next steps available between sessions.
 
+I built FDEOps around how I approach customer work: start with the real problem, question assumptions, understand the wider system, and test decisions against evidence. The skills bring that approach into your AI coding agent.
+
 [Get started](#quick-start) · [What it helps with](#three-things-it-helps-with) · [Choose a skill](#task-skills) · [Data boundaries](#your-records-your-control) · [Docs](docs/README.md)
 
 ## Quick start
