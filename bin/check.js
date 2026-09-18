@@ -194,11 +194,15 @@ if (read('package.json').includes('postinstall')) {
 }
 
 const readme = read('README.md')
-if (!readme.includes('media/chat-demo.gif') || !readme.includes('media/chat-demo.md') || !readme.includes('Fictional customers')) {
-  fail('README must include the chat walkthrough, text alternative and fictional-record disclosure')
-} else if (['chat-demo.gif', 'chat-demo.png', 'chat-demo.json', 'chat-demo.md', 'render-chat-demo.py'].some(name => !fs.existsSync(path.join(root, 'media', name)))) {
-  fail('chat walkthrough must include rendered assets, text, source and renderer')
-} else ok('README chat walkthrough has accessible text and reproducible source')
+if (readme.includes('media/chat-demo.gif')) {
+  if (!readme.includes('media/chat-demo.md') || !/fictional/i.test(readme)) {
+    fail('README animation must include a text alternative and fictional-data disclosure')
+  } else if (['chat-demo.gif', 'chat-demo.png', 'chat-demo.json', 'chat-demo.md', 'render-chat-demo.py'].some(name => !fs.existsSync(path.join(root, 'media', name)))) {
+    fail('chat walkthrough must include rendered assets, text, source and renderer')
+  } else ok('README animation has accessible text and reproducible source')
+} else if (!/fictional customer record/i.test(readme) || !readme.includes('> **You:**') || !readme.includes('> **fde:**')) {
+  fail('README must show a readable example with fictional-data disclosure')
+} else ok('README has a text example with fictional-data disclosure')
 
 const usage = read('docs/USAGE.md')
 if (!usage.includes('media/session.gif') || !usage.includes('media/record-session.sh')) {

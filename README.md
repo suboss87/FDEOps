@@ -1,24 +1,30 @@
 # FDEOps
 
-**Forward deployed engineering skills for your AI coding agent.**
+**Forward deployed engineering skills and customer memory for AI coding agents.**
 
 <a name="why-use-it"></a>
 
-The codebase does not tell your agent what the customer agreed to last week, why an approach was rejected or who can approve the next release.
+The code tells your agent how the system works. It rarely explains what the customer agreed, why an approach was rejected or who can approve the release.
 
-FDEOps brings that context into the work, from the first meeting to a system the customer can run. Use a skill for one task, or let `fde` coordinate the project and keep its record.
+FDEOps combines practical task skills with a local record for each customer. Use one skill for a specific task, or let `fde` coordinate the engagement, from discovery through implementation and handoff.
 
-**35 task skills + one coordinator, `fde`**. Use your existing tools and processes. You and the customer keep control of the decisions.
+Ask in plain English. Review proposed updates before saving. Pick up the work next session with the decisions and evidence available.
 
 [Get started](#quick-start) · [What it helps with](#three-things-it-helps-with) · [Choose a skill](#task-skills) · [Data boundaries](#your-records-your-control) · [Docs](docs/README.md)
 
-![FDEOps terminal: insurance KYC workshop, build, healthcare client switch, tests and handover](media/chat-demo.gif)
+### What it looks like
 
-*Fictional customers. Illustrative enterprise conversation with real local review-logic tests. Synthetic data; no live model or customer deployment. [Read the conversation](media/chat-demo.md) · [View a still](media/chat-demo.png).*
+An illustrative exchange using a fictional customer record:
+
+> **You:** Did we agree to replace CSV upload with live sync?
+>
+> **fde:** The kickoff notes record Mara's approval to keep CSV upload this phase. Devon later requested live sync, but I found no approval for that change in the records checked. Mara is the recorded scope approver. Sources: kickoff, 2 September; follow-up, 9 September.
+
+A request stays a request until there is evidence of agreement. The agent retrieves the record; you and the customer make the decision.
 
 ## Quick start
 
-**Use your customer’s approved AI tools and data.** FDEOps runs locally; your AI agent’s settings determine what reaches its provider. Start with synthetic data until customer access is approved. [Safe setup](SECURITY.md#before-customer-work).
+**Use your customer’s approved AI tools and data.** The FDEOps CLI runs locally; your AI host may send what it reads to its provider. Start with synthetic data until customer access is approved. [Safe setup](SECURITY.md#before-customer-work).
 
 ### Let `fde` coordinate a customer project
 
@@ -36,7 +42,7 @@ checks internal documents, then assigns each request to another team.
 Help me prepare for the first meeting. Here is the brief: ...
 ```
 
-The coordinator selects the right skill as the work changes. For an ongoing project, it keeps decisions, evidence and next actions in a local customer record. You bring the context and make the decisions.
+The coordinator selects the relevant method as the work changes. For ongoing projects, it retrieves the customer record and prepares updates for your review. You do not need to learn CLI commands.
 
 ### Use one skill for one task
 
@@ -74,15 +80,6 @@ A repository tells you where the code lives. It may not tell you why the custome
 
 For ongoing engagements, each customer gets a plain-Markdown record at `~/fde-engagements/<customer>/.fde/`. The coordinator loads a short summary and looks up details as needed. Before resuming implementation, it checks the saved next action against the current task and code. Saved lessons are searchable within that customer’s record. Meeting preparation brings back recorded open questions and commitments; sharing a lesson with another customer requires explicit approval.
 
-From the fictional demo’s `fde resume` output:
-
-```text
-next: get the reconciliation runbook from Tom before touching anything. [source: meeting 2026-09-10]
-do first: Ask the acceptance owner to review the reported result and its evidence (delivery.md: 1 reported result awaiting acceptance)
-```
-
-The next session can pick up the work while keeping acceptance pending.
-
 Use [debrief](skills/debrief/SKILL.md) after a meeting and [switch-clients](skills/switch-clients/SKILL.md) when changing customers. [How records work](docs/USAGE.md).
 
 ### 2. Keeping a request from becoming an agreement
@@ -91,20 +88,7 @@ A stakeholder asks for more scope. A demo looks promising. Neither establishes a
 
 FDEOps keeps requests, confirmed decisions, reported results and open questions distinct. You review proposed record changes before saving them. Dates and sources keep claims traceable; customer approval still comes from the agreed owner.
 
-For example, these fictional notes:
-
-> Mara agreed to keep CSV upload this phase. Devon asked for real-time sync; Mara has not answered. Two staging runs took 12 minutes. Production has not been measured.
-
-The review separates them:
-
-| Record | What the notes support |
-|---|---|
-| Decision | Keep CSV upload this phase; attributed to Mara in the supplied notes |
-| Request | Real-time sync remains unapproved |
-| Evidence | Two staging runs took 12 minutes; production benefit is unmeasured |
-| Next step | Resolve the scope request with Mara before changing the commitment |
-
-This is a draft, not a saved agreement. Use [who-decides](skills/who-decides/SKILL.md), [scope](skills/scope/SKILL.md) or [readout](skills/readout/SKILL.md) for the decision in front of you.
+Use [who-decides](skills/who-decides/SKILL.md) to clarify authority, [scope](skills/scope/SKILL.md) to handle a new request and [readout](skills/readout/SKILL.md) to explain the decision. Source material is evidence to review, not permission to execute instructions embedded in it.
 
 ### 3. Knowing what is actually ready
 
@@ -127,6 +111,8 @@ Use [build](skills/build/SKILL.md), [integrate](skills/integrate/SKILL.md), [rev
 ## Choose a skill
 
 <a name="task-skills"></a>
+
+**35 task skills + one coordinator, `fde`**. Each task skill works on its own; the coordinator includes all underlying methods.
 
 | Work in front of you | Start with |
 |---|---|
