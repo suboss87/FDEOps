@@ -119,15 +119,12 @@ Copy an action into your agent to continue. Regenerate the view after record upd
 <a name="your-records-your-control"></a>
 <a name="your-data-stays-yours"></a>
 
-## Local records, explicit data boundaries
-
-Try an individual skill with sample data in your AI coding agent. For customer work, including regulated or production projects, use a customer-approved setup with a local model or an approved LLM provider, and data permitted for that setup. [Setup guidance](SECURITY.md#before-customer-work).
-
-The CLI reads local files and Git without network calls or telemetry. Installation may download packages. Your AI host controls model connections and may transmit what it reads.
-
-CLI and hook outputs mask common identifier patterns. `<private>` blocks are redacted from those outputs and the dashboard. Local reports retain unmarked identifiers by default. These filters cover FDEOps output, not raw files or text you paste into an agent. Use only approved material, including when anonymised.
-
-You review consequential record updates. Enabled hooks can save mechanical session progress; direct CLI write commands update records when run. [Privacy](PRIVACY.md) · [Security](SECURITY.md) · [Local-model results](docs/verification.md#local-model-results).
+> [!NOTE]
+> **Use FDEOps with the setup that fits your work.** Try individual skills with sample data, or use a customer-approved local model or LLM provider for customer projects, including regulated and production work.
+>
+> Customer records stay in local files. The FDEOps CLI makes no network calls; your AI coding agent’s settings determine what it sends to a model provider. Use data approved for that setup.
+>
+> [Setup guidance](SECURITY.md#before-customer-work) · [Privacy and masking](PRIVACY.md) · [Local-model results](docs/verification.md#local-model-results)
 
 ## Who this is for
 
