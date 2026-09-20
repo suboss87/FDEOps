@@ -11,14 +11,14 @@
     "references/discover.md": "f65aa11a539b4dbbed70cfaa94ec2a35595aa9a2d0282790510b933ac9c721ce",
     "references/eval-pack.md": "0590b85d3cae0903c6b1274540c92eaa2a4373047e8a0548d6942516ef0bb9e1",
     "references/integrate.md": "1cb7a60d7545b0bf224fce678a04ce6ccdf368c47877d9c8e4dc4272bb0d5b0c",
-    "references/plan.md": "6c37976169723f93d3554092979569a9640bcf02bd179bad52b17815c1c30f86",
+    "references/plan.md": "f5c456b5e2c00a6a44fdf94935b143f3b5271c31187bf06d09eae724f9d466fa",
     "references/poc.md": "65c91866037dc034a64484683ad9a329896786f1487265c9fddecd19b09a3039",
     "references/qa.md": "41de4d70827c83291efa217e97d777f62ec2849827687fbba7e4b1d17484b87e",
     "references/review.md": "55733ca868c00fb22110bc7b3ec7bb6c6451366c795073b19a2bccd30d2764c8",
     "references/ship.md": "95f51772b29de6f7d174f1f7678f15d46a3a5327dcb8facb94288e27907ae92c",
     "references/task-context.md": "9066514a50043f3ad888d133d4e8b89b7132551e098cf2c80203c458a80126e5",
-    "references/test-assumptions.md": "b3349a5f82e741e34fb0d17e16712a070b31d87f413e554be40374dd79152086",
-    "references/three-options.md": "168fab9fb8ac8de85b0d1fa58e1db17deaa244cdef8c99623a04a0a6c70fe52c",
+    "references/test-assumptions.md": "977acbf88dc0468afeb0fb222fae88100ee6a5078a729e0651c28a45870e3925",
+    "references/three-options.md": "2c979027c09af936f9a50446721e344f15e3e3bf43d3c1b7b0b85240747168c4",
     "references/verification.md": "8ee2502112a37eedfdacf929041e7b91e9e6fabb007408a1ee2e2992e3af6ff6"
   }
 }

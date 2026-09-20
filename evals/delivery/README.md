@@ -262,3 +262,13 @@ These standalone, fictional cases exercise existing methods without new records 
 - **F22, what-breaks:** assess whether successful automation shifts work into a downstream queue, with an affected owner and end-to-end outcome check. Distinguish forecast overload from observed production behavior.
 
 Prepare each using `node evals/delivery/field.js prepare <run-dir> F20 fdeops` (substitute the case ID). Start a fresh session with only the executor prompt and permitted fixture; keep the rubric outside the session. Each case permits only `answer.md`. Review evidence attribution, next actions and tool traces, then run the existing artifact check. One successful response is a diagnostic, not proof of consistent behavior or comparative improvement.
+
+## Changed decisions and bounded progress (F23-F25)
+
+These fictional, standalone cases use the same preparation and artifact checks above. Each permits only `answer.md`; no customer records or external actions are authorized.
+
+- **F23, debrief:** new evidence contradicts the premise behind an approved retry decision. Identify dependent work needing reconsideration, preserve historical approval, and keep independent work separate from an unsupported report.
+- **F24, test-assumptions:** an unresolved critical production permission blocks dependent commitments, while a provisional plan and already authorized offline work can proceed.
+- **F25, options:** choose a bounded mapping check to distinguish alternatives, with an evidence owner and conditional next steps. A passed compatibility check is not delivery approval.
+
+Review actual tool calls, attribution, authority and preservation of input hashes. Keep evaluator rubrics outside executor sessions. Passing individual diagnostics does not establish reliability or superiority over another skill pack.

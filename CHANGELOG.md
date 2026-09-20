@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.1.16 - 2026-09-20
+
+- Trace changed customer premises to affected decisions and delivery work, preserving prior approvals and pending replacements.
+- Keep provisional planning and independent authorized work moving when a critical dependency is unresolved.
+- Resolve pending options with the smallest useful evidence check and a named evidence owner.
+- Add three fictional regression scenarios and document diagnostic results and limits.
+
 ## 5.1.15 - 2026-09-18
 
 - Validate workflow prototypes through observed user tasks; distinguish interest, usability and sustained adoption.

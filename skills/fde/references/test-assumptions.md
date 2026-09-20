@@ -33,10 +33,10 @@ Then classify blast radius:
 
 ```
 CRITICAL - if wrong, the engagement fails or the approach changes fundamentally
-  → Must be validated before plan starts
+  → Resolve before dependent commitments; provisional planning may proceed
 
 LOAD-BEARING - if wrong, significant rework or timeline change
-  → Must be validated before build starts
+  → Resolve before dependent build work; independent authorized work may proceed
 
 CONVENIENCE - if wrong, a task changes but the approach holds
   → Validate when you get there
@@ -72,15 +72,15 @@ Evidence first, then the question. Let them reach the conclusion.
 | 3 | Data clean enough for ML | UNKNOWN | CRITICAL | 200-record sample | PARTIAL → OPEN follow-up | 12% nulls on key field; cleaning task added |
 ```
 
-Status values: `OPEN` · `TESTING` · `CONFIRMED` · `DISPROVED` · `PARKED`. A CRITICAL row still `OPEN` blocks plan.
+Status values: `OPEN` · `TESTING` · `CONFIRMED` · `DISPROVED` · `PARKED`. An unresolved CRITICAL assumption blocks commitments and execution that depend on it. A provisional plan and independently authorized work may proceed with that dependency explicit.
 
 **`reality.md`** - short pointer only: which assumptions changed the approach and the implication for build.
 
-**`decisions.md`** - if an assumption was disproved and the approach changed: what shifted, why, the evidence, same day.
+**`decisions.md`** - when evidence changes a premise, check the affected prior decisions and slices even if nobody has revised the approach yet. Name the dependency, evidence and commitment needing reconsideration. Preserve the earlier decision as history; a proposed replacement is not approved. Keep independently authorized work moving and follow the existing record-confirmation rules.
 
 ## Checkpoint
 
-Tell the FDE: how many assumptions extracted, how many critical, which ones were tested, which changed the direction. If a critical assumption is disproved: recommend the next move (rescope, pivot, or the conversation with the sponsor) before the FDE asks. If any CRITICAL remains OPEN: do not route to plan.
+Tell the FDE: how many assumptions extracted, how many critical, which ones were tested, which changed the direction. If a critical assumption is disproved: recommend the next move (rescope, pivot, or the conversation with the sponsor) before the FDE asks. For each unresolved CRITICAL assumption, name the dependent commitment that must wait and the independently authorized work that can continue; route provisional planning with those limits explicit.
 
 ## Worked example
 

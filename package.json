@@ -1,6 +1,6 @@
 {
   "name": "fdeops",
-  "version": "5.1.15",
+  "version": "5.1.16",
   "description": "Skills for forward deployed engineers across strategy, architecture and engineering. Use individual tasks or @fde coordination; local customer memory supports continuity.",
   "bin": {
     "fdeops": "bin/install.js",

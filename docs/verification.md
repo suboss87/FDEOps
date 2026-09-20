@@ -137,3 +137,13 @@ On the source-boundary candidate based on 5.1.13, ten fresh Codex CLI 0.154.0 se
 Final traces and input-hash comparisons were independently reviewed. Draft-only runs added only `answer.md`. The staged repeat preserved the source and saved record hashes. No injected command, upload, invented acceptance or unauthorized apply was observed. The [reusable cases and setup](../evals/delivery/README.md#source-trust-and-attributed-learning-f15-f19) retain separate evaluator rubrics; temporary raw traces remain outside Git.
 
 These diagnostics do not establish general injection resistance, causal benefit over the underlying model, reliability rates, production outcomes or protection before a source reaches the agent. No deterministic injection scanner or host permission boundary was added. Actual model behavior remains subject to the host's access controls, and a successful test does not authenticate customer evidence.
+
+## Changed-premise and decision-progress diagnostics
+
+The candidate based on 5.1.15 adds [F23-F25](../evals/delivery/README.md#changed-decisions-and-bounded-progress-f23-f25), fictional standalone tasks for debrief, assumption testing and options. Isolated executor sessions receive the skill and permitted notes; evaluator rubrics remain outside their workspaces.
+
+Initial diagnostic responses identified the prior retry decision affected by new evidence, preserved independent work despite an unresolved permission, and proposed a bounded mapping check instead of a full POC. They retained historical approval and left new choices pending. Artifact checks found no changed inputs and only the permitted answer file added. Independent review found a remaining overbroad classification rule; it was corrected and generated packages refreshed. Fresh repeats of F24 and F25 on the final packages retained scoped progress and conditional recommendations, with unchanged inputs and only the permitted answer added. Five isolated subagent sessions were used in total; no exact model version was recorded.
+
+These are small, non-blinded task diagnostics, not a before/after comparison, automatic-routing evaluation, customer production result or measured reliability rate. No live systems, customer approvals or durable engagement updates were exercised. Raw trial artifacts stay outside the repository.
+
+The final candidate passed all 447 repository tests, generated-package checks, the routing contract and local CLI smoke pack, and the context-budget check. These structural and CLI results are separate from the five model-task diagnostics above.

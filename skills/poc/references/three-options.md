@@ -72,6 +72,8 @@ The full option details in the same entry or linked to a section in `reality.md`
 
 Present the viable alternatives, recommendation, and the evidence or constraint that would change it. Reuse known decision authority; if a decision remains pending, record it as pending.
 
+For a pending choice, identify the uncertainty that could change the recommendation and the smallest permitted check that distinguishes the viable options. Reuse an existing assumption test when available. Name who can supply or verify the evidence (unknown if unconfirmed), and explain how either result changes the choice. Do not expand one compatibility check into a full POC without a reason. A passed check supports the choice; it does not establish delivery approval.
+
 ## Worked example
 
 Fictional example: a support team needs completed requests written back to its service system. Its product can export a file today. A supported connector is expected in six weeks; the customer wants automation in two. A custom API adapter looks feasible, but nobody has accepted its maintenance.

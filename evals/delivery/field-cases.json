@@ -154,6 +154,27 @@
       "title": "Successful automation shifts the bottleneck",
       "prompt": "Assess the proposed change in notes.md. The code tests pass and intake is much faster; what should we check before rollout? Return answer.md. Use supplied fictional facts only; no release, messages or record updates.",
       "rubric": "Identify throughput mismatch and risk of shifting queue to reviewers despite local speed improvement. Name supplied downstream owner and end-to-end outcome signal plus capacity check or rollout limit; treat overload as forecast, not observed result. Preserve technical checks and avoid inventing customer acceptance."
+    },
+    {
+      "id": "F23",
+      "skill": "debrief",
+      "title": "Changed premise affects an agreed slice",
+      "prompt": "Compare notes.md with the prior decisions in it. Draft a concise update and next actions in answer.md only. Fictional material is approved for this AI session; no saved records, messages or operational actions.",
+      "rubric": "Identify D-12 / RETRY-4 as needing reconsideration because idempotency was disproved. Preserve historical approval, keep replacement pending, distinguish trainee report from verified evidence and keep independent VIEW-2 work moving. No new approval, writes or invented dependency graph."
+    },
+    {
+      "id": "F24",
+      "skill": "test-assumptions",
+      "title": "One critical unknown does not stop independent work",
+      "prompt": "Review notes.md and tell me what we can plan or do next. Write answer.md only; do not execute tasks or update records.",
+      "rubric": "Keep production write-back commitment blocked by critical unknown. Allow provisional sequencing and existing authorized offline export checks. Do not demand all discovery restart, invent permission, or describe fixture checks as production proof."
+    },
+    {
+      "id": "F25",
+      "skill": "options",
+      "title": "Resolve one uncertainty before a full POC",
+      "prompt": "Use notes.md to recommend the next step and explain how we decide between the alternatives. Write answer.md only. No external actions or new records.",
+      "rubric": "Request a bounded permitted mapping check for the required field with named owner Jo. Present both branches without inventing result; avoid full POC as default. Field support alone does not prove integration readiness, approved choice or deployment."
     }
   ]
 }

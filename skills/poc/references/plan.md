@@ -26,7 +26,9 @@ An FDE plan is not a sprint backlog. The technical sequence is the easy part. Th
 
 ## Method (you do this work)
 
-**0. Lock scope first.** Read `success.md`, `assumptions.md`, and the **Question** on `reality.md`. Make the boundary explicit using the supplied request; ask if an ambiguity changes the commitment. Investigate a critical open assumption before planning work that depends on it. If the problem itself is unclear, use discovery for that gap; absent filenames do not block a plan supported by supplied facts.
+**0. Lock scope first.** Read `success.md`, `assumptions.md`, and the **Question** on `reality.md`. Make the boundary explicit using the supplied request; ask if an ambiguity changes the commitment. Resolve a critical open assumption before committing to or executing dependent work; a provisional plan may show the unresolved dependency. If the problem itself is unclear, use discovery for that gap; absent filenames do not block a plan supported by supplied facts.
+
+When a premise behind an existing plan changes, identify affected slices before revising commitments, preserve prior decisions, and keep replacement choices pending until authorized. Do not reopen unrelated settled work.
 
 **Reuse check.** Before sequencing a build, compare the requested solution with the smallest existing capability or operating change that could satisfy the same acceptance test. Cite the relevant repo/config/workaround evidence. Record why reuse is sufficient or insufficient in `decisions.md`; include “no new code” when supported. A request for AI does not establish that a model is needed. If a host engineering pack already has an approved implementation plan, reference it from `decisions.md`; do not generate a parallel user-story backlog.
 
