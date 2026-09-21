@@ -147,3 +147,13 @@ Initial diagnostic responses identified the prior retry decision affected by new
 These are small, non-blinded task diagnostics, not a before/after comparison, automatic-routing evaluation, customer production result or measured reliability rate. No live systems, customer approvals or durable engagement updates were exercised. Raw trial artifacts stay outside the repository.
 
 The final candidate passed all 447 repository tests, generated-package checks, the routing contract and local CLI smoke pack, and the context-budget check. These structural and CLI results are separate from the five model-task diagnostics above.
+
+## Customer intent continuity diagnostic (2026-09-20)
+
+Three fresh executor sessions used the unchanged 5.1.16 standalone `discover`, `plan` and `build` packages. A fictional support-reply workshop required human approval of current content before sending. Each stage received the original workshop and actual outputs from the preceding stages. The exact model identifier was unavailable. The independent test contract was withheld from executors.
+
+Discovery and planning preserved trusted-session authority, per-draft approval, edit invalidation, a fixed recipient and the sponsor's deferral of automatic sending. Implementation produced a dependency-free prototype with 25 passing Node tests. After source inspection, the independent contract passed all seven behavior groups, covering allowed delivery, forged approval, malformed identity, edited content and cross-draft approval. Production approval, customer acceptance and business value remained unproven.
+
+Twelve calibration tests check the evaluator against compliant implementations and deliberately broken variants. Independent artifact review found no remaining issues. Input comparisons confirmed unchanged supplied sources and skill copies. The repository gate passed all 459 tests, along with structural and generated-package checks.
+
+The [reusable diagnostic](../evals/delivery/intent-continuity/README.md) adds regression coverage; no skill change was required. This single, non-blinded chain does not establish reliability, superiority over another pack or continuity from handoff artifacts alone: the original workshop remained available throughout. It did not exercise automatic routing, bound customer memory, a real identity provider, concurrent work, persistence, live delivery or customer value.

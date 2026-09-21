@@ -272,3 +272,7 @@ These fictional, standalone cases use the same preparation and artifact checks a
 - **F25, options:** choose a bounded mapping check to distinguish alternatives, with an evidence owner and conditional next steps. A passed compatibility check is not delivery approval.
 
 Review actual tool calls, attribution, authority and preservation of input hashes. Keep evaluator rubrics outside executor sessions. Passing individual diagnostics does not establish reliability or superiority over another skill pack.
+
+## Customer intent across fresh sessions
+
+The [intent-continuity diagnostic](intent-continuity/README.md) carries one fictional workshop decision through separate discovery, plan and build sessions. An independent executable contract checks whether the resulting code enforces the agreed human approval boundary. It includes evaluator calibration tests, permitted inputs and explicit limits; it does not add a skill or invoke a model automatically.
