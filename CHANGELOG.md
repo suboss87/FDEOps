@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.1.17 - 2026-09-22
+
+- Fix Claude Code plugin hook commands so the plugin root expands correctly, including installation paths containing spaces.
+- Add regression coverage for all three configured hook commands. Thanks to @Marc-Medlock for reporting #157.
+
 ## 5.1.16 - 2026-09-20
 
 - Trace changed customer premises to affected decisions and delivery work, preserving prior approvals and pending replacements.
