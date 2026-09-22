@@ -1,7 +1,7 @@
 {
   "name": "fdeops",
   "description": "Skills for forward deployed engineers across strategy, architecture and engineering. Use individual tasks or @fde coordination; local customer memory supports continuity.",
-  "version": "5.1.17",
+  "version": "5.1.18",
   "category": "productivity",
   "tags": [
     "community-managed"

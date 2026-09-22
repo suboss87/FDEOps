@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.1.18 - 2026-09-22
+
+- Preserve distinct staged notes when source and title match within the same second, including concurrent staging.
+- Make installer initialization honor the configured engagement root so later binding uses the same record.
+- Include version metadata with the disk-installed CLI and keep privacy guidance available for legacy installs without metadata.
+
 ## 5.1.17 - 2026-09-22
 
 - Fix Claude Code plugin hook commands so the plugin root expands correctly, including installation paths containing spaces.

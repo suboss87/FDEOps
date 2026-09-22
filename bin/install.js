@@ -22,7 +22,8 @@ const LIB_SRC = path.join(__dirname, 'lib')
 const GLOBAL_SKILLS_DIR = path.join(os.homedir(), '.claude', 'skills')
 const GLOBAL_HOOKS_DIR = path.join(os.homedir(), '.claude', 'hooks')
 const HOOK_SCRIPTS = ['session-start', 'session-stop', 'pre-compact']
-const ENGAGEMENTS_ROOT = path.join(os.homedir(), 'fde-engagements')
+const ENGAGEMENTS_ROOT = (process.env.FDEOPS_ENGAGEMENTS_ROOT || '').trim().replace(/^~/, os.homedir())
+  || path.join(os.homedir(), 'fde-engagements')
 
 function copyDir(src, dest) {
   checkTree(src, dest)
@@ -268,6 +269,7 @@ function installSkills(opts = {}) {
   mkdir(cliHome)
   copyFile(path.join(__dirname, 'fde.js'), path.join(cliHome, 'fde.js'))
   copyDir(LIB_SRC, path.join(cliHome, 'lib'))
+  copyFile(path.join(__dirname, '..', 'package.json'), path.join(cliHome, 'package.json'))
   try { fs.chmodSync(path.join(cliHome, 'fde.js'), '755') } catch (_) {}
   copyDir(FDE_TEMPLATES_SRC, path.join(cliHome, 'templates', '.fde'))
 

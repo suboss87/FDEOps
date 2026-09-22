@@ -2578,19 +2578,29 @@ function cmdIngest(args) {
     checkedInbox(eng)
   } catch (e) { failFs(e, 'create inbox', box) }
   const compact = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
-  const id = `${compact}-${source}-${titleSlug}.md`
-  const dest = path.join(box, id)
-  const body = [
-    '---',
-    `source: ${source}`,
-    `title: ${title.replace(/\n/g, ' ')}`,
-    `staged: ${new Date().toISOString()}`,
-    `id: ${id}`,
-    '---',
-    '',
-    input.replace(/\s+$/, '') + '\n',
-  ].join('\n')
-  withFileLock(dest, () => { atomicWriteFile(dest, body) })
+  const stem = `${compact}-${source}-${titleSlug}`
+  let id, dest
+  // Serialize name selection with the write: two agents can stage in one second.
+  withFileLock(path.join(box, '.stage'), () => {
+    let suffix = 0
+    while (true) {
+      id = `${stem}${suffix ? `-${suffix}` : ''}.md`
+      dest = path.join(box, id)
+      try { fs.lstatSync(dest); suffix++ }
+      catch (error) { if (error.code === 'ENOENT') break; throw error }
+    }
+    const body = [
+      '---',
+      `source: ${source}`,
+      `title: ${title.replace(/\n/g, ' ')}`,
+      `staged: ${new Date().toISOString()}`,
+      `id: ${id}`,
+      '---',
+      '',
+      input.replace(/\s+$/, '') + '\n',
+    ].join('\n')
+    atomicWriteFile(dest, body)
+  })
   console.log(`staged → ${dest}`)
   console.log(`id: ${id}`)
   console.log('next:   fde ingest propose ' + id)
@@ -3932,9 +3942,13 @@ function cmdDashboard(args) {
 // Stamped into the vault so a stale folder is identifiable. Best-effort: a
 // missing package.json must not stop an FDE generating their vault.
 function cliVersion() {
-  try {
-    return String(JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8')).version || '')
-  } catch (_) { return '' }
+  for (const file of [path.join(__dirname, 'package.json'), path.join(__dirname, '..', 'package.json')]) {
+    try {
+      const metadata = JSON.parse(fs.readFileSync(file, 'utf8'))
+      if (metadata.name === 'fdeops' && typeof metadata.version === 'string') return metadata.version
+    } catch (_) {}
+  }
+  return ''
 }
 
 function valueLedgerRows(eng) {
@@ -4318,7 +4332,7 @@ switch (cmd) {
   case 'setup': finishAsync(setup.command(setupStore, args)); break
   case 'privacy':
     if (args.length) { console.error('usage: fde privacy'); process.exitCode = 2; break }
-    console.log(`FDEOps ${require('../package.json').version} - identifier masking enabled by default.\nCLI responses, smart proposals, handoff packets and ingest MCP results use local aliases.\nPatterns: common emails, international/US phones, SSN-shaped identifiers and supported credentials.\nNames and arbitrary sensitive prose are not automatically detected; mark them <private> or supply local custom terms with fde setup.\nRaw files, pasted chat and upstream MCP content bypass this protection. Local reports retain identifiers by default; fde setup can also mask newly generated report content.`)
+    console.log(`FDEOps ${cliVersion() || '(version unavailable)'} - identifier masking enabled by default.\nCLI responses, smart proposals, handoff packets and ingest MCP results use local aliases.\nPatterns: common emails, international/US phones, SSN-shaped identifiers and supported credentials.\nNames and arbitrary sensitive prose are not automatically detected; mark them <private> or supply local custom terms with fde setup.\nRaw files, pasted chat and upstream MCP content bypass this protection. Local reports retain identifiers by default; fde setup can also mask newly generated report content.`)
     break
   case 'demo': cmdDemo(args); break
   case 'scan': cmdScan(); break
