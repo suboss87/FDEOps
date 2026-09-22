@@ -294,7 +294,10 @@ function placePointer(destPath, content, label, appendable) {
   mkdir(path.dirname(destPath))
   if (fs.existsSync(destPath)) {
     const existing = fs.readFileSync(destPath, 'utf8')
-    if (existing.includes(content.trim())) {
+    // Templates can change wording; a branded pointer remains installed.
+    const hasIdentity = existing.includes(FDE_MARKER) || /^#\s+fde(?:ops|os)\b/im.test(existing)
+    const hasSkillPointer = /\bskills\/fde\/SKILL\.md\b/.test(existing)
+    if (hasIdentity && hasSkillPointer) {
       console.log(`  skip   ${label} (already wired)`)
       return
     }

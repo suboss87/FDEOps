@@ -355,3 +355,18 @@ test('a brand mention or orphaned marker does not count as an installed adapter'
   assert.equal(f.run('adapters', f.workspace).status, 0)
   assert.deepEqual(files.map(name => fs.readFileSync(path.join(f.workspace, name), 'utf8')), first)
 })
+
+for (const identity of ['# fdeops - existing workspace adapter', '<!-- fdeops adapter - points your AI tool at @fde; safe to keep -->']) {
+  test(`adapter wording changes preserve an existing branded skill pointer: ${identity.slice(0, 12)}`, t => {
+    const f = fixture(t)
+    const names = ['AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md']
+    const existing = `# Personal instructions\nRetain my guidance.\n\n${identity}\nUse @fde and read ~/.claude/skills/fde/SKILL.md for client work.\nOlder or customised wording stays mine.\n`
+    for (const name of names) {
+      const dest = path.join(f.workspace, name)
+      fs.mkdirSync(path.dirname(dest), { recursive: true })
+      fs.writeFileSync(dest, existing)
+    }
+    assert.equal(f.run('adapters', f.workspace).status, 0)
+    for (const name of names) assert.equal(fs.readFileSync(path.join(f.workspace, name), 'utf8'), existing)
+  })
+}
