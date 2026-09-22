@@ -2574,7 +2574,9 @@ function cmdIngest(args) {
 
   const box = inboxDir(eng)
   try {
-    if (!checkedInbox(eng)) fs.mkdirSync(box)
+    if (!checkedInbox(eng)) {
+      try { fs.mkdirSync(box) } catch (error) { if (error.code !== 'EEXIST') throw error }
+    }
     checkedInbox(eng)
   } catch (e) { failFs(e, 'create inbox', box) }
   const compact = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')

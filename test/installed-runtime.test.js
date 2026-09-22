@@ -57,9 +57,30 @@ for (const concurrent of [false, true]) {
     const preload = path.join(f.dir, 'clock.cjs')
     // Fix ID timestamps; keep Date.now advancing for lock deadlines.
     fs.writeFileSync(preload, `const D=Date;global.Date=class extends D { constructor(...a){ super(...(a.length?a:['2026-09-22T10:00:00.100Z'])) } };`)
+    const barrier = path.join(f.dir, 'barrier')
+    fs.mkdirSync(barrier)
+    if (concurrent) fs.appendFileSync(preload, `
+      const fs=require('node:fs'),path=require('node:path'),stat=fs.lstatSync;
+      let waited=false;
+      fs.lstatSync=function(file,...args){
+        try { return stat.call(this,file,...args) }
+        catch(error){
+          if(!waited && error.code==='ENOENT' && path.basename(String(file))==='.inbox'){
+            waited=true;
+            fs.writeFileSync(path.join(process.env.STAGE_BARRIER,process.env.STAGE_INDEX),'ready');
+            const deadline=Date.now()+5000;
+            while(fs.readdirSync(process.env.STAGE_BARRIER).length<4){
+              if(Date.now()>deadline) throw Error('barrier timeout');
+              Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,10);
+            }
+          }
+          throw error;
+        }
+      };
+    `)
     const stage = index => new Promise((resolve, reject) => {
       const child = spawn(process.execPath, ['--require', preload, cli, 'ingest', 'stage', '--source', 'manual', '--title', 'meeting'], {
-        cwd: f.workspace, env: { ...f.env, FDEOPS_ENGAGEMENT: eng }, timeout: 10000,
+        cwd: f.workspace, env: { ...f.env, FDEOPS_ENGAGEMENT: eng, STAGE_BARRIER: barrier, STAGE_INDEX: String(index) }, timeout: 10000,
       })
       let stdout = '', stderr = ''
       child.stdout.on('data', b => { stdout += b }); child.stderr.on('data', b => { stderr += b })
@@ -68,7 +89,13 @@ for (const concurrent of [false, true]) {
       child.stdin.end(`NOTE_${index}_SENTINEL`)
     })
     const results = []
-    if (concurrent) results.push(...await Promise.all([0, 1, 2, 3].map(stage)))
+    if (concurrent) {
+      const settled = await Promise.allSettled([0, 1, 2, 3].map(stage))
+      for (const result of settled) {
+        assert.equal(result.status, 'fulfilled', result.reason?.message)
+        results.push(result.value)
+      }
+    }
     else for (let i = 0; i < 4; i++) results.push(await stage(i))
     const box = path.join(f.dir, 'client/.inbox'), files = fs.readdirSync(box)
     assert.equal(files.length, 4)
