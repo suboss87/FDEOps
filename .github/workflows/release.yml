@@ -50,11 +50,5 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Confirm the registry serves it
-        run: |
-          pkg=$(node -p "require('./package.json').version")
-          for i in $(seq 1 10); do
-            got=$(npm view fdeops version 2>/dev/null || true)
-            [ "$got" = "$pkg" ] && { echo "registry serves $got"; exit 0; }
-            sleep 6
-          done
-          echo "published, but the registry still serves ${got:-unknown}"; exit 1
+        timeout-minutes: 12
+        run: node .github/scripts/verify-release.cjs
