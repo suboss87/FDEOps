@@ -825,3 +825,7 @@ Trust + hygiene cut for the field kit (second brain), not an OS.
 
 - Adapters install places the skill pointer files reference.
 - Stakeholder signal tokens land under `## Signal history` regardless of writer/token position.
+## 5.1.20 - 2026-09-22
+
+- Make the state of an engagement change explicit across the coordinator, debrief, readout and handoff methods: on record, proposed, or customer accepted.
+- Keep saving an FDE record update separate from customer acceptance, which still requires the named acceptance owner and evidence.

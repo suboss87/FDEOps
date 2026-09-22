@@ -4,11 +4,11 @@
   "files": {
     "SKILL.md": "36843356c2e89e2a9205a4edf47afb8fd489d2f719c72241e3fdc3209829d2d8",
     "agents/openai.yaml": "53922bbe55ba23dc812c9bef311fbef238e2e25252100bdac7a8bd4f6c5e2780",
-    "references/close.md": "fa3579e02e2434273941ab158b5807bedaddefaa4b820a0f1cb29b1459c20f31",
+    "references/close.md": "4c75697bb7c85af3b4054bf427d0f265d388972a3139f1e25a1bc9f56ac65cf4",
     "references/encode-pattern.md": "10fc5679752f0ea0b4d3004e4c7e282bb17f9b496ab99e5c7aae04ac942fb3c1",
     "references/land.md": "87dfffc8e39d35eaf23d510ba7e9913d48e90d2705eb9155ab192d12ea98d18d",
     "references/runbook.md": "d32a40113941c603b97f09eabfd0e25afd25129102c6b07fa91a04fb4f8e93e7",
-    "references/task-context.md": "9066514a50043f3ad888d133d4e8b89b7132551e098cf2c80203c458a80126e5",
+    "references/task-context.md": "9f995c1fe4d8a27d313b4c008a943fbcdd150029358c70b450dbbfb303a2666e",
     "references/verification.md": "8ee2502112a37eedfdacf929041e7b91e9e6fabb007408a1ee2e2992e3af6ff6"
   }
 }

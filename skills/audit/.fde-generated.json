@@ -6,6 +6,6 @@
     "agents/openai.yaml": "3b08e2e6a4149545da08238463955501bc60b7bf628cf4e344e893330590bbde",
     "references/audit.md": "ed32ea78cbccb100742dd838e8cf4cd4b6f33ad44b3de7424fc624670d571dbc",
     "references/discover.md": "f65aa11a539b4dbbed70cfaa94ec2a35595aa9a2d0282790510b933ac9c721ce",
-    "references/task-context.md": "9066514a50043f3ad888d133d4e8b89b7132551e098cf2c80203c458a80126e5"
+    "references/task-context.md": "9f995c1fe4d8a27d313b4c008a943fbcdd150029358c70b450dbbfb303a2666e"
   }
 }

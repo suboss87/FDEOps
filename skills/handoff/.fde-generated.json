@@ -4,9 +4,9 @@
   "files": {
     "SKILL.md": "c4ac99ee1517c0674e5324b289521116c58a9e0ac3de22c229be8da83438f4db",
     "agents/openai.yaml": "93ac049cf1a9d0fdfdf67d34ca6d3dd33800e91334f38bb303828eab8c4b3aaf",
-    "references/close.md": "fa3579e02e2434273941ab158b5807bedaddefaa4b820a0f1cb29b1459c20f31",
+    "references/close.md": "4c75697bb7c85af3b4054bf427d0f265d388972a3139f1e25a1bc9f56ac65cf4",
     "references/encode-pattern.md": "10fc5679752f0ea0b4d3004e4c7e282bb17f9b496ab99e5c7aae04ac942fb3c1",
     "references/land.md": "87dfffc8e39d35eaf23d510ba7e9913d48e90d2705eb9155ab192d12ea98d18d",
-    "references/task-context.md": "9066514a50043f3ad888d133d4e8b89b7132551e098cf2c80203c458a80126e5"
+    "references/task-context.md": "9f995c1fe4d8a27d313b4c008a943fbcdd150029358c70b450dbbfb303a2666e"
   }
 }

@@ -15,7 +15,7 @@ A handoff transfers the ability to operate the system, not just its files.
 - **Draft a handoff:** return the operating summary, evidence and gaps from supplied context. Do not require a retrospective, initialized record or completed value measurement to produce a useful draft. Missing evidence limits readiness claims, not drafting. Follow steps 0, 3 and relevant operating details in 4, then check the draft as a lookup tool. Skip the closure-only steps and artifacts.
 - **Assess readiness or close the engagement:** apply the close gates below. Reuse existing evidence and agreed acceptance rather than restarting the engagement.
 
-Lead with what is being transferred, what the receiving team can demonstrably do, what is untested, and the next action with its owner or ownership gap. A document can be ready for review while operational handover remains incomplete.
+Lead with what is being transferred, what the receiving team can demonstrably do, what is untested, and the next action with its owner or ownership gap. Label claims as **on record**, **proposed**, or **customer accepted** so a handoff reader can distinguish the saved history from an open recommendation and an accepted outcome. A document can be ready for review while operational handover remains incomplete.
 
 ## Method
 
