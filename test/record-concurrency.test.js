@@ -195,3 +195,86 @@ test('unsafe archive write unwinds both locks and preserves linked data', t => {
   assert.equal(fs.readFileSync(context, 'utf8'), original)
   assert.equal(fs.readFileSync(outside, 'utf8'), 'KEEP_EXTERNAL')
 })
+
+test('client initialization preserves another workspace binding completed before its lock', async t => {
+  const f = fixture(t), other = path.join(f.dir, 'other-workspace')
+  fs.mkdirSync(other)
+  const registry = path.join(f.env.FDEOPS_ENGAGEMENTS_ROOT, '.registry')
+  await interleave(f, ['resume', '--init', 'alpha'], registry, () => {
+    const result = spawnSync(process.execPath, [cli, 'resume', '--init', 'beta'], { cwd: other, env: f.env, encoding: 'utf8' })
+    assert.equal(result.status, 0, result.stderr)
+  })
+  const text = fs.readFileSync(registry, 'utf8')
+  assert.ok(text.includes(`${f.workspace} alpha`))
+  assert.ok(text.includes(`${other} beta`))
+  assert.ok(!text.includes(`${f.workspace} acme`))
+  for (const [cwd, client] of [[f.workspace, 'alpha'], [other, 'beta']]) {
+    const result = spawnSync(process.execPath, [cli, 'log', 'decision', `Only ${client}`], { cwd, env: f.env, encoding: 'utf8' })
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(fs.readFileSync(path.join(f.env.FDEOPS_ENGAGEMENTS_ROOT, client, '.fde/decisions.md'), 'utf8'), new RegExp(`Only ${client}`))
+  }
+})
+
+test('a refused bind leaves another writer’s registry lock intact', t => {
+  const f = fixture(t), lock = path.join(f.env.FDEOPS_ENGAGEMENTS_ROOT, '.registry.lock')
+  fs.writeFileSync(lock, 'other writer')
+  const result = f.run(['resume', '--init', 'alpha'])
+  assert.equal(result.status, 1)
+  assert.match(result.stderr, /could not bind/)
+  assert.equal(fs.readFileSync(lock, 'utf8'), 'other writer')
+})
+
+test('new logged and debriefed risks stay active after an earlier risk is retired', t => {
+  const f = fixture(t), risks = path.join(f.eng, 'risks.md')
+  assert.equal(f.run(['log', 'risk', 'Earlier risk']).status, 0)
+  assert.equal(f.run(['log', 'risk', '--retire', 'Earlier risk']).status, 0)
+  assert.equal(f.run(['log', 'risk', 'CRITICAL New credential risk']).status, 0)
+  const notes = path.join(f.dir, 'meeting.md')
+  fs.writeFileSync(notes, 'risk: CRITICAL New approval risk\n')
+  assert.equal(f.run(['debrief', notes]).status, 0)
+  const text = fs.readFileSync(risks, 'utf8'), retired = text.indexOf('## Retired')
+  for (const risk of ['New credential risk', 'New approval risk']) {
+    assert.ok(text.indexOf(risk) < retired, text)
+    assert.match(f.run(['triage']).stdout, new RegExp(risk))
+    assert.equal(f.run(['log', 'risk', '--retire', risk]).status, 0)
+  }
+  const final = fs.readFileSync(risks, 'utf8')
+  assert.match(final.slice(final.indexOf('## Retired')), /Earlier risk/)
+})
+
+for (const kind of ['symlink', 'directory']) {
+  test(`a refused ${kind} risk write releases its lock and permits recovery`, t => {
+    const f = fixture(t), risks = path.join(f.eng, 'risks.md'), saved = fs.readFileSync(risks, 'utf8')
+    const outside = path.join(f.dir, 'outside.md')
+    fs.writeFileSync(outside, 'other record')
+    fs.unlinkSync(risks)
+    if (kind === 'symlink') fs.symlinkSync(outside, risks)
+    else fs.mkdirSync(risks)
+    assert.equal(f.run(['log', 'risk', 'must not write']).status, 1)
+    assert.equal(fs.existsSync(risks + '.lock'), false)
+    assert.equal(fs.readFileSync(outside, 'utf8'), 'other record')
+    fs.rmSync(risks, { recursive: true })
+    fs.writeFileSync(risks, saved)
+    assert.equal(f.run(['log', 'risk', 'restored risk']).status, 0)
+    assert.match(fs.readFileSync(risks, 'utf8'), /restored risk/)
+  })
+}
+
+for (const [file, args] of [
+  ['context.md', ['log', 'phase', 'plan']],
+  ['stakeholders.md', ['log', 'contact', 'Sponsor approval', '--signal', 'green']],
+  ['.last-write', ['log', 'risk', 'Risk with undo metadata']],
+]) {
+  test(`refused ${file} write unwinds its lock before returning an error`, t => {
+    const f = fixture(t), target = path.join(f.eng, file)
+    const saved = fs.existsSync(target) ? fs.readFileSync(target, 'utf8') : ''
+    fs.rmSync(target, { force: true }); fs.mkdirSync(target)
+    const result = f.run(args)
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /not a regular file/)
+    assert.equal(fs.existsSync(target + '.lock'), false)
+    fs.rmdirSync(target); fs.writeFileSync(target, saved)
+    assert.equal(f.run(args).status, 0)
+    assert.equal(fs.existsSync(target + '.lock'), false)
+  })
+}

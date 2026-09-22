@@ -164,8 +164,11 @@ function runFde(args, stdin, extraEnv) {
 }
 
 function engagementEnv(args) {
-  const p = args && typeof args.engagement === 'string' ? args.engagement.trim() : ''
-  return p ? { FDEOPS_ENGAGEMENT: p } : {}
+  if (!Object.prototype.hasOwnProperty.call(args, 'engagement')) return {}
+  if (typeof args.engagement !== 'string' || !args.engagement.trim()) {
+    throw new Error('engagement must be a non-empty string when supplied; no customer was selected')
+  }
+  return { FDEOPS_ENGAGEMENT: args.engagement.trim() }
 }
 
 function cliPayload(out) {

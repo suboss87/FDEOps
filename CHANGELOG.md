@@ -1,5 +1,15 @@
 # Changelog
 
+## 5.1.19 - 2026-09-22
+
+- Redact private and masked ingest metadata before creating filenames, keeping protected values out of inbox listings and review provenance.
+- Reject empty or invalid explicit MCP customer selections instead of falling back to the current workspace's customer.
+- Install agent pointers when an existing instruction file only mentions FDEOps; preserve existing text and keep repeat installs unchanged.
+- Keep new logged and debriefed risks active after earlier risks have been retired.
+- Preserve other workspace bindings during concurrent customer setup, and leave another writer's registry lock intact when binding fails.
+- Release owned file locks when a record write is refused, so repairing the file permits a retry.
+- Verify the exact npm release with fresh, bounded retries so registry propagation does not falsely report a failed publication.
+
 ## 5.1.18 - 2026-09-22
 
 - Preserve distinct staged notes when source and title match within the same second, including concurrent staging.

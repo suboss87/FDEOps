@@ -294,7 +294,7 @@ function placePointer(destPath, content, label, appendable) {
   mkdir(path.dirname(destPath))
   if (fs.existsSync(destPath)) {
     const existing = fs.readFileSync(destPath, 'utf8')
-    if (/FDEOS|fdeops/i.test(existing)) {
+    if (existing.includes(content.trim())) {
       console.log(`  skip   ${label} (already wired)`)
       return
     }

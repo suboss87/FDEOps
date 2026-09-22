@@ -67,16 +67,19 @@ test('an ordinary mid-write error restores prior records and retry is safe', t =
   fs.writeFileSync(f.notes, 'decision: ROLLBACK_ME\nrisk: WRITE_FAILS\n')
   assert.equal(f.run(['debrief', '--smart', f.notes]).status, 0)
   const before = fs.readFileSync(path.join(f.eng, 'decisions.md'), 'utf8')
+  const beforeRisk = fs.readFileSync(path.join(f.eng, 'risks.md'), 'utf8')
   const shim = path.join(f.dir, 'fail-write.cjs')
-  fs.writeFileSync(shim, `const fs = require('fs'); const append = fs.appendFileSync; let failed = false;
-fs.appendFileSync = function(file, ...args) {
-  if (!failed && String(file).endsWith('/risks.md')) { failed = true; throw Object.assign(new Error('simulated disk full'), { code: 'ENOSPC' }); }
-  return append.call(fs, file, ...args);
+  fs.writeFileSync(shim, `const fs = require('fs'); const rename = fs.renameSync; let failed = false;
+fs.renameSync = function(source, dest, ...args) {
+  if (!failed && String(dest).endsWith('/risks.md')) { failed = true; throw Object.assign(new Error('simulated disk full'), { code: 'ENOSPC' }); }
+  return rename.call(fs, source, dest, ...args);
 };`)
   const result = spawnSync(process.execPath, ['--require', shim, path.resolve(__dirname, '../bin/fde.js'), 'debrief', '--apply'], {
     cwd: f.dir, env: { ...process.env, HOME: path.join(f.dir, 'home'), FDEOPS_ENGAGEMENT: f.eng, FDEOPS_ENGAGEMENTS_ROOT: path.join(f.dir, 'clients') }, encoding: 'utf8',
   })
   assert.equal(result.status, 1); assert.match(result.stderr, /no record changes kept/)
+  assert.equal(fs.readFileSync(path.join(f.eng, 'risks.md'), 'utf8'), beforeRisk)
+  assert.deepEqual(fs.readdirSync(f.eng).filter(name => name.endsWith('.lock') || name.endsWith('.tmp')), [])
   assert.equal(fs.readFileSync(path.join(f.eng, 'decisions.md'), 'utf8'), before)
   assert.ok(fs.existsSync(path.join(f.eng, '.debrief-propose')))
   assert.equal(f.run(['debrief', '--apply']).status, 0)

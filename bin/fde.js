@@ -527,10 +527,11 @@ function formatFsError(err, action, target) {
 }
 
 let debriefTransactionActive = false
+let activeFileLocks = 0
 const ownedDebriefLocks = new Set()
 
 function failFs(err, action, target) {
-  if (debriefTransactionActive || ownedDebriefLocks.size) throw new Error(formatFsError(err, action, target))
+  if (activeFileLocks || debriefTransactionActive || ownedDebriefLocks.size) throw new Error(formatFsError(err, action, target))
   console.error(formatFsError(err, action, target))
   process.exit(1)
 }
@@ -546,7 +547,7 @@ function refuseSymlinkWrite(p, opts = {}) {
       const msg = st.isSymbolicLink()
         ? `refused: ${path.basename(p)} is a symlink - write would leave the engagement tree. Replace it with a real file.`
         : `refused: ${path.basename(p)} is not a regular file - remove it and re-run; every write is refused while it is there.`
-      if ((debriefTransactionActive || ownedDebriefLocks.size) && !opts.soft) throw new Error(msg)
+      if ((activeFileLocks || debriefTransactionActive || ownedDebriefLocks.size) && !opts.soft) throw new Error(msg)
       if (opts.soft) return msg
       console.error(msg)
       process.exit(1)
@@ -563,7 +564,7 @@ function refuseSymlinkWrite(p, opts = {}) {
 // appending the same .fde file otherwise interleave/corrupt under load.
 function withFileLock(targetPath, fn, opts = {}) {
   if (ownedDebriefLocks.has(targetPath)) return fn()
-  if (debriefTransactionActive || ownedDebriefLocks.size) opts = { ...opts, soft: true }
+  if (activeFileLocks || debriefTransactionActive || ownedDebriefLocks.size) opts = { ...opts, soft: true }
   const lockPath = targetPath + '.lock'
   const deadline = Date.now() + 5000
   while (true) {
@@ -585,9 +586,12 @@ function withFileLock(targetPath, fn, opts = {}) {
       if (opts.soft) throw e
       failFs(e, 'lock', targetPath)
     }
+    // Filesystem failures must unwind this lock instead of exiting in place.
+    activeFileLocks++
     try {
       return fn()
     } finally {
+      activeFileLocks--
       try { fs.closeSync(fd) } catch (_) {}
       try { fs.unlinkSync(lockPath) } catch (_) {}
     }
@@ -794,6 +798,13 @@ function appendLogEntry(eng, type, entry, opts = {}) {
     })
     // Durable CLI ledger - not rewritten by agent artifact passes.
     lockedAppendFile(path.join(eng, SIGNAL_LEDGER), `${entry}\n`)
+  } else if (type === 'risk') {
+    withFileLock(p, () => {
+      const md = readEng(eng, LOG_FILES[type])
+      const retired = md.search(/^#{1,6}\s+Retired\b/im)
+      const end = retired < 0 ? md.length : retired
+      atomicWriteFile(p, `${md.slice(0, end).trimEnd()}\n\n${entry}\n${retired < 0 ? '' : '\n' + md.slice(end)}`, { soft: true })
+    })
   } else {
     lockedAppendFile(p, `\n${entry}\n`)
   }
@@ -1406,14 +1417,18 @@ function cmdResume(args) {
     // line - resolution is first-match-wins, so appending a second line would
     // leave the stale binding winning and silently write to the wrong client.
     const cwd = process.cwd()
-    const prev = readRegistry().find(r => r.workspace === cwd)
-    const kept = readRegistry().filter(r => r.workspace !== cwd).map(r => `${r.workspace} ${r.slug}`)
-    kept.push(`${cwd} ${slug}`)
+    let prev
     let bindErr = null
     // soft: an unwritable registry must not process.exit() from inside the lock -
     // that skipped the finally and left a stale .registry.lock behind.
     try {
-      withFileLock(REGISTRY, () => { atomicWriteFile(REGISTRY, kept.join('\n') + '\n', { soft: true }) }, { soft: true })
+      withFileLock(REGISTRY, () => {
+        const registry = readRegistry()
+        prev = registry.find(r => r.workspace === cwd)
+        const kept = registry.filter(r => r.workspace !== cwd).map(r => `${r.workspace} ${r.slug}`)
+        kept.push(`${cwd} ${slug}`)
+        atomicWriteFile(REGISTRY, kept.join('\n') + '\n', { soft: true })
+      }, { soft: true })
     } catch (e) { bindErr = e }
     if (bindErr || !readRegistry().some(r => r.workspace === cwd && r.slug === slug)) {
       // Silently unbound is the worst outcome: the memory exists, every later
@@ -1423,7 +1438,6 @@ function cmdResume(args) {
         `could not bind this workspace - ${REGISTRY} is not writable${bindErr ? ` (${bindErr.code || bindErr.message})` : ''}.\n` +
         `  fix the file (it must be a regular file), or work with: export FDEOPS_ENGAGEMENT=${fdeDir}\n`
       )
-      try { fs.unlinkSync(REGISTRY + '.lock') } catch (_) {}
       process.exit(1)
     }
     console.log(`ENGAGEMENT READY: ${fdeDir}\nbound to workspace: ${cwd}`)
@@ -2540,7 +2554,10 @@ function cmdIngest(args) {
     if (args[i] === '--force') { force = true; continue }
     rest.push(args[i])
   }
-  source = sanitizeIngestToken(source, 'manual')
+  // Redact before slugification: filenames no longer retain privacy markers.
+  const cleanMetadata = value => masking.mask(splitPrivate(value, { sealDangling: true }).clean).replace(/[\r\n]+/g, ' ')
+  source = sanitizeIngestToken(cleanMetadata(source), 'manual')
+  title = cleanMetadata(title)
   const titleSlug = sanitizeIngestToken(title || 'notes', 'notes')
   if (!title) title = titleSlug
 

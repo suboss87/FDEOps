@@ -79,3 +79,28 @@ for (const opener of ['<private>', '<!--']) {
     assert.equal(fs.existsSync(f.proposal), false)
   })
 }
+
+for (const metadata of [
+  '<private>HiddenAcquisition</private>',
+  '<private data-x="1">HiddenAcquisition',
+  '<private>outer <private>HiddenAcquisition</private> still hidden</private>',
+  '<!-- HiddenAcquisition -->',
+  '<!-- HiddenAcquisition',
+  'owner.hidden@example.com',
+  'ghp_abcdefghijklmnopqrstuvwxy',
+]) {
+  test(`stage redacts metadata before deriving filenames: ${metadata.slice(0, 20)}`, t => {
+    const f = fixture(t)
+    const staged = f.run(['ingest', 'stage', '--title', metadata, '--source', metadata], 'decision: Public delivery note\n')
+    assert.equal(staged.status, 0, staged.stderr)
+    const [id] = fs.readdirSync(f.box).filter(name => name.endsWith('.md'))
+    assert.ok(id)
+    const listed = f.run(['ingest', 'list'])
+    const proposed = f.run(['ingest', 'propose', id])
+    assert.equal(listed.status, 0, listed.stderr)
+    assert.equal(proposed.status, 0, proposed.stderr)
+    const output = [id, staged.stdout, listed.stdout, proposed.stdout, fs.readFileSync(f.proposal, 'utf8')].join('\n')
+    assert.doesNotMatch(output, /HiddenAcquisition|hiddenacquisition|owner[.-]hidden|abcdefghijklmnopqrstuvwxy/)
+    assert.match(fs.readFileSync(f.proposal, 'utf8'), /Public delivery note/)
+  })
+}
