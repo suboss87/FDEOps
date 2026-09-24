@@ -5,11 +5,11 @@
     "SKILL.md": "5a03a3842983d32da658da2e36466f64ad2474af2b189f71e596c586e91bc502",
     "agents/openai.yaml": "d928b571b9ebbb29ea8acd2e38769087288e2500f0ce9ab7f20f3f57a0e3d8d2",
     "references/build.md": "4ebea9776605f79f902d9bf83a065e4cded191d7b5f8defcf58c054514fc34f5",
-    "references/debug.md": "3273a921a98522431ae821a283814897270c719cbfab83d14b99175537d869e5",
+    "references/debug.md": "bdc09abdd7a075574fc2daf91cecfd2858e67d75a964146a118bf782328192f6",
     "references/eval-pack.md": "0590b85d3cae0903c6b1274540c92eaa2a4373047e8a0548d6942516ef0bb9e1",
     "references/integrate.md": "1cb7a60d7545b0bf224fce678a04ce6ccdf368c47877d9c8e4dc4272bb0d5b0c",
     "references/qa.md": "41de4d70827c83291efa217e97d777f62ec2849827687fbba7e4b1d17484b87e",
-    "references/review.md": "55733ca868c00fb22110bc7b3ec7bb6c6451366c795073b19a2bccd30d2764c8",
+    "references/review.md": "8fa35eacdc04d5e818e046e6da8f61f126e08d9c6a1073b2eaa19f72d4bfea3a",
     "references/ship.md": "95f51772b29de6f7d174f1f7678f15d46a3a5327dcb8facb94288e27907ae92c",
     "references/task-context.md": "9f995c1fe4d8a27d313b4c008a943fbcdd150029358c70b450dbbfb303a2666e",
     "references/verification.md": "8ee2502112a37eedfdacf929041e7b91e9e6fabb007408a1ee2e2992e3af6ff6"

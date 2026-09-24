@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.1.21 - 2026-09-25
+
+- Keep diagnosis and review useful when customer access is limited: request the smallest permitted observation, excerpt or owner-run check needed to resolve uncertainty.
+- Add fictional evaluation cases for ambiguous timeouts, partial-diff reviews and unavailable meeting sources.
+
 ## 5.1.19 - 2026-09-22
 
 - Redact private and masked ingest metadata before creating filenames, keeping protected values out of inbox listings and review provenance.

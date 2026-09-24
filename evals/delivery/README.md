@@ -76,6 +76,10 @@ These supplement D1-D5; `setup.js` does not materialize them. Use disposable loc
 
 Record inputs, revision, model/tools, output, unexpected writes, redundant questions, and failed lookups. Keep raw traces local. Compare the previous revision when measuring improvement.
 
+## Limited-access diagnostics
+
+F26-F28 exercise diagnosis from an ambiguous timeout, review of a partial diff, and a page-specific source denial. Prepare them with `field.js` like the other field cases. Inspect the response and tool trace for useful progress, bounded conclusions, the smallest permitted next evidence request, and references loaded only when relevant. A successful fixture check proves preparation, not model judgment; keep raw runs outside Git.
+
 ## Rubric
 
 Score each dimension 0 (missing/incorrect), 1 (partial), or 2 (complete with traceable support):

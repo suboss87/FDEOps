@@ -10,7 +10,7 @@ Follow [task context](task-context.md); permitted supplied evidence is enough wi
 
 Capture expected and observed behavior, the trigger or input, revision, environment, and last known working state. Keep useful errors and timestamps, without secrets or raw private data. Label unverified reports as reports.
 
-Inspect the affected path, callers, relevant changes, and existing tests. Reproduce with the smallest representative case in a permitted environment when practical. If reproduction is unavailable, state the gap and use traces or other safe observations to distinguish causes. Keep investigating without promoting a hypothesis to a finding.
+Inspect the affected path, callers, relevant changes, and existing tests. Reproduce with the smallest representative case in a permitted environment when practical. If reproduction is unavailable, state the gap and use traces or other safe observations to distinguish causes. Keep investigating without promoting a hypothesis to a finding. Ask for the smallest permitted observation that distinguishes the remaining causes; an operator-run check or approved excerpt may be enough without granting the agent additional access.
 
 ## Test the explanation
 

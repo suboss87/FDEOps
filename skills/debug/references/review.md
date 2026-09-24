@@ -6,7 +6,7 @@ Use [task context](task-context.md). Obtain the intended outcome, acceptance che
 
 ## Establish what was reviewed
 
-Identify the repository, base and head revision, staged/unstaged changes, and relevant untracked files. Read applicable instructions and the full in-scope diff, then inspect callers and tests where needed. A committed-range diff alone omits working-tree edits. Record missing files or unavailable context as limitations.
+Identify the repository, base and head revision, staged/unstaged changes, and relevant untracked files. Read applicable instructions and the full in-scope diff, then inspect callers and tests where needed. A committed-range diff alone omits working-tree edits. Record missing files or unavailable context as limitations. For each limitation that affects the verdict, name the narrow excerpt or owner-run check needed to resolve it; continue reviewing the supplied scope without requesting whole-repository or production access by default.
 
 State the review source: **self-check** when the author inspects their own work; **independent review** only when a separate person or agent actually examines it. A second pass by the same agent is still a self-check. Name the actual reviewer/source and reviewed revision when available. Do not fabricate a reviewer, dialogue, approval, or clean verdict. Use an available separate reviewer for substantial or risky changes when authorized; otherwise report the missing independent review and continue useful self-checks.
 
