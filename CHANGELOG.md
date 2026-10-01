@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.1.22 - 2026-10-01
+
+- Keep approvals limited to API compatibility, budget or release scope from becoming general engagement signer proposals; preserve the original notes and sources for review.
+- Preserve automatic signer proposals for singular and plural acceptance-test sign-off.
+
 ## 5.1.21 - 2026-09-25
 
 - Keep diagnosis and review useful when customer access is limited: request the smallest permitted observation, excerpt or owner-run check needed to resolve uncertainty.
