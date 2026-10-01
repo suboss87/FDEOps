@@ -276,3 +276,9 @@ These fictional, standalone cases use the same preparation and artifact checks a
 - **F25, options:** choose a bounded mapping check to distinguish alternatives, with an evidence owner and conditional next steps. A passed compatibility check is not delivery approval.
 
 Review actual tool calls, attribution, authority and preservation of input hashes. Keep evaluator rubrics outside executor sessions. Passing individual diagnostics does not establish reliability or superiority over another skill pack.
+
+## Eligibility, uncertain ranking and capacity (F30-F32)
+
+These standalone diagnostics exercise the existing `score-use-cases` and `prioritize` methods. F30 contrasts a high score with explicit API/data-permission restrictions. F31 supplies a data-readiness uncertainty that reverses the ordering and a small permitted check. F32 supplies one engineer, competing two-day slices and a valid score of two. The goal is an evidence-backed proposed allocation, not a quota of initiatives or approval inferred from a score.
+
+Prepare each with the existing `field.js` baseline/FDEOps protocol. To examine this correction, also compare copies of the previous and revised task packages under identical host/model/settings, inputs and limits; use fresh sessions, randomize order and keep reviewer rubrics outside the executor workspace. Permit only `answer.md`. Review actual traces, preserved input hashes, constraint handling and attribution of proposed versus agreed work. These fixtures have not been run with an agent; source corrections and successful preparation checks are not evidence of improved model behavior.
