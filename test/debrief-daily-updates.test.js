@@ -78,6 +78,46 @@ test('explicit named signer retains source after sign-off prose is removed', t =
   assert.match(fs.readFileSync(path.join(f.eng, 'success.md'), 'utf8'), /\*\*Stakeholder who signs off:\*\* Mara Chen \[source: meeting:42\]/)
   assert.match(fs.readFileSync(path.join(f.eng, 'stakeholders.md'), 'utf8'), /Mara Chen \[source: meeting:42\] signs off/)
 })
+for (const statement of [
+  'Jo approves API compatibility only.',
+  'Jo signs off on the budget.',
+  'Jo has final say on the release.',
+  'Finance controller (Jo) approves the budget.',
+  'Jo (VP Eng) signs off on API compatibility.',
+  'API compatibility is all Jo approves.',
+  'Budget approver Jo signs off.',
+  'Release manager Jo signs off.',
+  'Jo signs off on the acceptance tests for API compatibility only.',
+]) {
+  test(`scoped approval stays sourced context: ${statement}`, t => {
+    const f = fixture(t)
+    const files = ['success.md', 'stakeholders.md']
+    const before = files.map(file => fs.readFileSync(path.join(f.eng, file), 'utf8'))
+    const note = `${statement} [source: meeting:scoped-42]`
+    const proposed = f.run(['debrief', '--smart'], note + '\n')
+    assert.equal(proposed.status, 0, proposed.stderr)
+    const proposal = fs.readFileSync(path.join(f.eng, '.debrief-propose'), 'utf8')
+    assert.doesNotMatch(proposal, /^signer:/m)
+    assert.ok(proposal.includes(note))
+    assert.equal(f.run(['debrief', '--review']).status, 0)
+    assert.deepEqual(files.map(file => fs.readFileSync(path.join(f.eng, file), 'utf8')), before)
+    assert.equal(f.run(['debrief', '--apply']).status, 0)
+    assert.deepEqual(files.map(file => fs.readFileSync(path.join(f.eng, file), 'utf8')), before)
+    assert.ok(fs.readFileSync(path.join(f.eng, 'context.md'), 'utf8').includes(note))
+  })
+}
+
+test('plural acceptance tests retain the sourced signer', t => {
+  const f = fixture(t)
+  const note = 'Jo signs off on the acceptance tests. [source: meeting:acceptance-42]'
+  const proposed = f.run(['debrief', '--smart'], note + '\n')
+  assert.equal(proposed.status, 0, proposed.stderr)
+  assert.match(fs.readFileSync(path.join(f.eng, '.debrief-propose'), 'utf8'), /^signer: Jo \[source: meeting:acceptance-42\]$/m)
+  assert.equal(f.run(['debrief', '--apply']).status, 0)
+  assert.match(fs.readFileSync(path.join(f.eng, 'success.md'), 'utf8'), /\*\*Stakeholder who signs off:\*\* Jo \[source: meeting:acceptance-42\]/)
+  assert.ok(fs.readFileSync(path.join(f.eng, 'context.md'), 'utf8').includes(note))
+})
+
 test('invalid delivery columns fail before changing records', t => {
   const f = fixture(t); const before = fs.readFileSync(path.join(f.eng, 'delivery.md'), 'utf8')
   assert.notEqual(f.run(['log', 'delivery', 'slice|promise|measured']).status, 0)

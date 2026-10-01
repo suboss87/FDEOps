@@ -1773,21 +1773,33 @@ function looksLikePersonName(s) {
 function signerFromLine(text) {
   const t = String(text || '').replace(/^[-*+]\s+/, '').trim()
   if (!t || /\?|\b(?:not|nobody|unclear|maybe|might|whether|could|should|if|unless|pending|unconfirmed)\b/i.test(t)) return ''
+  // A component/budget/release approver is not the engagement's acceptance
+  // signer. Infer only a bare authority statement or explicit outcome/test
+  // sign-off; leave other scope wording in the original note for agent review.
+  const roleWords = text => text.trim().split(/\s+/).every(word => word.match(ROLE_TOKEN)?.[0] === word)
+  const candidate = (match, who, rolePrefix = false) => {
+    if (!match || !looksLikePersonName(who)) return ''
+    const before = t.slice(0, match.index)
+    const after = t.slice(match.index + match[0].length).replace(/\[source:[^\]]*\]/gi, '').trim()
+    if (before.trim() && (!rolePrefix || !roleWords(before))) return ''
+    if (!/^(?:(?:on\s+)?(?:the\s+)?(?:acceptance tests?|(?:customer |delivered )?outcome))?[.!]?$/i.test(after)) return ''
+    return who.trim()
+  }
   // "Priya (VP Eng) signs off" → Priya. "Finance controller (Helena) signs off" → Helena.
   const titled = t.match(new RegExp('\\b' + SIGNER_NAME + '\\s+\\(' + SIGNER_NAME + '\\)\\s+' + SIGNER_VERB + '\\b'))
   if (titled) {
     const before = titled[1].trim()
     const inside = titled[2].trim()
-    if (looksLikePersonName(before) && ROLE_TOKEN.test(inside)) return before
-    if (looksLikePersonName(inside)) return inside
-    if (looksLikePersonName(before)) return before
+    if (looksLikePersonName(before) && roleWords(inside)) return candidate(titled, before)
+    if (roleWords(before) && looksLikePersonName(inside)) return candidate(titled, inside)
+    return ''
   }
   const paren = t.match(new RegExp('\\(' + SIGNER_NAME + '\\)\\s+' + SIGNER_VERB + '\\b'))
-  if (paren && looksLikePersonName(paren[1])) return paren[1].trim()
+  if (paren && looksLikePersonName(paren[1])) return candidate(paren, paren[1], true)
   const named = t.match(new RegExp('\\b' + SIGNER_NAME + '\\s+' + SIGNER_VERB + '\\b'))
   if (!named) return ''
   const who = named[1].trim()
-  return looksLikePersonName(who) ? who : ''
+  return candidate(named, who)
 }
 
 function setSigner(eng, who) {
