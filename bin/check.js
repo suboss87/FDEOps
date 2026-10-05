@@ -399,6 +399,7 @@ if (!/plain language with @fde|invoke @fde/.test(hook)) {
 }
 // Record-only instructions are conditionally loaded by the coordinator.
 const coordinatorBody = read('skills/fde/SKILL.md')
+if (!/^## Entry \(every session\)$/m.test(coordinatorBody)) fail('coordinator must retain the session entry heading used by installed adapters')
 if (!coordinatorBody.includes('references/record-work.md')) fail('coordinator must link its record-backed work instructions')
 const skillBody = coordinatorBody + '\n' + read('skills/fde/references/record-work.md')
 if (!skillBody.includes('Human surface vs agent plumbing')) {

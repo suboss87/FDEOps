@@ -21,7 +21,7 @@ Read `references/task-context.md` for authority, data boundaries, CLI availabili
 
 The human asks in ordinary language or invokes a task skill. You run the required CLI commands. Never tell the FDE to type commands; never ask them to run the CLI. Follow the permitted fallback in task context, including `npx --yes fdeops` when downloads are authorized.
 
-## Record-backed work
+## Entry (every session)
 
 Before retrieving or updating an engagement record, read `references/record-work.md` for privacy-safe session entry, record commands, the memory contract and session digest. Load it once for the current task; standalone work does not require it. Confirm consequential record changes under task-context rules. A saved claim is not customer acceptance.
 
