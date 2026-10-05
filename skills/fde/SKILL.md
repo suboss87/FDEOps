@@ -164,7 +164,7 @@ Work names (engage, diagnose, align, deliver, realize, transfer) are the same ma
 | Payments, cardholder data, PCI-DSS, anything that moves money | `references/fintech.md` |
 | Government agency, FedRAMP, ATO, CUI, classified | `references/gov.md` |
 
-Ready to build: check that the supplied facts establish the outcome, constraints and verification path. Use discover or plan only for material gaps. On a takeover, audit inherited claims that affect the task. Two customers in one message: confirm which folder.
+Ready to build at any point in an engagement: check that the supplied facts establish the outcome, constraints and verification path, then use `build` for the working slice. Use discover or plan only for a material gap or a real sequencing decision; do not run every stage or create records to demonstrate activity. On a takeover, audit inherited claims that affect the task. Two customers in one message: confirm which folder.
 
 ## Principles
 

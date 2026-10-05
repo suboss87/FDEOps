@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.1.23 - 2026-10-05
+
+- Adapt engagement guidance to uncertainty, dependencies, risk and customer constraints rather than duration or a mandatory phase sequence.
+- Let bounded tasks proceed directly to implementation or a brief single-slice plan; reserve fuller planning and coordination for work that needs them. Preserve acceptance, data and release authority checks.
+
 ## 5.1.22 - 2026-10-01
 
 - Keep approvals limited to API compatibility, budget or release scope from becoming general engagement signer proposals; preserve the original notes and sources for review.

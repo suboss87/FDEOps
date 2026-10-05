@@ -4,7 +4,9 @@
 
 **Enter when:** scope is understood and the work needs breaking down - a slice, a phase, or the whole delivery.
 
-**Read first:** `reality.md`, `success.md`, `terrain.md`, `stakeholders.md`. Load `business-case.md` if poc produced one. Not the full folder.
+**Read first, when an engagement record exists:** the relevant parts of `reality.md`, `success.md`, `terrain.md`, and `stakeholders.md`. Load `business-case.md` only when its cost case affects this decision. For standalone work, use the supplied context; absent records are not a blocker.
+
+**Bounded path:** If implementation is requested and authorized, and the outcome, constraints and acceptance checks already support one bounded change, the coordinator can select `build` without a separate planning exercise. An explicit planning request still returns a plan; it does not authorize implementation or require another installed skill. If a bounded task genuinely needs sequencing, give the FDE a brief plan with the next working slice, its boundary, a success and failure check, and the blocking unknown or authority if any. Spend the time on the working result. A single-slice plan does not require a new engagement record, stakeholder map or multi-phase template.
 
 **On an initialized engagement, before a new delivery plan or material scope change:** run `fde doctor --ready`. For standalone planning, check the supplied outcome, scope, acceptance and authority directly; do not initialize records to run this validator. Missing acceptance criteria or authority blocks the affected implementation commitment, not a provisional plan. Draft proposed checks and next steps, mark them pending, and ask only what changes the next action. Use a test/input and observable pass/fail under **Done when:** or **Acceptance check:**. A number, role, or successful demo alone is insufficient. Do not invent missing facts to pass lint. Routine reversible fixes within confirmed scope reuse the existing signer, acceptance criteria, and engineering plan; record verification without reopening settled decisions.
 
@@ -46,7 +48,7 @@ Preserve supplied ticket identifiers and blocking dependencies; do not renumber 
 
 **6. Agree useful stakeholder touchpoints.** Name who needs to see which result before the next decision. Reuse the customer's existing review cadence; task count alone does not justify another meeting or imply lost trust.
 
-**7. End with a kill list.** Every plan names what you will **not** do this phase. If everything is "later," you have no plan - you have a wish list. Keep **Now** small enough to review and act on; split by independently verifiable outcomes.
+**7. Bound a multi-slice plan.** For a phased engagement, name consequential work excluded from this phase. Do not invent a kill list for one bounded slice. Keep **Now** small enough to review and act on; split by independently verifiable outcomes.
 
 Carry the agreed acceptance checks and their source into implementation and verification, preferably by linking the existing record. Added checks may strengthen coverage; changing a threshold or removing a requirement remains a proposal until the appropriate decision-maker approves the change with a dated source. Record what changed and why; a passing weaker test does not satisfy the original agreement.
 
@@ -56,7 +58,7 @@ Carry the agreed acceptance checks and their source into implementation and veri
 
 For standalone planning, return the requested draft or save to the authorized project document. In a bound engagement, propose the plan for **`decisions.md`** under its confirmation rules, or link the existing approved plan; do not duplicate it.
 
-A plan is **not done** until all four blocks exist:
+For a single-slice plan, the brief slice, boundary, acceptance checks, verification and any blocking dependency are enough. Use the full four-block format below when sequencing several slices or decisions with material dependencies, regardless of engagement duration:
 
 ```markdown
 ## Plan - <date>
@@ -92,7 +94,7 @@ In `Who accepted`, distinguish a proposed deferral from an agreement: use `pendi
 Check the plan against every supplied requirement and constraint. Each must map to a task and acceptance check, an explicitly accepted exclusion, or a visible unresolved decision. Do not silently omit a requirement to simplify the plan. Reuse an existing approved plan rather than creating a second coverage record. If no work is deferred, say so; do not invent exclusions to fill the template.
 ## Checkpoint
 
-Walk the FDE through: sequence + why this order, where the fragile work sits, where the touchpoints land, the acceptance gate and **Kill if** on task 1, and the kill list. State who sees the first slice and when, which exclusions are accepted or proposed, and what observation stops task 1. Reuse supplied answers; ask only about a missing or consequentially ambiguous answer.
+For a single-slice plan, state the first slice, how it will be checked, and what would stop it. For a phased plan, walk the FDE through the sequence, fragile work, useful touchpoints, acceptance gate, and consequential exclusions. Reuse supplied answers; ask only about a missing or consequentially ambiguous answer.
 
 ## Method - estimation (when the sponsor asks "how long, how much?")
 
@@ -157,7 +159,7 @@ First visible slice goes to Marco, not Priya: he is the one whose morning change
 - Fragile zones early. Fail fast.
 - Touchpoints serve the next customer decision and agreed cadence.
 - No written acceptance criteria, no build.
-- No kill list, no finished plan.
+- Make consequential exclusions explicit when work is deferred; a bounded slice needs no invented kill list.
 - No **Kill if** on a Now PR, that PR is hope.
 - Estimates are ranges, not promises. Name the assumptions and the observation that voids them.
 - Migrations: compatibility determines order; verified recovery precedes cutover.

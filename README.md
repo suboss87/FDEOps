@@ -53,6 +53,8 @@ Here are the agreed behavior, repository and checks: ...
 
 Each task skill includes the instructions it needs. Use `build` with supplied project context without creating a customer record or installing the coordinator.
 
+Use only the methods the work needs, whether the engagement lasts three days, three weeks or several months. A clear, bounded task can go straight to implementation. Uncertain requirements, dependent teams or production risk may need more discovery and coordination. Reuse the customer’s existing tools and approvals; the skill catalog is not a sequence to complete.
+
 <details>
 <summary>Installation requirements and alternatives</summary>
 
