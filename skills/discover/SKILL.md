@@ -9,7 +9,7 @@ description: Trace a customer workflow and identify the problem, baseline and ev
 
 ## Purpose
 
-Trace a customer workflow and identify the problem, baseline and evidence gaps. Use for discovery or an unclear customer brief, before choosing a solution.
+A workflow diagnosis with baseline and evidence gaps.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

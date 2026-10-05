@@ -9,7 +9,7 @@ description: Build or change a customer-system integration with explicit data ma
 
 ## Purpose
 
-Build or change a customer-system integration with explicit data mapping, permissions, retries and reconciliation. Use for connectors, imports, write-back and upstream APIs.
+An integration with tested mapping and failure handling.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

@@ -9,7 +9,7 @@ description: Investigate a failure, regression or incorrect result in an integra
 
 ## Purpose
 
-Investigate a failure, regression or incorrect result in an integration or application, even before it can be reproduced. Use for diagnosis and repair; follow incident authority for live mitigation.
+A diagnosed failure, repair and regression evidence.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

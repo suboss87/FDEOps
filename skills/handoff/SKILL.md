@@ -9,7 +9,7 @@ description: Transfer operation of a customer deployment with ownership, evidenc
 
 ## Purpose
 
-Transfer operation of a customer deployment with ownership, evidence and a tested support path. Use for handoff or an engineer rotation, not merely code delivery.
+An operating handoff with ownership and a support path.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

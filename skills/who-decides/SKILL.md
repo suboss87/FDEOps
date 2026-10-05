@@ -9,7 +9,7 @@ description: Map stakeholders, decision rights, influence and blockers from supp
 
 ## Purpose
 
-Map stakeholders, decision rights, influence and blockers from supplied evidence. Use when ownership is unclear or the stakeholder landscape changes.
+A stakeholder map with decision rights and unknowns.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

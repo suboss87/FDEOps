@@ -9,7 +9,7 @@ description: Run a bounded customer proof of concept to test a consequential unc
 
 ## Purpose
 
-Run a bounded customer proof of concept to test a consequential uncertainty. Use for a spike or pilot with a question and decision deadline, not a full rollout.
+A bounded experiment with evidence and a decision.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

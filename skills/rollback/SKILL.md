@@ -9,7 +9,7 @@ description: Prepare and rehearse a recovery path for an intended release. Use w
 
 ## Purpose
 
-Prepare and rehearse a recovery path for an intended release. Use when rollback is assumed, untested or previously failed; follow the environment authority for any drill.
+A rollback drill with recovery evidence and remaining gaps.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

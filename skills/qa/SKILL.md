@@ -9,7 +9,7 @@ description: Exercise the delivered customer journey using real runtime or brows
 
 ## Purpose
 
-Exercise the delivered customer journey using real runtime or browser evidence. Use for functional acceptance testing after implementation, including failure paths.
+Customer-journey evidence and acceptance gaps.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

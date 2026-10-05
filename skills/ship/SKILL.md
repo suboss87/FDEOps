@@ -9,7 +9,7 @@ description: Prepare or execute an authorized controlled release with verified c
 
 ## Purpose
 
-Prepare or execute an authorized controlled release with verified checks, recovery and an operating owner. Use when a customer increment is ready for deployment.
+A controlled release result with recovery and ownership.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

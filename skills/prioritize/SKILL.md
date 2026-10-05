@@ -9,7 +9,7 @@ description: Choose up to three immediate priorities from competing initiatives.
 
 ## Purpose
 
-Choose up to three immediate priorities from competing initiatives. Use when everything is urgent and the customer needs a defensible order with explicit deferrals.
+Three immediate priorities and explicit deferrals.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

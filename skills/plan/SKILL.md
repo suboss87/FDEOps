@@ -9,7 +9,7 @@ description: Sequence an understood outcome into verifiable delivery slices with
 
 ## Purpose
 
-Sequence an understood outcome into verifiable delivery slices with dependencies, ownership and acceptance checks. Use for delivery planning, estimation or migration strategy.
+A sequenced delivery plan with owners and acceptance checks.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

@@ -9,7 +9,7 @@ description: Switch between existing customer engagements and triage competing n
 
 ## Purpose
 
-Switch between existing customer engagements and triage competing needs. Use when context switching causes confusion; requires engagement records and preserves one client per write.
+A refreshed client binding and cross-client triage.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

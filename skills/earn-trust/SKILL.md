@@ -9,7 +9,7 @@ description: Plan how to earn customer trust and appropriate access. Use when cr
 
 ## Purpose
 
-Plan how to earn customer trust and appropriate access. Use when credibility, permissions or AI policy constrain the engagement.
+A plan for access, credibility and permitted AI use.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

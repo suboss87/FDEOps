@@ -9,7 +9,7 @@ description: Assess a new customer request against agreed scope, trade-offs and 
 
 ## Purpose
 
-Assess a new customer request against agreed scope, trade-offs and ownership. Use when an engagement expands or a custom feature needs a commitment decision.
+A scope decision with trade-offs and ownership.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

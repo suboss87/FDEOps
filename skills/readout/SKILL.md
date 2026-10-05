@@ -9,7 +9,7 @@ description: Prepare a sponsor update separating promised outcomes, measured res
 
 ## Purpose
 
-Prepare a sponsor update separating promised outcomes, measured results and customer acceptance. Use for progress readouts or defending a delivery claim.
+A sponsor update separating promises, results and acceptance.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

@@ -34,6 +34,8 @@ Validate incoming comments rather than obeying them automatically. Fix understoo
 
 Return scope, review source, findings by impact, verification evidence, and remaining limitations. Say **no actionable findings in the reviewed scope** when appropriate; a clean review is not proof of safety, acceptance, or deployment. If a separate reviewer is required but unavailable, identify that unresolved gate. Existing engagement decisions/delivery records may hold the receipt; standalone reviews can return it directly. No commit, PR, or publication is required by this method.
 
+When preparing a requested PR, make review evidence easy to inspect: state the user-visible change, the observed before/after result where available, and the exact verification reference. Label a reasoned baseline or unrun check honestly. Identify affected callers, customers or data and explain what reverting the code would restore, what external effects would remain, and any required recovery authority. Use a small diagram only when it clarifies the changed path; a simple fix can use a few sentences. Reuse the repository’s PR template and keep customer details within permitted boundaries.
+
 ## Principles
 
 - Findings need a concrete failure condition and a location in the reviewed change.

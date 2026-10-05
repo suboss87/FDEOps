@@ -2,7 +2,7 @@
 /**
  * Skill-routing contract check.
  *
- * Static gate: every happy case still has a documented CLI route in SKILL.md.
+ * Static gate: every happy case has a documented route in the coordinator or its linked record instructions.
  * Live gate: print the negative pack for a human/agent trial (non-deterministic).
  *
  * Usage:
@@ -17,7 +17,11 @@ const casesPath = path.join(__dirname, 'cases.json')
 const skillPath = path.join(root, 'skills', 'fde', 'SKILL.md')
 
 const pack = JSON.parse(fs.readFileSync(casesPath, 'utf8'))
-const skill = fs.readFileSync(skillPath, 'utf8')
+const coordinator = fs.readFileSync(skillPath, 'utf8')
+const recordInstructions = coordinator.includes('references/record-work.md')
+  ? fs.readFileSync(path.join(root, 'skills/fde/references/record-work.md'), 'utf8')
+  : ''
+const skill = coordinator + '\n' + recordInstructions
 const printLive = process.argv.includes('--print-live')
 
 let fail = 0

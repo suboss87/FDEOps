@@ -9,7 +9,7 @@ description: Review the portfolio across existing engagement records. Use for st
 
 ## Purpose
 
-Review the portfolio across existing engagement records. Use for status across customers; requires accessible permitted records and does not create missing client histories.
+A portfolio view of engagement status and attention needed.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

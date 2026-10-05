@@ -2,7 +2,7 @@
   "generator": "bin/generate-skills.js",
   "version": 1,
   "files": {
-    "SKILL.md": "f72f8cf960aa85150f85e316bca0f306e3e57c140ed9f49ed9fa04dd0671662f",
+    "SKILL.md": "d4e57fd53d1c4ba4ff3b9d4aaecbe7384c45a6b0bb76e21cbee9a2b7f07b1154",
     "agents/openai.yaml": "d5b07161e8fd27eae7af233da4b872719cf723696cbb30614909bcbf6550bbf3",
     "references/audit.md": "ed32ea78cbccb100742dd838e8cf4cd4b6f33ad44b3de7424fc624670d571dbc",
     "references/build.md": "4ebea9776605f79f902d9bf83a065e4cded191d7b5f8defcf58c054514fc34f5",
@@ -14,7 +14,7 @@
     "references/plan.md": "5f0330ab7195a5dec406463824b2c00dd013b70626ec52f7de4dfa0d401c1575",
     "references/poc.md": "65c91866037dc034a64484683ad9a329896786f1487265c9fddecd19b09a3039",
     "references/qa.md": "41de4d70827c83291efa217e97d777f62ec2849827687fbba7e4b1d17484b87e",
-    "references/review.md": "8fa35eacdc04d5e818e046e6da8f61f126e08d9c6a1073b2eaa19f72d4bfea3a",
+    "references/review.md": "36b77ed44989a125a36e9948ce19c2ced57d529bee06643e32dda96f896d9d5b",
     "references/ship.md": "95f51772b29de6f7d174f1f7678f15d46a3a5327dcb8facb94288e27907ae92c",
     "references/task-context.md": "3d59235f6b7092c41116457cc54e3e2e67fc0fba7b46b60279bd304be18b10cd",
     "references/test-assumptions.md": "977acbf88dc0468afeb0fb222fae88100ee6a5078a729e0651c28a45870e3925",

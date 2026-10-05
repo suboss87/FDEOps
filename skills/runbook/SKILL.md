@@ -9,7 +9,7 @@ description: Write an operating runbook from the delivered system and verified p
 
 ## Purpose
 
-Write an operating runbook from the delivered system and verified procedures. Use when the customer team or a successor needs to operate without the original engineer.
+An operating runbook with recovery steps and ownership.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

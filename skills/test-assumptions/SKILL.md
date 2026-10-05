@@ -9,7 +9,7 @@ description: Challenge a proposed solution by identifying and testing consequent
 
 ## Purpose
 
-Challenge a proposed solution by identifying and testing consequential assumptions. Use when the brief feels too certain or discovery reveals contradictions.
+A ranked set of assumptions and ways to test them.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

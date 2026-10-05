@@ -9,7 +9,7 @@ description: Compare feasible approaches to a customer problem and recommend a p
 
 ## Purpose
 
-Compare feasible approaches to a customer problem and recommend a path with costs, constraints and evidence. Use for an architecture or delivery decision, not implementation.
+Compared approaches and an evidence-backed recommendation.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

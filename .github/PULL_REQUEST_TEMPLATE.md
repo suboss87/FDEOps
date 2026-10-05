@@ -1,8 +1,16 @@
-## Why
+## Outcome
 
-<!-- Open an issue first unless this is a one-line typo. Skill and doc changes are reviewed by the maintainer only. -->
+<!-- What user problem changes? Keep this proportional to the diff. -->
 
-## What changed
+## Evidence
+
+<!-- Observed before → after, with the relevant command/result or evidence link.
+Label inferred behavior and unrun checks; do not invent a failing baseline. -->
+
+## Impact and recovery
+
+<!-- Affected commands, skills or users. What does a code revert restore?
+Name persistent data/external effects it cannot undo, or say none when justified. -->
 
 ## Checks
 

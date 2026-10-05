@@ -9,7 +9,7 @@ description: Evaluate an AI workflow against representative cases and its permit
 
 ## Purpose
 
-Evaluate an AI workflow against representative cases and its permitted actions. Use for model, retrieval or agent evaluation; tests do not grant release authority.
+Evaluation results, failure analysis and release evidence.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

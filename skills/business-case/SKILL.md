@@ -9,7 +9,7 @@ description: Develop a business case for an initiative using costs, benefits, ri
 
 ## Purpose
 
-Develop a business case for an initiative using costs, benefits, risks and evidence. Use when a sponsor needs budget or timeline justification.
+An evidence-backed investment case with explicit assumptions.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

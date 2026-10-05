@@ -9,7 +9,7 @@ description: Configure or diagnose access to a requested source using available 
 
 ## Purpose
 
-Configure or diagnose access to a requested source using available host tools. Use for source MCP setup; source configuration needs no engagement record and credentials stay with the host.
+Source setup guidance and an honest capability check.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

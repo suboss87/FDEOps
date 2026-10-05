@@ -2,7 +2,7 @@
   "generator": "bin/generate-skills.js",
   "version": 1,
   "files": {
-    "SKILL.md": "e406016f3cf7b715084bde0081bec03706a695e6272ada2e51ff3cb9d5194de5",
+    "SKILL.md": "a8a0457945df09170dd4dddbf0790a9fa75b68cf4373d9f316743cc58645ce18",
     "agents/openai.yaml": "c6cac62d94f5294f981de12539dca0a8aa601cea3357fedd94083f4fd1cb0d48",
     "references/red-team.md": "31aaa96f2bac337daa8fc8abf1ddbef745d7ab7a8b77776d2fbb2dd59f4782ce",
     "references/task-context.md": "3d59235f6b7092c41116457cc54e3e2e67fc0fba7b46b60279bd304be18b10cd"

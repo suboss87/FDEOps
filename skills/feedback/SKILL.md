@@ -9,7 +9,7 @@ description: Assess a field lesson for reuse or product feedback without exposin
 
 ## Purpose
 
-Assess a field lesson for reuse or product feedback without exposing customer context. Use for recurring deployment lessons; distinguish a hypothesis from a validated pattern.
+A reusable field lesson with evidence and privacy boundaries.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).
