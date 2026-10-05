@@ -12,7 +12,7 @@ const PATTERNS = [
   ['credential', /\b(?:AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,})\b/g],
   ['credential', /\b[a-z][a-z0-9+.-]*:\/\/[^/\s:]+:[^/\s@]+@[^\s<>"']+/gi],
   ['credential', /\bBearer\s+[A-Za-z0-9._-]{20,}/gi],
-  ['credential', /\b(?:api[_-]?key|secret|password)\s*=\s*[^\s"']{8,}/gi],
+  ['credential', /\b(?:api[_-]?key|secret|password)[ \t]*=[ \t]*(?:"(?:\\.|[^"\\\r\n])+"?|'(?:\\.|[^'\\\r\n])+'?|[^\s"']+)/gi],
   ['email', /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?){1,10}/g],
   ['identifier', /\b\d{3}-\d{2}-\d{4}\b/g],
   // Deliberately conservative: international + notation or explicit US shape.
