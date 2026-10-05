@@ -469,12 +469,12 @@ const SECRET_PATTERNS = [
   { name: 'AWS access key id', re: /\bAKIA[0-9A-Z]{16}\b/ },
   { name: 'GitHub token', re: /\bghp_[A-Za-z0-9]{20,}\b/ },
   { name: 'GitHub fine-grained token', re: /\bgithub_pat_[A-Za-z0-9_]{20,}\b/ },
-  { name: 'OpenAI-style key', re: /\bsk-[A-Za-z0-9]{20,}\b/ },
+  { name: 'AI provider key', re: /\bsk-[A-Za-z0-9_-]{20,}\b/ },
   { name: 'Slack token', re: /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/ },
   { name: 'PEM private key', re: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
   { name: 'Bearer token', re: /\bBearer\s+[A-Za-z0-9._\-]{20,}\b/ },
   { name: 'database URL', re: /\b[a-z][a-z0-9+.-]*:\/\/[^/\s:]+:[^/\s@]+@/i },
-  { name: 'api key assignment', re: /\b(?:api[_-]?key|secret|password)\s*=\s*\S{8,}/i },
+  { name: 'secret assignment', re: /\b(?:api[_-]?key|secret|password)[ \t]*=[ \t]*(?:"(?:\\.|[^"\\\r\n])+"?|'(?:\\.|[^'\\\r\n])+'?|[^\s"']+)/i },
 ]
 
 function findSecretHit(text) {
@@ -488,7 +488,8 @@ function refuseSecret(kind, hit) {
   console.error(
     `refused: ${kind} looks like a ${hit}.\n` +
     `Do not log credentials into engagement memory. Redact first, or pass --force if this is intentional.\n` +
-    `If you already wrote one: fde log --undo (last write) or fde redact <term> --apply (buried)`
+    `If you already wrote one: fde log --undo (last write) or fde redact <term> --apply (buried).\n` +
+    `Neither erases Git history; rotate any exposed credential.`
   )
 }
 
@@ -2402,6 +2403,7 @@ function runDebrief(args, eng) {
     .map(t => `${counts[t]} ${counts[t] === 1 ? (t === 'next' ? 'next action' : t) : plural[t]}`)
   if (ctxLines.length) parts.push(`${ctxLines.length} context line${ctxLines.length === 1 ? '' : 's'}`)
   if (privateBlocks.length) parts.push(`${privateBlocks.length} sealed private note${privateBlocks.length === 1 ? '' : 's'}`)
+  if (privateBlocks.length) console.log('Private notes are hidden from CLI views, not encrypted; plaintext remains in local files and, after saving, Git history.')
   const verb = dry ? 'debrief would route' : 'debrief routed'
   console.log(parts.length ? `${verb} → ${parts.join(', ')}` : 'debrief empty - nothing routed')
 }

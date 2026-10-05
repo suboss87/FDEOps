@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.1.24 - 2026-10-05
+
+- Refuse hyphenated AI-provider keys, including Anthropic-style keys, and short nonempty password, secret and API-key assignments before guarded record writes. Mask the same assignment forms in CLI views.
+- Clarify that private notes remain plaintext in local files and Git history, and that undo/redact does not erase historical credentials.
+
 ## 5.1.23 - 2026-10-05
 
 - Adapt engagement guidance to uncertainty, dependencies, risk and customer constraints rather than duration or a mandatory phase sequence.

@@ -249,7 +249,8 @@ test('scan emits repo facts, redacts likely secrets, and asks earned day-1 quest
   assert.equal(scan.status, 0, scan.stderr)
   assert.match(scan.stdout, /FDE RECON - workspace/)
   assert.match(scan.stdout, /POSSIBLE HARDCODED SECRETS/)
-  assert.match(scan.stdout, /API_KEY="REDACTED"/)
+  // The output masker also masks the scanner's quoted redaction sentinel.
+  assert.match(scan.stdout, /\.env:1\s+\[\[credential:[a-f0-9]{16}\]\]/)
   assert.doesNotMatch(scan.stdout, /abcd123456789/)
   assert.doesNotMatch(scan.stdout, /abcd/, 'no characters of the secret value may show')
   assert.match(scan.stdout, /AI COMPONENTS/)
