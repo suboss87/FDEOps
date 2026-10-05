@@ -9,7 +9,7 @@ description: Compare competing customer use cases by value, feasibility and evid
 
 ## Purpose
 
-Compare competing customer use cases by value, feasibility and evidence. Use when several problems compete for delivery capacity.
+A ranked use-case shortlist with evidence and trade-offs.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

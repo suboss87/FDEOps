@@ -168,7 +168,11 @@ ok(`router dispatch (${mentioned.length} reference targets verified) + memory co
   catch (error) { fail(error.message) }
 
   const refDir = path.join(root, 'skills', 'fde', 'references')
-  const extra = fs.readdirSync(refDir).filter(f => f.endsWith('.md') && !mentioned.includes(f))
+  const reachable = new Set(mentioned)
+  for (const file of mentioned) {
+    for (const dependency of require('./generate-skills').referencesFor(file.slice(0, -3), refDir)) reachable.add(dependency)
+  }
+  const extra = fs.readdirSync(refDir).filter(f => f.endsWith('.md') && !reachable.has(f))
   if (extra.length) fail(`unrouted reference file(s) - dead skill: ${extra.join(', ')}`)
   else ok('no unrouted reference files')
 
@@ -393,7 +397,10 @@ if (hookCode.includes('BOOTSTRAP=')) {
 if (!/plain language with @fde|invoke @fde/.test(hook)) {
   fail('session-start must include a lean @fde / plain-language pointer (not full skill)')
 }
-const skillBody = read('skills/fde/SKILL.md')
+// Record-only instructions are conditionally loaded by the coordinator.
+const coordinatorBody = read('skills/fde/SKILL.md')
+if (!coordinatorBody.includes('references/record-work.md')) fail('coordinator must link its record-backed work instructions')
+const skillBody = coordinatorBody + '\n' + read('skills/fde/references/record-work.md')
 if (!skillBody.includes('Human surface vs agent plumbing')) {
   fail('SKILL.md must define human NL surface vs agent CLI plumbing')
 }

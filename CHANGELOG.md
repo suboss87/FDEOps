@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.2.0 - 2026-10-05
+
+- State the expected result at the entry to each of the 35 independently installable task skills. Keep supplied-context work independent of engagement setup.
+- Load customer-record procedures only when needed by the coordinator, while retaining privacy, authority and continuity requirements.
+- Make PR guidance explicit about observed evidence, affected scope and recovery limits.
+
 ## 5.1.24 - 2026-10-05
 
 - Refuse hyphenated AI-provider keys, including Anthropic-style keys, and short nonempty password, secret and API-key assignments before guarded record writes. Mask the same assignment forms in CLI views.

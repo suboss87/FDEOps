@@ -9,7 +9,7 @@ description: Prepare a customer demo or executive walkthrough around an evidence
 
 ## Purpose
 
-Prepare a customer demo or executive walkthrough around an evidenced outcome. Use before show-and-tell to rehearse the journey and prepare a fallback.
+A demo narrative, rehearsal plan and failure fallback.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

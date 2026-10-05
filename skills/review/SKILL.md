@@ -9,7 +9,7 @@ description: Review a proposed customer code change against its intended outcome
 
 ## Purpose
 
-Review a proposed customer code change against its intended outcome and operational risks. Use for a diff or PR review; report evidence and actionable findings.
+Actionable findings tied to the intended outcome.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

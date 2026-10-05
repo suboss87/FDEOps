@@ -9,7 +9,7 @@ description: Implement a scoped software change for a customer and verify its be
 
 ## Purpose
 
-Implement a scoped software change for a customer and verify its behavior. Use for delivery work with an understood outcome, not incident response.
+An implemented change with verification evidence.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

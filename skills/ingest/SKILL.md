@@ -9,7 +9,7 @@ description: Fetch requested source material and prepare sourced engagement upda
 
 ## Purpose
 
-Fetch requested source material and prepare sourced engagement updates. Use to catch up from external notes or messages; applying updates requires a bound record and confirmation.
+Sourced proposed updates, with confirmed record application when bound.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

@@ -9,7 +9,7 @@ description: Audit an inherited engagement or implementation against its evidenc
 
 ## Purpose
 
-Audit an inherited engagement or implementation against its evidence. Use when taking over work or joining mid-project; distinguish verified facts from inherited claims.
+An audit of inherited claims and takeover risks.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

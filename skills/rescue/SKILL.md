@@ -9,7 +9,7 @@ description: Triage an outage, loss of stakeholder trust or a failing engagement
 
 ## Purpose
 
-Triage an outage, loss of stakeholder trust or a failing engagement direction. Use for urgent recovery; distinguish diagnosis from authorized production mitigation.
+A recovery plan and evidence of authorized mitigation.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

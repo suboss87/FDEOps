@@ -9,7 +9,7 @@ description: Assess the impact of a proposed change on dependencies and shared i
 
 ## Purpose
 
-Assess the impact of a proposed change on dependencies and shared infrastructure. Use before touching unfamiliar or consequential systems.
+A blast-radius assessment and mitigation plan.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

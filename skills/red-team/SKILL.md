@@ -9,7 +9,7 @@ description: Stress-test a plan, brief or delivery claim against evidence and pl
 
 ## Purpose
 
-Stress-test a plan, brief or delivery claim against evidence and plausible failure modes. Use when the user asks for a red team or preparation for a consequential decision.
+A critique of weak claims, failure modes and corrective actions.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

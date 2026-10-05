@@ -9,7 +9,7 @@ description: Clarify a new customer brief, desired outcome, constraints and evid
 
 ## Purpose
 
-Clarify a new customer brief, desired outcome, constraints and evidence gaps. Use for kickoff or a first meeting; do not repeat discovery already supplied.
+A grounded brief with success criteria and open questions.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

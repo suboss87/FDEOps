@@ -9,7 +9,7 @@ description: Draft a board or executive summary of an engagement using outcomes,
 
 ## Purpose
 
-Draft a board or executive summary of an engagement using outcomes, risks and investment decisions. Use when the sponsor needs to brief senior leadership.
+An executive memo separating evidence, risk and decisions.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).

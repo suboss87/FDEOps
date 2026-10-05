@@ -9,7 +9,7 @@ description: Turn meeting notes or a transcript into sourced decisions, changes 
 
 ## Purpose
 
-Turn meeting notes or a transcript into sourced decisions, changes and next actions. Use after a customer conversation; review consequential record updates before saving.
+A sourced meeting summary with decisions and next actions.
 
 Before investigating or acting:
 1. Read [the task context contract](references/task-context.md).
