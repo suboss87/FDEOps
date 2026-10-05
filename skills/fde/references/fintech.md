@@ -2,7 +2,7 @@
 
 **Activate when you hear:** payments, transfers, settlements, reconciliation · PCI-DSS, PSD2, SOX, open banking, SWIFT · banking, lending, insurance, trading, crypto · "we handle money" in any form. Loads **alongside** the active phase, never instead of it.
 
-**Read first:** `trust-profile.md` always - data classification and AI policy before any action. `terrain.md` only when reviewing transaction/cardholder code.
+**Read first:** apply [task context](task-context.md). Use permitted data-classification and AI-policy evidence from the supplied brief or existing `trust-profile.md`; use `terrain.md` when reviewing transaction/cardholder code. Resolve missing permissions before the affected action; continue independent analysis using permitted evidence.
 
 Financial systems carry a failure class others don't: **silent money loss.** A bug that processes a payment twice or drops a transaction is regulatory breach + customer harm + potential criminal liability, not a defect ticket.
 

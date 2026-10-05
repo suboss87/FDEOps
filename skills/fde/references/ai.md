@@ -2,7 +2,7 @@
 
 **Activate when you hear:** AI, ML, machine learning, model, LLM, GPT, inference, embeddings, RAG, agents, fine-tuning, prompt engineering, training data, model drift, hallucination, vector database, neural network, generative AI. Loads **alongside** the active phase, never instead of it.
 
-**Read first:** `trust-profile.md` always - AI policy and data classification before any action. `terrain.md` when reviewing existing AI components.
+**Read first:** apply [task context](task-context.md). Use permitted AI-policy and data-classification evidence from the supplied brief or existing `trust-profile.md`; use `terrain.md` when reviewing existing AI components. Missing records do not block standalone work.
 
 AI systems fail differently from traditional software: they **degrade silently** instead of throwing exceptions. A model that hallucinates returns a 200 OK with confident nonsense. A drifted model passes every unit test while making worse decisions. The monitoring, testing, and governance patterns for AI are fundamentally different.
 
@@ -10,13 +10,13 @@ AI systems fail differently from traditional software: they **degrade silently**
 
 > "Is there an existing AI/ML policy? Who approves production use of AI? What data can leave the network?"
 
-Get these answers before any AI code is written:
+Resolve the following before the action that depends on them: customer-data use, a paid model call or production release. Reuse supplied answers. While approval is pending, an authorized local prototype can use synthetic inputs and stubbed model responses; label what that does not verify.
 - **Model hosting:** cloud API (OpenAI, Anthropic, Google) or self-hosted? Cloud = data leaves the network. Self-hosted = infra cost and maintenance.
 - **Data classification:** what data touches the model? PII in prompts = a compliance conversation before a technical one.
 - **Human-in-the-loop requirements:** which decisions require human review before action? In regulated industries, autonomous AI decisions may be prohibited.
 - **Budget/cost model:** AI inference costs scale with usage. What's the expected volume? What's the cost ceiling?
 
-Record in `trust-profile.md` under `## AI policy`.
+For a bound engagement, record confirmed policy in `trust-profile.md` under `## AI policy`; otherwise retain the supplied constraints with the task.
 
 ## Model selection - choosing the right tool
 
@@ -38,7 +38,7 @@ Write model selection rationale to `decisions.md`. Include: models tested, test 
 
 ## Engagement eval pack (before AI ships)
 
-When any slice touches a model, embeddings, RAG, or an agent: create or update `.fde/evals.md` **before** ship. Full skill: `references/eval-pack.md`. This is the engagement-local test set - not unit tests.
+Before releasing model, embedding, RAG or agent behavior, use [eval-pack](eval-pack.md) with evidence proportional to the intended use and risk. Reuse the project’s existing evaluation artifact; in a bound engagement, link or update `.fde/evals.md`. Standalone work does not require a customer record. A synthetic demo result does not establish production readiness.
 
 **Minimum pack (do not grow until the minimum exists):**
 1. **Component + quality bar** - one sentence each; kill switch / fallback named.

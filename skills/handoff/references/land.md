@@ -4,6 +4,8 @@
 
 **Read first:** apply [task context](task-context.md), then permitted `context.md` evidence if it exists and the supplied brief. Once the engagement type and AI/access policy are known, inspect the supplied repo/docs relevant to the ask before asking questions they can answer. This is a bounded evidence check, not a full discovery scan.
 
+**Bounded engagement:** A new customer does not automatically require a full landing exercise. For a single-outcome task or simulation of any duration, use the supplied brief to establish the outcome, deadline, permitted inputs, acceptance and next authorized action. If those are clear, route to the working task immediately. If one material gap remains, investigate that gap; do not build a stakeholder map or populate engagement files for their own sake. A simulated stakeholder does not justify invented meetings or approval chains. Keep actual data and release authority checks where they affect the work.
+
 ## Validation gate (confirm understanding, clarify where it elevates)
 
 Before landing, state what you know in 2-3 lines:
@@ -12,7 +14,7 @@ Before landing, state what you know in 2-3 lines:
 
 Then check - probe ONLY if it prevents a bad start:
 
-1. **Engagement speed.** If timeline is unclear → weave it in naturally: "Is this days, weeks, or months? That shapes how much structure we set up now."
+1. **Deadline and scope.** Ask about timing only when it changes the next action: "What result is needed by when?" Use uncertainty, dependencies, risk and access to choose the necessary structure; duration alone does not decide it.
 2. **Existing context.** If `.fde/` already exists → one line: "There's existing engagement memory here. Continuing this or starting fresh?"
 3. **Access.** If the FDE is about to start work → one line: "Got repo and environment access sorted, or is that still pending?"
 
