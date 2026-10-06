@@ -146,4 +146,4 @@ Built and maintained by [Subash Natarajan](https://www.linkedin.com/in/subashn/)
 
 ## License
 
-[MIT](LICENSE). Use FDEOps in your customer work.
+[MIT](LICENSE).
