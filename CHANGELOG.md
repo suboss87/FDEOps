@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.2.1 - 2026-10-07
+
+- Consolidate repeated record-access and CLI fallback instructions in the shared task context. Keep standalone use, privacy checks and authority requirements intact.
+
 ## 5.2.0 - 2026-10-05
 
 - State the expected result at the entry to each of the 35 independently installable task skills. Keep supplied-context work independent of engagement setup.
