@@ -64,13 +64,15 @@ When the AI needs to answer questions about the client's data:
 - **Stale index.** Documents update, embeddings don't. Define refresh and deletion handling from source update patterns and acceptable staleness; test them.
 - **Retrieval miss.** The right document exists but wasn't retrieved. Test with known-answer queries where the answer IS in the corpus - if retrieval misses these, the embedding model or chunking strategy needs work.
 
+For permissioned retrieval, apply the [retrieval access checks](eval-pack.md#when-evaluating-permissioned-retrieval), including caches, revoked access, and untrusted source text.
+
 ## Agent and agentic systems
 
 When the AI takes actions (not just generates text):
 
 **Safety principles:**
 - **Least privilege.** An agent gets the minimum permissions needed. Never give an agent admin access "for convenience."
-- **Confirmation gates.** Any destructive or irreversible action requires human confirmation. Delete, send, transfer, publish = confirm before execute.
+- **Action authority.** Follow the documented action boundary and policy in [eval-pack](eval-pack.md). Previously authorized automation can act within its identities, actions, targets, environments, and limits; it does not need fresh confirmation for each action. Require human review where policy or the task requires it. Missing or exceeded authority blocks the action. Enforce permissions and limits outside the model; a model judgment never grants authority.
 - **Observable execution.** Record tool/action summaries, versions, timing, cost, outcomes, validation results, and concise decision rationale. Do not request or store hidden chain-of-thought. Minimize and redact logged inputs/outputs; apply the client’s access, retention, and data policies. Never log raw `<private>` content or secrets.
 - **Deterministic fallbacks.** When the agent fails or is uncertain, it falls back to a known-safe behavior (queue for human review, return a safe default, do nothing). "The agent got confused and did something unexpected" is never acceptable in production.
 - **Cost caps.** Agents in loops can burn through API budgets. Set request and aggregate budgets with bounded retries and stopping conditions. Choose alert thresholds early enough for the owner to act.

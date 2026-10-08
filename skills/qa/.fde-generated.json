@@ -4,9 +4,9 @@
   "files": {
     "SKILL.md": "af0a4ef69e4ded553d99313ffd50468e43e68ba744c24f14d730367d8ebd57ea",
     "agents/openai.yaml": "6c551dbdb5f0d27f908cc6de580a5f0a840dca1e01e1d3feaedd81bd349d8dc9",
-    "references/build.md": "4ebea9776605f79f902d9bf83a065e4cded191d7b5f8defcf58c054514fc34f5",
+    "references/build.md": "daaa7be30ce6e4c42715dc708f877ab1d2270df0dffdcc33680085450b9f0b2f",
     "references/debug.md": "bdc09abdd7a075574fc2daf91cecfd2858e67d75a964146a118bf782328192f6",
-    "references/eval-pack.md": "0590b85d3cae0903c6b1274540c92eaa2a4373047e8a0548d6942516ef0bb9e1",
+    "references/eval-pack.md": "f883ea0be4777c9c3893db0a616b473f172140d5a3a1be4c449570c8608e4d5b",
     "references/integrate.md": "1cb7a60d7545b0bf224fce678a04ce6ccdf368c47877d9c8e4dc4272bb0d5b0c",
     "references/qa.md": "41de4d70827c83291efa217e97d777f62ec2849827687fbba7e4b1d17484b87e",
     "references/review.md": "36b77ed44989a125a36e9948ce19c2ced57d529bee06643e32dda96f896d9d5b",

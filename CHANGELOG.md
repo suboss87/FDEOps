@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.2.2 - 2026-10-08
+
+- Add task-focused UI guidance for existing design systems, interaction states, accessibility and browser verification.
+- Clarify previously authorized AI actions and enforceable permission boundaries.
+- Strengthen model-judge calibration and permissioned retrieval checks, including cached and revoked content.
+- Keep the updated methods available within independently installed task skills.
+
 ## 5.2.1 - 2026-10-07
 
 - Consolidate repeated record-access and CLI fallback instructions in the shared task context. Keep standalone use, privacy checks and authority requirements intact.
