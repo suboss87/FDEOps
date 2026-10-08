@@ -18,6 +18,12 @@ Choose a coherent path through the real entry point, including its necessary sto
 
 Use existing services, fixtures, validation, and repository conventions before adding alternatives. Limit cleanup to making the changed path understandable. For dependency changes, inspect the package source, requested version, lockfile changes, and install-script policy before executing package code. Use the approved package manager and bootstrap controls; do not blanket-enable scripts or include unrelated upgrades.
 
+## When the slice includes a user interface
+
+Start from the user's main task and the existing design system: reuse components, spacing, typography, and interaction conventions. Make the primary action, current state, and next step clear; use realistic content to expose hierarchy and layout problems before polishing. Resolve consequential flow choices with the user, without turning routine implementation into a design workshop.
+
+Cover applicable loading, empty, error, success, and permission states. Keep controls labelled, keyboard-operable, and usable on the intended screen sizes; check focus, contrast, long content, and overflow. Exercise the implemented journey in a browser, including its persisted result, using [QA](qa.md). A screenshot alone does not prove interaction or accessibility; disclose unavailable checks. Non-UI work skips this section.
+
 ## Demonstrate the behavior
 
 Add or update automated coverage when meaningful and feasible, including the relevant failure path. Check that existing tests actually exercise the change. Derive expected results from the agreed behavior or an independent fixture, not by repeating the implementation in the assertion; a passing test must be capable of detecting a wrong result. Explain manual-only coverage and its limits. Run focused checks, then required repository checks; use [QA](qa.md) for the affected journey when appropriate and [eval-pack](eval-pack.md) for uncertain model behavior. Record evidence and unrun checks with [verification](verification.md).
