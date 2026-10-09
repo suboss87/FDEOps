@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.2.3 - 2026-10-09
+
+- Connect observed AI failures to specific checks using existing evaluation reports.
+- Distinguish targeted test coverage from production failure-rate estimates.
+- Check code evaluators against passing, failing and boundary cases before relying on their results.
+
 ## 5.2.2 - 2026-10-08
 
 - Add task-focused UI guidance for existing design systems, interaction states, accessibility and browser verification.
