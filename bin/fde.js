@@ -1631,8 +1631,8 @@ function cmdLog(args) {
   appendLogEntry(eng, type, entry)
   const hash = memoryHead(eng)
   console.log(`logged → ${LOG_FILES[type]}${signal ? ` (signal:${signal})` : ''}${hash ? ` @${hash}` : ''}`)
-  if (type === 'decision' && !/\[source:[^\]]+\]/i.test(text)) {
-    console.log('note: no [source: ...] tag, so this decision counts as a claim. Add where it was decided, e.g. [source: kickoff 2026-10-20].')
+  if (type === 'decision' && !hasSource(text)) {
+    console.log('note: no source found, so this decision counts as a claim. Add where it was decided: [source: kickoff 2026-10-20], a PR reference or a URL.')
   }
   // A dated bullet is a note; the ship gate reads the ledger. Say what this did
   // NOT do, once, so promised→measured→accepted does not quietly stay unassembled.

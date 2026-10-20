@@ -3905,9 +3905,11 @@ test('CLI polish: phase alias note, source hint, export collision and empty-hist
 
     const claim = run(['log', 'decision', 'Keep the existing connector'])
     assert.equal(claim.status, 0)
-    assert.match(claim.stdout, /no \[source: \.\.\.\] tag/)
+    assert.match(claim.stdout, /no source found, so this decision counts as a claim/)
+    assert.doesNotMatch(run(['log', 'decision', 'Use the new queue PR #42']).stdout, /no source found/)
+    assert.match(run(['log', 'decision', 'Use the new queue [source: pending]']).stdout, /no source found/)
     const sourced = run(['log', 'decision', 'Keep the queue [source: kickoff 2026-10-20]'])
-    assert.doesNotMatch(sourced.stdout, /no \[source/)
+    assert.doesNotMatch(sourced.stdout, /no source found/)
 
     const receipts = run(['receipts', 'queue'])
     assert.equal((receipts.stdout.match(/kickoff 2026-10-20/g) || []).length, 1)
