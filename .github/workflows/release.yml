@@ -17,14 +17,21 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # npm provenance
+      id-token: write # npm trusted publishing (OIDC) and provenance
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
+
+      - name: npm supports trusted publishing
+        run: |
+          v=$(npm --version)
+          echo "npm $v"
+          node -e "const [a,b,c]=process.argv[1].split('.').map(Number);process.exit(a>11||(a===11&&(b>5||(b===5&&c>=1)))?0:1)" "$v" \
+            || { echo "refusing: trusted publishing needs npm >= 11.5.1"; exit 1; }
 
       - name: The tag and package.json agree
         run: |
@@ -44,10 +51,10 @@ jobs:
             echo "refusing: fdeops@$pkg is already published"; exit 1
           fi
 
+      # Authenticates through npm trusted publishing: the package's trusted publisher on
+      # npmjs.com must name this repository and release.yml. No long-lived token is used.
       - name: Publish
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Confirm the registry serves it
         timeout-minutes: 12

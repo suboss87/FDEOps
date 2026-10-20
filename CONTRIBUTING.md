@@ -67,7 +67,7 @@ The release workflow publishes to npm when a version tag is pushed, or when manu
 2. Run `npm run check` and review the release diff.
 3. Merge the reviewed change to `Main`; tag that commit as `v<package-version>` and push the tag when ready to publish.
 
-[The workflow](.github/workflows/release.yml) checks version agreement, runs the gate, refuses an already-published version, publishes with provenance using the repository's `NPM_TOKEN` secret, and checks the registry result. Configure that secret with a currently supported npm publishing credential scoped to this package.
+[The workflow](.github/workflows/release.yml) checks version agreement, runs the gate, refuses an already-published version, publishes with provenance through npm trusted publishing, and checks the registry result. The package's trusted publisher on npmjs.com must name this repository and `release.yml`; no long-lived npm token is stored.
 
 ---
 
