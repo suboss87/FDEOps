@@ -33,6 +33,8 @@ Lead with what is being transferred, what the receiving team can demonstrably do
 - The receiving team has accepted the operating responsibilities with a source. Critical operating capabilities (such as access, failure triage, recovery and disabling an AI action) are recorded as verified, failed or untested under the receiving team's intended access. Reuse applicable accepted ownership and drill evidence; a lookup exercise or a run using only the departing FDE's credentials is insufficient. Unresolved critical gaps prevent green closure.
 - Audit receipt exists for the final shipped path (exceptions/operating map walked; cite file).
 - Eval receipt: **n/a if no AI**, else final scoped eval result + operating owner and required human-review or bounded-automation authority recorded; kill switch / fallback named in `handoff.md`.
+- Exit access and record disposition: list each grant the FDE or their agents hold in customer systems (accounts, API keys, OAuth grants, connectors, webhooks, scheduled jobs) with who revokes it and the check that should now fail. A revocation request is not revocation until that check fails. Record what happens to the local engagement record and raw source pulls: returned to the customer, kept with a named owner and retention period, or deleted and how. A vendor deletion request is not deletion. Unrevoked access to customer data prevents green closure.
+- Use after launch: evidence, with its source, that the intended users still use the result after the first weeks, or a note that it was not checked. Name any group that has gone back to the old way and why. Missing use evidence is a recorded gap; it blocks green closure only when `success.md` depends on use.
 - One line in the retrospective: which bucket moved, by how much, vs baseline.
 
 **2. Closure only: the pattern.** Anything that happened here and may happen again - a compliance approach, a migration pattern, a stakeholder dynamic - is a candidate for the client's `patterns.md`. Use [encode-pattern](encode-pattern.md) to record applicability, counterexamples, and evidence. Cross-client generalizations need explicit approval and a user-chosen export destination under the applicable policy; closing an engagement does not authorize an automatic scan or export.
@@ -49,7 +51,7 @@ Lead with what is being transferred, what the receiving team can demonstrably do
 
 For a draft-only request, return the handoff in the requested format with evidence gaps and readiness status. Do not create retrospective or pattern artifacts. The following record destinations apply when closing a bound engagement under its write rules.
 
-**`retrospectives/YYYY-MM-DD-<engagement>.md`** - one file per close, retaining dated lessons for targeted recall within this client. **`patterns.md`** - client pattern candidates and evidence. **`handoff.md`** - the 2am document, including the deployed revision and the policy, access, and ownership evidence current at handoff. If the project reopens, use [land](land.md) to recheck these before dependent action; closure evidence remains historical.
+**`retrospectives/YYYY-MM-DD-<engagement>.md`** - one file per close, retaining dated lessons for targeted recall within this client. **`patterns.md`** - client pattern candidates and evidence. **`handoff.md`** - the 2am document, including the deployed revision, the policy, access, and ownership evidence current at handoff, and the exit access table with each revocation check. If the project reopens, use [land](land.md) to recheck these before dependent action; closure evidence remains historical.
 
 ## Checkpoint
 
@@ -71,7 +73,7 @@ The close gate bites in a useful way. The ledger shows detection at 12 minutes m
 
 ## Principles
 
-- Done = the customer operates without you.
+- Done = the customer operates without you, and none of your access remains.
 - No named value bucket moved (or sponsor-accepted pending) = not a green close.
 - The retrospective is an investment in the next engagement, not a post-mortem.
 - Encode what repeated. The same lesson learned twice is a process failure.
