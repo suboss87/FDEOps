@@ -1283,7 +1283,7 @@ function cmdScan() {
   const langs = Object.entries(extCount).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([e, n]) => `${e}:${n}`).join(' ')
   const birth = isGit ? sh('git log --reverse --format=%ad --date=short').split('\n')[0] : 'n/a'
   const last = isGit ? sh('git log -1 --format=%ad --date=short') : 'n/a'
-  out.push(`STACK  ${langs || 'no code files found'}   first commit: ${birth}   last: ${last}`)
+  out.push(`STACK  ${langs || 'no code files found'}   first commit: ${birth || '(no commits)'}   last: ${last || '(no commits)'}`)
 
   // churn × tests = the load-bearing walls
   out.push('\nHOTSPOTS (churn 90d × test coverage) - handle with care:')
@@ -1594,13 +1594,14 @@ function cmdLog(args) {
 
   // fde log phase <land|discover|plan|ship|outcome|close> - advances portfolio phase (prove → outcome)
   if (type === 'phase') {
-    const phase = canonicalPhase((text || '').toLowerCase().trim())
+    const requested = (text || '').toLowerCase().trim()
+    const phase = canonicalPhase(requested)
     if (!PHASES.includes(phase)) {
       console.error(`usage: fde log phase <${PHASES.join('|')}>`)
       process.exit(1)
     }
     const hash = setContextPhase(eng, phase)
-    console.log(`phase → ${phase}${hash ? ` @${hash}` : ''}`)
+    console.log(`phase → ${phase}${PHASE_ALIASES[requested] ? ` (${requested} is the older name for ${phase})` : ''}${hash ? ` @${hash}` : ''}`)
     return
   }
 
@@ -1630,6 +1631,9 @@ function cmdLog(args) {
   appendLogEntry(eng, type, entry)
   const hash = memoryHead(eng)
   console.log(`logged → ${LOG_FILES[type]}${signal ? ` (signal:${signal})` : ''}${hash ? ` @${hash}` : ''}`)
+  if (type === 'decision' && !/\[source:[^\]]+\]/i.test(text)) {
+    console.log('note: no [source: ...] tag, so this decision counts as a claim. Add where it was decided, e.g. [source: kickoff 2026-10-20].')
+  }
   // A dated bullet is a note; the ship gate reads the ledger. Say what this did
   // NOT do, once, so promised→measured→accepted does not quietly stay unassembled.
   if (type === 'delivery' && !parseValueLedger(eng).rows.length) {
@@ -2668,7 +2672,8 @@ function cmdReceipts(args) {
       const sources = sourceReferences(sourceText)
       const attribution = masking.mask(sources.join('; '))
       const displayed = Buffer.byteLength(attribution) <= 320 ? attribution : context.clipMaskedUtf8(attribution, 240) + '… [sources truncated; use fde recall]'
-      const excerpt = masking.mask(entry ? entry.text : line.trim())
+      // The attribution is appended once below, so drop inline tags from the excerpt.
+      const excerpt = masking.mask((entry ? entry.text : line.trim()).replace(source ? /\s*\[source:[^\]]*\]/gi : /$^/, ''))
       const excerptLimit = entry ? 1400 : 160
       const body = context.clipMaskedUtf8(excerpt, excerptLimit) + (Buffer.byteLength(excerpt) > excerptLimit ? ' [excerpt truncated; use fde recall]' : '')
       const hit = `  ${file}:${entry ? entry.line : i + 1}  ${body}${source ? ` [${sources.length > 1 ? 'sources' : 'source'}: ${displayed}]` : ' [source missing]'}${dirty.has(file) ? '  dirty file - review manual edits' : ''}`
@@ -2750,7 +2755,10 @@ function cmdHandoff(args, label = 'Handoff') {
     if (parent.split(path.sep).includes('.fde') || target === root || target.startsWith(root + path.sep)) throw new Error('export outside .fde/; engagement records are not export destinations')
     fs.writeFileSync(target, report, { flag: 'wx', mode: 0o600 })
     console.log(`${label.toLowerCase()} → ${out}`)
-  } catch (e) { console.error(`could not export packet: ${e.message}`); process.exit(1) }
+  } catch (e) {
+    console.error(e.code === 'EEXIST' ? `${out} already exists; choose another path or remove it first` : `could not export packet: ${e.message}`)
+    process.exit(1)
+  }
 }
 
 function cmdRecall(args) {

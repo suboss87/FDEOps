@@ -3889,3 +3889,38 @@ test('daily fieldbook makes an empty engagement actionable and labels its snapsh
   assert.match(html, /role="dialog"/)
   assert.match(html, /No matching engagements/)
 })
+
+test('CLI polish: phase alias note, source hint, export collision and empty-history scan', () => {
+  const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'fde-polish-')))
+  try {
+    const home = path.join(dir, 'home'), workspace = path.join(dir, 'workspace')
+    fs.mkdirSync(home); fs.mkdirSync(workspace)
+    const env = { ...process.env, HOME: home, USERPROFILE: home, FDEOPS_ENGAGEMENT: '', FDEOS_ENGAGEMENT: '', FDEOPS_ENGAGEMENTS_ROOT: path.join(dir, 'clients') }
+    const run = args => spawnSync(process.execPath, [path.resolve(__dirname, '../bin/fde.js'), ...args], { cwd: workspace, env, encoding: 'utf8' })
+    assert.equal(run(['resume', '--init', 'acme']).status, 0)
+
+    const phase = run(['log', 'phase', 'build'])
+    assert.equal(phase.status, 0)
+    assert.match(phase.stdout, /phase → ship \(build is the older name for ship\)/)
+
+    const claim = run(['log', 'decision', 'Keep the existing connector'])
+    assert.equal(claim.status, 0)
+    assert.match(claim.stdout, /no \[source: \.\.\.\] tag/)
+    const sourced = run(['log', 'decision', 'Keep the queue [source: kickoff 2026-10-20]'])
+    assert.doesNotMatch(sourced.stdout, /no \[source/)
+
+    const receipts = run(['receipts', 'queue'])
+    assert.equal((receipts.stdout.match(/kickoff 2026-10-20/g) || []).length, 1)
+
+    assert.equal(run(['handoff', '--out', path.join(dir, 'packet.md')]).status, 0)
+    const again = run(['handoff', '--out', path.join(dir, 'packet.md')])
+    assert.equal(again.status, 1)
+    assert.match(again.stderr, /already exists; choose another path/)
+    assert.doesNotMatch(again.stderr, /EEXIST/)
+
+    const empty = path.join(dir, 'empty-repo'); fs.mkdirSync(empty)
+    spawnSync('git', ['init', '-q'], { cwd: empty })
+    const scan = spawnSync(process.execPath, [path.resolve(__dirname, '../bin/fde.js'), 'scan'], { cwd: empty, env, encoding: 'utf8' })
+    assert.match(scan.stdout, /first commit: \(no commits\)\s+last: \(no commits\)/)
+  } finally { fs.rmSync(dir, { recursive: true, force: true }) }
+})

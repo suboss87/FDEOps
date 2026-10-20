@@ -112,6 +112,8 @@ node bin/install.js adapters /path/to/client-workspace
 
 Defaults to the current directory if no path is given.
 
+What it writes: all five pointer files below in that workspace, and, if `~/.claude/skills/fde/SKILL.md` is missing, the skill pack, session hooks and a CLI copy under `~/.claude/`, because every pointer refers to that skill file. It prints each destination as it goes.
+
 | Tool | Pointer file written |
 |------|----------------------|
 | Codex / OpenAI / generic | `AGENTS.md` |
