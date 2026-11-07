@@ -41,7 +41,7 @@ Lead with what is being transferred, what the receiving team can demonstrably do
 
 **3. The handoff.** Operational knowledge for the person woken at 2am, not technical documentation: the relevant observed failures, their recovery steps and any untested procedure · who holds the tribal knowledge · what each alert means · deploy and rollback in plain language. AI components additionally: model version, what normal output looks like (so drift is recognisable), fallback behaviour, who owns evaluation and corrective changes, and how to disable or contain the AI path using the supported fallback. Do not assume retraining is available or appropriate.
 
-**3b. Stage the exit.** Transfer in three steps. Each step ends on evidence, not on a date:
+**3b. Stage the exit.** Transfer operations in three steps. Move to the next step only when its exit evidence exists; a date alone is not enough:
 
 | Step | Who operates | Exit evidence |
 |------|--------------|---------------|
