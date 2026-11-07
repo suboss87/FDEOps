@@ -83,6 +83,17 @@ Choose an early useful result within confirmed scope: a verified small fix, a pe
 
 **`brief.md`** - what they said, who sent the FDE, the timeline, **and the gap list**.
 
+**Site survey** - a `## Site survey` section in `brief.md`, written in the first week from permitted observation, not from the pitch:
+
+| Field | Record |
+|-------|--------|
+| Systems | Each source of record, its owner, where the bulk data sits, known quality problems |
+| Constraints | Identity and access path, network reach, what must not leave the customer boundary |
+| The gap | What the product or current stack cannot do alone, and the glue the FDE must build |
+| First visible result | One bounded outcome for week two that a named person will notice |
+
+Mark each row `observed` or `stated`. A stated row is an assumption; add it to `assumptions.md`.
+
 **`success.md`** - what done looks like, **primary value bucket** (`cost-save` | `risk-mitigation` | `revenue-uplift`), baseline → target, who actually signs off, what is explicitly out of scope. Record agreement only with its source and scope; otherwise label the target proposed. For each baseline, record source, date/window, environment, and sample size when relevant. An operator recollection is reported, not measured. If no baseline exists, name the measurement owner and cheapest way to obtain it; do not manufacture a number.
 
 For every target number, run the **gaming check** before it is written down: *how could this metric hit its target without the customer being any better off?* Identify plausible failure modes without predicting that the customer will exploit them. Write a relevant guard next to the metric:

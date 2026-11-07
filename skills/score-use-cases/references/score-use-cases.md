@@ -12,6 +12,16 @@ The most dangerous moment in a multi-use-case engagement is when the technically
 
 Before ranking work for the proposed step, identify hard feasibility, access, data-permission and policy constraints. Keep blocked or unverified candidates visible with the affected step, owner or authority gap, and evidence needed to reconsider. A high score cannot make dependent work eligible. An authorized design or evidence check may proceed while implementation is blocked; a sponsor's preference does not grant missing API or data permission.
 
+**1b. Check the go gate before scoring.** Five conditions. A candidate that fails one is listed as blocked with the owner who can clear it; it is not ranked:
+
+| Condition | Pass |
+|-----------|------|
+| Real pain | A named person feels it today and can describe its cost |
+| Bounded scope | A first result can land inside 60 to 90 days |
+| Countable value | A metric with a baseline, or a named owner who can measure one |
+| Data readiness | Green: reachable now. Amber: reachable after a named grant. Red: not available |
+| Named owner | A customer-side person accepts the result and operates it afterwards |
+
 **2. Score on five dimensions.** Each 1-5, with the scoring rubric below. Reuse discovery's evidence and rationale, rechecking whether the candidates are eligible for the same next step. Do not invent dimension scores from a thin brief - write `unknown`, return a conditional recommendation and ask only what changes the decision.
 
 | Dimension | 1 | 3 | 5 |
