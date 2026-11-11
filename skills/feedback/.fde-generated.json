@@ -4,7 +4,7 @@
   "files": {
     "SKILL.md": "d32985254af402942e636f3d5f2c18e6a1ceff093675b4aca1eb3557e3bd2339",
     "agents/openai.yaml": "6b8d024e9ea9676a2607b76a6f1fcd2fbcba585af2990b1172dbdb8cec0364c6",
-    "references/encode-pattern.md": "10fc5679752f0ea0b4d3004e4c7e282bb17f9b496ab99e5c7aae04ac942fb3c1",
+    "references/encode-pattern.md": "cbe73e7784b6a21093e555a50919ed26c7511e3024a1313eef34e4f9e7885bab",
     "references/task-context.md": "7885c38b6342920b91caf1682fd06e9edd59f15941e96575f168acb95ea4398d"
   }
 }

@@ -6,11 +6,11 @@
     "agents/openai.yaml": "731f3c81d46444af542369f0aa27736d24530d00fc1aa717436ddefe3f3bdef7",
     "references/build.md": "daaa7be30ce6e4c42715dc708f877ab1d2270df0dffdcc33680085450b9f0b2f",
     "references/debug.md": "fc52e8fb7fd3ef555176fda6ad1a1b3ef4ed2400f41ac0d7c0e97d63169f224e",
-    "references/eval-pack.md": "40ca29fbee82ac1846d3a31ddf92ef20c6d7906ade53571decf81d2f79ee936c",
+    "references/eval-pack.md": "5a784ab5ecacb85c8704e129dbf0ec9733370d54284aa2fd449e799db15690a5",
     "references/integrate.md": "1cb7a60d7545b0bf224fce678a04ce6ccdf368c47877d9c8e4dc4272bb0d5b0c",
     "references/qa.md": "41de4d70827c83291efa217e97d777f62ec2849827687fbba7e4b1d17484b87e",
     "references/review.md": "36b77ed44989a125a36e9948ce19c2ced57d529bee06643e32dda96f896d9d5b",
-    "references/ship.md": "95f51772b29de6f7d174f1f7678f15d46a3a5327dcb8facb94288e27907ae92c",
+    "references/ship.md": "67490410aac89bfbe2121a9936f70516b2db3df7f737da05471a8c05099f9201",
     "references/task-context.md": "7885c38b6342920b91caf1682fd06e9edd59f15941e96575f168acb95ea4398d",
     "references/verification.md": "8ee2502112a37eedfdacf929041e7b91e9e6fabb007408a1ee2e2992e3af6ff6"
   }

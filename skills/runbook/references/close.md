@@ -41,6 +41,16 @@ Lead with what is being transferred, what the receiving team can demonstrably do
 
 **3. The handoff.** Operational knowledge for the person woken at 2am, not technical documentation: the relevant observed failures, their recovery steps and any untested procedure · who holds the tribal knowledge · what each alert means · deploy and rollback in plain language. AI components additionally: model version, what normal output looks like (so drift is recognisable), fallback behaviour, who owns evaluation and corrective changes, and how to disable or contain the AI path using the supported fallback. Do not assume retraining is available or appropriate.
 
+**3b. Stage the exit.** Transfer operations in three steps. Move to the next step only when its exit evidence exists; a date alone is not enough:
+
+| Step | Who operates | Exit evidence |
+|------|--------------|---------------|
+| Run alongside | The customer runs it; the FDE fixes in the open | Several consecutive weeks with no FDE intervention |
+| Shadow | The customer runs it; the FDE only watches and keeps a weekly list of missed issues | The customer's calls on anomalies match the FDE's calls several times in a row |
+| Exit | The customer alone; one escalation channel remains | The last shadow list is empty; a check-in is booked months out |
+
+Three assets must be rehearsed, not read: a one-page operating note (who watches which alert, which page for which incident, when to roll back); the eval set with a named maintainer and a refresh cadence; an incident playbook with a first response per failure class. Record each as `rehearsed by <name> on <date>` or `untested`. If the customer cannot reach exit, name managed operation as a priced line with its own scope; do not leave it as an open favor. Hold at least two customer relationships beyond the sponsor; a sponsor who leaves is the common cause of quiet churn.
+
 **4. Transformation engagements - four extra answers in `handoff.md`:**
 - Who owns AI governance after the FDE leaves? (Who can pull a model from production?)
 - The response trigger: an agreed signal, threshold, observation window, owner and action. For example, a critical action-boundary failure can require pausing that path and investigating. Diagnose whether the cause is data, retrieval, configuration, integration or model behavior before choosing a correction; retraining is only one possible response.

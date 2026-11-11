@@ -79,6 +79,10 @@ Cross-client reuse requires an explicitly approved generalization exported to a 
 
 A pattern learned twice is a process failure. Encoding it prevents the third time.
 
+## Tag the customization
+
+Tag each customization built in the engagement: `one-off` (this customer only), `industry-common` (customers in this sector will need it) or `general` (any customer will need it). Record the tag with the pattern and in `delivery.md`. A `one-off` carries a sunset date and an owner who removes or replaces it. Across engagements, the share of `one-off` work should fall. If it does not fall over three engagements, the feedback loop to the product is broken; say so in the retrospective.
+
 ## Artifact
 
 **`patterns.md`** - candidates and evidence for this engagement, indexed by stage and situation trigger. A cross-client export is separate and explicitly approved, to a user-chosen destination: remove names, identifiers, distinctive operational details, secrets, and confidential code or data. Keep source receipts in the original record and export only permitted generalizations with their limits and counterexamples.

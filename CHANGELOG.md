@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- The brief now holds a first-week site survey: systems, constraints, the gap the FDE must bridge, and the first visible result.
+- Use-case scoring now starts with a go gate: real pain, bounded scope, countable value, data readiness and a named owner.
+- The status report now names the one sponsor action needed and the 30-day horizon.
+- The close method now stages the exit in three steps with exit evidence, and lists the three assets the customer must rehearse.
+- Encoded patterns now carry a customization tag (one-off, industry-common, general) with a sunset date on one-offs.
+- The business case now covers the three pricing models, the preconditions for outcome pricing and the five contract items.
+
 ## 5.2.3 - 2026-10-09
 
 - Connect observed AI failures to specific checks using existing evaluation reports.
