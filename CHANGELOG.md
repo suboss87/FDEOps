@@ -1,7 +1,12 @@
 # Changelog
 
-## Unreleased
+## 5.2.4 - 2026-11-20
 
+- The close method now includes removing your own access: a table of each key, token, integration and scheduled job you hold, who revokes it, and the check that proves it is gone, plus a decision on local `.fde/` records.
+- The close method now checks, weeks after launch, that people still use the result.
+- The debug method now adds a hazard sweep after each fix: name the hazard, find other places with the same hazard, and prefer a fix that prevents the mistake over one that only warns.
+- CLI: note that `build` is the older name for `ship`, flag decisions recorded without a source, give a clear message when an export path already exists, and print `(no commits)` for an empty history.
+- Publish releases through npm trusted publishing instead of a stored token.
 - The brief now holds a first-week site survey: systems, constraints, the gap the FDE must bridge, and the first visible result.
 - Use-case scoring now starts with a go gate: real pain, bounded scope, countable value, data readiness and a named owner.
 - The status report now names the one sponsor action needed and the 30-day horizon.
