@@ -61,6 +61,12 @@ The sponsor who sees you've identified where the case could break trusts the cas
 **Recommendation:** <proceed / proceed-with-conditions / defer>
 ```
 
+## When the sponsor asks how the work is priced
+
+Three models carry different risk. Time and materials: the customer carries the outcome risk. Fixed scope: the vendor carries the scope risk, and change control is the safeguard. Outcome share: both carry it, and it needs four preconditions: a measured baseline, attribution the customer's finance team accepts, a cash gap the vendor can survive, and a downside floor. The FDE does not set the price; the FDE's evidence sets whether outcome pricing is possible. Record the model in `business-case.md`.
+
+Whatever the model, five items belong in the agreement: the acceptance criteria and who judges them, the customer's cooperation duties, milestones with their rollout steps, responsibility after handoff, and ownership (custom code to the customer, reusable components to the vendor, the eval set travels with the handoff). A missing item is a `decisions.md` gap, not an assumption.
+
 ## Artifact
 
 **`business-case.md`** - the one-page case. Lives alongside `success.md` and `reality.md` as a first-class engagement artifact. Referenced by plan, status, and close.

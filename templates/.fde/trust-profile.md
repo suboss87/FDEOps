@@ -4,6 +4,7 @@
 
 **AI code policy:**
 **Approval chain:**
+**Do not change without asking:** <!-- paths, settings, kill switches, pricing tables the customer protects -->
 **Data kept out of model context (tag below; do not paste raw):**
 
 <private>

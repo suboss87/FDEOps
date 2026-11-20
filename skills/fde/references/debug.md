@@ -22,7 +22,7 @@ After two unsuccessful repair cycles, reassess the evidence and approach. That i
 
 Fix the cause at the appropriate layer, preserving evidence of the original failure. Consider other callers, stale data, retries, concurrency, and permissions; leave unrelated cleanup out.
 
-Name the hazard behind the mistake, not just the bad line, and search for other places where the same hazard exists. Report how many you found and which you fixed or left with an owner. Prefer a fix that makes the mistake impossible over one that warns about it, and a warning over a check that only detects it afterwards; say which you chose.
+Name the hazard behind the mistake, not just the bad line, and search for other places where the same hazard exists. Report how many you found and which you fixed or left with an owner. Prefer a fix that makes the mistake impossible over one that warns about it, and a warning over a check that only detects it afterwards; say which you chose. End with one recurrence line: `Recurrence: down | unchanged - <mechanism>`. A fix that only silences the alert or retries past the error is `unchanged`; say so.
 
 Add a regression check when it can meaningfully reproduce the bug. Show failure before and success after when practical, and disclose when the before-state could not be checked. Exercise the original journey and run affected adjacent and required checks using [verification](verification.md). Review the diff; use [review](review.md) for substantial or risky fixes.
 

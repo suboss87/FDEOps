@@ -51,7 +51,7 @@ During rollout inspect health, errors, key user behavior, and side-effect integr
 
 Run permitted smoke and acceptance checks against the deployed candidate. Record deployment identity/time, observed signals, sample/window, failures, recovery actions, and remaining gaps. Define the pulse: metric, cadence, threshold, owner, and response. For AI, include permitted output sampling and drift/action-boundary monitoring.
 
-Before wider exposure, verify expected load/cost, data pipeline behavior, ownership, support, and applicable governance for the proposed audience. Choose expansion conditions from evidence; a successful pilot does not establish readiness for an arbitrary larger scale. Measure adoption against the eligible users, expected workflow frequency, and agreed observation window; investigate misses without guessing their cause.
+Before wider exposure, verify expected load/cost, data pipeline behavior, ownership, support, and applicable governance for the proposed audience. Choose expansion conditions from evidence; a successful pilot does not establish readiness for an arbitrary larger scale. Measure adoption against the eligible users, expected workflow frequency, and agreed observation window; investigate misses without guessing their cause. Report two rates with their denominators pinned in `success.md`: activation (users who completed the workflow at least once ÷ eligible users) and fallback (work that went back to the old path ÷ eligible work). Before blaming training, ask three incentive questions: did anyone's scorecard change; who keeps the time saved; who carries the blame when the system errs. A no on all three predicts low use regardless of quality.
 
 ## Receipt and completion
 
