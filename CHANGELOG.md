@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.2.4 - 2026-10-21
+
+- The close method now includes removing your own access: a table of each key, token, integration and scheduled job you hold, who revokes it, and the check that proves it is gone, plus a decision on local `.fde/` records.
+- The close method now checks, weeks after launch, that people still use the result.
+- The debug method now adds a hazard sweep after each fix: name the hazard, find other places with the same hazard, and prefer a fix that prevents the mistake over one that only warns.
+- CLI: note that `build` is the older name for `ship`, flag decisions recorded without a source, give a clear message when an export path already exists, and print `(no commits)` for an empty history.
+- Publish releases through npm trusted publishing instead of a stored token.
+
 ## 5.2.3 - 2026-10-09
 
 - Connect observed AI failures to specific checks using existing evaluation reports.
