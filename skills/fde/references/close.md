@@ -26,6 +26,7 @@ Lead with what is being transferred, what the receiving team can demonstrably do
 - Which trust moments mattered?
 - What did the codebase teach that `terrain.md` didn't know at the start?
 - Which risk almost became real?
+- Fix the class: sample up to five fixes from this engagement. For each, did the hazard sweep run, and did the same failure return? A failure that returned twice is a class; name the change that prevents it, or record it as an open risk with an owner.
 - AI components: did they behave in production? What failure modes did the prototype hide? Is the team equipped to maintain them?
 
 **1b. Closure/readiness assessment only: value + receipts gate (refuse green close if any fail):**

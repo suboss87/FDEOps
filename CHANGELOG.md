@@ -8,6 +8,9 @@
 - The close method now stages the exit in three steps with exit evidence, and lists the three assets the customer must rehearse.
 - Encoded patterns now carry a customization tag (one-off, industry-common, general) with a sunset date on one-offs.
 - The business case now covers the three pricing models, the preconditions for outcome pricing and the five contract items.
+- The debug method now ends each fix with a recurrence line: down or unchanged, and the mechanism.
+- The close retrospective now samples fixes for recurring failures and names the change that prevents each class.
+- The trust profile now has a "do not change without asking" list, and the build method asks before it edits a listed path.
 
 ## 5.2.3 - 2026-10-09
 

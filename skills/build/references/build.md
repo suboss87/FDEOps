@@ -10,6 +10,8 @@ Follow [task context](task-context.md). Supplied permitted context or an existin
 
 Inspect repository instructions, working tree, relevant callers, examples, and test commands. Preserve unrelated edits. Follow its branch policy and choose checkout isolation according to overlapping work. Identify the dependencies and interfaces the change touches. Before changing an untested legacy path, use targeted characterization checks to capture undocumented behavior callers rely on; separate that behavior from the intended change.
 
+Read **Do not change without asking** in `trust-profile.md` when it exists. Ask before you edit a listed path or setting, even for a routine fix; record the answer in `decisions.md`.
+
 State the observable outcome, constraints, and acceptance checks, reusing agreed criteria for routine fixes. Surface unresolved consequential product choices while continuing independent investigation; do not invent acceptance.
 
 ## Build one complete slice
